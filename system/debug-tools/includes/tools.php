@@ -516,6 +516,29 @@ function getDebugTools() {
             'duration' => 'Instant',
             'persists' => 'Nothing. Read-only - it reads folders, file names and permissions. It shows folder and file names, so keep the report to yourself if any of them are private.',
         ],
+        [
+            // GH #365: the bell said "Handed to your team by X" and X had never touched
+            // the ticket. The bell keeps only a name; the ticket history keeps the truth.
+            'id'       => 'D021',
+            'slug'     => 'd021',
+            'file'     => 'D021_bell_vs_history.php',
+            'title'    => 'Notification bell - did that person really do it?',
+            'category' => 'Tickets',
+            'icon'     => 'shield',
+            'desc'     => 'Name a ticket from the bell and see every notification raised for it beside the ticket\'s own history - who the bell named, who or what really made each change, and whether they agree.',
+            'keywords' => 'notification notifications bell wrong name wrong person handed to your team assigned to you by reassigned actor who did it workflow automatic system audit history d021 365',
+            'input'    => ['name' => 'ref', 'label' => 'Ticket reference', 'placeholder' => 'e.g. TICKET-000107'],
+            'when'     => 'Run this when the bell says somebody did something to a ticket - "Handed to your team by ...", "Assigned to you by ...", "... changed the status" - and that person says they did not. The bell keeps only a copy of a name, taken when the notification was written; the ticket\'s history (Audit) records who really made each change, or "System" when a workflow did. Before 5.8.0 the bell named whoever was signed in for the request a change happened in, so an automatic change - a workflow assigning a team, say - could be credited to a person whose inbox merely happened to be open. This report puts the two side by side.',
+            'checks'   => [
+                'Every bell row raised for the ticket: when, the words it showed (built exactly as the bell builds them), the name it kept, who received it - one change sent to a whole team is shown once with its recipients',
+                'The ticket\'s history: every change with who made it - a person, "System" for a workflow, or a former analyst',
+                'Workflows that ran on the ticket, and which of them ran close to each notification',
+                'Each notification paired with the history line of the same kind (Team, Owner, Status, Priority, Ticket Created, the note itself, the reply\'s email) nearest in time, with how many seconds apart',
+                'A verdict for each: MATCH, MISMATCH (different people), AUTOMATIC CREDITED TO A PERSON (the history says a workflow did it, the bell names someone), NOT FOUND or NOT CHECKED - grouped rows ("3 updates") say only the latest can be checked',
+            ],
+            'duration' => 'Instant',
+            'persists' => 'Nothing. Read-only. It shows analysts\' names, who received each notification and the ticket subject, so keep the report to the people looking into it.',
+        ],
     ];
 }
 

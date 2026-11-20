@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3021 | System | Feature | **Debug tool D021 - Notification bell: did that person really do it? (GH #365, reported by @duongtuanan).** Name a ticket and see every bell row raised for it (the words as the bell builds them, the name kept in `notifications.actor_name`, who received it - one change to a whole team shown once) beside the ticket's `ticket_audit` history (a person, System = analyst_id NULL, or a former analyst) and the `workflow_executions` that ran on it; each bell row is paired with the nearest history line of its kind within 120s (Team / Owner / Status / Priority / Ticket Created, the note's author, the reply's email) and given MATCH, MISMATCH, AUTOMATIC CREDITED TO A PERSON, NOT FOUND or NOT CHECKED. Grouped rows are flagged: an unread row is coalesced by `NotificationsService` and keeps only the latest event's kind, name and time. Reproduced #365 on the test install with it: a workflow on ticket.priority_changed assigning a team, triggered by an analyst changing priority through assign_ticket.php - the bell said "Handed to your team by" that analyst, the history said System, the tool said AUTOMATIC CREDITED TO A PERSON; a hand assignment by the same analyst gave MATCH (positive control). Administrators only; read-only; shows names and ticket subjects. |
 
 
 
