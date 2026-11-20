@@ -24,6 +24,12 @@ $search = $_GET['search'] ?? '';
 require_once '../../includes/asset_retirement.php';
 $includeRetired = !empty($_GET['include_retired']);
 $alsoId = isset($_GET['also_id']) ? (int)$_GET['also_id'] : 0;
+// ?due=warranty / ?due=lease: only the assets Watchtower's Assets card counts as
+// warranty ending / lease ending (discussion #388). The card never counts a
+// retired asset, so neither does this list, whatever the Show retired switch says.
+$due = in_array($_GET['due'] ?? '', ['warranty', 'lease'], true) ? $_GET['due'] : '';
+$dueDays = null;
+if ($due !== '') $includeRetired = false;
 
 try {
     $conn = connectToDatabase();
@@ -265,6 +271,20 @@ try {
         $sql .= $alsoId > 0 ? ' AND (a.retired_datetime IS NULL OR a.id = ?)' : ' AND a.retired_datetime IS NULL';
         if ($alsoId > 0) $params[] = $alsoId;
     }
+    if ($due !== '') {
+        // The same rule and window as the card (includes/asset_expiry_due.php). The
+        // company filter above stays - this only narrows. Before Database Verification
+        // has added lease_expiry there is nothing to match (and the card shows no lease).
+        require_once '../../includes/asset_expiry_due.php';
+        $dueDays = assetExpiryWindow($conn, $due)['days'];
+        if ($due === 'lease' && !$leaseReady) {
+            $sql .= ' AND 1 = 0';
+        } else {
+            [$dueSql, $dueArgs] = assetExpiryDueSql($conn, $due, 'a', $dueDays);
+            $sql .= $dueSql;
+            $params = array_merge($params, $dueArgs);
+        }
+    }
 
     if ($tableExists) {
         $groupBy = " GROUP BY a.id, a.hostname, a.manufacturer, a.model, a.memory, a.service_tag, a.operating_system, a.feature_release, a.build_number, a.cpu_name, a.speed, a.bios_version, a.location_id, a.purchase_date, a.purchase_cost, a.supplier_id" . ($basisReady ? ', a.purchase_cost_basis' : '') . ($leaseReady ? ', a.lease_expiry' : '') . ($leaseStartReady ? ', a.lease_start' : '') . ($ccReady ? ', a.cost_centre_id' : '') . ", a.order_number, a.warranty_expiry, a.first_seen, a.last_seen" . ($retiredReady ? ', a.retired_datetime, a.retired_reason' : '');
@@ -449,7 +469,9 @@ try {
     echo json_encode([
         'success' => true,
         'assets' => $assets,
-        'users_assets_table_exists' => $tableExists
+        'users_assets_table_exists' => $tableExists,
+        // The window a ?due= list was built with, for its banner (discussion #388).
+        'due_days' => $dueDays
     ]);
 
 } catch (Exception $e) {

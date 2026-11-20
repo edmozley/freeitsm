@@ -421,4 +421,10 @@ return [
         'tip6_b' => 'Pembaruan otomatis',
         'tip6_t' => 'Data perangkat lunak disegarkan setiap kali skrip PowerShell berjalan di sebuah mesin. Setel tugas terjadwal untuk berjalan setiap hari dan inventaris Anda akan selalu mencerminkan keadaan terkini lingkungan Anda.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Diperpanjang dalam {days} hari',
+        'notice' => 'Masa pemberitahuan dimulai dalam {days} hari',
+        'remove' => 'Hapus filter ini',
+    ],
 ];

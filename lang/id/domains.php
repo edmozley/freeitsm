@@ -1441,4 +1441,10 @@ return [
             'p4' => 'Koneksi (item CMDB, tiket, runbook, layanan Status Layanan) belum ada di REST API - dibuat dan dibaca di layar.',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Kedaluwarsa dalam {days} hari',
+        'ssl' => 'Sertifikat kedaluwarsa atau akan kedaluwarsa dalam {days} hari',
+        'remove' => 'Hapus filter ini',
+    ],
 ];

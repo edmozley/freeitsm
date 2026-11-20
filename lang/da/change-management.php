@@ -44,6 +44,11 @@ return [
         'work' => 'Arbejde: {date}',
         'unassigned' => 'Ikke tildelt',
     ],
+    // A list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'open' => 'Åbne ændringer, som talt på Watchtower',
+        'remove' => 'Fjern filter',
+    ],
     'detail' => [
         'back' => 'Tilbage',
         'share' => 'Del',

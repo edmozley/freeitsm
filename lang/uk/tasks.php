@@ -46,6 +46,12 @@ return [
         'board' => 'Дошка',
         'list' => 'Список',
     ],
+    // A board or list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'status' => 'Статус: {status}',
+        'open' => 'Відкриті завдання, як їх рахує Watchtower',
+        'remove' => 'Прибрати фільтр',
+    ],
     'filter' => [
         'hide_done' => 'Сховати виконані',
         'my' => 'Мої завдання',

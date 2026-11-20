@@ -512,7 +512,10 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     // -- Contracts --
     // Customer contracts outside the viewer's companies are not counted (#153).
     require_once __DIR__ . '/contract_party.php';
-    [$ctVis, $ctArgs] = contractVisibilitySql($conn, (int)$analystId, 'k');
+    // contractListSql, not contractVisibilitySql (discussion #388): the card counts what the
+    // contracts LIST shows - following the company switcher, as the Domains and Projects cards
+    // already do - so a count's link opens a list with the same number in it.
+    [$ctVis, $ctArgs] = contractListSql($conn, (int)$analystId, 'k');
     $ctCount = function (string $where) use ($conn, $ctVis, $ctArgs): int {
         $s = $conn->prepare("SELECT COUNT(*) FROM contracts k WHERE $where$ctVis");
         $s->execute($ctArgs);
@@ -768,54 +771,37 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $__q->execute($asCoArgs);
     $asNotSeen = (int)$__q->fetchColumn();
 
-    // Warranty expiries — only surfaced here when the asset_warranty_surface
+    // Warranty and lease expiries - only surfaced here when their *_surface
     // setting includes the dashboard. Counts assets already expired or expiring
-    // within asset_warranty_days (default 30). Defensive: warranty_expiry may
-    // not exist until a DB verification has run.
-    $wtSurface = 'dashboard';
-    $wtDays = 30;
-    try {
-        $set = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('asset_warranty_surface','asset_warranty_days')")->fetchAll(PDO::FETCH_KEY_PAIR);
-        if (!empty($set['asset_warranty_surface'])) $wtSurface = $set['asset_warranty_surface'];
-        if (!empty($set['asset_warranty_days']) && (int)$set['asset_warranty_days'] > 0) $wtDays = (int)$set['asset_warranty_days'];
-    } catch (Exception) { /* defaults */ }
-    $wtShowWarranty = in_array($wtSurface, ['dashboard', 'both'], true);
+    // within the window (30 / 60 days by default). The rule and the window live
+    // in includes/asset_expiry_due.php so the asset table opened from these
+    // counts (?due=warranty / ?due=lease, discussion #388) lists the same assets.
+    //
+    // 🔴 lease_expiry is newer than the rest of the procurement block and does
+    // NOT exist until Database Verification has run. The try/catch is what
+    // keeps the whole dashboard - every other card on it - from going blank on
+    // an install that has pulled the update and not yet run it.
+    require_once __DIR__ . '/asset_expiry_due.php';
+    ['show' => $wtShowWarranty, 'days' => $wtDays] = assetExpiryWindow($conn, 'warranty');
     $asWarranty = 0;
     if ($wtShowWarranty) {
         try {
-            $w = $conn->prepare("SELECT COUNT(*) FROM assets WHERE warranty_expiry IS NOT NULL AND warranty_expiry <= DATE_ADD({$todaySql}, INTERVAL ? DAY)" . $asCo);
-            $w->execute(array_merge([$wtDays], $asCoArgs));
+            [$wSql, $wArgs] = assetExpiryDueSql($conn, 'warranty', '', $wtDays);
+            $w = $conn->prepare("SELECT COUNT(*) FROM assets WHERE 1 = 1{$wSql}" . $asCo);
+            $w->execute(array_merge($wArgs, $asCoArgs));
             $asWarranty = (int)$w->fetchColumn();
         } catch (Exception) { $wtShowWarranty = false; }
     }
 
-    // Lease expiries — the same shape as warranty above, with its own setting
-    // pair and its own window (60 days by default rather than 30: a warranty
-    // running out is worth noting, a lease ending is a date you have to have
-    // done something about beforehand).
-    //
-    // 🔴 The column is newer than the rest of the procurement block and does
-    // NOT exist until Database Verification has run. The try/catch is what
-    // keeps the whole dashboard — every other card on it — from going blank on
-    // an install that has pulled the update and not yet run it.
-    $ltSurface = 'dashboard';
-    $ltDays = 60;
-    try {
-        $lset = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('asset_lease_surface','asset_lease_days')")->fetchAll(PDO::FETCH_KEY_PAIR);
-        if (!empty($lset['asset_lease_surface'])) $ltSurface = $lset['asset_lease_surface'];
-        if (!empty($lset['asset_lease_days']) && (int)$lset['asset_lease_days'] > 0) $ltDays = (int)$lset['asset_lease_days'];
-    } catch (Exception) { /* defaults */ }
-    $wtShowLease = in_array($ltSurface, ['dashboard', 'both'], true);
+    ['show' => $wtShowLease, 'days' => $ltDays] = assetExpiryWindow($conn, 'lease');
     $asLease = 0;
     if ($wtShowLease) {
         try {
-            // Machines already handed back keep their lease_expiry as a record - not due back.
-            require_once __DIR__ . '/leases.php';
-            $goneBack = leaseReady($conn) ? ' AND NOT ' . leaseGoneBackSql('a') : '';
+            [$lSql, $lArgs] = assetExpiryDueSql($conn, 'lease', 'a', $ltDays);
             [$aCo, $aCoArgs] = wtCompanyClause($conn, (int)$analystId, 'a');
             $aCo .= assetNotRetiredSql($conn, 'a');   // retired assets are not given back on a lease reminder
-            $l = $conn->prepare("SELECT COUNT(*) FROM assets a WHERE a.lease_expiry IS NOT NULL AND a.lease_expiry <= DATE_ADD({$todaySql}, INTERVAL ? DAY){$goneBack}" . $aCo);
-            $l->execute(array_merge([$ltDays], $aCoArgs));
+            $l = $conn->prepare("SELECT COUNT(*) FROM assets a WHERE 1 = 1{$lSql}" . $aCo);
+            $l->execute(array_merge($lArgs, $aCoArgs));
             $asLease = (int)$l->fetchColumn();
         } catch (Exception) { $wtShowLease = false; }
     }
@@ -903,7 +889,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     // workload it is, the project manager. Mine = the projects I manage, Team =
     // those my teams' analysts manage. Company-scoped and module-gated like
     // Domains; $analystId 0 (the browser extension with no analyst) sees all.
-    $pj = ['live' => 0, 'green' => 0, 'amber' => 0, 'red' => 0, 'breaches' => 0, 'stages_week' => 0, 'milestones_week' => 0, 'milestones_missed' => 0, 'off_track' => [], 'show' => false];
+    $pj = ['live' => 0, 'green' => 0, 'amber' => 0, 'red' => 0, 'breaches' => 0, 'stages_week' => 0, 'milestones_week' => 0, 'projects_week' => 0, 'milestones_missed' => 0, 'off_track' => [], 'show' => false];
     $pjAllowed = $analystId <= 0 || analystCanAccessModule($conn, $analystId, 'projects');
     if ($pjAllowed) {
         try {
@@ -947,6 +933,23 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
                             AND due_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 7 DAY)"
                     )->fetchColumn();
                 } catch (Throwable) { /* no milestones yet */ }
+                // The card's "this week" number counts PROJECTS with a stage ending or a milestone
+                // due in the next 7 days (discussion #388) - what its link opens. It used to add
+                // stages and milestones up, so one project with two dates counted twice.
+                // TRAP: api/projects/list.php (dates_week) asks the same question - change both together.
+                $pjWeekIds = $conn->query(
+                    "SELECT DISTINCT project_id FROM project_stages
+                      WHERE project_id IN $ids AND status <> 'closed'
+                        AND end_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 7 DAY)"
+                )->fetchAll(PDO::FETCH_COLUMN);
+                try {
+                    $pjWeekIds = array_merge($pjWeekIds, $conn->query(
+                        "SELECT DISTINCT project_id FROM project_milestones
+                          WHERE project_id IN $ids AND done_date IS NULL
+                            AND due_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 7 DAY)"
+                    )->fetchAll(PDO::FETCH_COLUMN));
+                } catch (Throwable) { /* no milestones yet */ }
+                $pj['projects_week'] = count(array_unique(array_map('intval', $pjWeekIds)));
             }
             $pj['show'] = true;
         } catch (Throwable) {

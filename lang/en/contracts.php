@@ -1230,4 +1230,10 @@ return [
             'reopen_failed_short' => 'Re-open failed',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Ending within {days} days',
+        'notice' => 'Notice date within {days} days',
+        'remove' => 'Remove this filter',
+    ],
 ];

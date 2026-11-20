@@ -1289,4 +1289,10 @@ return [
             'p4'    => 'Connections (CMDB items, tickets, runbooks, Service Status services) are not in the REST API yet - they are made and read on the screens.',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Expiring within {days} days',
+        'ssl' => 'Certificate expired or expiring within {days} days',
+        'remove' => 'Remove this filter',
+    ],
 ];

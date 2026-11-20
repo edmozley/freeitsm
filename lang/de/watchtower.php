@@ -174,7 +174,7 @@ return [
     'projects' => [
         'metric_red' => 'Vom Kurs abgewichen',
         'metric_amber' => 'Gefährdet',
-        'metric_week' => 'Termine diese Woche',
+        'metric_week'    => 'Projekte mit Terminen diese Woche',
         'off_track' => '{name} weicht vom Kurs ab',
         'more_off_track' => '<span class="wt-attention-bold">{count}</span> weitere(s) Projekt(e) vom Kurs abgewichen',
         'breaches' => '<span class="wt-attention-bold">{count}</span> Projekt(e) jenseits einer Toleranz',

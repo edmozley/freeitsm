@@ -729,6 +729,10 @@ Hay dos formas de evitarlo: cambie también el nombre en la hoja de cálculo, o 
         'stale_notice' => 'Mostrando {count} activos que no han informado en {days} días.',
         'stale_notice_one' => 'Mostrando 1 activo que no ha informado en {days} días.',
         'stale_show_all' => 'Mostrar todos',
+        'warranty_notice' => 'Mostrando {count} activos con la garantía vencida o que vence en {days} días.',
+        'warranty_notice_one' => 'Mostrando 1 activo con la garantía vencida o que vence en {days} días.',
+        'lease_notice' => 'Mostrando {count} activos con el arrendamiento finalizado o que finaliza en {days} días.',
+        'lease_notice_one' => 'Mostrando 1 activo con el arrendamiento finalizado o que finaliza en {days} días.',
     ],
     'dashboard' => [
         'title' => 'Panel de activos',

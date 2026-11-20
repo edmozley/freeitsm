@@ -2274,4 +2274,13 @@ return [
         'stage_done' => '{name} er færdig!',
         'project_done' => 'Projektet er lukket. Godt arbejde, alle sammen.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'health_red' => 'Aktive projekter af sporet',
+        'health_amber' => 'Aktive projekter i fare',
+        'stages_week' => 'En fase eller milepæl forfalder inden for 7 dage',
+        'scope_mine' => 'mine',
+        'scope_team' => 'mit team',
+        'remove' => 'Fjern dette filter',
+    ],
 ];

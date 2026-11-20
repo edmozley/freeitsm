@@ -421,4 +421,10 @@ return [
         'tip6_b' => 'Mises à jour automatiques',
         'tip6_t' => 'Les données logicielles se rafraîchissent à chaque exécution du script PowerShell sur une machine. Réglez la tâche planifiée pour qu\'elle s\'exécute quotidiennement et votre inventaire reflétera toujours l\'état actuel de votre parc.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Renouvellement dans les {days} prochains jours',
+        'notice' => 'Le préavis commence dans les {days} prochains jours',
+        'remove' => 'Retirer ce filtre',
+    ],
 ];

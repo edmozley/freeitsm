@@ -174,7 +174,7 @@ return [
     'projects' => [
         'metric_red' => 'Εκτός πορείας',
         'metric_amber' => 'Σε κίνδυνο',
-        'metric_week' => 'Ημερομηνίες αυτής της εβδομάδας',
+        'metric_week'    => 'Έργα με ημερομηνίες αυτή την εβδομάδα',
         'off_track' => 'Το έργο {name} είναι εκτός πορείας',
         'more_off_track' => '<span class="wt-attention-bold">{count}</span> ακόμη έργο(α) εκτός πορείας',
         'breaches' => '<span class="wt-attention-bold">{count}</span> έργο(α) πέρα από ένα όριο ανοχής',

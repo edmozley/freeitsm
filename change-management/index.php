@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=14">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=15">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -75,6 +75,9 @@ $translationNamespaces = ['common', 'change-management'];
                     <h2><?php echo htmlspecialchars(t('change-management.list.heading')); ?></h2>
                     <div class="change-count" id="changeCount"></div>
                 </div>
+                <?php /* Filled by change-management.js only when the list is opened from
+                         Watchtower's "open" count (?statuses=open, discussion #388). */ ?>
+                <div class="link-filter-bar" id="changeLinkFilter" hidden></div>
                 <div class="change-list" id="changeList">
                     <div class="loading"><div class="spinner"></div></div>
                 </div>
@@ -603,7 +606,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
     <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=41"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=87"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=42"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

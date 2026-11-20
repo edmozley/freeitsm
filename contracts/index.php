@@ -261,7 +261,11 @@ $translationNamespaces = ['common', 'contracts'];
         <div class="contracts-main">
             <div class="section-card">
                 <div class="section-header">
-                    <h2><?php echo htmlspecialchars(t('contracts.nav.contracts')); ?></h2>
+                    <div class="email-list-title-wrap">
+                        <h2><?php echo htmlspecialchars(t('contracts.nav.contracts')); ?></h2>
+                        <?php /* The filter a Watchtower link opened the list with (discussion #388) - shown so a short list is never a mystery. */ ?>
+                        <span class="view-filter-chips" id="watchFilterChips"></span>
+                    </div>
                     <select id="partyFilter" class="party-filter" onchange="loadContracts()" aria-label="<?php echo htmlspecialchars(t('contracts.party.filter')); ?>">
                         <option value=""><?php echo htmlspecialchars(t('contracts.party.filter_all')); ?></option>
                         <option value="supplier"><?php echo htmlspecialchars(t('contracts.party.filter_supplier')); ?></option>
@@ -326,11 +330,46 @@ $translationNamespaces = ['common', 'contracts'];
             } catch (error) { console.error('Error loading stats:', error); }
         }
 
+        // Watchtower's Contracts card links here already filtered (discussion #388):
+        // ?expiring=N (ending within N days) or ?notice=N (notice date within N days).
+        // The server applies the card's own conditions; this only carries the number
+        // across and shows it as a chip, so a short list is never a mystery.
+        const watchFilter = (function () {
+            const p = new URLSearchParams(location.search);
+            for (const key of ['expiring', 'notice']) {
+                const n = parseInt(p.get(key), 10);
+                if (n >= 1 && n <= 366) return { key: key, days: n };
+            }
+            return null;
+        })();
+        let watchFilterOn = !!watchFilter;
+
+        /** Draws the Watchtower filter chip, or nothing when the list is unfiltered. */
+        function renderWatchFilterChip() {
+            const box = document.getElementById('watchFilterChips');
+            if (!box) return;
+            if (!watchFilterOn) { box.innerHTML = ''; return; }
+            const label = window.t('contracts.watch_filter.' + watchFilter.key, { days: watchFilter.days });
+            box.innerHTML = '<button type="button" class="view-filter-chip" onclick="clearWatchFilter()" title="' + escapeHtml(window.t('contracts.watch_filter.remove')) + '" aria-label="' + escapeHtml(window.t('contracts.watch_filter.remove') + ': ' + label) + '">' + escapeHtml(label) + ' &#x2715;</button>';
+        }
+
+        /** Removes the Watchtower filter: back to the full list, and off the address so a reload stays unfiltered. */
+        function clearWatchFilter() {
+            watchFilterOn = false;
+            try { const u = new URL(location.href); u.searchParams.delete(watchFilter.key); history.replaceState(null, '', u); } catch (e) { /* the list still clears */ }
+            renderWatchFilterChip();
+            loadContracts();
+        }
+
         // Contract list
         async function loadContracts() {
             try {
+                renderWatchFilterChip();
                 const party = (document.getElementById('partyFilter') || {}).value || '';
-                const response = await fetch(API_BASE + 'get_contracts.php' + (party ? '?party=' + encodeURIComponent(party) : ''));
+                const qs = new URLSearchParams();
+                if (party) qs.set('party', party);
+                if (watchFilterOn) qs.set(watchFilter.key, String(watchFilter.days));
+                const response = await fetch(API_BASE + 'get_contracts.php' + (qs.toString() ? '?' + qs.toString() : ''));
                 const data = await response.json();
                 if (data.success) {
                     renderContracts(data.contracts);

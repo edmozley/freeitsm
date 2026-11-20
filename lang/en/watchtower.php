@@ -239,7 +239,7 @@ return [
     'projects' => [
         'metric_red'     => 'Off track',
         'metric_amber'   => 'At risk',
-        'metric_week'    => 'Dates this week',
+        'metric_week'    => 'Projects with dates this week',
         'off_track'      => '{name} is off track',
         'more_off_track' => '<span class="wt-attention-bold">{count}</span> more project(s) off track',
         'breaches'       => '<span class="wt-attention-bold">{count}</span> project(s) beyond a tolerance',

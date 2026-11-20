@@ -72,6 +72,18 @@ try {
         $sql .= " AND c.party_type = ?";
         $params[] = $party;
     }
+    // Watchtower's Contracts card links here (discussion #388): ?expiring=N is an
+    // active contract ending between today and today + N days, ?notice=N one whose
+    // notice date falls in that window. Kept to the SAME conditions as the card in
+    // includes/watchtower_queries.php (is_active, BETWEEN, the naive "today"), so
+    // the list shows exactly the contracts the card counted.
+    require_once '../../includes/timezone.php';
+    foreach (['expiring' => 'c.contract_end', 'notice' => 'c.notice_date'] as $key => $col) {
+        $days = (int)($_GET[$key] ?? 0);
+        if ($days < 1 || $days > 366) continue;
+        $today = naive_today_sql();
+        $sql .= " AND c.is_active = 1 AND $col IS NOT NULL AND $col BETWEEN {$today} AND DATE_ADD({$today}, INTERVAL $days DAY)";
+    }
 
     $sql .= " ORDER BY c.created_datetime DESC";
 

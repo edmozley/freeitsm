@@ -46,6 +46,12 @@ return [
         'board' => 'Tablero',
         'list' => 'Lista',
     ],
+    // A board or list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'status' => 'Estado: {status}',
+        'open' => 'Tareas abiertas, según el recuento de Watchtower',
+        'remove' => 'Quitar filtro',
+    ],
     'filter' => [
         'hide_done' => 'Ocultar finalizadas',
         'my' => 'Mis tareas',

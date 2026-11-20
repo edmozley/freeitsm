@@ -41,8 +41,30 @@ try {
                 DATE_FORMAT(l.updated_at, '%Y-%m-%d %H:%i:%s') AS updated_at
             FROM software_licences l
             INNER JOIN software_inventory_apps a ON l.app_id = a.id
-            LEFT JOIN analysts an ON l.created_by = an.id
-            ORDER BY a.display_name ASC";
+            LEFT JOIN analysts an ON l.created_by = an.id";
+
+    // Watchtower's Software card links here (discussion #388): ?expiring=N is an
+    // Active licence renewing between today and today + N days, ?notice=N one whose
+    // notice period STARTS in that window (renewal_date minus notice_period_days -
+    // the notice date is not stored). The SAME conditions as the card in
+    // includes/watchtower_queries.php, so the list shows what the card counted.
+    require_once '../../includes/timezone.php';
+    $today = naive_today_sql();
+    $where = [];
+    $days = (int)($_GET['expiring'] ?? 0);
+    if ($days >= 1 && $days <= 366) {
+        $where[] = "l.status = 'Active' AND l.renewal_date IS NOT NULL
+                    AND l.renewal_date BETWEEN {$today} AND DATE_ADD({$today}, INTERVAL $days DAY)";
+    }
+    $days = (int)($_GET['notice'] ?? 0);
+    if ($days >= 1 && $days <= 366) {
+        $where[] = "l.status = 'Active' AND l.renewal_date IS NOT NULL
+                    AND l.notice_period_days IS NOT NULL AND l.notice_period_days > 0
+                    AND DATE_SUB(l.renewal_date, INTERVAL l.notice_period_days DAY)
+                        BETWEEN {$today} AND DATE_ADD({$today}, INTERVAL $days DAY)";
+    }
+    if ($where) $sql .= " WHERE " . implode(' AND ', $where);
+    $sql .= " ORDER BY a.display_name ASC";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute();

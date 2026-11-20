@@ -49,6 +49,11 @@ return [
         'unassigned' => 'Unassigned',
     ],
 
+    // A list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'open' => 'Open changes, as counted on Watchtower',
+        'remove' => 'Remove filter',
+    ],
     'detail' => [
         'back'      => 'Back',
         'share'     => 'Share',

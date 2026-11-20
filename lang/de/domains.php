@@ -1442,4 +1442,10 @@ return [
             'p4' => 'Verbindungen (CMDB-Einträge, Tickets, Runbooks, Service-Status-Services) sind noch nicht in der REST-API - sie werden an den Bildschirmen erstellt und gelesen.',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Läuft innerhalb von {days} Tagen ab',
+        'ssl' => 'Zertifikat abgelaufen oder läuft innerhalb von {days} Tagen ab',
+        'remove' => 'Diesen Filter entfernen',
+    ],
 ];

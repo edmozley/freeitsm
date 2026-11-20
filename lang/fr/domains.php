@@ -1441,4 +1441,10 @@ return [
             'p4' => 'Les connexions (éléments de la CMDB, tickets, procédures, services d\'État des services) ne sont pas encore dans l\'API REST - elles se créent et se lisent sur les écrans.',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Expire dans les {days} prochains jours',
+        'ssl' => 'Certificat expiré ou expirant dans les {days} prochains jours',
+        'remove' => 'Retirer ce filtre',
+    ],
 ];

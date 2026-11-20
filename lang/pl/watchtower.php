@@ -186,7 +186,7 @@ return [
     'projects' => [
         'metric_red' => 'Poza planem',
         'metric_amber' => 'Zagrożone',
-        'metric_week' => 'Daty w tym tygodniu',
+        'metric_week'    => 'Projekty z terminami w tym tygodniu',
         'off_track' => '{name} jest poza planem',
         'more_off_track' => '<span class="wt-attention-bold">{count}</span> kolejnych projektów poza planem',
         'breaches' => '<span class="wt-attention-bold">{count}</span> projektów poza tolerancją',

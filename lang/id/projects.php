@@ -2274,4 +2274,13 @@ return [
         'stage_done' => '{name} selesai!',
         'project_done' => 'Proyek ditutup. Kerja bagus, semuanya.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'health_red' => 'Proyek berjalan keluar jalur',
+        'health_amber' => 'Proyek berjalan berisiko',
+        'stages_week' => 'Sebuah tahap atau tonggak jatuh tempo dalam 7 hari ke depan',
+        'scope_mine' => 'milik saya',
+        'scope_team' => 'tim saya',
+        'remove' => 'Hapus filter ini',
+    ],
 ];

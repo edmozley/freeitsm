@@ -1441,4 +1441,10 @@ return [
             'p4' => 'Forbindelser (CMDB-elementer, sager, driftsvejledninger, Servicestatus-tjenester) er endnu ikke i REST API\'et - de oprettes og læses på skærmene.',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Udløber inden for {days} dage',
+        'ssl' => 'Certifikat udløbet eller udløber inden for {days} dage',
+        'remove' => 'Fjern dette filter',
+    ],
 ];

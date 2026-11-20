@@ -421,4 +421,10 @@ return [
         'tip6_b' => 'Actualizaciones automáticas',
         'tip6_t' => 'Los datos de software se actualizan cada vez que el script de PowerShell se ejecuta en un equipo. Configura la tarea programada para que se ejecute a diario y tu inventario siempre reflejará el estado actual de tu parque.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Se renueva en los próximos {days} días',
+        'notice' => 'El preaviso empieza en los próximos {days} días',
+        'remove' => 'Quitar este filtro',
+    ],
 ];

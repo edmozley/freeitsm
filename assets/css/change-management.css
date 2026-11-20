@@ -116,6 +116,32 @@
     font-size: var(--font-size-lg, 14px);
 }
 
+/* The filter a Watchtower count opened the list with (discussion #388): on
+   screen so a short list is never a mystery, and its x is the way back. */
+.link-filter-bar { margin: -8px 0 14px; }
+.link-filter-bar[hidden] { display: none; }
+.link-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px 4px 12px;
+    border-radius: 14px;
+    background: var(--cm-accent-soft, #e0f2f1);
+    color: var(--text, #333);
+    font-size: var(--font-size-md, 13px);
+    font-weight: 600;
+}
+.link-filter-remove {
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #666);
+    font-size: var(--font-size-xl, 16px);
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+}
+.link-filter-remove:hover { color: var(--text, #333); }
+
 .change-list {
     display: flex;
     flex-direction: column;

@@ -46,6 +46,12 @@ return [
         'board' => 'Ταμπλό',
         'list' => 'Λίστα',
     ],
+    // A board or list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'status' => 'Κατάσταση: {status}',
+        'open' => 'Ανοιχτές εργασίες, όπως μετρώνται στο Watchtower',
+        'remove' => 'Αφαίρεση φίλτρου',
+    ],
     'filter' => [
         'hide_done' => 'Απόκρυψη ολοκληρωμένων',
         'my' => 'Οι εργασίες μου',

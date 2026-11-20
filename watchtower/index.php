@@ -760,6 +760,8 @@ try {
         const inner = `<div class="wt-metric-value" style="color:${color || 'var(--text, #334155)'}">${value}</div><div class="wt-metric-label">${label}</div>`;
         return href ? `<a class="wt-metric wt-metric-link" href="${escapeHtml(href)}">${inner}</a>` : `<div class="wt-metric">${inner}</div>`;
     }
+    /** Watchtower's Mine / My team, carried to the Projects list so it shows what the card counted (#388). */
+    function wtScopeQuery() { return (typeof wtScope !== 'undefined' && (wtScope === 'mine' || wtScope === 'team')) ? '&scope=' + wtScope : ''; }
     /** Every count not already a link goes where its card's name goes (#388). */
     function linkCardMetrics() {
         document.querySelectorAll('.wt-card').forEach(card => {
@@ -889,9 +891,9 @@ try {
         // saying the same thing twice and never answered "how many are at
         // Submitted?". Those three keep their place underneath.
         let html = '<div class="wt-metrics">';
-        html += metric(ch.total_open || 0, window.t('watchtower.changes.metric_open'), 'var(--text, #334155)');
+        html += metric(ch.total_open || 0, window.t('watchtower.changes.metric_open'), 'var(--text, #334155)', '../change-management/?statuses=open');
         (ch.by_status || []).forEach(s => {
-            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8');
+            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8', '../change-management/?status=' + encodeURIComponent(s.name));
         });
         html += '</div>';
 
@@ -999,9 +1001,9 @@ try {
         }
 
         let html = '<div class="wt-metrics">';
-        html += metric(ct.expiring_30d, window.t('watchtower.contracts.metric_30d'), ct.expiring_30d > 0 ? '#ef4444' : '#94a3b8');
-        html += metric(ct.expiring_90d, window.t('watchtower.contracts.metric_90d'), ct.expiring_90d > 0 ? '#f59e0b' : '#94a3b8');
-        html += metric(ct.notice_periods_30d, window.t('watchtower.contracts.metric_notices'), ct.notice_periods_30d > 0 ? '#f59e0b' : '#94a3b8');
+        html += metric(ct.expiring_30d, window.t('watchtower.contracts.metric_30d'), ct.expiring_30d > 0 ? '#ef4444' : '#94a3b8', '../contracts/?expiring=30');
+        html += metric(ct.expiring_90d, window.t('watchtower.contracts.metric_90d'), ct.expiring_90d > 0 ? '#f59e0b' : '#94a3b8', '../contracts/?expiring=90');
+        html += metric(ct.notice_periods_30d, window.t('watchtower.contracts.metric_notices'), ct.notice_periods_30d > 0 ? '#f59e0b' : '#94a3b8', '../contracts/?notice=30');
         html += '</div>';
 
         html += '<div class="wt-attention">';
@@ -1042,9 +1044,9 @@ try {
         }
 
         let html = '<div class="wt-metrics">';
-        html += metric(sw.expiring_30d, window.t('watchtower.software.metric_30d'), sw.expiring_30d > 0 ? '#ef4444' : '#94a3b8');
-        html += metric(sw.expiring_90d, window.t('watchtower.software.metric_90d'), sw.expiring_90d > 0 ? '#f59e0b' : '#94a3b8');
-        html += metric(sw.notice_periods_30d, window.t('watchtower.software.metric_notices'), sw.notice_periods_30d > 0 ? '#f59e0b' : '#94a3b8');
+        html += metric(sw.expiring_30d, window.t('watchtower.software.metric_30d'), sw.expiring_30d > 0 ? '#ef4444' : '#94a3b8', '../software/licences/?expiring=30');
+        html += metric(sw.expiring_90d, window.t('watchtower.software.metric_90d'), sw.expiring_90d > 0 ? '#f59e0b' : '#94a3b8', '../software/licences/?expiring=90');
+        html += metric(sw.notice_periods_30d, window.t('watchtower.software.metric_notices'), sw.notice_periods_30d > 0 ? '#f59e0b' : '#94a3b8', '../software/licences/?notice=30');
         html += '</div>';
 
         html += '<div class="wt-attention">';
@@ -1088,9 +1090,9 @@ try {
         // payload without the flags shows everything, as it always did.
         const showExp = dm.show_expiry !== false, showCert = dm.show_cert !== false;
         let html = '<div class="wt-metrics">';
-        if (showExp)  html += metric(dm.expiring_30d, T('metric_30d'), dm.expiring_30d > 0 ? '#ef4444' : '#94a3b8');
-        if (showExp)  html += metric(dm.expiring_90d, T('metric_90d'), dm.expiring_90d > 0 ? '#f59e0b' : '#94a3b8');
-        if (showCert) html += metric(dm.ssl_expiring, T('metric_ssl'), dm.ssl_expiring > 0 ? '#f59e0b' : '#94a3b8');
+        if (showExp)  html += metric(dm.expiring_30d, T('metric_30d'), dm.expiring_30d > 0 ? '#ef4444' : '#94a3b8', '../domains/?expiring=30');
+        if (showExp)  html += metric(dm.expiring_90d, T('metric_90d'), dm.expiring_90d > 0 ? '#f59e0b' : '#94a3b8', '../domains/?expiring=90');
+        if (showCert) html += metric(dm.ssl_expiring, T('metric_ssl'), dm.ssl_expiring > 0 ? '#f59e0b' : '#94a3b8', '../domains/?ssl=due');
         html += '</div><div class="wt-attention">';
         if (atRisk > 0)          html += attentionItem('red', T('services_at_risk', { count: atRisk }));
         if (dm.expired > 0)      html += attentionItem('red', T('expired', { count: dm.expired }));
@@ -1118,9 +1120,9 @@ try {
         const week = pj.stages_week + (pj.milestones_week || 0), missed = pj.milestones_missed || 0;
         setDot('wtPjDot', pj.red > 0 ? 'red' : ((pj.amber + pj.breaches + week + missed) > 0 ? 'amber' : 'green'));
         let html = '<div class="wt-metrics">';
-        html += metric(pj.red, T('metric_red'), pj.red > 0 ? '#ef4444' : '#94a3b8');
-        html += metric(pj.amber, T('metric_amber'), pj.amber > 0 ? '#f59e0b' : '#94a3b8');
-        html += metric(week, T('metric_week'), week > 0 ? '#f59e0b' : '#94a3b8');
+        html += metric(pj.red, T('metric_red'), pj.red > 0 ? '#ef4444' : '#94a3b8', '../projects/?health=red' + wtScopeQuery());
+        html += metric(pj.amber, T('metric_amber'), pj.amber > 0 ? '#f59e0b' : '#94a3b8', '../projects/?health=amber' + wtScopeQuery());
+        html += metric(pj.projects_week || 0, T('metric_week'), (pj.projects_week || 0) > 0 ? '#f59e0b' : '#94a3b8', '../projects/?stages=week' + wtScopeQuery());
         html += '</div><div class="wt-attention">';
         (pj.off_track || []).forEach(p => {
             const link = '<a href="../projects/view.php?id=' + encodeURIComponent(p.id) + '" class="wt-attention-bold" style="color:inherit;">' + escapeHtml(p.name) + '</a>';
@@ -1186,12 +1188,12 @@ try {
 
         let html = '<div class="wt-metrics">';
         html += metric(as.total, window.t('watchtower.assets.metric_total'), 'var(--text, #334155)');
-        html += metric(as.not_seen_7d, window.t('watchtower.assets.metric_offline'), as.not_seen_7d > 0 ? '#f59e0b' : '#94a3b8');
+        html += metric(as.not_seen_7d, window.t('watchtower.assets.metric_offline'), as.not_seen_7d > 0 ? '#f59e0b' : '#94a3b8', '../asset-management/table.php?stale=7');
         if (as.warranty_show) {
-            html += metric(as.warranty_soon, window.t('watchtower.assets.metric_warranty'), as.warranty_soon > 0 ? '#d13438' : '#94a3b8');
+            html += metric(as.warranty_soon, window.t('watchtower.assets.metric_warranty'), as.warranty_soon > 0 ? '#d13438' : '#94a3b8', '../asset-management/table.php?due=warranty');
         }
         if (as.lease_show) {
-            html += metric(as.lease_soon, window.t('watchtower.assets.metric_lease'), as.lease_soon > 0 ? '#d13438' : '#94a3b8');
+            html += metric(as.lease_soon, window.t('watchtower.assets.metric_lease'), as.lease_soon > 0 ? '#d13438' : '#94a3b8', '../asset-management/table.php?due=lease');
         }
         html += '</div>';
 
@@ -1301,9 +1303,9 @@ try {
         // which left anything in another open status (Blocked ships as standard)
         // off the card. Now one per open status, in its own name and colour.
         let html = '<div class="wt-metrics">';
-        html += metric(t.total_open || 0, window.t('watchtower.tasks.metric_open'), 'var(--text, #334155)');
+        html += metric(t.total_open || 0, window.t('watchtower.tasks.metric_open'), 'var(--text, #334155)', '../tasks/?statuses=open');
         (t.by_status || []).forEach(s => {
-            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8');
+            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8', '../tasks/?status=' + encodeURIComponent(s.name));
         });
         html += '</div>';
 

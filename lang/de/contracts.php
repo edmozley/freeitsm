@@ -1165,4 +1165,10 @@ Die verknüpften Quellelemente bleiben unverändert.',
             'reopen_failed_short' => 'Erneut öffnen fehlgeschlagen',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Endet innerhalb von {days} Tagen',
+        'notice' => 'Kündigungstermin innerhalb von {days} Tagen',
+        'remove' => 'Diesen Filter entfernen',
+    ],
 ];

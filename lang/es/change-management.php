@@ -44,6 +44,11 @@ return [
         'work' => 'Trabajo: {date}',
         'unassigned' => 'Sin asignar',
     ],
+    // A list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'open' => 'Cambios abiertos, según el recuento de Watchtower',
+        'remove' => 'Quitar filtro',
+    ],
     'detail' => [
         'back' => 'Atrás',
         'share' => 'Compartir',

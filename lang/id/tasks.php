@@ -46,6 +46,12 @@ return [
         'board' => 'Papan',
         'list' => 'Daftar',
     ],
+    // A board or list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'status' => 'Status: {status}',
+        'open' => 'Tugas terbuka, sesuai hitungan Watchtower',
+        'remove' => 'Hapus filter',
+    ],
     'filter' => [
         'hide_done' => 'Sembunyikan yang selesai',
         'my' => 'Tugas saya',

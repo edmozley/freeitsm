@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', function() {
         loadChangePriorities(), loadChangeTypes(), loadChangeImpacts()
     ]).then(loaded => loaded.every(Boolean));
     loadMoveCompanies();
+    // Before the first load, so a list opened from a Watchtower count is fetched
+    // filtered once rather than drawn whole and then redrawn (discussion #388).
+    readListLinkFromUrl();
+    statusesReady.then(settleListLink);
     loadChanges();
     setupFileUpload();
 
@@ -502,12 +506,21 @@ function populateAnalystDropdowns() {
     });
 }
 
+// Which loadChanges() call is the latest. A list opened from a Watchtower link
+// can fire two loads close together (the linked one, then the whole list when
+// the status turns out not to exist), and an answer arriving late must not draw
+// over the newer one (discussion #388).
+let changeListGeneration = 0;
+
 /** Loads the change list for the current status filter and search, and updates the counts. */
 async function loadChanges() {
+    const generation = ++changeListGeneration;
     try {
         let url = API_BASE + 'list.php?';
         if (currentFilter !== 'all') {
             url += 'status=' + encodeURIComponent(currentFilter) + '&';
+        } else if (linkedOpenStatuses) {
+            url += 'statuses=open&';   // Watchtower's "open" count (discussion #388)
         }
         if (searchQuery) {
             url += 'search=' + encodeURIComponent(searchQuery) + '&';
@@ -515,6 +528,7 @@ async function loadChanges() {
 
         const response = await fetch(url);
         const data = await response.json();
+        if (generation !== changeListGeneration) return;   // a newer load has been asked for
 
         if (data.success) {
             changes = data.changes;
@@ -1176,10 +1190,70 @@ async function postComment() {
 /** Filters the change list to one status (or all) and highlights its filter row. */
 function filterByStatus(status) {
     currentFilter = status;
+    // Picking a row yourself replaces whatever a Watchtower link opened.
+    clearListLink();
     document.querySelectorAll('.status-filter').forEach(el => {
         el.classList.toggle('active', el.dataset.status === status);
     });
     loadChanges();
+}
+
+// ============ Opened from a Watchtower count (discussion #388) ============
+//
+// ?status=<name>    one status - the sidebar row lights up, the way the ticket
+//                   inbox lights a folder, and is the visible filter.
+// ?statuses=open    the card's "open" figure - no row stands for it, so a chip
+//                   above the list says what is showing and its x clears it.
+// (?open=ID is NOT this: it is an old alias for ?change_id=, kept for shared links.)
+// No parameter = the page exactly as before.
+
+let linkedOpenStatuses = false;
+
+/** Reads ?status= / ?statuses=open into the list's filter before the first load. */
+function readListLinkFromUrl() {
+    const p = new URLSearchParams(window.location.search);
+    const st = p.get('status');
+    if (st) currentFilter = st;
+    else if (p.get('statuses') === 'open') linkedOpenStatuses = true;
+}
+
+/**
+ * Once the status rows exist: lights the linked row, or shows the "open" chip. A
+ * status name that is not an active status here falls back to the whole list.
+ */
+function settleListLink() {
+    if (currentFilter !== 'all') {
+        if (!changeStatuses.some(s => s.name === currentFilter)) {
+            currentFilter = 'all';
+            clearListLink();
+            loadChanges();
+            return;
+        }
+        document.querySelectorAll('.status-filter').forEach(el => {
+            el.classList.toggle('active', el.dataset.status === currentFilter);
+        });
+    } else if (linkedOpenStatuses) {
+        document.querySelectorAll('.status-filter').forEach(el => el.classList.remove('active'));
+        const bar = document.getElementById('changeLinkFilter');
+        if (bar) {
+            bar.innerHTML = `<span class="link-filter-chip"><span>${escapeHtml(window.t('change-management.link_filter.open'))}</span>`
+                + `<button type="button" class="link-filter-remove" onclick="filterByStatus('all')" title="${escapeHtml(window.t('change-management.link_filter.remove'))}" aria-label="${escapeHtml(window.t('change-management.link_filter.remove'))}">&times;</button></span>`;
+            bar.hidden = false;
+        }
+    }
+}
+
+/** Forgets the Watchtower link: hides the chip and drops the parameters from the address. */
+function clearListLink() {
+    linkedOpenStatuses = false;
+    const bar = document.getElementById('changeLinkFilter');
+    if (bar) { bar.hidden = true; bar.innerHTML = ''; }
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('status') || url.searchParams.has('statuses')) {
+        url.searchParams.delete('status');
+        url.searchParams.delete('statuses');
+        history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+    }
 }
 
 // ============ Search Modal ============

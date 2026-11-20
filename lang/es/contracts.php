@@ -1165,4 +1165,10 @@ Los elementos de origen vinculados no se ven afectados.',
             'reopen_failed_short' => 'Error al reabrir',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Vence en los próximos {days} días',
+        'notice' => 'Fecha de preaviso en los próximos {days} días',
+        'remove' => 'Quitar este filtro',
+    ],
 ];

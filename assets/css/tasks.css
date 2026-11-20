@@ -154,6 +154,36 @@ body {
     background: var(--app-bg, #f5f7fa);
 }
 
+/* The status filter a Watchtower count opened the board with (discussion #388).
+   The board and list are height:100% of .tasks-main, so with the chip on top the
+   main area becomes a column and they take what is left instead of overflowing. */
+.tasks-main.has-link-filter { display: flex; flex-direction: column; }
+.tasks-main.has-link-filter > .board-view,
+.tasks-main.has-link-filter > .list-view { flex: 1; min-height: 0; height: auto; }
+.link-filter-bar { padding: 12px 16px 0; }
+.link-filter-bar[hidden] { display: none; }
+.link-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px 4px 12px;
+    border-radius: 14px;
+    background: var(--tsk-accent-soft, #f3f0ff);
+    color: var(--text, #333);
+    font-size: var(--font-size-md, 13px);
+    font-weight: 600;
+}
+.link-filter-remove {
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #666);
+    font-size: var(--font-size-xl, 16px);
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+}
+.link-filter-remove:hover { color: var(--text, #333); }
+
 /* Board view */
 .board-view {
     display: flex;

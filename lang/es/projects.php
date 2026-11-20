@@ -2274,4 +2274,13 @@ return [
         'stage_done' => '¡{name} completada!',
         'project_done' => 'Proyecto cerrado. Buen trabajo, equipo.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'health_red' => 'Proyectos en curso fuera de plazo',
+        'health_amber' => 'Proyectos en curso en riesgo',
+        'stages_week' => 'Una fase o un hito vence en los próximos 7 días',
+        'scope_mine' => 'míos',
+        'scope_team' => 'mi equipo',
+        'remove' => 'Quitar este filtro',
+    ],
 ];

@@ -1165,4 +1165,10 @@ Item sumber yang tertaut tidak akan tersentuh.',
             'reopen_failed_short' => 'Gagal membuka kembali',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Berakhir dalam {days} hari',
+        'notice' => 'Tanggal pemberitahuan dalam {days} hari',
+        'remove' => 'Hapus filter ini',
+    ],
 ];

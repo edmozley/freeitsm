@@ -1134,4 +1134,10 @@ return [
             'reopen_failed_short' => 'Повторне відкриття не вдалося',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Закінчується протягом {days} днів',
+        'notice' => 'Дата повідомлення протягом {days} днів',
+        'remove' => 'Прибрати цей фільтр',
+    ],
 ];

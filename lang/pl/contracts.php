@@ -1165,4 +1165,10 @@ Powiązane pozycje źródłowe pozostaną nienaruszone.',
             'reopen_failed_short' => 'Ponowne otwarcie nie powiodło się',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Kończy się w ciągu {days} dni',
+        'notice' => 'Termin wypowiedzenia w ciągu {days} dni',
+        'remove' => 'Usuń ten filtr',
+    ],
 ];

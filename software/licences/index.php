@@ -430,7 +430,11 @@ $translationNamespaces = ['common', 'software'];
 
     <div class="main-container licence-container">
         <div class="licence-toolbar">
-            <h3><?php echo htmlspecialchars(t('software.licences.heading')); ?></h3>
+            <div class="email-list-title-wrap">
+                <h3><?php echo htmlspecialchars(t('software.licences.heading')); ?></h3>
+                <?php /* The filter a Watchtower link opened the list with (discussion #388) - shown so a short list is never a mystery. */ ?>
+                <span class="view-filter-chips" id="watchFilterChips"></span>
+            </div>
             <div class="toolbar-right">
                 <input type="text" class="search-box" id="licenceSearch"
                        placeholder="<?php echo htmlspecialchars(t('software.licences.search')); ?>" autocomplete="off"
@@ -609,9 +613,41 @@ $translationNamespaces = ['common', 'software'];
             }
         }
 
+        // Watchtower's Software card links here already filtered (discussion #388):
+        // ?expiring=N (renewing within N days) or ?notice=N (notice period starts
+        // within N days). The server applies the card's own conditions; this only
+        // carries the number across and shows it as a chip.
+        const watchFilter = (function () {
+            const p = new URLSearchParams(location.search);
+            for (const key of ['expiring', 'notice']) {
+                const n = parseInt(p.get(key), 10);
+                if (n >= 1 && n <= 366) return { key: key, days: n };
+            }
+            return null;
+        })();
+        let watchFilterOn = !!watchFilter;
+
+        /** Draws the Watchtower filter chip, or nothing when the list is unfiltered. */
+        function renderWatchFilterChip() {
+            const box = document.getElementById('watchFilterChips');
+            if (!box) return;
+            if (!watchFilterOn) { box.innerHTML = ''; return; }
+            const label = window.t('software.watch_filter.' + watchFilter.key, { days: watchFilter.days });
+            box.innerHTML = '<button type="button" class="view-filter-chip" onclick="clearWatchFilter()" title="' + escapeHtml(window.t('software.watch_filter.remove')) + '" aria-label="' + escapeHtml(window.t('software.watch_filter.remove') + ': ' + label) + '">' + escapeHtml(label) + ' &#x2715;</button>';
+        }
+
+        /** Removes the Watchtower filter: back to the full list, and off the address so a reload stays unfiltered. */
+        function clearWatchFilter() {
+            watchFilterOn = false;
+            try { const u = new URL(location.href); u.searchParams.delete(watchFilter.key); history.replaceState(null, '', u); } catch (e) { /* the list still clears */ }
+            // Keep whatever is typed in the search box applied to the full list.
+            loadLicences().then(() => { if (document.getElementById('licenceSearch').value.trim()) searchLicences(); });
+        }
+
         async function loadLicences() {
             try {
-                const response = await fetch(API_BASE + 'get_licences.php');
+                renderWatchFilterChip();
+                const response = await fetch(API_BASE + 'get_licences.php' + (watchFilterOn ? '?' + watchFilter.key + '=' + watchFilter.days : ''));
                 const data = await response.json();
                 if (data.success) {
                     allLicences = data.licences;

@@ -1165,4 +1165,10 @@ Les éléments source liés restent inchangés.',
             'reopen_failed_short' => 'Échec de la réouverture',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Se termine dans les {days} prochains jours',
+        'notice' => 'Date de préavis dans les {days} prochains jours',
+        'remove' => 'Retirer ce filtre',
+    ],
 ];

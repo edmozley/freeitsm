@@ -174,7 +174,7 @@ return [
     'projects' => [
         'metric_red' => 'Desviados',
         'metric_amber' => 'En riesgo',
-        'metric_week' => 'Fechas esta semana',
+        'metric_week'    => 'Proyectos con fechas esta semana',
         'off_track' => '{name} está desviado',
         'more_off_track' => '<span class="wt-attention-bold">{count}</span> proyecto(s) más desviado(s)',
         'breaches' => '<span class="wt-attention-bold">{count}</span> proyecto(s) fuera de una tolerancia',

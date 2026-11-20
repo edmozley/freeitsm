@@ -50,6 +50,12 @@ return [
         'list'  => 'List',
     ],
 
+    // A board or list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'status' => 'Status: {status}',
+        'open' => 'Open tasks, as counted on Watchtower',
+        'remove' => 'Remove filter',
+    ],
     'filter' => [
         'hide_done' => 'Hide done',   // GH #184
         'my'            => 'My Tasks',

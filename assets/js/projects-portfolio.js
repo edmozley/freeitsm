@@ -25,6 +25,54 @@
     // Remember the chosen view per browser - a convenience, never state that matters.
     try { view = localStorage.getItem('freeitsm.projects.view') || 'live'; } catch (e) { /* private mode */ }
 
+    // Watchtower's Projects card links here already filtered (discussion #388):
+    // ?health=red|amber (live projects off track / at risk) or ?stages=week (live
+    // projects with a stage ending in the next 7 days). "Live" is the CARD's
+    // meaning - proposed or active - not the Live view's, which adds on hold, so
+    // the list counts what the card counted. Health is the same projectDecorate()
+    // shown_health both use; the stages come from list.php (stages_week).
+    const WT_LIVE = ['proposed', 'active'];
+    let watch = null;           // { key: 'health', value: 'red'|'amber' } or { key: 'stages' }
+    let stagesWeek = {};        // project id -> stages ending in the next 7 days
+    (function () {
+        const p = new URLSearchParams(location.search);
+        if (['red', 'amber'].includes(p.get('health'))) watch = { key: 'health', value: p.get('health') };
+        else if (p.get('stages') === 'week') watch = { key: 'stages' };
+        // The filter is the whole question: open on All rather than the remembered view
+        // (not saved, so the remembered view comes back when the chip is removed).
+        if (watch) view = 'all';
+    })();
+
+    /** True when a project passes the Watchtower filter - always, when there is none. */
+    function inWatch(p) {
+        if (!watch) return true;
+        if (!WT_LIVE.includes(p.status)) return false;
+        // Watchtower's Mine / My team, carried by the link: only the owners the card counted.
+        if (window.PRJ_SCOPE && !window.PRJ_SCOPE.owners.includes(Number(p.owner_analyst_id))) return false;
+        if (watch.key === 'health') return p.shown_health === watch.value;
+        return (stagesWeek[p.id] || 0) > 0;
+    }
+
+    /** Draws the Watchtower filter chip, or nothing when the portfolio is unfiltered. */
+    function renderWatchChip() {
+        const box = document.getElementById('prjWatchChips');
+        if (!box) return;
+        if (!watch) { box.innerHTML = ''; return; }
+        const label = (watch.key === 'health' ? T('watch_filter.health_' + watch.value) : T('watch_filter.stages_week'))
+            + (window.PRJ_SCOPE ? ' · ' + T('watch_filter.scope_' + window.PRJ_SCOPE.scope) : '');
+        box.innerHTML = '<button type="button" class="view-filter-chip" id="prjWatchChip" title="' + esc(T('watch_filter.remove')) + '" aria-label="'
+            + esc(T('watch_filter.remove') + ': ' + label) + '">' + esc(label) + ' &#x2715;</button>';
+    }
+
+    /** Removes the Watchtower filter: back to the remembered view, and off the address so a reload stays unfiltered. */
+    function clearWatch() {
+        watch = null;
+        window.PRJ_SCOPE = null;
+        try { const u = new URL(location.href); u.searchParams.delete('health'); u.searchParams.delete('stages'); u.searchParams.delete('scope'); history.replaceState(null, '', u); } catch (e) { /* the list still clears */ }
+        try { view = localStorage.getItem('freeitsm.projects.view') || 'live'; } catch (e) { view = 'live'; }
+        render();
+    }
+
     /** True when a project belongs in view v - live, mine, at risk, proposed, waiting for approval, on hold, finished or all. */
     function inView(p, v) {
         switch (v) {
@@ -195,7 +243,8 @@
     /** Redraws the portfolio for the current view, search, sort and layout - view counts, the summary tiles, the health strip and the cards, roadmap or charts. */
     function render() {
         const grid = document.getElementById('prjGrid');
-        const rows = all.filter(p => inView(p, view) && matches(p));
+        const rows = all.filter(p => inView(p, view) && matches(p) && inWatch(p));
+        renderWatchChip();
 
         document.querySelectorAll('#prjViews li').forEach(li => li.classList.toggle('active', li.dataset.view === view));
         document.querySelectorAll('#prjViews [data-count]').forEach(b => {
@@ -333,8 +382,9 @@
     /** Loads every project the analyst may see, shows New project only to those who may create, applies the colour palette, priority labels and default sort, and draws the page. */
     async function load() {
         try {
-            const d = await P.api('list.php');
+            const d = await P.api('list.php' + (watch && watch.key === 'stages' ? '?stages_week=1' : ''));
             all = d.projects || [];
+            stagesWeek = d.stages_week || {};
             window.PRJ_MULTI = !!d.multi_company;
             // Projects -> Settings -> General may keep creating to people who manage Projects.
             document.getElementById('prjNew').hidden = !d.can_create;
@@ -356,7 +406,7 @@
 
     /** The projects in the view, in the view's order, as a spreadsheet (3.3.0). */
     function exportView(format) {
-        const ids = sorted(all.filter(p => inView(p, view) && matches(p))).map(p => p.id);
+        const ids = sorted(all.filter(p => inView(p, view) && matches(p) && inWatch(p))).map(p => p.id);
         window.location.href = window.PRJ_BASE + 'api/projects/export.php?what=portfolio&format=' + format + '&ids=' + ids.join(',');
     }
 
@@ -396,6 +446,7 @@
             heatCell = heatCell === c.dataset.pheat ? null : c.dataset.pheat;
             render();
         });
+        document.getElementById('prjWatchChips').addEventListener('click', e => { if (e.target.closest('#prjWatchChip')) clearWatch(); });
         document.getElementById('prjNew').addEventListener('click', newProject);
         document.getElementById('prjEmptyNew').addEventListener('click', newProject);
         load();

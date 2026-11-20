@@ -32,6 +32,14 @@ $translationNamespaces = ['common', 'projects'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('projects')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php /* Watchtower's Mine / My team scope, carried by its links (discussion #388): the owners the card counted. */
+    $prjScopeOwners = null;
+    if (in_array($_GET['scope'] ?? '', ['mine', 'team'], true)) {
+        require_once __DIR__ . '/../includes/watchtower_settings.php';
+        $prjScopeOwners = $_GET['scope'] === 'mine' ? [(int)$_SESSION['analyst_id']]
+            : array_values(array_map('intval', wtTeamAnalystIds(connectToDatabase(), (int)$_SESSION['analyst_id'])));
+    } ?>
+    <script>window.PRJ_SCOPE = <?php echo json_encode($prjScopeOwners !== null ? ['scope' => $_GET['scope'], 'owners' => $prjScopeOwners] : null); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=4"></script>
@@ -78,6 +86,8 @@ $translationNamespaces = ['common', 'projects'];
 
             <div class="prj-toolbar">
                 <span class="prj-count" id="prjCount"></span>
+                <?php /* The filter a Watchtower link opened the portfolio with (discussion #388) - shown so a short list is never a mystery. */ ?>
+                <span class="view-filter-chips" id="prjWatchChips"></span>
                 <!-- 3.3.0: order and layout. The default order is Projects -> Settings -> General. -->
                 <div class="prj-toolbar-right">
                     <label class="prj-sort"><span><?php echo htmlspecialchars(t('projects.portfolio.sort_label')); ?></span>
@@ -129,7 +139,7 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/projects.js?v=12"></script>
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-accounts.js?v=1"></script>
-    <script src="../assets/js/projects-portfolio.js?v=15"></script>
-    <script src="../assets/js/mobile.js?v=87"></script>
+    <script src="../assets/js/projects-portfolio.js?v=17"></script>
+    <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

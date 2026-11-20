@@ -453,6 +453,31 @@ function wtIdListSql(array $ids): string
     return $ids ? '(' . implode(',', $ids) . ')' : '(0)';
 }
 
+/**
+ * The status ids a Watchtower "open" figure adds up for a set-driven item -
+ * every open, active status, trimmed to the admin's pick when the item has been
+ * customised. Exactly the WHERE the card's own by_status query uses, so a list
+ * opened from the card's "open" count shows the same rows (discussion #388).
+ *
+ * @param string $itemKey  'changes.by_status' or 'tasks.by_status' - a key of wtSelectableItems()
+ * @return int[]  may be empty (nothing counted), which callers must treat as "match nothing"
+ */
+function wtCountedStatusIds(PDO $conn, string $itemKey): array
+{
+    $items = wtSelectableItems();
+    if (!isset($items[$itemKey])) return [];
+    $spec = $items[$itemKey];
+    try {
+        $ids = array_map('intval', $conn->query(
+            "SELECT `{$spec['id']}` FROM `{$spec['table']}` WHERE {$spec['where']}"
+        )->fetchAll(PDO::FETCH_COLUMN));
+    } catch (Exception) {
+        return [];
+    }
+    $picked = wtItemMembers($conn, $itemKey);
+    return $picked === null ? $ids : array_values(array_intersect($ids, $picked));
+}
+
 /** How often Watchtower refreshes itself, in minutes - one of these (discussion #388). */
 const WT_REFRESH_CHOICES = [1, 2, 5, 10, 15];
 

@@ -186,7 +186,7 @@ return [
     'projects' => [
         'metric_red' => 'Hors trajectoire',
         'metric_amber' => 'À risque',
-        'metric_week' => 'Dates cette semaine',
+        'metric_week'    => 'Projets avec des échéances cette semaine',
         'off_track' => '{name} est hors trajectoire',
         'more_off_track' => '<span class="wt-attention-bold">{count}</span> autre(s) projet(s) hors trajectoire',
         'breaches' => '<span class="wt-attention-bold">{count}</span> projet(s) au-delà d\'une tolérance',

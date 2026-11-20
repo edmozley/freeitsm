@@ -102,6 +102,13 @@ try {
     if ($status) {
         $sql .= " AND cs.name = ?";
         $params[] = $status;
+    } elseif (($_GET['statuses'] ?? '') === 'open') {
+        // Watchtower's "open" count, opened as a list (discussion #388). The ids come
+        // from the same rule the card adds up - open, active, and the admin's pick
+        // in Watchtower settings - so the list is the number. Company scope above
+        // still applies; this only narrows.
+        require_once '../../includes/watchtower_settings.php';
+        $sql .= " AND c.status_id IN " . wtIdListSql(wtCountedStatusIds($conn, 'changes.by_status'));
     }
 
     if ($search) {

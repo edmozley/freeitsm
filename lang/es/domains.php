@@ -1442,4 +1442,10 @@ return [
             'p4' => 'Las conexiones (elementos de la CMDB, tickets, guías de procedimiento, servicios de Estado del servicio) todavía no están en la API REST: se crean y se leen en las pantallas.',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Caduca en los próximos {days} días',
+        'ssl' => 'Certificado caducado o que caduca en los próximos {days} días',
+        'remove' => 'Quitar este filtro',
+    ],
 ];

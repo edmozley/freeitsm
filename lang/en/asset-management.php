@@ -851,6 +851,10 @@ return [
         'stale_notice'        => 'Showing {count} assets that have not reported in {days} days.',
         'stale_notice_one'    => 'Showing 1 asset that has not reported in {days} days.',
         'stale_show_all'      => 'Show all',
+        'warranty_notice' => 'Showing {count} assets with a warranty expired or expiring within {days} days.',
+        'warranty_notice_one' => 'Showing 1 asset with a warranty expired or expiring within {days} days.',
+        'lease_notice' => 'Showing {count} assets with a lease ended or ending within {days} days.',
+        'lease_notice_one' => 'Showing 1 asset with a lease ended or ending within {days} days.',
     ],
 
     // Dashboard

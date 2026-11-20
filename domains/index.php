@@ -74,6 +74,8 @@ $translationNamespaces = ['common', 'domains'];
         </aside>
 
         <main class="dom-main">
+            <?php /* The filter a Watchtower link opened the register with (discussion #388) - shown so a short list is never a mystery. */ ?>
+            <div class="view-filter-chips" id="domWatchChips" style="margin-bottom:10px" hidden></div>
             <div class="dom-stats" id="domStats"></div>
 
             <div class="dom-selbar" id="domSelBar">
@@ -208,7 +210,7 @@ $translationNamespaces = ['common', 'domains'];
     </div>
 
     <script src="../assets/js/domains.js?v=4"></script>
-    <script src="../assets/js/domains-register.js?v=5"></script>
-    <script src="../assets/js/mobile.js?v=87"></script>
+    <script src="../assets/js/domains-register.js?v=6"></script>
+    <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

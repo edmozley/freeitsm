@@ -186,7 +186,7 @@ return [
     'projects' => [
         'metric_red' => 'Menyimpang',
         'metric_amber' => 'Berisiko',
-        'metric_week' => 'Tanggal minggu ini',
+        'metric_week'    => 'Proyek dengan tanggal minggu ini',
         'off_track' => '{name} menyimpang dari rencana',
         'more_off_track' => '<span class="wt-attention-bold">{count}</span> proyek lagi menyimpang dari rencana',
         'breaches' => '<span class="wt-attention-bold">{count}</span> proyek melampaui toleransi',

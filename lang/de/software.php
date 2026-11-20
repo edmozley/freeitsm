@@ -421,4 +421,10 @@ return [
         'tip6_b' => 'Automatische Aktualisierungen',
         'tip6_t' => 'Software-Daten werden jedes Mal aktualisiert, wenn das PowerShell-Skript auf einem Rechner läuft. Stellen Sie die geplante Aufgabe so ein, dass sie täglich ausgeführt wird, und Ihr Inventar spiegelt stets den aktuellen Zustand Ihres Bestands wider.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Verlängerung innerhalb von {days} Tagen',
+        'notice' => 'Kündigungsfrist beginnt innerhalb von {days} Tagen',
+        'remove' => 'Diesen Filter entfernen',
+    ],
 ];

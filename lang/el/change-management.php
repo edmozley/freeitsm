@@ -44,6 +44,11 @@ return [
         'work' => 'Εργασία: {date}',
         'unassigned' => 'Χωρίς ανάθεση',
     ],
+    // A list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'open' => 'Ανοιχτές αλλαγές, όπως μετρώνται στο Watchtower',
+        'remove' => 'Αφαίρεση φίλτρου',
+    ],
     'detail' => [
         'back' => 'Πίσω',
         'share' => 'Κοινοποίηση',

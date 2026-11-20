@@ -472,4 +472,10 @@ return [
         'tip6_b' => 'Automatic updates',
         'tip6_t' => 'Software data refreshes every time the PowerShell script runs on a machine. Set the scheduled task to run daily and your inventory will always reflect the current state of your estate.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Renewing within {days} days',
+        'notice' => 'Notice period starts within {days} days',
+        'remove' => 'Remove this filter',
+    ],
 ];

@@ -44,6 +44,11 @@ return [
         'work' => 'Pekerjaan: {date}',
         'unassigned' => 'Belum ditugaskan',
     ],
+    // A list opened from a Watchtower count (discussion #388).
+    'link_filter' => [
+        'open' => 'Perubahan terbuka, sesuai hitungan Watchtower',
+        'remove' => 'Hapus filter',
+    ],
     'detail' => [
         'back' => 'Kembali',
         'share' => 'Bagikan',

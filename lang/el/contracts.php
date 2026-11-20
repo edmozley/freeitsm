@@ -1165,4 +1165,10 @@ return [
             'reopen_failed_short' => 'Το επανάνοιγμα απέτυχε',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Λήγει εντός {days} ημερών',
+        'notice' => 'Ημερομηνία καταγγελίας εντός {days} ημερών',
+        'remove' => 'Αφαίρεση αυτού του φίλτρου',
+    ],
 ];

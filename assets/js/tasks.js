@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     buildBoardColumns();
     applyTagSettings();
+    renderStatusLinkChip();   // discussion #388
     // Open a task straight away if linked from the calendar/timeline (?task=N)
     loadDropdowns().then(() => {
         const taskParam = new URLSearchParams(location.search).get('task');
@@ -370,6 +371,58 @@ function setSearch(value) {
 function clearSearch() {
     document.getElementById('taskSearch').value = '';
     setSearch('');
+}
+
+// ── Opened from a Watchtower count (discussion #388) ───────────────
+//
+// tasks/index.php resolves ?status=<name> or ?statuses=open into the status
+// NAMES the card counted, and switches this visit to All tasks (the card counts
+// everyone's). The chip above the board says what is showing; its x drops the
+// filter, puts back the saved My/All choice and the plain address. With no
+// parameter TASK_STATUS_LINK is null and nothing here does anything.
+
+let statusLink = window.TASK_STATUS_LINK || null;
+
+/** True when no Watchtower status filter is on, or the task's status is one it names. */
+function taskMatchesStatusLink(t) {
+    if (!statusLink) return true;
+    return statusLink.names.includes(t.status);
+}
+
+/** Draws the chip for the Watchtower status filter, or hides it when there is none. */
+function renderStatusLinkChip() {
+    const bar = document.getElementById('taskLinkFilter');
+    if (!bar) return;
+    if (!statusLink) {
+        bar.hidden = true;
+        bar.innerHTML = '';
+        bar.closest('.tasks-main')?.classList.remove('has-link-filter');
+        return;
+    }
+    const label = statusLink.kind === 'open'
+        ? window.t('tasks.link_filter.open')
+        : window.t('tasks.link_filter.status', { status: statusLink.names[0] || '' });
+    const remove = window.t('tasks.link_filter.remove');
+    bar.innerHTML = `<span class="link-filter-chip"><span>${esc(label)}</span>`
+        + `<button type="button" class="link-filter-remove" onclick="clearStatusLink()" title="${escAttr(remove)}" aria-label="${escAttr(remove)}">&times;</button></span>`;
+    bar.hidden = false;
+}
+
+/** Removes the Watchtower status filter and returns to the board as it normally opens. */
+function clearStatusLink() {
+    statusLink = null;
+    renderStatusLinkChip();
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('status');
+        url.searchParams.delete('statuses');
+        history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+    } catch (e) { /* the address is cosmetic */ }
+    // Back to the saved My/All choice if the link had switched it to All.
+    const saved = window.TASK_FILTER_SAVED === 'all' ? 'all' : 'my';
+    if (currentFilter === 'all' && saved !== 'all') { setFilter(saved); return; }
+    if (currentView === 'board') renderBoard();
+    else renderList();
 }
 
 // ── Tag filter ─────────────────────────────────────────────────────
@@ -734,7 +787,7 @@ function applyBoardSort(list, tiebreak) {
  */
 function renderBoardByAnalyst() {
     const board = document.getElementById('boardView');
-    const visible = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t) && taskMatchesDone(t));
+    const visible = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t) && taskMatchesDone(t) && taskMatchesStatusLink(t));
 
     // One column per analyst who has a task in view, yours first, then by name;
     // Unassigned last. Your own column is always there, so you can drag work
@@ -818,7 +871,7 @@ function renderBoard() {
         const cardsEl = col.querySelector('.board-cards');
         const countEl = col.querySelector('.column-count');
         const filtered = applyBoardSort(tasks.filter(t =>
-            t.status === status && taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t) && taskMatchesDone(t)));
+            t.status === status && taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t) && taskMatchesDone(t) && taskMatchesStatusLink(t)));
         if (countEl) countEl.textContent = filtered.length;
 
         if (filtered.length === 0) {
@@ -1342,7 +1395,7 @@ async function dropWithStatus(movedTaskId, newStatus, movedFrom, positions) {
  * the sorted column header.
  */
 function renderList() {
-    const sorted = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t) && taskMatchesDone(t)).sort((a, b) => {
+    const sorted = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t) && taskMatchesDone(t) && taskMatchesStatusLink(t)).sort((a, b) => {
         let va = a[sortField] || '';
         let vb = b[sortField] || '';
         // The id is a number: compared as text, #10 would sort before #9.

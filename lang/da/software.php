@@ -421,4 +421,10 @@ return [
         'tip6_b' => 'Automatiske opdateringer',
         'tip6_t' => 'Softwaredata opdateres, hver gang PowerShell-scriptet kører på en maskine. Indstil den planlagte opgave til at køre dagligt, så din oversigt altid afspejler den aktuelle tilstand af din maskinpark.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Fornyes inden for {days} dage',
+        'notice' => 'Opsigelsesperioden starter inden for {days} dage',
+        'remove' => 'Fjern dette filter',
+    ],
 ];

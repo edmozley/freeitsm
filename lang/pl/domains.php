@@ -1441,4 +1441,10 @@ return [
             'p4' => 'Powiązania (elementy CMDB, zgłoszenia, instrukcje, usługi Statusu usług) nie są jeszcze w REST API - tworzy się je i odczytuje na ekranach.',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Wygasa w ciągu {days} dni',
+        'ssl' => 'Certyfikat wygasł lub wygasa w ciągu {days} dni',
+        'remove' => 'Usuń ten filtr',
+    ],
 ];

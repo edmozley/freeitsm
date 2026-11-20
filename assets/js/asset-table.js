@@ -134,27 +134,44 @@
             return d && !isNaN(d.getTime()) && d.getTime() < cutoff;
         });
 
+        const key = kept.length === 1 ? 'table.stale_notice_one' : 'table.stale_notice';
+        showFilterNotice(tt(key, { count: kept.length, days: days }));
+        return kept;
+    }
+
+    /**
+     * ?due=warranty / ?due=lease, from the Watchtower assets card (discussion #388).
+     * The server does the filtering (api/assets/get_assets.php) with the card's own
+     * rule and window - includes/asset_expiry_due.php - so the dates are judged
+     * exactly as the count judged them, not by this browser's clock.
+     */
+    function dueFromUrl() {
+        const v = new URLSearchParams(location.search).get('due');
+        return v === 'warranty' || v === 'lease' ? v : null;
+    }
+
+    /**
+     * Shows the banner above the table saying what the list is filtered to, with
+     * Show all as the way back to the whole table (#97, discussion #388).
+     */
+    function showFilterNotice(text) {
         const notice = document.getElementById('assetStaleNotice');
-        if (notice) {
-            const key = kept.length === 1 ? 'table.stale_notice_one' : 'table.stale_notice';
-            const text = tt(key, { count: kept.length, days: days });
-            const href = location.pathname;
-            notice.innerHTML = '<span></span><a></a>';
-            notice.firstChild.textContent = text;
-            const link = notice.lastChild;
-            link.textContent = tt('table.stale_show_all');
-            link.href = href;
-            notice.hidden = false;
-            // .dt-layout is height:100% against .dt-page, so a banner above it
-            // pushes the table's bottom off the screen. Adjusted here rather
-            // than in data-table.css because three other tables share that rule
-            // and none of them has a banner.
-            const layout = document.querySelector('.dt-layout');
-            if (layout) {
-                layout.style.height = 'auto';
-                layout.style.flex = '1';
-                layout.style.minHeight = '0';
-            }
+        if (!notice) return;
+        notice.innerHTML = '<span></span><a></a>';
+        notice.firstChild.textContent = text;
+        const link = notice.lastChild;
+        link.textContent = tt('table.stale_show_all');
+        link.href = location.pathname;
+        notice.hidden = false;
+        // .dt-layout is height:100% against .dt-page, so a banner above it
+        // pushes the table's bottom off the screen. Adjusted here rather
+        // than in data-table.css because three other tables share that rule
+        // and none of them has a banner.
+        const layout = document.querySelector('.dt-layout');
+        if (layout) {
+            layout.style.height = 'auto';
+            layout.style.flex = '1';
+            layout.style.minHeight = '0';
         }
         return kept;
     }
@@ -181,7 +198,12 @@
             // remembered in this browser (asset-management/index.php).
             let showRetired = false;
             try { showRetired = localStorage.getItem('assets_show_retired') === '1'; } catch (e) {}
-            const d = await fetch('../api/assets/get_assets.php' + (showRetired ? '?include_retired=1' : '')).then(r => r.json());
+            // A list opened from a Watchtower count leaves retired assets out, as
+            // the count does, whatever the switch says (discussion #388).
+            const due = dueFromUrl();
+            if (due || staleDaysFromUrl() !== null) showRetired = false;
+            const qs = due ? '?due=' + due : (showRetired ? '?include_retired=1' : '');
+            const d = await fetch('../api/assets/get_assets.php' + qs).then(r => r.json());
             if (!d.success) { console.error('get_assets:', d.error); return []; }
             // GH #200 part D: the table shows and filters the mapped names ("HP"), never the
             // spellings that came in ("HP Inc.", "Hewlett-Packard").
@@ -189,6 +211,11 @@
                 if (a.manufacturer_display !== undefined) a.manufacturer = a.manufacturer_display;
                 if (a.model_display !== undefined) a.model = a.model_display;
             });
+            if (due) {
+                const n = (d.assets || []).length;
+                showFilterNotice(tt('table.' + due + '_notice' + (n === 1 ? '_one' : ''), { count: n, days: d.due_days }));
+                return d.assets || [];
+            }
             return applyStaleFilter(d.assets || []);
         },
     });

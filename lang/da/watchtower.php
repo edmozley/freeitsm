@@ -174,7 +174,7 @@ return [
     'projects' => [
         'metric_red' => 'Af kurs',
         'metric_amber' => 'I fare',
-        'metric_week' => 'Datoer denne uge',
+        'metric_week'    => 'Projekter med datoer denne uge',
         'off_track' => '{name} er af kurs',
         'more_off_track' => '<span class="wt-attention-bold">{count}</span> projekt(er) mere er af kurs',
         'breaches' => '<span class="wt-attention-bold">{count}</span> projekt(er) ud over en tolerance',

@@ -113,6 +113,49 @@ function domainListRows(PDO $conn, int $analystId, array $f = []): array
 }
 
 /**
+ * The ids of the domains Watchtower's Domains card counts, for its links into the
+ * register (discussion #388): 'expiring' = registration ending between today and
+ * today + $days, 'certificate' = a certificate (checked or recorded by hand) expired
+ * or ending within the operator's own warning window, domain_ssl_warn_days.
+ *
+ * ⚠️ These are the card's conditions, copied from getWatchtowerData() in
+ * includes/watchtower_queries.php - not the register's own "Expiring" and
+ * "Certificate" views, which count every domain and use a fixed 21 days. The two
+ * differ on purpose (a status with alerts off, "Do not renew" and internal
+ * domains are left off the card), so the link would show a different number from
+ * the card it came from. Change one, change the other.
+ *
+ * Scoped exactly like the card and the register (activeTenantReadFilter), so it
+ * can only ever narrow what the register already shows.
+ *
+ * @param string $kind  'expiring' or 'certificate'; anything else matches nothing
+ * @param int    $days  the window for 'expiring' (1-366); ignored for 'certificate'
+ * @return int[]
+ */
+function domainWatchtowerMatchIds(PDO $conn, int $analystId, string $kind, int $days = 0): array
+{
+    require_once __DIR__ . '/../timezone.php';
+    [$tSql, $tArgs] = activeTenantReadFilter($conn, $analystId, 'd');
+    $today = naive_today_sql();
+    $live = "(s.id IS NULL OR s.alerts_enabled = 1) AND d.renewal_mode <> 'do_not_renew'";
+    $pub = domainScopeReady($conn) ? "d.scope <> 'internal'" : '1=1';
+    if ($kind === 'expiring' && $days >= 1 && $days <= 366) {
+        $cond = "$live AND $pub AND d.expiry_date BETWEEN {$today} AND DATE_ADD({$today}, INTERVAL $days DAY)";
+    } elseif ($kind === 'certificate') {
+        $sslDays = max(1, (int)domainSettings($conn)['domain_ssl_warn_days']);
+        $manual = domainManualCertsReady($conn)
+            ? " OR EXISTS (SELECT 1 FROM domain_manual_certificates mc WHERE mc.domain_id = d.id AND mc.expiry_date <= DATE_ADD({$today}, INTERVAL {$sslDays} DAY))"
+            : '';
+        $cond = "$live AND ((d.ssl_expiry_date IS NOT NULL AND d.ssl_expiry_date <= DATE_ADD({$today}, INTERVAL {$sslDays} DAY)){$manual})";
+    } else {
+        return [];
+    }
+    $st = $conn->prepare("SELECT d.id FROM domains d LEFT JOIN domain_statuses s ON s.id = d.status_id WHERE $cond{$tSql}");
+    $st->execute($tArgs);
+    return array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+}
+
+/**
  * Types, and the derived numbers every screen wants (days left, attention).
  *
  * @param array $r  one row from domainListSelect(), straight from PDO (strings)

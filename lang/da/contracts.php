@@ -1165,4 +1165,10 @@ De tilknyttede kildeemner forbliver uberørt.',
             'reopen_failed_short' => 'Kunne ikke genåbne',
         ],
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Udløber inden for {days} dage',
+        'notice' => 'Opsigelsesdato inden for {days} dage',
+        'remove' => 'Fjern dette filter',
+    ],
 ];

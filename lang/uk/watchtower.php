@@ -186,7 +186,7 @@ return [
     'projects' => [
         'metric_red' => 'Відстають',
         'metric_amber' => 'Під загрозою',
-        'metric_week' => 'Дати цього тижня',
+        'metric_week'    => 'Проєкти з датами цього тижня',
         'off_track' => '{name} відстає від плану',
         'more_off_track' => 'Ще <span class="wt-attention-bold">{count}</span> проєктів відстають від плану',
         'breaches' => '<span class="wt-attention-bold">{count}</span> проєктів поза допуском',

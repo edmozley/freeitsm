@@ -123,8 +123,9 @@ try {
 
     <div class="dt-page">
         <?php /* Filled in by asset-table.js when the page is opened as
-                 ?stale=N from the Watchtower "not seen" count (#97). Empty and
-                 hidden otherwise — the table is unfiltered in every other case. */ ?>
+                 ?stale=N from the Watchtower "not seen" count (#97), or as
+                 ?due=warranty / ?due=lease from its expiry counts (discussion #388).
+                 Empty and hidden otherwise — the table is unfiltered in every other case. */ ?>
         <div id="assetStaleNotice" class="asset-stale-notice" hidden></div>
         <?php /* Retired assets: the same switch as the Assets list. Reloads the page,
                  which reloads the table with or without them. */ ?>
@@ -137,7 +138,7 @@ try {
 
     <script>window.assetCustomColumns = <?php echo json_encode($assetCustomColumns, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/data-table.js?v=11"></script>
-    <script src="../assets/js/asset-table.js?v=14"></script>
+    <script src="../assets/js/asset-table.js?v=15"></script>
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>

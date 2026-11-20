@@ -421,4 +421,10 @@ return [
         'tip6_b' => 'Automatyczne aktualizacje',
         'tip6_t' => 'Dane oprogramowania odświeżają się za każdym razem, gdy skrypt PowerShell uruchamia się na maszynie. Ustaw zadanie zaplanowane na codzienne uruchamianie, a Twój spis zawsze będzie odzwierciedlał aktualny stan środowiska.',
     ],
+    // Watchtower links that open the list already filtered (discussion #388)
+    'watch_filter' => [
+        'expiring' => 'Odnowienie w ciągu {days} dni',
+        'notice' => 'Okres wypowiedzenia zaczyna się w ciągu {days} dni',
+        'remove' => 'Usuń ten filtr',
+    ],
 ];
