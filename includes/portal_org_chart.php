@@ -12,7 +12,9 @@
  *     a service provider whose portal serves many customers must not get it by surprise.
  *   - Only the reader's OWN company, and only current staff.
  *   - Name, job title, department and who reports to whom. No email, phone, office
- *     or employee number - things a colleague already knows, nothing more.
+ *     or employee number - things a colleague already knows, nothing more. The one
+ *     exception: somebody with no name is shown by their email (peopleName()), so
+ *     the gap is visible and gets fixed rather than the person silently missing.
  *
  * TRAP: the page, the nav item and the endpoint all ask portalOrgChartAllowed().
  * A hidden tab is not a permission - the endpoint is the rule.
@@ -21,6 +23,7 @@
 require_once __DIR__ . '/self_service_settings.php';
 require_once __DIR__ . '/tenancy.php';
 require_once __DIR__ . '/module_availability.php';
+require_once __DIR__ . '/people.php';   // peopleName()
 
 /** The most people one chart returns. Past this the chart says it is incomplete. */
 const PORTAL_ORG_CHART_MAX = 5000;
@@ -88,15 +91,11 @@ function portalOrgChartPeople(PDO $conn, int $userId): array
 
     $people = [];
     foreach ($rows as $r) {
-        // The name, never the address it may have fallen back to: an email is
-        // contact detail, which this chart does not hand out.
-        $name = '';
-        foreach (['preferred_name', 'display_name'] as $k) {
-            if (trim((string)$r[$k]) !== '') { $name = trim((string)$r[$k]); break; }
-        }
-        if ($name === '') continue;   // nobody can recognise a nameless box
+        // Everybody is shown, even with no name: then peopleName() falls back to
+        // their email, username or #id, and the box itself says there is a record
+        // to fix (Ed, 2026-11-20). Nobody else's email ever goes out.
         $people[] = [
-            'id' => (int)$r['id'], 'name' => $name,
+            'id' => (int)$r['id'], 'name' => peopleName($r),
             'job_title' => $r['job_title'] !== null && trim($r['job_title']) !== '' ? trim($r['job_title']) : null,
             'department' => $r['department'] !== null && trim($r['department']) !== '' ? trim($r['department']) : null,
             'manager_id' => $r['manager_id'] !== null ? (int)$r['manager_id'] : null,

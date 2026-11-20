@@ -8,7 +8,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * Pins who may see it - nobody until switched on, then everybody or only members
  * of chosen (active) People groups - and what it shows: the reader's own company,
  * current staff, names / job titles / departments / manager ids and nothing else.
- * No email address may come back, not even as the name of somebody who has no name.
+ * No email address comes back - except as the name of somebody who has no name, who is
+ * shown by it so the missing name gets noticed and fixed (Ed, 2026-11-20).
  *
  * Everything runs inside a transaction that is ALWAYS rolled back.
  *
@@ -80,9 +81,10 @@ try {
     $ids = array_column($chart['people'], 'id');
     ok('their manager and colleague are on it', in_array($boss, $ids, true) && in_array($peer, $ids, true));
     ok('a leaver is not', !in_array($gone, $ids, true));
-    ok('somebody with no name is not (their email would be the name)', !in_array($noName, $ids, true));
-    $json = json_encode($chart);
-    ok('no email address anywhere in the answer', !str_contains($json, '@example.test'));
+    $nameless = array_values(array_filter($chart['people'], fn($p) => $p['id'] === $noName))[0] ?? null;
+    ok('somebody with no name is shown, by their email, so the gap gets fixed', ($nameless['name'] ?? '') === "$tag-secret@example.test");
+    $json = json_encode(array_values(array_filter($chart['people'], fn($p) => $p['id'] !== $noName)));
+    ok('nobody else\'s email address anywhere in the answer', !str_contains($json, '@example.test'));
     $mine = array_values(array_filter($chart['people'], fn($p) => $p['id'] === $me))[0] ?? [];
     ok('each person is name, job title, department and manager only', array_keys($mine) === ['id', 'name', 'job_title', 'department', 'manager_id'], json_encode(array_keys($mine)));
     ok('the reader\'s manager id is there', ($mine['manager_id'] ?? null) === $boss);
