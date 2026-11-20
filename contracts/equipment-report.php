@@ -21,7 +21,7 @@ require_once '../includes/contract_report.php';
 I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
-    header('Location: ../login.php');
+    header('Location: ../auth/login.php');   // the same page every gate uses, so the return address is added (GH #407)
     exit;
 }
 requireModuleAccess('contracts');
