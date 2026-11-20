@@ -85,6 +85,8 @@ function dockerProxyListFacts(array $list): array
  *     'direct'          off, and no proxy header: the connection is the person's own - nothing to do
  *     'off_proxy'       off, and a proxy header arrived: everyone is recorded as the proxy's address
  *     'working'         on, and the recorded address is not one of the proxies: it came from the header
+ *     'too_wide'        on, and the recorded address is inside a range wider than one proxy: FreeITSM
+ *                       cannot tell this person from a proxy - the range is the problem, not the header
  *     'still_proxy'     on, but the recorded address IS a listed proxy: the proxy sent no usable header
  *     'refused'         set, but not in force (see docker logs)
  *   suggest: for 'off_proxy', the value TRUSTED_PROXIES would need (the recorded address = the proxy)
@@ -104,8 +106,11 @@ function dockerProxyCheck(array $state, array $server): array
         $verdict = $headers ? 'off_proxy' : 'direct';
         if ($headers) $suggest = $recorded;
     } else {
+        // Found on the real proxy stack: with a range like 172.16.0.0/12 the person's own address
+        // is inside it too, so "still the proxy" would blame the header when the range is the fault.
+        $inWide  = $recorded !== '' && $state['wide'] && apiIpAllowed(implode("\n", $state['wide']), $recorded);
         $isProxy = $recorded !== '' && $state['resolved'] && apiIpAllowed(implode("\n", $state['resolved']), $recorded);
-        $verdict = $isProxy ? 'still_proxy' : 'working';
+        $verdict = $inWide ? 'too_wide' : ($isProxy ? 'still_proxy' : 'working');
     }
     return ['recorded' => $recorded, 'verdict' => $verdict, 'headers' => $headers, 'suggest' => $suggest];
 }

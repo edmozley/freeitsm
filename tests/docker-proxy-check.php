@@ -51,6 +51,11 @@ check('  and for IPv6', $r['verdict'] === 'still_proxy', $r['verdict']);
 $r = dockerProxyCheck(st('on', ['localhost']), ['REMOTE_ADDR' => '127.0.0.1']);
 check('a host name is looked up and matched', $r['verdict'] === 'still_proxy', $r['verdict']);
 
+$r = dockerProxyCheck(st('on', ['172.16.0.0/12']), ['REMOTE_ADDR' => '172.27.0.1']);
+check('recorded address inside a too-wide range: too wide, not "the header"', $r['verdict'] === 'too_wide', $r['verdict']);
+$r = dockerProxyCheck(st('on', ['172.16.0.0/12']), ['REMOTE_ADDR' => '203.0.113.7']);
+check('  but a real outside address under a wide range still reads as working', $r['verdict'] === 'working', $r['verdict']);
+
 echo "\n3. Set but refused\n";
 $r = dockerProxyCheck(st('refused', ['not valid!']), ['REMOTE_ADDR' => '172.18.0.5', 'HTTP_X_FORWARDED_FOR' => '203.0.113.7']);
 check('refused: says so, suggests nothing', $r['verdict'] === 'refused' && $r['suggest'] === null, $r['verdict']);

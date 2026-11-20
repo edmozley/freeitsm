@@ -1337,6 +1337,7 @@ return [
         'verdict_off_proxy' => 'Przed FreeITSM stoi proxy (to żądanie zawierało {headers}), a FreeITSM zapisuje dla wszystkich adres proxy, {ip}. Aby zapisywać prawdziwe adresy, dodaj to do środowiska aplikacji w docker-compose.yml:',
         'proxy_suggest_then' => 'To adres proxy widziany przez FreeITSM - podaj tylko jego, nic szerszego. Potem uruchom docker compose up -d i przetestuj ponownie.',
         'verdict_working' => 'Działa: ten adres pochodzi z nagłówka proxy. Sprawdź, czy to naprawdę adres Twojego komputera - w Windows pokazuje go ipconfig, spoza Twojej sieci - Twój adres publiczny. Jeśli widać adres proxy albo 127.0.0.1, coś jest nie tak.',
+        'verdict_too_wide' => 'Niebezpieczne: Twój własny adres, {ip}, leży w zakresie, któremu FreeITSM ufa jako proxy, więc FreeITSM nie odróżni Cię od proxy - a każdy inny w tym zakresie może podać się za dowolny adres. Zmień TRUSTED_PROXIES na własny adres proxy i uruchom kontener ponownie.',
         'verdict_still_proxy' => 'Nie działa: zapisany adres to samo proxy, więc proxy nie wysyła nagłówka {header}. Skonfiguruj proxy, aby dodawało {header}, albo ustaw TRUSTED_PROXY_HEADER na nagłówek, który wysyła.',
         'verdict_refused' => 'Ustawienie nie działa (zob. wyżej), więc FreeITSM zapisuje adres, z którego przychodzi każde połączenie. Najpierw popraw ustawienie, potem przetestuj ponownie.',
         'proxy_headers_seen' => 'Nagłówki proxy w tym żądaniu:',

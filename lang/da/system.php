@@ -1337,6 +1337,7 @@ return [
         'verdict_off_proxy' => 'Der står en proxy foran FreeITSM (denne forespørgsel havde {headers}), og FreeITSM registrerer proxyens adresse, {ip}, for alle. For at registrere rigtige adresser skal du tilføje dette til appens miljø i docker-compose.yml:',
         'proxy_suggest_then' => 'Det er proxyens adresse, som FreeITSM ser den - angiv kun den, intet bredere. Kør derefter docker compose up -d, og test igen.',
         'verdict_working' => 'Virker: denne adresse kom fra proxyens header. Tjek, at det virkelig er din computers adresse - i Windows viser ipconfig den, uden for dit netværk din offentlige adresse. Viser den proxyens adresse eller 127.0.0.1, er noget galt.',
+        'verdict_too_wide' => 'Ikke sikkert: din egen adresse, {ip}, ligger inden for det område, FreeITSM stoler på som proxy, så FreeITSM kan ikke skelne dig fra proxyen - og alle andre i området kan udgive sig for at være en hvilken som helst adresse. Sæt TRUSTED_PROXIES til proxyens egen adresse, og genstart containeren.',
         'verdict_still_proxy' => 'Virker ikke: den registrerede adresse er proxyen selv, så proxyen sender ikke headeren {header}. Få proxyen til at tilføje {header}, eller sæt TRUSTED_PROXY_HEADER til den header, den sender.',
         'verdict_refused' => 'Indstillingen er ikke i kraft (se ovenfor), så FreeITSM registrerer den adresse, hver forbindelse kommer fra. Ret indstillingen først, og test så igen.',
         'proxy_headers_seen' => 'Proxy-headere på denne forespørgsel:',

@@ -1337,6 +1337,7 @@ return [
         'verdict_off_proxy' => 'Ada proxy di depan FreeITSM (permintaan ini membawa {headers}), dan FreeITSM mencatat alamat proxy, {ip}, untuk semua orang. Untuk mencatat alamat sebenarnya, tambahkan ini ke environment aplikasi di docker-compose.yml:',
         'proxy_suggest_then' => 'Itu alamat proxy sebagaimana dilihat FreeITSM - daftarkan hanya itu, tidak lebih luas. Lalu jalankan docker compose up -d dan uji lagi.',
         'verdict_working' => 'Berfungsi: alamat ini berasal dari header proxy. Pastikan ini benar-benar alamat komputer Anda - di Windows, ipconfig menampilkannya; dari luar jaringan Anda, alamat publik Anda. Jika yang tampil adalah alamat proxy atau 127.0.0.1, ada yang salah.',
+        'verdict_too_wide' => 'Tidak aman: alamat Anda sendiri, {ip}, berada di dalam rentang yang dipercaya FreeITSM sebagai proxy, sehingga FreeITSM tidak dapat membedakan Anda dari proxy - dan siapa pun di rentang itu dapat mengaku sebagai alamat apa pun. Ubah TRUSTED_PROXIES menjadi alamat proxy itu sendiri lalu mulai ulang container.',
         'verdict_still_proxy' => 'Tidak berfungsi: alamat yang tercatat adalah proxy itu sendiri, jadi proxy tidak mengirim header {header}. Buat proxy menambahkan {header}, atau setel TRUSTED_PROXY_HEADER ke header yang dikirimnya.',
         'verdict_refused' => 'Setelan tidak berlaku (lihat di atas), jadi FreeITSM mencatat alamat asal setiap koneksi. Perbaiki setelan dulu, lalu uji lagi.',
         'proxy_headers_seen' => 'Header proxy pada permintaan ini:',

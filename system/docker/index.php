@@ -340,7 +340,7 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
                 <p><?php echo dk('proxy_intro'); ?></p>
 
     <?php if ($proxy['state'] === 'on'): ?>
-                <div class="panel status-card is-on" style="box-shadow:none;padding:12px 16px;margin-bottom:16px">
+                <div class="panel status-card <?php echo $proxy['wide'] ? 'is-restart' : 'is-on'; ?>" style="box-shadow:none;padding:12px 16px;margin-bottom:16px">   <!-- amber, not green, when the range is too wide -->
                     <div class="status-title"><?php echo dk('proxy_on_title'); ?></div>
                     <p><?php echo dk('proxy_on_body', ['header' => dkCode($proxy['header']), 'list' => dkCode(implode(' ', $proxy['list']))]); ?></p>
                 </div>
@@ -472,7 +472,7 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
             const rec = para(T('proxy_recorded') + ' ');
             const ip = document.createElement('span'); ip.className = 'proxy-ip'; ip.textContent = d.recorded || '?'; rec.appendChild(ip);
             const names = Object.keys(d.headers || {});
-            const cls = { working: 'is-good', direct: 'is-info', off_proxy: 'is-bad', still_proxy: 'is-bad', refused: 'is-bad' }[d.verdict] || '';
+            const cls = { working: 'is-good', direct: 'is-info', off_proxy: 'is-bad', still_proxy: 'is-bad', too_wide: 'is-bad', refused: 'is-bad' }[d.verdict] || '';
             out.className = 'proxy-result ' + cls;
             para(T('verdict_' + d.verdict, { ip: d.suggest || d.recorded || '?', header: d.header || 'X-Forwarded-For', headers: names.join(', ') }));
             if (d.verdict === 'off_proxy' && d.suggest) {

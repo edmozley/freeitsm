@@ -1489,6 +1489,7 @@ return [
         'verdict_off_proxy' => 'A proxy is in front of FreeITSM (this request carried {headers}), and FreeITSM is recording the proxy\'s address, {ip}, for everyone. To record real addresses, add this to the app\'s environment in docker-compose.yml:',
         'proxy_suggest_then' => 'That is the proxy\'s address as FreeITSM sees it - list it alone, nothing wider. Then run docker compose up -d and test again.',
         'verdict_working' => 'Working: this address came from the proxy\'s header. Check it really is your computer\'s address - on Windows, ipconfig shows it; from outside your network, your public address. If it shows the proxy\'s address or 127.0.0.1, something is wrong.',
+        'verdict_too_wide' => 'Not safe: your own address, {ip}, is inside the range FreeITSM trusts as the proxy, so FreeITSM cannot tell you from the proxy - and anyone else in that range can claim any address. Change TRUSTED_PROXIES to the proxy\'s own address and restart the container.',
         'verdict_still_proxy' => 'Not working: the address recorded is the proxy itself, so the proxy is not sending the {header} header. Make the proxy add {header}, or set TRUSTED_PROXY_HEADER to the header it does send.',
         'verdict_refused' => 'The setting is not in force (see above), so FreeITSM records the address each connection comes from. Fix the setting first, then test again.',
         'proxy_headers_seen' => 'Proxy headers on this request:',
