@@ -48,14 +48,15 @@ try {
     // secret it signs with. (Plaintext values written before encryption was added
     // pass straight through.) See the divergence note in save.php for why these
     // are not masked the way API keys are.
-    foreach ($wf['actions'] as $i => $a) {
-        if (($a['type'] ?? '') !== 'send_webhook') continue;
+    // At every depth (GH #364): a webhook inside a branch left encrypted here would be
+    // encrypted AGAIN on the next save - see webhookMapWebhooks().
+    $canEdit = !empty($wf['can_edit']);
+    $wf['actions'] = webhookMapWebhooks($wf['actions'], function (array $a) use ($canEdit): array {
         foreach (['url', 'secret'] as $k) {
-            if (isset($a['args'][$k]) && $a['args'][$k] !== '') {
-                $wf['actions'][$i]['args'][$k] = $wf['can_edit'] ? webhookDecrypt((string)$a['args'][$k]) : '(hidden)';
-            }
+            if (isset($a['args'][$k]) && $a['args'][$k] !== '') $a['args'][$k] = $canEdit ? webhookDecrypt((string)$a['args'][$k]) : '(hidden)';
         }
-    }
+        return $a;
+    });
 
     // Last 20 executions, newest first. step_log comes along so the editor can
     // expand a run — it's what makes a dry run readable ("this is what it

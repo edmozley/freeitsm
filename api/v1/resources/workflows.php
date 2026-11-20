@@ -266,7 +266,8 @@ function apiValidateWorkflowActions($actions): array {
             apiError(422, 'invalid_field', "actions[{$i}] must be an object with 'type' and 'args'.");
         }
         $type = trim((string)($a['type'] ?? ''));
-        if (!isset($catalogue[$type])) {
+        // GH #364: a branch (branch_if / branch_switch) is checked as a whole tree below.
+        if (!isset($catalogue[$type]) && !in_array($type, WorkflowEngine::BRANCH_TYPES, true)) {
             apiError(422, 'invalid_field', "actions[{$i}]: unknown action type '{$type}'. See GET /workflow-actions.");
         }
         $args = $a['args'] ?? [];
@@ -275,7 +276,10 @@ function apiValidateWorkflowActions($actions): array {
         }
         $out[] = ['type' => $type, 'args' => $args];
     }
-    return $out;
+    if (($treeError = WorkflowEngine::validateActionTree($out)) !== null) {
+        apiError(422, 'invalid_field', $treeError);
+    }
+    return WorkflowEngine::normaliseActionTree($out);
 }
 
 /**

@@ -135,7 +135,7 @@ if ($wfCompanyPicker) {
     <title><?php echo htmlspecialchars(pageTitle('workflow', $id ? t('workflow.editor.edit_title') : t('workflow.editor.new_title'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/workflow.css?v=12">
+    <link rel="stylesheet" href="../assets/css/workflow.css?v=14">
     <!-- Mobile layer LAST, after workflow.css (Techniques §9). -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
@@ -163,6 +163,17 @@ if ($wfCompanyPicker) {
                     <svg width="16" height="16" viewBox="0 0 18 18"><rect x="1" y="3" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
                     <span><?php echo htmlspecialchars(t('workflow.editor.add_action')); ?></span>
                 </button>
+                <!-- GH #364: If / Otherwise, or Choose by value. -->
+                <div class="wf-branch-menu-wrap">
+                    <button class="wf-tool-btn" type="button" onclick="WFE.toggleBranchMenu(event)" aria-haspopup="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="12" r="2"/><path d="M6 7v10M6 12c0-3 3-4 6-4h4M6 12c0 3 3 4 6 4h4"/></svg>
+                        <span><?php echo htmlspecialchars(t('workflow.branch.add_branch')); ?></span>
+                    </button>
+                    <div class="wf-branch-menu" id="wfBranchMenu" hidden>
+                        <button type="button" onclick="WFE.addBranch('branch_if')"><strong><?php echo htmlspecialchars(t('workflow.branch.if_title')); ?></strong><span><?php echo htmlspecialchars(t('workflow.branch.if_menu')); ?></span></button>
+                        <button type="button" onclick="WFE.addBranch('branch_switch')"><strong><?php echo htmlspecialchars(t('workflow.branch.switch_title')); ?></strong><span><?php echo htmlspecialchars(t('workflow.branch.switch_menu')); ?></span></button>
+                    </div>
+                </div>
                 <div class="wf-tool-sep"></div>
                 <button class="wf-tool-btn wf-tool-ai" onclick="WFE.openAiModal()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.7 4.6L18 8l-4.3 1.4L12 14l-1.7-4.6L6 8l4.3-1.4z"/><path d="M5 16l0.9 2.3L8 19l-2.1 0.7L5 22l-0.9-2.3L2 19l2.1-0.7z"/><path d="M19 14l0.9 2.3L22 17l-2.1 0.7L19 20l-0.9-2.3L16 17l2.1-0.7z"/></svg>
@@ -301,6 +312,15 @@ if ($wfCompanyPicker) {
                          JSON to wire an action. -->
                     <div id="wfActArgsHost"></div>
                     <button class="wf-detail-delete" onclick="WFE.deleteSelected()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <?php echo htmlspecialchars(t('workflow.editor.remove')); ?>
+                    </button>
+                </div>
+
+                <!-- GH #364: a branch, or one of its paths. JS fills the host. -->
+                <div class="wf-detail-body" id="wfBodyBranch" style="display: none;">
+                    <div id="wfBranchHost"></div>
+                    <button class="wf-detail-delete" onclick="WFE.deleteSelected()" style="margin-top: 16px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         <?php echo htmlspecialchars(t('workflow.editor.remove')); ?>
                     </button>
@@ -452,7 +472,7 @@ if ($wfCompanyPicker) {
         };
     </script>
     <script src="../checklists/search_scoring.js?v=1"></script>
-    <script src="../assets/js/workflow-editor.js?v=26"></script>
+    <script src="../assets/js/workflow-editor.js?v=29"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

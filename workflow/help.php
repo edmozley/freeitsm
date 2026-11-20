@@ -36,7 +36,7 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
     <title><?php echo htmlspecialchars(pageTitle('workflow', t('workflow.nav.help'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/workflow.css?v=12">
+    <link rel="stylesheet" href="../assets/css/workflow.css?v=14">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -76,6 +76,9 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
             </a>
             <a href="#actions" class="help-nav-link" data-section="actions">
                 <span class="help-nav-num">4</span> <?php echo htmlspecialchars(t('workflow.help.nav_actions')); ?>
+            </a>
+            <a href="#branches" class="help-nav-link" data-section="branches">
+                <span class="help-nav-num">&#8627;</span> <?php echo htmlspecialchars(t('workflow.help.nav_branches')); ?>
             </a>
             <a href="#variables" class="help-nav-link" data-section="variables">
                 <span class="help-nav-num">5</span> <?php echo htmlspecialchars(t('workflow.help.nav_variables')); ?>
@@ -217,6 +220,21 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
             <div class="help-note"><?php echo t('workflow.help.actions_forms_callout'); ?></div>
             <div class="help-note"><?php echo t('workflow.help.actions_tasks_callout'); /* GH #274 */ ?></div>
 
+            </div>
+
+            <div class="help-section" id="branches">
+                <div class="help-section-header">
+                    <span class="help-section-num">&#8627;</span>
+                    <div><h3><?php echo htmlspecialchars(t('workflow.help.branches_heading')); ?></h3></div>
+                </div>
+            <p><?php echo t('workflow.help.branches_intro'); ?></p>
+            <p><?php echo t('workflow.help.branches_if'); ?></p>
+            <p><?php echo t('workflow.help.branches_switch'); ?></p>
+            <p><?php echo t('workflow.help.branches_example'); ?></p>
+            <div class="help-note"><?php echo t('workflow.help.branches_default'); ?></div>
+            <p><?php echo t('workflow.help.branches_nesting'); ?></p>
+            <p><?php echo t('workflow.help.branches_results'); ?></p>
+            <p><?php echo t('workflow.help.branches_runs'); ?></p>
             </div>
 
             <div class="help-section" id="variables">

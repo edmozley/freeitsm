@@ -804,6 +804,9 @@ body { --accent: var(--wf-accent, #f59e0b); }
     color: var(--text-dim, #888);
 }
 .wfx-steps { display: flex; flex-direction: column; gap: 6px; }
+/* GH #364: a branch's own steps, indented under the decision. */
+.wfx-branch-steps { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 0 14px; padding-left: 12px; border-left: 3px solid var(--wf-branch, #7c3aed); }
+.wfx-branch-conds code { font-size: 11px; }
 .wfx-step {
     padding: 8px 10px;
     border-radius: 6px;
@@ -891,3 +894,57 @@ body { --accent: var(--wf-accent, #f59e0b); }
     --wf-sum-action:       #1d3346;  --wf-sum-action-text:  #93c5fd;
     --wf-test-surface:     #22293a;
 }
+
+/* ---------------------------------------------------------------
+   Branching (GH #364): a branch box holds its paths side by side.
+   --------------------------------------------------------------- */
+:root { --wf-branch: #7c3aed; --wf-branch-soft: rgba(124, 58, 237, 0.08); }
+:root[data-theme="dark"], :root[data-theme-mode="dark"] { --wf-branch: #a78bfa; --wf-branch-soft: rgba(167, 139, 250, 0.12); }
+.wf-node-branch { height: auto; width: auto; padding: 0; background: transparent; border: none; box-shadow: none; }
+.wf-br { background: var(--surface, #fff); border: 2px solid var(--wf-branch); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); min-width: 340px; }
+.wf-br.is-nested { box-shadow: none; min-width: 0; border-width: 1.5px; margin: 4px 0; }
+.wf-node-branch.selected > .wf-br, .wf-br.selected { outline: 3px solid var(--wf-branch); outline-offset: 2px; }
+.wf-br-head { background: var(--wf-branch); color: #fff; padding: 8px 12px; border-radius: 9px 9px 0 0; font-size: 12px; cursor: grab; }
+.wf-br.is-nested > .wf-br-head { cursor: pointer; border-radius: 6px 6px 0 0; padding: 5px 10px; }
+.wf-br-kind { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.wf-br-field { opacity: 0.9; }
+.wf-br-lanes { display: flex; gap: 8px; padding: 8px; align-items: flex-start; }
+.wf-br-lane { flex: 1 1 0; min-width: 160px; background: var(--wf-branch-soft); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+.wf-br-lane.is-default { background: var(--surface-2, #f5f5f5); border: 1px dashed var(--border, #ccc); }
+.wf-br-lane-head { padding: 4px 6px; border-radius: 6px; cursor: pointer; }
+.wf-br-lane-head:hover, .wf-br-lane-head.selected { background: var(--surface, #fff); }
+.wf-br-lane-head.selected { outline: 2px solid var(--wf-branch); }
+.wf-br-lane-title { font-size: 12px; font-weight: 700; color: var(--text, #333); }
+.wf-br-lane-sub { font-size: 11px; color: var(--text-dim, #777); overflow-wrap: anywhere; }
+.wf-br-items { display: flex; flex-direction: column; gap: 6px; }
+.wf-br-chip { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border-radius: 8px; padding: 7px 9px; cursor: pointer; text-align: center; }
+.wf-br-chip.selected { outline: 3px solid #f59e0b; outline-offset: 1px; }
+.wf-br-chip .wf-node-kind { font-size: 9px; opacity: 0.85; }
+.wf-br-chip .wf-node-title { font-size: 12px; font-weight: 600; }
+.wf-br-chip .wf-node-sub { font-size: 11px; opacity: 0.9; overflow-wrap: anywhere; }
+.wf-br-empty { font-size: 11px; color: var(--text-faint, #999); font-style: italic; padding: 2px 6px; }
+.wf-br-add { display: flex; flex-wrap: wrap; gap: 4px; }
+.wf-br-add-btn { font-size: 11px; padding: 2px 7px; border-radius: 10px; border: 1px dashed var(--wf-branch); background: transparent; color: var(--wf-branch); cursor: pointer; }
+.wf-br-add-btn:hover { background: var(--surface, #fff); }
+.wf-branch-menu-wrap { position: relative; display: inline-block; }
+.wf-branch-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 50; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); padding: 4px; min-width: 260px; }
+.wf-branch-menu button { display: block; width: 100%; text-align: left; border: none; background: transparent; padding: 8px 10px; border-radius: 6px; cursor: pointer; color: var(--text, #333); }
+.wf-branch-menu button:hover { background: var(--wf-branch-soft); }
+.wf-branch-menu strong { display: block; font-size: 13px; }
+.wf-branch-menu span { display: block; font-size: 12px; color: var(--text-dim, #777); }
+.wf-br-help { font-size: 12px; color: var(--text-muted, #666); line-height: 1.5; margin: 0 0 12px; }
+.wf-br-cond-list { display: flex; flex-direction: column; gap: 4px; }
+.wf-br-cond { text-align: left; font-size: 12px; padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface-2, #fafafa); color: var(--text, #333); cursor: pointer; overflow-wrap: anywhere; }
+.wf-br-cond:hover { border-color: var(--wf-branch); }
+.wf-br-values { border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 6px 10px; max-height: 200px; overflow-y: auto; background: var(--surface-2, #fafafa); }
+.wf-br-values label { display: flex; gap: 8px; align-items: center; font-size: 13px; padding: 3px 0; cursor: pointer; }
+/* GH #364: a branch box is as wide as its content needs. Positioned absolutely on the canvas,
+   its width would otherwise be capped by the space left to the canvas's right edge, squeezing
+   the lanes narrower than a nested branch inside them - which then spilled out of its lane. */
+.wf-node-branch, .wf-br { width: max-content; }
+.wf-br-lanes { align-items: stretch; }
+.wf-br-lane { flex: 0 0 auto; min-width: 180px; }
+.wf-br-chip, .wf-br-lane-head { max-width: 260px; box-sizing: border-box; }
+.wf-br-lane-head { align-self: stretch; max-width: none; }
+.wf-br-lane-sub { max-width: 260px; }
+.wf-br-add { flex-wrap: nowrap; }

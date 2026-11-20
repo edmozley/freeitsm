@@ -599,13 +599,43 @@ function webhookReplayBlockedReason(PDO $conn, int $id): ?string {
  * @param array $actions  a list of {type, args}
  */
 function webhookEncryptActions(array $actions): array {
-    foreach ($actions as $i => $a) {
-        if (!is_array($a) || ($a['type'] ?? '') !== 'send_webhook') continue;
+    return webhookMapWebhooks($actions, function (array $a): array {
         foreach (['url', 'secret'] as $k) {
-            if (isset($a['args'][$k]) && $a['args'][$k] !== '') {
-                $actions[$i]['args'][$k] = webhookEncrypt((string)$a['args'][$k]);
+            if (isset($a['args'][$k]) && $a['args'][$k] !== '') $a['args'][$k] = webhookEncrypt((string)$a['args'][$k]);
+        }
+        return $a;
+    });
+}
+
+/**
+ * Every send_webhook action in a list through $fn - at ANY depth (GH #364).
+ *
+ * TRAP: a workflow's actions can hold branches (branch_if / branch_switch) with their own
+ * action lists. A walker that looks only at the top level stores a webhook inside a branch
+ * in plain text, and - worse - the editor gets it back still encrypted and the next save
+ * encrypts it again, so the webhook silently stops working. Self-contained on purpose
+ * (this file is loaded without the workflow engine); the shape matches
+ * WorkflowEngine::mapActionTree().
+ *
+ * @param array $actions  an actions list
+ * @param callable $fn  fn(array $sendWebhookAction): array
+ */
+function webhookMapWebhooks(array $actions, callable $fn): array {
+    foreach ($actions as $i => $a) {
+        if (!is_array($a)) continue;
+        $type = $a['type'] ?? '';
+        if ($type === 'send_webhook') { $actions[$i] = $fn($a); continue; }
+        if ($type !== 'branch_if' && $type !== 'branch_switch') continue;
+        $args = is_array($a['args'] ?? null) ? $a['args'] : [];
+        foreach (['branches', 'cases'] as $listKey) {
+            foreach (is_array($args[$listKey] ?? null) ? $args[$listKey] : [] as $j => $path) {
+                if (is_array($path['actions'] ?? null)) $args[$listKey][$j]['actions'] = webhookMapWebhooks($path['actions'], $fn);
             }
         }
+        foreach (['otherwise', 'default'] as $k) {
+            if (is_array($args[$k]['actions'] ?? null)) $args[$k]['actions'] = webhookMapWebhooks($args[$k]['actions'], $fn);
+        }
+        $actions[$i]['args'] = $args;
     }
     return $actions;
 }
@@ -616,13 +646,10 @@ function webhookEncryptActions(array $actions): array {
  * @param array $actions  a list of {type, args}
  */
 function webhookDecryptActions(array $actions): array {
-    foreach ($actions as $i => $a) {
-        if (!is_array($a) || ($a['type'] ?? '') !== 'send_webhook') continue;
+    return webhookMapWebhooks($actions, function (array $a): array {
         foreach (['url', 'secret'] as $k) {
-            if (isset($a['args'][$k]) && $a['args'][$k] !== '') {
-                $actions[$i]['args'][$k] = webhookDecrypt((string)$a['args'][$k]);
-            }
+            if (isset($a['args'][$k]) && $a['args'][$k] !== '') $a['args'][$k] = webhookDecrypt((string)$a['args'][$k]);
         }
-    }
-    return $actions;
+        return $a;
+    });
 }

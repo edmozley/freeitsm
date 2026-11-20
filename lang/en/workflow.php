@@ -271,6 +271,7 @@ return [
         'nav_canvas'     => 'The visual canvas',
         'nav_conditions' => 'Conditions',
         'nav_actions'    => 'Actions',
+        'nav_branches' => 'Branches',   // GH #364
         'nav_variables'  => 'Variables',
         'nav_ai'         => 'AI co-author',
         'nav_testing'    => 'Saving and testing',
@@ -315,6 +316,15 @@ return [
 
         // 4. Actions
         'actions_heading' => 'Actions',
+        'branches_heading' => 'Branches: If / Otherwise and Choose by value',   // GH #364
+        'branches_intro' => 'Conditions decide <em>whether</em> a workflow runs. A <strong>branch</strong> decides <em>what it does</em>: different actions for different situations, in one workflow. Add one with <strong>Add branch</strong> in the toolbar. It is a step like an action, and the actions after it run whichever path was taken.',   // GH #364
+        'branches_if' => '<strong>If / Otherwise</strong> - each branch has its own conditions (all of them, or any of them, must match) and its own actions. The first branch that matches runs; if none do, <strong>Otherwise</strong> runs. Use <strong>Else if</strong> to add a branch.',   // GH #364
+        'branches_switch' => '<strong>Choose by value</strong> - pick one field, such as the requester\'s email, the priority or the category, and give each <strong>case</strong> its values and actions. The first case that matches runs; if none do, <strong>Default</strong> runs. For text you can match on <em>contains</em>, so <code>abc.com</code> matches <code>ann@abc.com</code>.',   // GH #364
+        'branches_example' => 'For example, to route new tickets by the requester\'s company: Choose by value on <em>Requester email</em> (contains) - case <code>abc.com</code> assigns Team A, case <code>xyz.com</code> assigns Team B, and Default assigns your general team.',   // GH #364
+        'branches_default' => '<strong>Otherwise and Default are always there</strong> and cannot be removed. A value nobody planned for - a new customer, an empty field - still goes somewhere, and the run history says it did. Leave it empty to do nothing.',   // GH #364
+        'branches_nesting' => 'A path can hold a branch of its own (<strong>+ If</strong> or <strong>+ Choose</strong> under its actions), up to three deep. Deeper than that is usually two workflows.',   // GH #364
+        'branches_results' => 'After a branch, <code>{{last...}}</code> is what the path that ran produced last, and so is the branch\'s own step number, <code>{{steps.N...}}</code>. Inside a path, <code>{{last...}}</code> is the action before it.',   // GH #364
+        'branches_runs' => 'The run history shows which path each branch took and why - the value it matched, or each branch\'s conditions with a tick or a cross - with that path\'s actions indented beneath. <strong>Dry run</strong> decides the path for real but runs nothing.',   // GH #364
         'actions_intro'   => 'Twenty-two handlers ship today - the main ones are below; the others create a project proposal, open a starter, mover or leaver case, attach SOP checklists and raise or comment on an issue in an external tracker. Pick an action\'s type from the dropdown and a labelled form appears below with the right widget per arg (text input, textarea, number input, lookup dropdown):',
         'actions_th_type'     => 'Type',
         'actions_th_does'     => 'What it does',
@@ -445,5 +455,65 @@ return [
         'ahead_li6' => '<strong>Watchtower integration</strong> &mdash; failed runs surface as attention cards.',
         'ahead_li7' => '<strong>Workflow versioning</strong> &mdash; draft / publish / rollback.',
         'ahead_li8' => '<strong>Streaming AI co-author</strong> &mdash; claude.ai-style live output as the canvas builds.',
+    ],
+    // GH #364: branching - If / Otherwise and Choose by value, in the editor and the run history.
+    'branch' => [
+        'add_branch' => 'Add branch',
+        'if_title' => 'If / Otherwise',
+        'switch_title' => 'Choose by value',
+        'if_menu' => 'Run different actions depending on conditions, with Otherwise for everything else.',
+        'switch_menu' => 'Pick one field and run different actions for each of its values, with a Default.',
+        'if' => 'If',
+        'else_if' => 'Else if',
+        'case_n' => 'Case {n}',
+        'otherwise' => 'Otherwise',
+        'default' => 'Default',
+        'when_nothing' => 'When nothing above matches',
+        'no_values' => 'No values yet',
+        'no_conditions' => 'No conditions yet',
+        'and' => 'and',
+        'or' => 'or',
+        'nothing_here' => 'Nothing - this path does nothing',
+        'add_action' => 'Action',
+        'add_if' => 'If',
+        'add_choose' => 'Choose',
+        'compare_equals' => 'is one of',
+        'compare_contains' => 'contains',
+        'compare' => 'Match a case when the field',
+        'compare_help' => '"contains" ignores capitals: abc.com matches Ann@ABC.com.',
+        'field' => 'Field to choose by',
+        'if_help' => 'The first branch whose conditions match runs its actions. If none match, Otherwise runs.',
+        'switch_help' => 'The first case whose values match the field runs its actions. If none match - or the field is empty - Default runs.',
+        'add_else_if' => 'Else if',
+        'add_case' => 'Case',
+        'default_always' => 'Otherwise and Default are always there and cannot be removed, so a value nobody planned for still goes somewhere - and the run history says it did.',
+        'default_help' => 'Runs when nothing above matches, including when the field is empty. It is always there, so an unexpected value still goes somewhere. Leave it empty to do nothing - the run history will still show it was taken.',
+        'label' => 'Name (optional)',
+        'label_placeholder' => 'e.g. ABC Ltd',
+        'match' => 'Run this branch when',
+        'match_all' => 'all of these conditions match',
+        'match_any' => 'any of these conditions matches',
+        'conditions' => 'Conditions',
+        'add_condition' => 'Condition',
+        'values' => 'Values',
+        'values_placeholder' => 'abc.com
+abc.co.uk',
+        'values_help' => 'One per line. The case matches when the field is any of them.',
+        'values_help_contains' => 'One per line. The case matches when the field contains any of them.',
+        'cannot_remove_default' => 'Otherwise and Default cannot be removed.',
+        'need_one_case' => 'Choose by value needs at least one case.',
+        'need_one_branch' => 'An If needs at least one branch.',
+        'need_one_condition' => 'A branch needs at least one condition.',
+        'switch' => 'Choose',
+        'took_branch' => 'Took branch {n}',
+        'took_case' => 'Took case {n}',
+        'took_otherwise' => 'Took Otherwise',
+        'took_default' => 'Took Default',
+        'branch_n' => 'Branch {n}',
+        'matched' => 'matched',
+        'not_matched' => 'did not match',
+        'reason_missing' => 'empty, so Default',
+        'reason_no_match' => 'no case matched, so Default',
+        'nothing_to_do' => 'Nothing to do on this path.',
     ],
 ];

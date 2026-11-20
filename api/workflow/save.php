@@ -52,14 +52,13 @@ if (!array_key_exists($triggerEvent, WorkflowEngine::availableTriggers())) {
 
 // Validate each action's type is in the catalogue so we don't store something
 // the engine can't execute.
-$catalogue = WorkflowEngine::availableActions();
-foreach ($actions as $a) {
-    $type = $a['type'] ?? '';
-    if (!isset($catalogue[$type])) {
-        echo json_encode(['success' => false, 'error' => "Unknown action type: {$type}"]);
-        exit;
-    }
+// GH #364: at every depth - a branch's paths hold actions too - and every branch gets
+// its Otherwise / Default, so an unexpected value always has somewhere to go.
+if (($treeError = WorkflowEngine::validateActionTree($actions)) !== null) {
+    echo json_encode(['success' => false, 'error' => $treeError]);
+    exit;
 }
+$actions = WorkflowEngine::normaliseActionTree($actions);
 
 try {
     $conn = connectToDatabase();

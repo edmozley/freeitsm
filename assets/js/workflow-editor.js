@@ -196,8 +196,15 @@ const WFE = (() => {
                 const hasPos = (typeof a.x === 'number' && typeof a.y === 'number');
                 const x = hasPos ? a.x : COL_X;
                 const y = hasPos ? a.y : nextY;
-                addActionNode(x, y, a.type || 'log_message', a.args || {});
-                if (!hasPos) nextY = y + SIZE.action.h + ROW_GAP;
+                if (BRANCH_TYPES.includes(a.type)) {   // GH #364
+                    const b = branchFromStored(a, null);
+                    b.x = snap(x); b.y = snap(y);
+                    nodes.push(b);
+                    if (!hasPos) nextY = y + 260 + ROW_GAP;
+                } else {
+                    addActionNode(x, y, a.type || 'log_message', a.args || {});
+                    if (!hasPos) nextY = y + SIZE.action.h + ROW_GAP;
+                }
             });
 
             // Hydrate the workflow detail panel.
@@ -296,7 +303,7 @@ const WFE = (() => {
             const v = argDefault(def.args[k], true);
             if (v !== undefined) defaults[k] = v;
         });
-        const lastY = lowestNodeY('action', 'condition', 'trigger');
+        const lastY = lowestNodeY('action', 'branch', 'condition', 'trigger');   // GH #364: below any branch too
         const n = addActionNode(COL_X, lastY + ROW_GAP, firstType, defaults);
         renderAll();
         selectNode(n.id);
@@ -308,7 +315,7 @@ const WFE = (() => {
         let lowest = TRIGGER_POS.y;
         nodes.forEach(n => {
             if (!kinds.includes(n.kind)) return;
-            const sz = SIZE[n.kind];
+            const sz = sizeOf(n);
             const bottom = n.y + sz.h;
             if (bottom > lowest) lowest = bottom;
         });
@@ -318,8 +325,9 @@ const WFE = (() => {
     /** Removes the selected condition or action node (the trigger cannot be deleted) and marks the workflow unsaved. */
     function deleteSelected() {
         if (selectedNodeId == null) return;
-        const n = nodes.find(x => x.id === selectedNodeId);
+        const n = findNode(selectedNodeId);
         if (!n) return;
+        if (n.parent) { deleteNested(n); return; }   // GH #364: inside a branch
         if (n.kind === 'trigger') return;   // can't delete the trigger
         nodes = nodes.filter(x => x.id !== selectedNodeId);
         selectedNodeId = null;
@@ -338,9 +346,34 @@ const WFE = (() => {
             n.el = createNodeEl(n);
             canvas.appendChild(n.el);
         });
+        clearBranches();
         renderConnectors();
         updateSelectionVisuals();
         updateCanvasSize();
+    }
+
+    /**
+     * GH #364: a branch box grows as paths and actions are added, so anything that now sits
+     * under it - in its columns - is moved down below it, in order. Only ever downwards and
+     * only what overlaps, so a layout somebody arranged is otherwise left as it is.
+     */
+    function clearBranches() {
+        const sorted = nodes.filter(n => n.kind !== 'trigger').slice().sort((a, b) => a.y - b.y);
+        sorted.forEach(b => {
+            if (b.kind !== 'branch') return;
+            const bz = sizeOf(b);
+            let floor = b.y + bz.h + ROW_GAP;
+            sorted.forEach(n => {
+                if (n === b || n.y < b.y) return;
+                const nz = sizeOf(n);
+                const overlapsX = n.x < b.x + bz.w && n.x + nz.w > b.x;
+                if (overlapsX && n.y < floor) {
+                    n.y = snap(floor);
+                    if (n.el) n.el.style.top = n.y + 'px';
+                    floor = n.y + nz.h + ROW_GAP;
+                }
+            });
+        });
     }
 
     /** Builds the positioned DOM element for one node and wires its mousedown for drag and select. */
@@ -350,6 +383,7 @@ const WFE = (() => {
         el.dataset.nodeId = n.id;
         el.style.left = n.x + 'px';
         el.style.top  = n.y + 'px';
+        if (n.kind === 'branch') return createBranchEl(el, n);   // GH #364: sized by its content
         const sz = SIZE[n.kind];
         el.style.width  = sz.w + 'px';
         el.style.height = sz.h + 'px';
@@ -456,7 +490,7 @@ const WFE = (() => {
         Array.from(svg.querySelectorAll('.wf-conn')).forEach(el => el.remove());
         const trigger = nodes.find(n => n.kind === 'trigger');
         const conditions = nodes.filter(n => n.kind === 'condition').slice().sort((a, b) => a.y - b.y);
-        const actions    = nodes.filter(n => n.kind === 'action').slice().sort((a, b) => a.y - b.y);
+        const actions    = nodes.filter(n => n.kind === 'action' || n.kind === 'branch').slice().sort((a, b) => a.y - b.y);
         const chain = [trigger, ...conditions, ...actions].filter(Boolean);
         for (let i = 0; i + 1 < chain.length; i++) {
             drawConnector(chain[i], chain[i + 1]);
@@ -478,7 +512,7 @@ const WFE = (() => {
         // Pick the closest edge between the two boxes — same routing as
         // Process Mapper's calcConnectorPoints. Defaults to short straight
         // segments which look clean on a vertical layout.
-        const az = SIZE[a.kind], bz = SIZE[b.kind];
+        const az = sizeOf(a), bz = sizeOf(b);
         const acx = a.x + az.w / 2, acy = a.y + az.h / 2;
         const bcx = b.x + bz.w / 2, bcy = b.y + bz.h / 2;
         const dx = bcx - acx, dy = bcy - acy;
@@ -507,7 +541,7 @@ const WFE = (() => {
     function updateCanvasSize() {
         let maxRight = 800, maxBottom = 600;
         nodes.forEach(n => {
-            const sz = SIZE[n.kind];
+            const sz = sizeOf(n);
             if (n.x + sz.w + 80 > maxRight)  maxRight  = n.x + sz.w + 80;
             if (n.y + sz.h + 80 > maxBottom) maxBottom = n.y + sz.h + 80;
         });
@@ -522,6 +556,8 @@ const WFE = (() => {
             const isSel = (+el.dataset.nodeId === selectedNodeId);
             el.classList.toggle('selected', isSel);
         });
+        // GH #364: an item inside a branch (a path, an action, a nested branch) outlines itself.
+        Array.from(canvas.querySelectorAll('[data-sel]')).forEach(el => el.classList.toggle('selected', +el.dataset.sel === selectedNodeId));
     }
 
     // =========================================================
@@ -611,11 +647,13 @@ const WFE = (() => {
         selectedNodeId = id;
         updateSelectionVisuals();
         if (!deferDetail) {
-            const n = nodes.find(x => x.id === id);
+            const n = findNode(id);   // GH #364: also inside a branch
             if (!n) return;
             if (n.kind === 'trigger')   showDetailForTrigger();
             if (n.kind === 'condition') showDetailForCondition(n);
             if (n.kind === 'action')    showDetailForAction(n);
+            if (n.kind === 'branch')    showDetailForBranch(n);   // GH #364
+            if (n.kind === 'lane')      showDetailForLane(n);
         }
     }
 
@@ -629,7 +667,7 @@ const WFE = (() => {
     /** Sets the detail panel title and shows only the named body section. */
     function showBody(title, id) {
         document.getElementById('wfDetailTitle').textContent = title;
-        ['wfBodyWorkflow', 'wfBodyTrigger', 'wfBodyCondition', 'wfBodyAction'].forEach(b => {
+        ['wfBodyWorkflow', 'wfBodyTrigger', 'wfBodyCondition', 'wfBodyAction', 'wfBodyBranch'].forEach(b => {
             document.getElementById(b).style.display = (b === id) ? '' : 'none';
         });
     }
@@ -808,11 +846,11 @@ const WFE = (() => {
     // store as an array on the condition node. Re-render the canvas node so
     // its preview reflects the new list.
     function onConditionMultiToggle() {
-        const n = nodes.find(x => x.id === selectedNodeId);
+        const n = findNode(selectedNodeId);
         if (!n || n.kind !== 'condition') return;
         const checks = document.querySelectorAll('#wfCondValueHost input[type="checkbox"]:checked');
         n.value = Array.from(checks).map(c => c.value);
-        if (n.el) n.el.innerHTML = renderNodeContent(n);
+        refreshNode(n);
         markDirty();
     }
 
@@ -958,7 +996,7 @@ const WFE = (() => {
                                 selectedIds = selectedIds.filter(x => x !== idStr);
                             }
                             n.args[argName] = selectedIds;
-                            if (n.el) n.el.innerHTML = renderNodeContent(n);
+                            refreshNode(n);
                             markDirty();
                         });
                         listHost.appendChild(lbl);
@@ -1414,7 +1452,7 @@ const WFE = (() => {
      * Writes one arg control's value into the selected action node (an empty text value removes the arg), then refreshes the node, conditional fields and webhook hints.
      */
     function updateActionArgFromControl(argName, type, ctrl) {
-        const n = nodes.find(x => x.id === selectedNodeId);
+        const n = findNode(selectedNodeId);
         if (!n || n.kind !== 'action') return;
         let val;
         if (type === 'bool') val = ctrl.checked;
@@ -1422,7 +1460,7 @@ const WFE = (() => {
         n.args = n.args || {};
         if (val === '' && type !== 'bool') delete n.args[argName];
         else n.args[argName] = val;
-        if (n.el) n.el.innerHTML = renderNodeContent(n);
+        refreshNode(n);
         // Re-apply conditional visibility (e.g. changing the webhook preset
         // swaps the Message / Raw JSON body fields).
         const argsHost = document.getElementById('wfActArgsHost');
@@ -1470,17 +1508,17 @@ const WFE = (() => {
                 if (starts.includes(n.args[k])) n.args[k] = argDefault(s, false);
             });
         });
-        if (selectedNodeId) { const sel = nodes.find(x => x.id === selectedNodeId); if (sel && sel.kind === 'action') showDetailForAction(sel); }
+        if (selectedNodeId) { const sel = findNode(selectedNodeId); if (sel && sel.kind === 'action') showDetailForAction(sel); }
         // Re-render: the trigger node label updates, and any condition node's
         // field-dropdown options will need to refresh next time it's selected.
-        nodes.forEach(n => { if (n.el) n.el.innerHTML = renderNodeContent(n); });
+        renderAll();   // GH #364: branches redraw whole (their field names depend on the trigger)
         markDirty();
     }
     /**
      * Applies the condition detail panel to the selected node - a new field rebuilds the operators, and a new field or operator reshapes the value to suit.
      */
     function updateConditionFromDetail() {
-        const n = nodes.find(x => x.id === selectedNodeId);
+        const n = findNode(selectedNodeId);
         if (!n || n.kind !== 'condition') return;
         const newField = document.getElementById('wfCondField').value;
         const newOp    = document.getElementById('wfCondOp').value;
@@ -1510,12 +1548,12 @@ const WFE = (() => {
             const ctrl = document.getElementById('wfCondValue');
             if (ctrl) n.value = ctrl.value;
         }
-        if (n.el) n.el.innerHTML = renderNodeContent(n);
+        refreshNode(n);
         markDirty();
     }
     /** Changes the selected action's type, replacing its args with the new type's defaults and redrawing the form. */
     function updateActionTypeFromDetail() {
-        const n = nodes.find(x => x.id === selectedNodeId);
+        const n = findNode(selectedNodeId);
         if (!n || n.kind !== 'action') return;
         n.type = document.getElementById('wfActType').value;
         // Reset args and seed defaults from the new action's spec so the
@@ -1530,7 +1568,7 @@ const WFE = (() => {
         });
         n.args = next;
         showDetailForAction(n);
-        if (n.el) n.el.innerHTML = renderNodeContent(n);
+        refreshNode(n);
         markDirty();
     }
 
@@ -1567,7 +1605,7 @@ const WFE = (() => {
         // No "actions required" block — let the user save in-progress drafts.
         // We warn after a successful save if there are 0 actions, so they
         // know the workflow won't do anything useful yet.
-        const actionNodes = nodes.filter(n => n.kind === 'action');
+        const actionNodes = nodes.filter(n => n.kind === 'action' || n.kind === 'branch');   // GH #364: a branch is a step too
         setStatus('saving');
 
         // Sort by y so execution order matches visual order on the canvas.
@@ -1576,7 +1614,7 @@ const WFE = (() => {
             .map(n => ({ field: n.field, op: n.op, value: n.value, x: n.x, y: n.y }));
         const actions = actionNodes
             .slice().sort((a, b) => a.y - b.y)
-            .map(n => ({ type: n.type, args: n.args || {}, x: n.x, y: n.y }));
+            .map(n => n.kind === 'branch' ? Object.assign(branchToStored(n), { x: n.x, y: n.y }) : ({ type: n.type, args: n.args || {}, x: n.x, y: n.y }));
 
         const payload = {
             id: workflow.id || null,
@@ -1722,6 +1760,15 @@ const WFE = (() => {
     }
 
     /** Lists recent runs with their status pill, start time, any error, and a dry run's would-have-done steps. */
+    /** GH #364: "Took branch 2 "XYZ"", "Took Otherwise", "Took case 1", "Took Default" - the words for a branch's path. */
+    function branchTakenText(s) {
+        const T = (k, p) => window.t('workflow.branch.' + k, p);
+        const key = String(s.taken || '');
+        const label = s.taken_label ? ' "' + s.taken_label + '"' : '';
+        if (key.startsWith('branch:')) return T('took_branch', { n: +key.slice(7) + 1 }) + label;
+        if (key.startsWith('case:'))   return T('took_case', { n: +key.slice(5) + 1 }) + label;
+        return T(key === 'otherwise' ? 'took_otherwise' : 'took_default');
+    }
     function renderExecutions(execs) {
         const host = document.getElementById('execList');
         if (!host) return;
@@ -1747,17 +1794,25 @@ const WFE = (() => {
         // than just a status pill.
         const dryStepsHtml = (e) => {
             if (!e.is_dry_run) return '';
-            const steps = (e.step_log || []).filter(s => s.status === 'dry_run');
-            if (!steps.length) {
-                return '<div class="wf-dry-steps"><em>' + escHtml(window.t('workflow.dry_run.no_actions')) + '</em></div>';
-            }
-            const rows = steps.map(s => {
+            // GH #364: a branch shows the path it would take, its actions indented beneath.
+            let count = 0;
+            const rowsFor = (list, depth) => list.map(s => {
+                if (s.kind === 'branch') {
+                    return '<div style="margin-left:' + (depth * 14) + 'px;"><div style="margin-bottom: 6px;"><strong>' + escHtml(branchTakenText(s)) + '</strong></div>'
+                         + '<div style="padding-left:8px; border-left:3px solid var(--wf-branch, #7c3aed);">' + rowsFor(s.steps || [], 0) + '</div></div>';
+                }
+                if (s.status !== 'dry_run') return '';
+                count++;
                 const args = Object.entries(s.would_args || {})
                     .filter(([, v]) => v !== '' && v !== null)
                     .map(([k, v]) => '<div><code>' + escHtml(k) + ':</code> ' + escHtml(v) + '</div>')
                     .join('');
                 return '<div style="margin-bottom: 6px;"><strong>' + escHtml(s.would_run || s.type) + '</strong>' + args + '</div>';
             }).join('');
+            const rows = rowsFor(e.step_log || [], 0);
+            if (!count && !(e.step_log || []).some(s => s.kind === 'branch')) {
+                return '<div class="wf-dry-steps"><em>' + escHtml(window.t('workflow.dry_run.no_actions')) + '</em></div>';
+            }
             return '<div class="wf-dry-steps"><div style="margin-bottom: 6px;">'
                  + escHtml(window.t('workflow.dry_run.would_have')) + '</div>' + rows + '</div>';
         };
@@ -1780,6 +1835,341 @@ const WFE = (() => {
         }).join('');
     }
 
+    // =========================================================
+    //  Branching (GH #364)
+    //  -----------------------------------------------------------------
+    //  A branch is a step in the action list like an action, drawn as one
+    //  box holding its paths side by side ("lanes"): If's branches and
+    //  Otherwise, or Choose's cases and Default. Each lane holds its own
+    //  action cards - and, up to MAX_BRANCH_DEPTH, branches of its own.
+    //  Otherwise / Default is ALWAYS there and cannot be removed, so an
+    //  unexpected value always has somewhere to go.
+    //
+    //  Model (editor only; branchToStored() writes the engine's shape):
+    //    branch {id, kind:'branch', type, field, compare, lanes[], parent?}
+    //    lane   {id, kind:'lane', role: branch|case|otherwise|default, label,
+    //            match, values[], conds[], items[], parent: branch}
+    //    items in a lane: {kind:'action', type, args, parent: lane} or a branch
+    //    conds in a lane: {kind:'condition', field, op, value, parent: lane}
+    //  Every item gets a local id; registry maps it back for findNode().
+    // =========================================================
+    const BRANCH_TYPES = ['branch_if', 'branch_switch'];
+    const MAX_BRANCH_DEPTH = 3;
+    const registry = new Map();
+    /** Translate a branch string. */
+    const BT = (k, p) => window.t('workflow.branch.' + k, p);
+
+    /** The selected thing by id: a canvas node, or anything inside a branch. */
+    function findNode(id) {
+        return nodes.find(x => x.id === id) || registry.get(id) || null;
+    }
+    /** Redraw an edited item: its own element, or the branch box it sits in. */
+    function refreshNode(n) {
+        if (n && n.el && n.kind !== 'branch') { n.el.innerHTML = renderNodeContent(n); return; }
+        renderAll();
+    }
+    /** A node's drawn size; a branch box is as big as its content. */
+    function sizeOf(n) {
+        if (n.kind === 'branch') {
+            return { w: (n.el && n.el.offsetWidth) || 360, h: (n.el && n.el.offsetHeight) || 220 };
+        }
+        return SIZE[n.kind];
+    }
+    /** How many branches deep an item is (a top-level branch is 0). */
+    function depthOf(b) {
+        let d = 0, p = b.parent;
+        while (p) { if (p.kind === 'branch') d++; p = p.parent; }
+        return d;
+    }
+    /** Give an item an id and remember it. */
+    function reg(o) { o.id = nextLocalId--; registry.set(o.id, o); return o; }
+
+    /** Engine shape -> editor model. */
+    function branchFromStored(a, parent) {
+        const args = a.args || {};
+        const b = reg({ kind: 'branch', type: a.type, field: args.field || '', compare: args.compare === 'contains' ? 'contains' : 'equals', lanes: [], parent });
+        const lane = (role, src) => {
+            const l = reg({ kind: 'lane', role, label: (src && src.label) || '', match: (src && src.match) === 'any' ? 'any' : 'all',
+                            values: Array.isArray(src && src.values) ? src.values.map(String) : [], conds: [], items: [], parent: b });
+            ((src && src.conditions) || []).forEach(c => l.conds.push(reg({ kind: 'condition', field: c.field || '', op: c.op || 'equals', value: c.value ?? '', parent: l })));
+            ((src && src.actions) || []).forEach(x => l.items.push(itemFromStored(x, l)));
+            return l;
+        };
+        if (a.type === 'branch_if') {
+            (args.branches || []).forEach(br => b.lanes.push(lane('branch', br)));
+            b.lanes.push(lane('otherwise', args.otherwise || {}));
+        } else {
+            (args.cases || []).forEach(c => b.lanes.push(lane('case', c)));
+            b.lanes.push(lane('default', args.default || {}));
+        }
+        return b;
+    }
+    /** One stored entry inside a path -> an action item or a nested branch. */
+    function itemFromStored(x, lane) {
+        if (BRANCH_TYPES.includes(x.type)) return branchFromStored(x, lane);
+        return reg({ kind: 'action', type: x.type || 'log_message', args: x.args || {}, parent: lane });
+    }
+    /** Editor model -> engine shape. */
+    function branchToStored(b) {
+        const items = l => l.items.map(i => i.kind === 'branch' ? branchToStored(i) : { type: i.type, args: i.args || {} });
+        if (b.type === 'branch_if') {
+            return { type: 'branch_if', args: {
+                branches: b.lanes.filter(l => l.role === 'branch').map(l => ({ label: l.label, match: l.match,
+                    conditions: l.conds.map(c => ({ field: c.field, op: c.op, value: c.value })), actions: items(l) })),
+                otherwise: { actions: items(b.lanes.find(l => l.role === 'otherwise') || { items: [] }) },
+            } };
+        }
+        return { type: 'branch_switch', args: {
+            field: b.field, compare: b.compare,
+            cases: b.lanes.filter(l => l.role === 'case').map(l => ({ label: l.label, values: l.values, actions: items(l) })),
+            default: { actions: items(b.lanes.find(l => l.role === 'default') || { items: [] }) },
+        } };
+    }
+    /** A new, sensible branch: If with one branch and one empty condition; Choose on the first field with one case. */
+    function newBranch(type, parent) {
+        const field = (window.WF_FIELDS_BY_TRIG[triggerEvent] || [])[0] || '';
+        if (type === 'branch_if') {
+            return branchFromStored({ type, args: { branches: [{ label: '', match: 'all', conditions: [{ field, op: 'equals', value: '' }], actions: [] }], otherwise: { actions: [] } } }, parent);
+        }
+        return branchFromStored({ type, args: { field, compare: 'equals', cases: [{ label: '', values: [], actions: [] }], default: { actions: [] } } }, parent);
+    }
+    /** A new action of the first type, with that type's defaults (as Add action does). */
+    function newActionArgs(type) {
+        const def = window.WF_ACTION_DEFS[type] || {};
+        const out = {};
+        Object.keys(def.args || {}).forEach(k => { const v = argDefault(def.args[k], true); if (v !== undefined) out[k] = v; });
+        return out;
+    }
+
+    /** Toolbar: Add branch -> If / Otherwise or Choose by value, below the stack. */
+    function addBranch(type) {
+        const lastY = lowestNodeY('action', 'branch', 'condition', 'trigger');
+        const b = newBranch(type === 'branch_switch' ? 'branch_switch' : 'branch_if', null);
+        b.x = COL_X; b.y = snap(lastY + ROW_GAP);
+        nodes.push(b);
+        closeBranchMenu();
+        renderAll();
+        selectNode(b.id);
+        markDirty();
+    }
+    function toggleBranchMenu(e) {
+        if (e) e.stopPropagation();
+        const m = document.getElementById('wfBranchMenu');
+        if (m) m.hidden = !m.hidden;
+    }
+    function closeBranchMenu() { const m = document.getElementById('wfBranchMenu'); if (m) m.hidden = true; }
+    document.addEventListener('click', e => { if (!e.target.closest || !e.target.closest('.wf-branch-menu-wrap')) closeBranchMenu(); });
+
+    // ---------- drawing ----------
+    /** The positioned box for a top-level branch. */
+    function createBranchEl(el, n) {
+        registryRebuild();
+        el.innerHTML = branchHtml(n);
+        el.addEventListener('mousedown', e => onBranchMouseDown(e, n));
+        return el;
+    }
+    /** Re-register every item (ids are stable; this only refills the map after a load or AI apply). */
+    function registryRebuild() {
+        const walk = b => { registry.set(b.id, b); b.lanes.forEach(l => { registry.set(l.id, l); l.conds.forEach(c => registry.set(c.id, c)); l.items.forEach(i => i.kind === 'branch' ? walk(i) : registry.set(i.id, i)); }); };
+        nodes.filter(x => x.kind === 'branch').forEach(walk);
+    }
+    const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
+    /** The label of a lookup id, or the id. */
+    function lookupLabelFor(field, id) {
+        const lookup = window.WF_LOOKUP_VALUES[field] || null;
+        if (!lookup) return String(id);
+        const row = lookup.find(v => String(v.id) === String(id));
+        return row ? row.label : String(id);
+    }
+    /** One line saying what a path is for. */
+    function laneTitle(l) {
+        const b = l.parent;
+        if (l.role === 'otherwise') return BT('otherwise');
+        if (l.role === 'default')   return BT('default');
+        const n = b.lanes.filter(x => x.role === l.role).indexOf(l) + 1;
+        const head = l.role === 'branch' ? (n === 1 ? BT('if') : BT('else_if')) : BT('case_n', { n });
+        return head + (l.label ? ': ' + l.label : '');
+    }
+    function laneSummary(l) {
+        if (l.role === 'otherwise' || l.role === 'default') return BT('when_nothing');
+        if (l.role === 'case') {
+            if (!l.values.length) return BT('no_values');
+            return l.values.map(v => lookupLabelFor(l.parent.field, v)).join(', ');
+        }
+        const joiner = ' ' + (l.match === 'any' ? BT('or') : BT('and')) + ' ';
+        return l.conds.map(c => (c.field || '?').split('.').pop() + ' ' + (window.WF_OPS[c.op] || c.op) + ' '
+            + (Array.isArray(c.value) ? c.value.map(v => lookupLabelFor(c.field, v)).join('/') : lookupLabelFor(c.field, c.value ?? ''))).join(joiner) || BT('no_conditions');
+    }
+    /** An action card's title and one-line summary - the same words as a canvas action box. */
+    function chipHtml(i) {
+        const tmp = { kind: 'action', type: i.type, args: i.args };
+        return '<div class="wf-br-chip" data-sel="' + i.id + '">' + renderNodeContent(tmp) + '</div>';
+    }
+    function branchHtml(b) {
+        const d = depthOf(b);
+        const head = b.type === 'branch_if'
+            ? '<span class="wf-br-kind">' + esc(BT('if_title')) + '</span>'
+            : '<span class="wf-br-kind">' + esc(BT('switch_title')) + '</span> <span class="wf-br-field">' + esc((b.field || '?').split('.').pop()) + ' · ' + esc(b.compare === 'contains' ? BT('compare_contains') : BT('compare_equals')) + '</span>';
+        const lanes = b.lanes.map(l => {
+            const isDefault = l.role === 'otherwise' || l.role === 'default';
+            const items = l.items.map(i => i.kind === 'branch' ? branchHtml(i) : chipHtml(i)).join('') || '<div class="wf-br-empty">' + esc(BT('nothing_here')) + '</div>';
+            const addBranchBtns = d + 1 < MAX_BRANCH_DEPTH
+                ? '<button type="button" class="wf-br-add-btn" data-add-branch="branch_if" data-lane="' + l.id + '">+ ' + esc(BT('add_if')) + '</button>'
+                + '<button type="button" class="wf-br-add-btn" data-add-branch="branch_switch" data-lane="' + l.id + '">+ ' + esc(BT('add_choose')) + '</button>' : '';
+            return '<div class="wf-br-lane' + (isDefault ? ' is-default' : '') + '">'
+                + '<div class="wf-br-lane-head" data-sel="' + l.id + '"><div class="wf-br-lane-title">' + esc(laneTitle(l)) + '</div><div class="wf-br-lane-sub">' + esc(laneSummary(l)) + '</div></div>'
+                + '<div class="wf-br-items">' + items + '</div>'
+                + '<div class="wf-br-add"><button type="button" class="wf-br-add-btn" data-add-action="' + l.id + '">+ ' + esc(BT('add_action')) + '</button>' + addBranchBtns + '</div>'
+                + '</div>';
+        }).join('');
+        return '<div class="wf-br' + (d ? ' is-nested' : '') + '"' + (d ? ' data-sel="' + b.id + '"' : '') + '>'
+            + '<div class="wf-br-head"' + (d ? '' : ' data-head="1"') + '>' + head + '</div>'
+            + '<div class="wf-br-lanes">' + lanes + '</div></div>';
+    }
+
+    // ---------- clicks inside a branch box ----------
+    function onBranchMouseDown(e, n) {
+        const t = e.target;
+        const addA = t.closest('[data-add-action]');
+        const addB = t.closest('[data-add-branch]');
+        if (addA || addB) {
+            e.stopPropagation(); e.preventDefault();
+            const lane = registry.get(+(addA ? addA.dataset.addAction : addB.dataset.lane));
+            if (!lane) return;
+            let item;
+            if (addA) {
+                const type = Object.keys(window.WF_ACTION_DEFS)[0];
+                item = reg({ kind: 'action', type, args: newActionArgs(type), parent: lane });
+            } else {
+                item = newBranch(addB.dataset.addBranch, lane);
+            }
+            lane.items.push(item);
+            renderAll();
+            selectNode(item.id);
+            markDirty();
+            return;
+        }
+        const sel = t.closest('[data-sel]');
+        if (sel && !t.closest('[data-head]')) {
+            e.stopPropagation(); e.preventDefault();
+            canvas.focus({ preventScroll: true });
+            selectNode(+sel.dataset.sel);
+            return;
+        }
+        onNodeMouseDown(e, n);   // the top-level head: drag the whole branch, or select it
+    }
+
+    /** Remove an item from inside a branch. A path's last condition, and Otherwise / Default, stay. */
+    function deleteNested(n) {
+        if (n.kind === 'lane') {
+            if (n.role === 'otherwise' || n.role === 'default') { window.showToast(BT('cannot_remove_default'), 'error'); return; }
+            const b = n.parent;
+            if (b.lanes.filter(l => l.role === n.role).length < 2) { window.showToast(BT(n.role === 'case' ? 'need_one_case' : 'need_one_branch'), 'error'); return; }
+            b.lanes = b.lanes.filter(l => l !== n);
+            selectedNodeId = b.parent ? b.id : b.id;
+        } else if (n.kind === 'condition') {
+            if (n.parent.conds.length < 2) { window.showToast(BT('need_one_condition'), 'error'); return; }
+            n.parent.conds = n.parent.conds.filter(c => c !== n);
+            selectedNodeId = n.parent.id;
+        } else {
+            n.parent.items = n.parent.items.filter(i => i !== n);
+            selectedNodeId = n.parent.id;
+        }
+        registry.delete(n.id);
+        renderAll();
+        selectNode(selectedNodeId);
+        markDirty();
+    }
+
+    // ---------- detail panels ----------
+    /** The whole branch: what it does, its field for Choose, and adding a path. */
+    function showDetailForBranch(b) {
+        showBody(b.type === 'branch_if' ? BT('if_title') : BT('switch_title'), 'wfBodyBranch');
+        const host = document.getElementById('wfBranchHost');
+        const delBtn = document.querySelector('#wfBodyBranch > .wf-detail-delete');
+        if (delBtn) delBtn.style.display = '';
+        let h = '<p class="wf-br-help">' + esc(BT(b.type === 'branch_if' ? 'if_help' : 'switch_help')) + '</p>';
+        if (b.type === 'branch_switch') {
+            const fields = window.WF_FIELDS_BY_TRIG[triggerEvent] || [];
+            h += '<div class="form-group"><label for="wfBrField">' + esc(BT('field')) + '</label><select id="wfBrField">'
+               + fields.map(f => '<option value="' + esc(f) + '"' + (f === b.field ? ' selected' : '') + '>' + esc(f) + '</option>').join('')
+               + (b.field && !fields.includes(b.field) ? '<option value="' + esc(b.field) + '" selected>' + esc(b.field) + ' (custom)</option>' : '') + '</select></div>';
+            const lookup = !!window.WF_LOOKUP_VALUES[b.field];
+            h += '<div class="form-group"><label for="wfBrCompare">' + esc(BT('compare')) + '</label><select id="wfBrCompare">'
+               + '<option value="equals"' + (b.compare === 'equals' ? ' selected' : '') + '>' + esc(BT('compare_equals')) + '</option>'
+               + (lookup ? '' : '<option value="contains"' + (b.compare === 'contains' ? ' selected' : '') + '>' + esc(BT('compare_contains')) + '</option>') + '</select>'
+               + '<small style="display:block; color:var(--text-dim,#888); margin-top:4px;">' + esc(BT('compare_help')) + '</small></div>';
+        }
+        h += '<button type="button" class="btn btn-secondary" id="wfBrAddPath">+ ' + esc(BT(b.type === 'branch_if' ? 'add_else_if' : 'add_case')) + '</button>';
+        h += '<p class="wf-br-help" style="margin-top:14px;">' + esc(BT('default_always')) + '</p>';
+        host.innerHTML = h;
+        const fieldSel = document.getElementById('wfBrField');
+        if (fieldSel) fieldSel.addEventListener('change', () => {
+            b.field = fieldSel.value;
+            if (window.WF_LOOKUP_VALUES[b.field]) b.compare = 'equals';
+            b.lanes.forEach(l => { if (l.role === 'case') l.values = []; });   // a value for the old field means nothing for the new one
+            renderAll(); showDetailForBranch(b); markDirty();
+        });
+        const cmp = document.getElementById('wfBrCompare');
+        if (cmp) cmp.addEventListener('change', () => { b.compare = cmp.value; renderAll(); markDirty(); });
+        document.getElementById('wfBrAddPath').addEventListener('click', () => {
+            const role = b.type === 'branch_if' ? 'branch' : 'case';
+            const field = (window.WF_FIELDS_BY_TRIG[triggerEvent] || [])[0] || '';
+            const l = reg({ kind: 'lane', role, label: '', match: 'all', values: [], conds: [], items: [], parent: b });
+            if (role === 'branch') l.conds.push(reg({ kind: 'condition', field, op: 'equals', value: '', parent: l }));
+            b.lanes.splice(b.lanes.length - 1, 0, l);   // before Otherwise / Default, which stays last
+            renderAll(); selectNode(l.id); markDirty();
+        });
+    }
+    /** One path: its name, and its conditions (If) or values (Choose). Otherwise / Default just explains itself. */
+    function showDetailForLane(l) {
+        showBody(laneTitle(l), 'wfBodyBranch');
+        const host = document.getElementById('wfBranchHost');
+        // Otherwise / Default can never be removed, so it shows no Remove button.
+        const delBtn = document.querySelector('#wfBodyBranch > .wf-detail-delete');
+        if (delBtn) delBtn.style.display = (l.role === 'otherwise' || l.role === 'default') ? 'none' : '';
+        if (l.role === 'otherwise' || l.role === 'default') {
+            host.innerHTML = '<p class="wf-br-help">' + esc(BT('default_help')) + '</p>';
+            return;
+        }
+        let h = '<div class="form-group"><label for="wfBrLabel">' + esc(BT('label')) + '</label><input type="text" id="wfBrLabel" autocomplete="off" value="' + esc(l.label) + '" placeholder="' + esc(BT('label_placeholder')) + '"></div>';
+        if (l.role === 'branch') {
+            h += '<div class="form-group"><label for="wfBrMatch">' + esc(BT('match')) + '</label><select id="wfBrMatch">'
+               + '<option value="all"' + (l.match === 'all' ? ' selected' : '') + '>' + esc(BT('match_all')) + '</option>'
+               + '<option value="any"' + (l.match === 'any' ? ' selected' : '') + '>' + esc(BT('match_any')) + '</option></select></div>';
+            h += '<div class="form-group"><label>' + esc(BT('conditions')) + '</label><div class="wf-br-cond-list">'
+               + l.conds.map(c => '<button type="button" class="wf-br-cond" data-cond="' + c.id + '">' + esc((c.field || '?') + ' ' + (window.WF_OPS[c.op] || c.op) + ' '
+                   + (Array.isArray(c.value) ? c.value.map(v => lookupLabelFor(c.field, v)).join(', ') : lookupLabelFor(c.field, c.value ?? ''))) + '</button>').join('')
+               + '</div><button type="button" class="btn btn-secondary" id="wfBrAddCond" style="margin-top:6px;">+ ' + esc(BT('add_condition')) + '</button></div>';
+        } else {
+            const b = l.parent;
+            const lookup = window.WF_LOOKUP_VALUES[b.field] || null;
+            h += '<div class="form-group"><label>' + esc(BT('values')) + '</label>';
+            if (lookup) {
+                h += '<div class="wf-br-values">' + lookup.map(v => '<label><input type="checkbox" value="' + esc(v.id) + '"' + (l.values.includes(String(v.id)) ? ' checked' : '') + '> ' + esc(v.label) + '</label>').join('') + '</div>';
+            } else {
+                h += '<textarea id="wfBrValues" rows="4" placeholder="' + esc(BT('values_placeholder')) + '">' + esc(l.values.join('\n')) + '</textarea>'
+                   + '<small style="display:block; color:var(--text-dim,#888); margin-top:4px;">' + esc(BT(b.compare === 'contains' ? 'values_help_contains' : 'values_help')) + '</small>';
+            }
+            h += '</div>';
+        }
+        host.innerHTML = h;
+        document.getElementById('wfBrLabel').addEventListener('input', e => { l.label = e.target.value; renderAll(); markDirty(); });
+        const match = document.getElementById('wfBrMatch');
+        if (match) match.addEventListener('change', () => { l.match = match.value; renderAll(); markDirty(); });
+        host.querySelectorAll('[data-cond]').forEach(btn => btn.addEventListener('click', () => selectNode(+btn.dataset.cond)));
+        const addCond = document.getElementById('wfBrAddCond');
+        if (addCond) addCond.addEventListener('click', () => {
+            const field = (window.WF_FIELDS_BY_TRIG[triggerEvent] || [])[0] || '';
+            const c = reg({ kind: 'condition', field, op: 'equals', value: '', parent: l });
+            l.conds.push(c); renderAll(); selectNode(c.id); markDirty();
+        });
+        const ta = document.getElementById('wfBrValues');
+        if (ta) ta.addEventListener('input', () => { l.values = ta.value.split(/\n|,/).map(s => s.trim()).filter(Boolean); renderAll(); markDirty(); });
+        host.querySelectorAll('.wf-br-values input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => {
+            l.values = Array.from(host.querySelectorAll('.wf-br-values input:checked')).map(x => x.value); renderAll(); markDirty();
+        }));
+    }
     // =========================================================
     //  Helpers
     // =========================================================
@@ -1814,7 +2204,7 @@ const WFE = (() => {
         document.getElementById('wfAiDiscardBtn').style.display = 'none';
         document.getElementById('wfAiPrompt').value = '';
         // Iterate hint surfaces only when there's already content on the canvas.
-        const hasContent = nodes.some(n => n.kind === 'condition' || n.kind === 'action');
+        const hasContent = nodes.some(n => n.kind === 'condition' || n.kind === 'action' || n.kind === 'branch');
         document.getElementById('wfAiIterateHint').style.display = hasContent ? '' : 'none';
         modal.classList.add('active');
         setTimeout(() => document.getElementById('wfAiPrompt').focus(), 80);
@@ -1869,10 +2259,10 @@ const WFE = (() => {
                 if (!dropPositions) { o.x = n.x; o.y = n.y; }
                 return o;
             });
-        const actions = nodes.filter(n => n.kind === 'action')
+        const actions = nodes.filter(n => n.kind === 'action' || n.kind === 'branch')
             .slice().sort((a, b) => a.y - b.y)
             .map(n => {
-                const o = { type: n.type, args: n.args || {} };
+                const o = n.kind === 'branch' ? branchToStored(n) : { type: n.type, args: n.args || {} };
                 if (!dropPositions) { o.x = n.x; o.y = n.y; }
                 return o;
             });
@@ -1995,6 +2385,7 @@ const WFE = (() => {
     // Public API used by the editor.php inline handlers and toolbar.
     return {
         addCondition, addAction, deleteSelected,
+        addBranch, toggleBranchMenu,   // GH #364
         save, testFire, dryRun,
         closeVarModal, applyVarModal,
         updateTriggerFromDetail,

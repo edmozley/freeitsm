@@ -68,6 +68,22 @@ class WorkflowEngine
     // user can see the engine stepped in (see recordAbortedRun()).
 
     private const MAX_CHAIN_DEPTH       = 10;
+
+    /**
+     * GH #364: branching. Two entry types that live in the same actions list as ordinary
+     * actions but are NOT in the action catalogue (so they never appear in the action-type
+     * dropdown, the REST API's /workflow-actions or the AI's list):
+     *   branch_if     - If / Else if / Otherwise. args: branches[] {label, match all|any,
+     *                   conditions[], actions[]}, otherwise {actions[]}
+     *   branch_switch - Choose by value. args: field, compare equals|contains,
+     *                   cases[] {label, values[], actions[]}, default {actions[]}
+     * The first branch / case that matches runs; nothing matching runs Otherwise / Default,
+     * which is ALWAYS there (normaliseActionTree() adds an empty one) so an unexpected or
+     * missing value always lands somewhere and the run says so.
+     */
+    public const BRANCH_TYPES = ['branch_if', 'branch_switch'];
+    /** A branch inside a branch inside a branch, and no deeper - past that it is two workflows. */
+    public const MAX_BRANCH_DEPTH = 3;
     private const MAX_RUNS_PER_REQUEST  = 100;
 
     private static $chainDepth       = 0;
@@ -2297,32 +2313,38 @@ class WorkflowEngine
             return true;
         }
         foreach ($conditions as $i => $cond) {
-            $field = $cond['field'] ?? '';
-            $op    = $cond['op']    ?? 'equals';
-            $value = $cond['value'] ?? null;
-            $actual = self::dotGet($payload, $field);
-            // GH #298. A category condition also matches the subcategories of what
-            // it names, unless Tickets -> Settings -> Categories says exact only.
-            $tested = $value;
-            $withSubs = false;
-            if (in_array($field, self::CATEGORY_FIELDS, true) && in_array($op, ['in', 'not_in'], true) && self::categoryMatchIncludesSubcategories()) {
-                $tested = self::categoryIdsWithDescendants($value);
-                $withSubs = true;
-            }
-            $passed = self::evaluateOperator($op, $actual, $tested);
-            $stepLog[] = [
-                'kind'   => 'condition',
-                'index'  => $i,
-                'field'  => $field,
-                'op'     => $op,
-                'value'  => $value,
-                'actual' => $actual,
-                'passed' => $passed,
-            ];
-            if ($withSubs) $stepLog[array_key_last($stepLog)]['includes_subcategories'] = true;
-            if (!$passed) return false;
+            $entry = self::evaluateOneCondition(is_array($cond) ? $cond : [], $payload);
+            $stepLog[] = ['kind' => 'condition', 'index' => $i] + $entry;
+            if (!$entry['passed']) return false;
         }
         return true;
+    }
+
+    /**
+     * One condition against the payload: the step-log facts, with 'passed'.
+     * Shared by the workflow's own conditions and an If branch's (GH #364).
+     *
+     * @param array $cond  {field, op, value}
+     * @param array $payload  the run's payload the field is read from
+     * @return array{field: string, op: string, value: mixed, actual: mixed, passed: bool}
+     */
+    private static function evaluateOneCondition(array $cond, array $payload): array
+    {
+        $field = (string)($cond['field'] ?? '');
+        $op    = (string)($cond['op']    ?? 'equals');
+        $value = $cond['value'] ?? null;
+        $actual = self::dotGet($payload, $field);
+        // GH #298. A category condition also matches the subcategories of what
+        // it names, unless Tickets -> Settings -> Categories says exact only.
+        $tested = $value;
+        $withSubs = false;
+        if (in_array($field, self::CATEGORY_FIELDS, true) && in_array($op, ['in', 'not_in'], true) && self::categoryMatchIncludesSubcategories()) {
+            $tested = self::categoryIdsWithDescendants($value);
+            $withSubs = true;
+        }
+        $out = ['field' => $field, 'op' => $op, 'value' => $value, 'actual' => $actual, 'passed' => self::evaluateOperator($op, $actual, $tested)];
+        if ($withSubs) $out['includes_subcategories'] = true;
+        return $out;
     }
 
     /**
@@ -2553,11 +2575,18 @@ class WorkflowEngine
      * @param bool $dryRun  true to record what each action would do without running it
      * @return array{0: string, 1: ?string} [status, errorMessage]
      */
-    private static function executeActionList(array $actions, array &$payload, array &$stepLog, bool $dryRun = false): array
+    private static function executeActionList(array $actions, array &$payload, array &$stepLog, bool $dryRun = false, int $depth = 0): array
     {
         foreach ($actions as $i => $action) {
             $type = $action['type'] ?? '';
             $args = $action['args'] ?? [];
+
+            // GH #364: a branch picks one path and runs its actions through this same loop.
+            if (in_array($type, self::BRANCH_TYPES, true)) {
+                $failed = self::executeBranch($type, is_array($args) ? $args : [], $i, $payload, $stepLog, $dryRun, $depth);
+                if ($failed !== null) return ['failed', $failed];
+                continue;
+            }
 
             // GH #217. An action whose module is switched off for the install is
             // skipped and says so - like a confidential ticket's email, the run
@@ -2599,7 +2628,11 @@ class WorkflowEngine
                 // earlier one produced — "raise a ticket, then email the
                 // requester about it" is two actions, and the second one has to
                 // be able to name the first one's ticket.
-                self::mergeStepResult($payload, $i, $result);
+                // TRAP (GH #364): inside a branch only {{last}} moves - $i counts within the
+                // branch, so writing steps[$i + 1] would overwrite a top-level action's result.
+                // The branch puts its last result in its own top-level slot when it ends.
+                if ($depth === 0) self::mergeStepResult($payload, $i, $result);
+                elseif (is_array($result) && $result !== []) $payload['last'] = $result;
                 $step = [
                     'kind'   => 'action',
                     'index'  => $i,
@@ -2748,6 +2781,255 @@ class WorkflowEngine
         return ['status' => $status, 'execution_id' => $execId, 'steps' => $stepLog];
     }
 
+    // -----------------------------------------------------------------
+    //  Branching (GH #364)
+    // -----------------------------------------------------------------
+
+    /**
+     * Run one branch: decide the path, log the decision, run that path's actions.
+     *
+     * The decision is read-only, so a dry run decides for real and shows which path it
+     * would take; only the actions on that path are dry-run. The path's own steps nest
+     * inside the branch's step-log entry ('steps'), so the run history can draw them
+     * under the decision. Nothing matching takes Otherwise / Default - always, and the
+     * entry says so, including when the field was missing.
+     *
+     * @param string $type  'branch_if' or 'branch_switch'
+     * @param array $args  the branch's args (see BRANCH_TYPES)
+     * @param int $index  its position in the list it sits in
+     * @param array $payload  the run's payload, by reference
+     * @param array $stepLog  the list's step log, by reference
+     * @param bool $dryRun  record what would happen without doing it
+     * @param int $depth  0 for a branch in the workflow's own list, 1 inside one branch, ...
+     * @return ?string  null, or the error that failed the run
+     */
+    private static function executeBranch(string $type, array $args, int $index, array &$payload, array &$stepLog, bool $dryRun, int $depth): ?string
+    {
+        $entry = ['kind' => 'branch', 'index' => $index, 'type' => $type, 'depth' => $depth];
+        if ($depth >= self::MAX_BRANCH_DEPTH) {
+            $entry['status'] = 'failed';
+            $entry['error']  = 'Branches can only go ' . self::MAX_BRANCH_DEPTH . ' deep.';
+            $stepLog[] = $entry;
+            return "Action {$index} ({$type}): " . $entry['error'];
+        }
+        $path = null;   // ['key' => 'branch:0' | 'case:1' | 'otherwise' | 'default', 'label' => .., 'actions' => [..]]
+        if ($type === 'branch_if') {
+            $entry['checked'] = [];
+            foreach (array_values(is_array($args['branches'] ?? null) ? $args['branches'] : []) as $bi => $br) {
+                if (!is_array($br)) continue;
+                $match = ($br['match'] ?? 'all') === 'any' ? 'any' : 'all';
+                $conds = array_values(array_filter(is_array($br['conditions'] ?? null) ? $br['conditions'] : [], 'is_array'));
+                $results = [];
+                $ok = $match === 'all';   // all: true until one fails; any: false until one passes
+                foreach ($conds as $c) {
+                    $r = self::evaluateOneCondition($c, $payload);
+                    $results[] = $r;
+                    if ($match === 'all' && !$r['passed']) { $ok = false; break; }
+                    if ($match === 'any' && $r['passed'])  { $ok = true;  break; }
+                }
+                if (!$conds) $ok = false;   // a branch with no conditions never matches - it would hide Otherwise
+                $entry['checked'][] = ['branch' => $bi, 'label' => (string)($br['label'] ?? ''), 'match' => $match, 'conditions' => $results, 'passed' => $ok];
+                if ($ok) { $path = ['key' => 'branch:' . $bi, 'label' => (string)($br['label'] ?? ''), 'actions' => $br['actions'] ?? []]; break; }
+            }
+            if ($path === null) $path = ['key' => 'otherwise', 'label' => '', 'actions' => $args['otherwise']['actions'] ?? []];
+        } else {
+            $field   = (string)($args['field'] ?? '');
+            $compare = ($args['compare'] ?? 'equals') === 'contains' ? 'contains' : 'equals';
+            $actual  = self::dotGet($payload, $field);
+            $entry += ['field' => $field, 'compare' => $compare, 'actual' => $actual];
+            $missing = $actual === null || $actual === '' || $actual === [];
+            if (!$missing) {
+                foreach (array_values(is_array($args['cases'] ?? null) ? $args['cases'] : []) as $ci => $case) {
+                    if (!is_array($case)) continue;
+                    if (self::switchCaseMatches($field, $compare, $actual, $case['values'] ?? [])) {
+                        $path = ['key' => 'case:' . $ci, 'label' => (string)($case['label'] ?? ''), 'actions' => $case['actions'] ?? []];
+                        break;
+                    }
+                }
+            }
+            if ($path === null) {
+                $path = ['key' => 'default', 'label' => '', 'actions' => $args['default']['actions'] ?? []];
+                $entry['reason'] = $missing ? 'missing' : 'no_match';
+            }
+        }
+        $entry['taken'] = $path['key'];
+        if ($path['label'] !== '') $entry['taken_label'] = $path['label'];
+        $actions = array_values(array_filter(is_array($path['actions']) ? $path['actions'] : [], 'is_array'));
+        $entry['nothing_to_do'] = $actions === [];
+
+        $inner = [];
+        $before = $payload['last'] ?? null;
+        unset($payload['last']);
+        [$status, $error] = self::executeActionList($actions, $payload, $inner, $dryRun, $depth + 1);
+        $entry['steps']  = $inner;
+        $entry['status'] = $status === 'failed' ? 'failed' : ($dryRun ? 'dry_run' : 'success');
+        $stepLog[] = $entry;
+        // What the path produced is the branch's result: in its own slot at the top level,
+        // so an action after the branch can use {{steps.N...}} whichever path ran.
+        if (array_key_exists('last', $payload)) {
+            if ($depth === 0) $payload['steps'][$index + 1] = $payload['last'];
+        } elseif ($before !== null) {
+            $payload['last'] = $before;   // a path that produced nothing leaves {{last}} as it was
+        }
+        return $status === 'failed' ? "Action {$index} ({$type}): " . ($error ?? 'failed') : null;
+    }
+
+    /**
+     * Does a Choose-by-value case match? equals compares as text (an id stored as a number
+     * matches the "4" the editor saves; a category also matches its subcategories when
+     * Tickets -> Settings -> Categories says so); contains ignores capitals and spaces,
+     * like the contains condition (GH #214).
+     *
+     * @param string $field  the field chosen on
+     * @param string $compare  'equals' or 'contains'
+     * @param mixed $actual  the payload's value
+     * @param mixed $values  the case's values: an array, or a comma-separated string
+     */
+    private static function switchCaseMatches(string $field, string $compare, $actual, $values): bool
+    {
+        if (is_string($values)) $values = array_map('trim', explode(',', $values));
+        if (!is_array($values)) $values = [$values];
+        $values = array_values(array_filter($values, fn($v) => $v !== null && trim((string)$v) !== ''));
+        if (!$values) return false;
+        if ($compare === 'contains') {
+            foreach ($values as $v) if (self::textContains(is_scalar($actual) ? (string)$actual : null, (string)$v)) return true;
+            return false;
+        }
+        if (in_array($field, self::CATEGORY_FIELDS, true) && self::categoryMatchIncludesSubcategories()) {
+            $values = self::categoryIdsWithDescendants($values);
+        }
+        return self::value_in_list($actual, $values);
+    }
+
+    /**
+     * Make an actions list safe to store: every branch gets its Otherwise / Default (empty
+     * if missing) and only the keys the engine reads. Plain actions pass through untouched,
+     * so a workflow without branches is stored exactly as before. Canvas positions (x, y)
+     * on the top-level entries are kept.
+     *
+     * @param array $actions  an actions list (validated with validateActionTree() first)
+     */
+    public static function normaliseActionTree(array $actions): array
+    {
+        $out = [];
+        foreach (array_values($actions) as $a) {
+            if (!is_array($a)) continue;
+            $type = (string)($a['type'] ?? '');
+            if (!in_array($type, self::BRANCH_TYPES, true)) { $out[] = $a; continue; }
+            $args = is_array($a['args'] ?? null) ? $a['args'] : [];
+            $list = fn($x) => self::normaliseActionTree(is_array($x) ? $x : []);
+            if ($type === 'branch_if') {
+                $branches = [];
+                foreach (array_values(is_array($args['branches'] ?? null) ? $args['branches'] : []) as $br) {
+                    if (!is_array($br)) continue;
+                    $conds = [];
+                    foreach (array_values(is_array($br['conditions'] ?? null) ? $br['conditions'] : []) as $c) {
+                        if (is_array($c)) $conds[] = ['field' => (string)($c['field'] ?? ''), 'op' => (string)($c['op'] ?? 'equals'), 'value' => $c['value'] ?? null];
+                    }
+                    $branches[] = ['label' => trim((string)($br['label'] ?? '')), 'match' => ($br['match'] ?? 'all') === 'any' ? 'any' : 'all',
+                                   'conditions' => $conds, 'actions' => $list($br['actions'] ?? [])];
+                }
+                $norm = ['branches' => $branches, 'otherwise' => ['actions' => $list($args['otherwise']['actions'] ?? [])]];
+            } else {
+                $cases = [];
+                foreach (array_values(is_array($args['cases'] ?? null) ? $args['cases'] : []) as $c) {
+                    if (!is_array($c)) continue;
+                    $vals = $c['values'] ?? [];
+                    if (is_string($vals)) $vals = array_map('trim', explode(',', $vals));
+                    $vals = array_values(array_filter(array_map(fn($v) => is_scalar($v) ? trim((string)$v) : '', is_array($vals) ? $vals : []), fn($v) => $v !== ''));
+                    $cases[] = ['label' => trim((string)($c['label'] ?? '')), 'values' => $vals, 'actions' => $list($c['actions'] ?? [])];
+                }
+                $norm = ['field' => (string)($args['field'] ?? ''), 'compare' => ($args['compare'] ?? 'equals') === 'contains' ? 'contains' : 'equals',
+                         'cases' => $cases, 'default' => ['actions' => $list($args['default']['actions'] ?? [])]];
+            }
+            $row = ['type' => $type, 'args' => $norm];
+            foreach (['x', 'y'] as $k) if (isset($a[$k])) $row[$k] = $a[$k];
+            $out[] = $row;
+        }
+        return $out;
+    }
+
+    /**
+     * Why this actions list cannot be stored, or null when it can. Every entry, at every
+     * depth, is a catalogue action or a branch; a branch is no deeper than MAX_BRANCH_DEPTH,
+     * an If has at least one branch and each branch at least one condition, a Choose has a
+     * field and at least one case. Used by every save route (the editor, the REST API).
+     *
+     * @param mixed $actions  the caller's actions (untrusted)
+     * @param int $depth  internal: how many branches deep this list is
+     * @param string $where  internal: the path, for the message, e.g. "actions[2] > case 1"
+     */
+    public static function validateActionTree($actions, int $depth = 0, string $where = 'actions'): ?string
+    {
+        if (!is_array($actions)) return "{$where} must be a list.";
+        $catalogue = self::availableActions();
+        foreach (array_values($actions) as $i => $a) {
+            $at = "{$where}[{$i}]";
+            if (!is_array($a)) return "{$at} must be an object with 'type' and 'args'.";
+            $type = (string)($a['type'] ?? '');
+            $args = $a['args'] ?? [];
+            if (!is_array($args)) return "{$at}: 'args' must be an object.";
+            if (isset($catalogue[$type])) continue;
+            if (!in_array($type, self::BRANCH_TYPES, true)) return "Unknown action type: {$type}";
+            if ($depth + 1 > self::MAX_BRANCH_DEPTH) return "{$at}: branches can only go " . self::MAX_BRANCH_DEPTH . ' deep.';
+            if ($type === 'branch_if') {
+                $branches = $args['branches'] ?? null;
+                if (!is_array($branches) || !$branches) return "{$at}: an If needs at least one branch.";
+                foreach (array_values($branches) as $bi => $br) {
+                    $n = $bi + 1;
+                    if (!is_array($br) || !is_array($br['conditions'] ?? null) || !$br['conditions']) return "{$at}: branch {$n} needs at least one condition.";
+                    foreach ($br['conditions'] as $c) {
+                        if (!is_array($c) || trim((string)($c['field'] ?? '')) === '') return "{$at}: branch {$n} has a condition with no field.";
+                        if (!isset(self::availableOperators()[(string)($c['op'] ?? 'equals')])) return "{$at}: branch {$n} has an unknown operator.";
+                    }
+                    if (($e = self::validateActionTree($br['actions'] ?? [], $depth + 1, "{$at} > branch {$n}")) !== null) return $e;
+                }
+                if (($e = self::validateActionTree($args['otherwise']['actions'] ?? [], $depth + 1, "{$at} > otherwise")) !== null) return $e;
+            } else {
+                if (trim((string)($args['field'] ?? '')) === '') return "{$at}: Choose by value needs a field.";
+                $cases = $args['cases'] ?? null;
+                if (!is_array($cases) || !$cases) return "{$at}: Choose by value needs at least one case.";
+                foreach (array_values($cases) as $ci => $c) {
+                    $n = $ci + 1;
+                    if (!is_array($c)) return "{$at}: case {$n} must be an object.";
+                    if (($e = self::validateActionTree($c['actions'] ?? [], $depth + 1, "{$at} > case {$n}")) !== null) return $e;
+                }
+                if (($e = self::validateActionTree($args['default']['actions'] ?? [], $depth + 1, "{$at} > default")) !== null) return $e;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Every ordinary action in a list, at any depth, through $fn, which returns the action
+     * (changed or not). For the code that must see EVERY action - webhook credential
+     * encryption above all: a webhook inside a branch must be encrypted like any other.
+     *
+     * @param array $actions  an actions list
+     * @param callable $fn  fn(array $action): array
+     */
+    public static function mapActionTree(array $actions, callable $fn): array
+    {
+        foreach ($actions as $i => $a) {
+            if (!is_array($a)) continue;
+            $type = (string)($a['type'] ?? '');
+            if (!in_array($type, self::BRANCH_TYPES, true)) { $actions[$i] = $fn($a); continue; }
+            $args = is_array($a['args'] ?? null) ? $a['args'] : [];
+            if ($type === 'branch_if') {
+                foreach (is_array($args['branches'] ?? null) ? $args['branches'] : [] as $bi => $br) {
+                    if (is_array($br['actions'] ?? null)) $args['branches'][$bi]['actions'] = self::mapActionTree($br['actions'], $fn);
+                }
+                if (is_array($args['otherwise']['actions'] ?? null)) $args['otherwise']['actions'] = self::mapActionTree($args['otherwise']['actions'], $fn);
+            } else {
+                foreach (is_array($args['cases'] ?? null) ? $args['cases'] : [] as $ci => $c) {
+                    if (is_array($c['actions'] ?? null)) $args['cases'][$ci]['actions'] = self::mapActionTree($c['actions'], $fn);
+                }
+                if (is_array($args['default']['actions'] ?? null)) $args['default']['actions'] = self::mapActionTree($args['default']['actions'], $fn);
+            }
+            $actions[$i]['args'] = $args;
+        }
+        return $actions;
+    }
     /**
      * Make a completed action's result addressable by the actions after it.
      *

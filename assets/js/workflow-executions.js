@@ -256,6 +256,15 @@
     /**
      * Returns the HTML for one logged step - a condition with what it compared and the actual value, an action with its status and result, or an engine error.
      */
+    /** GH #364: "Took branch 2 "XYZ"", "Took Otherwise", "Took case 1", "Took Default" - the words for a branch's path. */
+    function branchTakenText(s) {
+        const T = (k, p) => window.t('workflow.branch.' + k, p);
+        const key = String(s.taken || '');
+        const label = s.taken_label ? ' "' + s.taken_label + '"' : '';
+        if (key.startsWith('branch:')) return T('took_branch', { n: +key.slice(7) + 1 }) + label;
+        if (key.startsWith('case:'))   return T('took_case', { n: +key.slice(5) + 1 }) + label;
+        return T(key === 'otherwise' ? 'took_otherwise' : 'took_default');
+    }
     function renderStep(s) {
         const kind = s.kind || '';
         if (kind === 'condition') {
@@ -291,6 +300,27 @@
                     <strong>${esc(s.would_run || s.type || '')}</strong>
                 </div>${inner}
             </div>`;
+        }
+        // GH #364: a branch - which path it took and why, with that path's steps beneath.
+        if (kind === 'branch') {
+            const T = (k, p) => window.t('workflow.branch.' + k, p);
+            const cls = s.status === 'failed' ? 'bad' : 'ok';
+            let why = '';
+            if (s.type === 'branch_switch') {
+                why = '<div class="wfx-step-sub"><code>' + esc(s.field || '') + '</code> = <code>' + esc(JSON.stringify(s.actual ?? null)) + '</code>'
+                    + (s.reason === 'missing' ? ' - ' + esc(T('reason_missing')) : s.reason === 'no_match' ? ' - ' + esc(T('reason_no_match')) : '') + '</div>';
+            } else {
+                why = (s.checked || []).map(c => '<div class="wfx-step-sub">' + esc(T('branch_n', { n: c.branch + 1 })) + (c.label ? ' "' + esc(c.label) + '"' : '')
+                    + ': ' + esc(c.passed ? T('matched') : T('not_matched')) + ' <span class="wfx-branch-conds">' + (c.conditions || []).map(r =>
+                        '<code>' + esc(r.field) + ' ' + esc(r.op) + ' ' + esc(JSON.stringify(r.value ?? '')) + '</code> ' + (r.passed ? '&#10003;' : '&#10007;')).join(' ') + '</span></div>').join('');
+            }
+            const inner = (s.steps || []).map(renderStep).join('');
+            return '<div class="wfx-step wfx-branch">'
+                + '<div class="wfx-step-head"><span class="wfx-step-status ' + cls + '">' + esc(T(s.type === 'branch_switch' ? 'switch' : 'if')) + '</span>'
+                + '<strong>' + esc(branchTakenText(s)) + '</strong></div>' + why
+                + (s.error ? '<div class="wfx-step-err">' + esc(s.error) + '</div>' : '')
+                + '<div class="wfx-branch-steps">' + (inner || '<div class="wfx-step-sub"><em>' + esc(T('nothing_to_do')) + '</em></div>') + '</div>'
+                + '</div>';
         }
         // engine_error / loop_protection
         return `<div class="wfx-step">
