@@ -771,10 +771,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initTinyMCE();
     initAttachmentHandlers();
 
-    // Load all tickets by default - or, arriving with ?status=Name (Watchtower's status
+    // Load all tickets by default - or, arriving with ?status_id=N (Watchtower's status
     // counts link here, discussion #388), All Tickets on that status: the GH #73 view,
-    // with its folder opened and lit so it is plain why the list is short.
-    const startStatus = new URLSearchParams(window.location.search).get('status');
+    // with its folder opened and lit so it is plain why the list is short. tickets/index.php
+    // resolves the id to the status (the folders work by name); never a name in the URL.
+    const startStatus = window.TICKET_LINK_STATUS || null;
     if (startStatus) {
         expandedFolders['all'] = true;
         inboxPrefsReady.then(() => selectAllStatus(startStatus));   // loads the list itself

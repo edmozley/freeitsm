@@ -1201,7 +1201,18 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-picker.js?v=3"></script>
     <script src="../assets/js/address-suggest.js?v=1"></script>   <!-- GH #307: before inbox.js, which attaches it to To and Cc -->
     <script src="../assets/js/location-picker.js?v=1"></script>   <!-- GH #311: before inbox.js -->
-    <script src="../assets/js/inbox.js?v=218"></script>
+    <?php /* A link to one status, by its id (discussion #388): resolved here, so a URL never carries
+         a status NAME - names change, ids do not. An unknown or retired id opens the list as normal. */
+    $__linkStatus = null;
+    if (isset($_GET['status_id']) && ctype_digit((string)$_GET['status_id'])) {
+        try {
+            $__ls = connectToDatabase()->prepare("SELECT name FROM ticket_statuses WHERE id = ? AND is_active = 1");
+            $__ls->execute([(int)$_GET['status_id']]);
+            $__linkStatus = $__ls->fetchColumn() ?: null;
+        } catch (Throwable $e) { $__linkStatus = null; }
+    } ?>
+    <script>window.TICKET_LINK_STATUS = <?php echo json_encode($__linkStatus, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
+    <script src="../assets/js/inbox.js?v=219"></script>
     <script src="../assets/js/ticket-folders-pane.js?v=2"></script>   <!-- discussion #292 -->
     <script src="../assets/js/ticket-watchers.js?v=2"></script>
     <script src="../assets/js/ticket-forms.js?v=5"></script>

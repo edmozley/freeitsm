@@ -847,7 +847,7 @@ try {
         // already in the reader's language and cannot drift out of date.
         byStatus.forEach(s => {
             html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8',
-                           '../tickets/?status=' + encodeURIComponent(s.name));   // #388: All Tickets on this status
+                           '../tickets/?status_id=' + Number(s.id));   // #388: All Tickets on this status
         });
         html += '</div>';
 
@@ -893,7 +893,7 @@ try {
         let html = '<div class="wt-metrics">';
         html += metric(ch.total_open || 0, window.t('watchtower.changes.metric_open'), 'var(--text, #334155)', '../change-management/?statuses=open');
         (ch.by_status || []).forEach(s => {
-            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8', '../change-management/?status=' + encodeURIComponent(s.name));
+            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8', '../change-management/?status_id=' + Number(s.id));
         });
         html += '</div>';
 
@@ -1305,7 +1305,7 @@ try {
         let html = '<div class="wt-metrics">';
         html += metric(t.total_open || 0, window.t('watchtower.tasks.metric_open'), 'var(--text, #334155)', '../tasks/?statuses=open');
         (t.by_status || []).forEach(s => {
-            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8', '../tasks/?status=' + encodeURIComponent(s.name));
+            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8', '../tasks/?status_id=' + Number(s.id));
         });
         html += '</div>';
 

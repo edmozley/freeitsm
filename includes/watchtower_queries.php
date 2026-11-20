@@ -192,6 +192,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $tkTotalOpen = 0;
     foreach ($tkStatusStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $tkStatuses[] = [
+            'id'     => (int)$row['id'],   // the link opens the list on this status (#388) - by id, never by name
             'name'   => $row['status'],
             'colour' => $row['colour'] ?: null,
             'count'  => (int)$row['cnt'],
@@ -382,6 +383,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $chTotalOpen = 0;
     foreach ($chStatusStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $chStatuses[] = [
+            'id'     => (int)$row['id'],   // #388: links by id
             'name'   => $row['name'],
             'colour' => $row['colour'] ?: null,
             'count'  => (int)$row['cnt'],
@@ -863,6 +865,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $taskTotalOpen = 0;
     foreach ($taskStatusStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $taskStatuses[] = [
+            'id'     => (int)$row['id'],   // #388: links by id
             'name'   => $row['name'],
             'colour' => $row['colour'] ?: null,
             'count'  => (int)$row['cnt'],

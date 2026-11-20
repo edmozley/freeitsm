@@ -596,6 +596,17 @@ $translationNamespaces = ['common', 'change-management'];
         window.openCreateOnLoad = true;
         <?php endif; ?>
     </script>
+    <?php /* A link to one status, by its id (discussion #388): resolved here, so a URL never carries
+         a status NAME - names change, ids do not. An unknown or retired id opens the list as normal. */
+    $__linkStatus = null;
+    if (isset($_GET['status_id']) && ctype_digit((string)$_GET['status_id'])) {
+        try {
+            $__ls = connectToDatabase()->prepare("SELECT name FROM change_statuses WHERE id = ? AND is_active = 1");
+            $__ls->execute([(int)$_GET['status_id']]);
+            $__linkStatus = $__ls->fetchColumn() ?: null;
+        } catch (Throwable $e) { $__linkStatus = null; }
+    } ?>
+    <script>window.CHG_LINK_STATUS = <?php echo json_encode($__linkStatus, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
     <script>window.CHG_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.CHG_BASE = <?php echo json_encode(BASE_URL); ?>;
         // "Choose approvers" (#180): comfort for the editor; ChangesService enforces it.
         // Read only (#180): the page leaves out what the server would refuse.
@@ -606,7 +617,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
     <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=42"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=43"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

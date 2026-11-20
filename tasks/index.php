@@ -122,7 +122,8 @@ try {
     $taskCanProjects = analystCanAccessModule(connectToDatabase(), (int) ($_SESSION['analyst_id'] ?? 0), 'projects');
 } catch (Throwable $e) { /* leave it off */ }
 
-// Opened from a Watchtower count (discussion #388): ?status=<name> for one status,
+// Opened from a Watchtower count (discussion #388): ?status_id=N for one status (by id -
+// names change, ids do not),
 // ?statuses=open for the card's "open" figure. Resolved to status NAMES here (the
 // board and list match tasks by name) from the same rule the card counts with -
 // open, active, the admin's pick - so the board shows the number that was clicked.
@@ -137,9 +138,9 @@ if (!$taskEmbedded) {
         $__lc = connectToDatabase();
         $__names = [];
         $__kind = '';
-        if (isset($_GET['status']) && is_string($_GET['status']) && $_GET['status'] !== '') {
-            $__q = $__lc->prepare("SELECT name FROM task_statuses WHERE name = ? AND is_active = 1");
-            $__q->execute([$_GET['status']]);
+        if (isset($_GET['status_id']) && ctype_digit((string)$_GET['status_id'])) {
+            $__q = $__lc->prepare("SELECT name FROM task_statuses WHERE id = ? AND is_active = 1");
+            $__q->execute([(int)$_GET['status_id']]);
             $__names = $__q->fetchAll(PDO::FETCH_COLUMN);
             $__kind = 'status';
         } elseif (($_GET['statuses'] ?? '') === 'open') {
@@ -462,7 +463,7 @@ $translationNamespaces = ['common', 'tasks'];
     <!-- The one cleaner for HTML from elsewhere: Knowledge procedure bodies and task instructions in the Work view (GH #190). -->
     <script src="../assets/js/safe-html.js?v=4"></script>
     <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=3"></script><?php endif; ?>
-    <script src="../assets/js/tasks.js?v=81"></script>
+    <script src="../assets/js/tasks.js?v=82"></script>
     <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=86"></script><?php endif; ?>
 
 </body>

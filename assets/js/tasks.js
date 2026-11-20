@@ -414,7 +414,7 @@ function clearStatusLink() {
     renderStatusLinkChip();
     try {
         const url = new URL(window.location.href);
-        url.searchParams.delete('status');
+        url.searchParams.delete('status_id');
         url.searchParams.delete('statuses');
         history.replaceState(history.state, '', url.pathname + url.search + url.hash);
     } catch (e) { /* the address is cosmetic */ }

@@ -1200,7 +1200,8 @@ function filterByStatus(status) {
 
 // ============ Opened from a Watchtower count (discussion #388) ============
 //
-// ?status=<name>    one status - the sidebar row lights up, the way the ticket
+// ?status_id=N      one status (by id - change-management/index.php resolves it to the
+//                   status, never a name in the URL) - the sidebar row lights up, the way the ticket
 //                   inbox lights a folder, and is the visible filter.
 // ?statuses=open    the card's "open" figure - no row stands for it, so a chip
 //                   above the list says what is showing and its x clears it.
@@ -1212,7 +1213,7 @@ let linkedOpenStatuses = false;
 /** Reads ?status= / ?statuses=open into the list's filter before the first load. */
 function readListLinkFromUrl() {
     const p = new URLSearchParams(window.location.search);
-    const st = p.get('status');
+    const st = window.CHG_LINK_STATUS || null;
     if (st) currentFilter = st;
     else if (p.get('statuses') === 'open') linkedOpenStatuses = true;
 }
@@ -1250,7 +1251,7 @@ function clearListLink() {
     if (bar) { bar.hidden = true; bar.innerHTML = ''; }
     const url = new URL(window.location.href);
     if (url.searchParams.has('status') || url.searchParams.has('statuses')) {
-        url.searchParams.delete('status');
+        url.searchParams.delete('status_id');
         url.searchParams.delete('statuses');
         history.replaceState(history.state, '', url.pathname + url.search + url.hash);
     }
