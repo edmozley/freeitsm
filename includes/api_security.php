@@ -32,6 +32,9 @@
  * 🔴 The address is REMOTE_ADDR, the connection's own - never a header such as
  * X-Forwarded-For, which the caller writes. Behind a reverse proxy every request
  * comes from the proxy, so an allow-list there must name the proxy - the help says so.
+ * Unless the Docker image's TRUSTED_PROXIES is set: Apache (mod_remoteip) then puts
+ * the client's address in REMOTE_ADDR itself, before PHP runs, and the allow-list
+ * names the clients (docker/entrypoint.sh).
  *
  * @wiki Project-Documents-API-Design
  */

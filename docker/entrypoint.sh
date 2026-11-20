@@ -23,6 +23,74 @@ else
     echo "Encryption key already exists at $KEY_PATH"
 fi
 
+# Behind a reverse proxy, every request arrives from the proxy, so the sign-in
+# log, the audit trails and API key allow-lists all see the proxy's address.
+# TRUSTED_PROXIES names the proxy - IPv4 or IPv6 addresses, ranges, or host names
+# (looked up once, when Apache starts) - separated by spaces or commas. Apache's
+# mod_remoteip then takes the client's address from the proxy's header
+# (TRUSTED_PROXY_HEADER: X-Forwarded-For unless set; CF-Connecting-IP for a
+# Cloudflare Tunnel). PHP's REMOTE_ADDR changes, so nothing in FreeITSM needs to.
+#
+# 🔴 The header is only believed on a connection FROM a listed address: anyone
+# else can write it. mod_remoteip reads X-Forwarded-For from the right and skips
+# every listed address, so a range that also holds other hosts (the Docker
+# gateway, other containers) lets those hosts claim any address - 127.0.0.1
+# included - even through the proxy. Hence the warning on wide ranges, and
+# /server-status (mod_status, "Require local") is closed while this is on.
+#
+# Runs BEFORE the HTTPS check below, and both start from off: each check must
+# test this start's settings, not what the last start left enabled (a host name
+# that no longer resolves would otherwise make the HTTPS check fail). Decided on
+# every start; an invalid value turns it off and says why, never stops Apache.
+REMOTEIP_CONF=/etc/apache2/conf-available/freeitsm-remoteip.conf
+remoteip_off() {
+    a2disconf -q freeitsm-remoteip >/dev/null 2>&1
+    a2dismod -q remoteip >/dev/null 2>&1
+    rm -f "$REMOTEIP_CONF"
+}
+remoteip_off
+a2dissite -q freeitsm-ssl >/dev/null 2>&1
+a2dismod -q ssl >/dev/null 2>&1
+PROXY_LIST=$(printf '%s' "$TRUSTED_PROXIES" | tr ',\t\r\n' '    ' | tr -s ' ' | sed 's/^ //; s/ $//')
+PROXY_HEADER="${TRUSTED_PROXY_HEADER:-X-Forwarded-For}"
+if [ -z "$PROXY_LIST" ]; then
+    :
+elif printf '%s' "$PROXY_LIST" | grep -q '[^A-Za-z0-9.:/ -]' \
+    || printf '%s' "$PROXY_HEADER" | grep -q '[^A-Za-z0-9-]'; then
+    echo "TRUSTED_PROXIES or TRUSTED_PROXY_HEADER is not valid, so client addresses are not taken from the proxy." >&2
+else
+    {
+        echo "# Written by entrypoint.sh from TRUSTED_PROXIES - do not edit."
+        echo "RemoteIPHeader $PROXY_HEADER"
+        echo "RemoteIPInternalProxy $PROXY_LIST"
+        # %a is the client's address after mod_remoteip; the stock format's %h
+        # would keep logging the proxy.
+        echo 'LogFormat "%a %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined'
+        # Loaded after mods-enabled/status.conf, so this wins over its "Require local".
+        echo '<Location /server-status>'
+        echo '    Require all denied'
+        echo '</Location>'
+    } > "$REMOTEIP_CONF"
+    a2enmod -q remoteip >/dev/null 2>&1
+    a2enconf -q freeitsm-remoteip >/dev/null 2>&1
+    if APACHE_ERR=$(apache2ctl -t 2>&1); then
+        echo "TRUSTED_PROXIES is set: client addresses come from $PROXY_HEADER on requests from $PROXY_LIST."
+        for p in $PROXY_LIST; do
+            case "$p" in
+                *:*/*) [ "${p##*/}" -lt 64 ] 2>/dev/null && WIDE="$WIDE $p" ;;  # IPv6 range
+                */*)   [ "${p##*/}" -lt 24 ] 2>/dev/null && WIDE="$WIDE $p" ;;  # IPv4 range
+                *:*)   ;;                                                       # IPv6 address
+                *[!0-9.]*) NAMES="$NAMES $p" ;;                                 # host name
+            esac
+        done
+        [ -n "$WIDE" ] && echo "TRUSTED_PROXIES warning: every host in$WIDE can claim any client address. List only the proxy." >&2
+        [ -n "$NAMES" ] && echo "TRUSTED_PROXIES note:$NAMES looked up now, once. Restart this container if the proxy's address changes." >&2
+    else
+        remoteip_off
+        echo "TRUSTED_PROXIES was refused by Apache, so client addresses are not taken from the proxy: $(printf '%s\n' "$APACHE_ERR" | grep -v -e 'Syntax OK' -e AH00558 | head -2 | tr '\n' ' ')" >&2
+    fi
+fi
+
 # HTTPS, using the certificate made on System -> Docker (includes/docker_tls.php).
 # Checked on every start, and HTTPS is only turned on when everything checks out:
 # a missing, unreadable or mismatched certificate must leave the container on

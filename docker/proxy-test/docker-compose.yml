@@ -31,8 +31,9 @@ services:
         { apk add --no-cache openssl >/dev/null &&
         openssl req -x509 -nodes -newkey rsa:2048 -days 30 -subj /CN=localhost -keyout /etc/nginx/tls/proxy.key -out /etc/nginx/tls/proxy.crt 2>/dev/null; }; } &&
         exec nginx -g 'daemon off;'
-    depends_on:
-      - app
+    # No depends_on: nginx looks the app up per request (nginx.conf), so the proxy
+    # can start first - and must, because the app's TRUSTED_PROXIES=proxy is
+    # looked up when the app starts.
 
   app:
     build: ../..
@@ -41,6 +42,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      proxy:
+        condition: service_started
     environment:
       - DB_SERVER=db
       - DB_NAME=freeitsm
@@ -50,6 +53,11 @@ services:
       # TRUST_PROXY_HTTPS=0 in front of `docker compose` checks the negative case:
       # with it off, a client-sent X-Forwarded-Proto must change nothing.
       - TRUST_PROXY_HTTPS=${TRUST_PROXY_HTTPS:-1}
+      # The proxy above, by its service name (Apache looks it up at start), so
+      # only it is believed. TRUSTED_PROXIES= (empty) in front of `docker compose`
+      # checks the negative case: every request then comes from the proxy.
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES-proxy}
+      - TRUSTED_PROXY_HEADER=${TRUSTED_PROXY_HEADER:-X-Forwarded-For}
     volumes:
       - encryption-keys:/var/www/encryption_keys
 

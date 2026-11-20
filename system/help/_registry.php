@@ -56,9 +56,10 @@ function getHelpTopics() {
                 ['id' => 'why',      'label' => 'Why not Let\'s Encrypt'],
                 ['id' => 'steps',    'label' => 'Turning HTTPS on'],
                 ['id' => 'changes',  'label' => 'Changing the name or IP'],
+                ['id' => 'proxy',    'label' => 'Behind a reverse proxy'],
                 ['id' => 'trouble',  'label' => 'Troubleshooting'],
             ],
-            'terms' => 'https ssl tls certificate cert padlock not secure warning container compose 443 8443 dns hosts file root authority ca group policy intune',
+            'terms' => 'https ssl tls certificate cert padlock not secure warning container compose 443 8443 dns hosts file root authority ca group policy intune reverse proxy load balancer cloudflare tunnel x-forwarded-for cf-connecting-ip trusted_proxies real ip client address remoteip',
         ],
         'analysts' => [
             'hero' => 'Analysts',
