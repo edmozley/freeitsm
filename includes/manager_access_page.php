@@ -54,7 +54,7 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .ma-back { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; margin-bottom: 8px; font-size: var(--font-size-md, 13px); text-decoration: none;
                    color: var(--text, #333); background: var(--surface, #fff); border: 1px solid var(--border, #ccc); border-radius: 4px; }
         .ma-back:hover { background: var(--surface-hover, #f3f3f3); border-color: var(--accent, #0078d4); }
-        .ma-name { font-size: 22px; font-weight: 600; margin: 0; color: var(--text, #333); }
+        .ma-name { font-size: var(--font-size-4xl, 24px); font-weight: 600; margin: 0; color: var(--text, #333); }
         .ma-sub { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); margin-top: 2px; }
         .ma-stat { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-left: 4px solid var(--accent, #0078d4);
                    border-radius: 8px; padding: 8px 16px; min-width: 200px; }
@@ -62,7 +62,7 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .ma-stats { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
         .ma-stat-note { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 2px; max-width: 320px; }
         .ma-stat-label { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .04em; }
-        .ma-stat-num { font-size: 22px; font-weight: 600; color: var(--text, #333); }
+        .ma-stat-num { font-size: var(--font-size-4xl, 24px); font-weight: 600; color: var(--text, #333); }
         .ma-banner { border-radius: 6px; padding: 8px 14px; margin-bottom: 10px; font-size: var(--font-size-md, 13px); border: 1px solid; }
         .ma-banner.info { background: var(--info-bg, #e8f4fd); border-color: var(--info-border, #b6d7f2); color: var(--info-text, #0b4f85); }
         .ma-banner.warn { background: var(--warning-bg, #fff4ce); border-color: var(--warning-border, #f0d78c); color: var(--warning-text, #6b5900); }
@@ -142,7 +142,7 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .mw-head-icon { flex: 0 0 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             background: var(--info-bg, #e3f2fd); color: var(--info-text, #0d47a1); border: 1px solid var(--info-border, #90caf9); }
         .mw-head-icon svg { width: 22px; height: 22px; }
-        .mw-head h3 { margin: 0 0 4px; font-size: 19px; color: var(--text, #333); }
+        .mw-head h3 { margin: 0 0 4px; font-size: var(--font-size-3xl, 20px); color: var(--text, #333); }
         .mw-head p { margin: 0; font-size: var(--font-size-md, 13px); line-height: 1.5; color: var(--text-muted, #666); }
         /* The picture, LEFT TO RIGHT (Ed: "use less vertical space"): the manager,
            a bar down to one card per reason stacked in the middle, a bar joining
@@ -154,7 +154,7 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .mw-person { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; grid-row: 1 / -1; text-align: center; }
         .mw-person.them { grid-column: 7; }
         .mw-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 15px; background: var(--accent, #546e7a); color: var(--on-accent, #fff); }
+            font-weight: 700; font-size: var(--font-size-xl, 16px); background: var(--accent, #546e7a); color: var(--on-accent, #fff); }
         .mw-avatar.them { background: var(--surface, #fff); color: var(--accent, #546e7a); border: 2px solid var(--accent, #546e7a); }
         .mw-person-name { font-weight: 600; font-size: var(--font-size-md, 13px); color: var(--text, #333); overflow-wrap: anywhere; }
         .mw-person-sub { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: -3px; }

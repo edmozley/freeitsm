@@ -83,7 +83,7 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
 
     /* ── The document ───────────────────────────────────────────────── */
     h1 { font-size: var(--font-size-3xl, 20px); margin: 0 0 4px; }
-    h2.sec { font-size: 17px; margin: 30px 0 10px; padding-bottom: 5px; border-bottom: 2px solid var(--accent); }
+    h2.sec { font-size: var(--font-size-2xl, 18px); margin: 30px 0 10px; padding-bottom: 5px; border-bottom: 2px solid var(--accent); }
     h2.sec .num { color: var(--accent); margin-right: 6px; }
     h3 { font-size: var(--font-size-lg, 14px); margin: 18px 0 6px; }
     h4 { font-size: var(--font-size-md, 13px); margin: 12px 0 4px; }
@@ -117,7 +117,7 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
     .cr-cover .cr-cover-band { background: var(--accent); color: #fff; margin: -36px -44px 0; padding: 34px 44px 30px; }
     .cr-cover .cr-cover-band img { height: 46px; max-width: 200px; object-fit: contain; background: #fff; border-radius: 6px; padding: 5px 9px; margin-bottom: 26px; }
     .cr-cover h1 { font-size: 30px; margin: 6px 0 4px; line-height: 1.2; }
-    .cr-cover .cr-ref { font-size: 15px; opacity: .9; }
+    .cr-cover .cr-ref { font-size: var(--font-size-xl, 16px); opacity: .9; }
     .cr-cover .cr-facts { margin-top: 30px; }
     .cr-cover .cr-facts th { width: 32%; background: #f6f7f9; }
     .cr-cover .cr-stamp { margin-top: auto; padding-top: 24px; border-top: 1px solid #ddd; color: #444; font-size: var(--font-size-sm, 12px); }

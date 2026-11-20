@@ -292,9 +292,9 @@
                 + (ep.last_healthy_datetime && ep.last_healthy_datetime !== ep.last_completed_datetime ? '<br>' + esc(T('endpoint.healthy_at', { when: when(ep.last_healthy_datetime) })) : '') + '</td>'
                 + (EP.can_internal ? '<td style="white-space:nowrap"><a href="#" data-ep-edit="' + ep.id + '">' + esc(window.t('common.edit')) + '</a> · <a href="#" data-ep-del="' + ep.id + '">' + esc(window.t('common.delete')) + '</a></td>' : '')
                 + '</tr>').join('');
-        return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 6px"><h3 style="margin:0;font-size:15px">' + esc(T('endpoint.title')) + '</h3>'
+        return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 6px"><h3 style="margin:0;font-size:var(--font-size-xl, 16px)">' + esc(T('endpoint.title')) + '</h3>'
             + '<span style="flex:1"></span>' + (EP.can_internal ? '<button type="button" class="dom-btn" id="epAdd">' + esc(T('endpoint.add')) + '</button>' : '') + '</div>'
-            + '<p class="dom-hint" style="font-size:12.5px">' + esc(T('endpoint.intro')) + '</p>' + warn
+            + '<p class="dom-hint" style="font-size:var(--font-size-md, 13px)">' + esc(T('endpoint.intro')) + '</p>' + warn
             + (eps.length ? '<table class="dom-table" style="margin-bottom:22px"><thead><tr><th class="nosort">' + esc(T('endpoint.col_endpoint')) + '</th><th class="nosort">'
                 + esc(T('endpoint.trust')) + '</th><th class="nosort">' + esc(T('health.label')) + '</th><th class="nosort">' + esc(T('cert.expires')) + '</th><th class="nosort">'
                 + esc(T('health.last_completed')) + '</th>' + (EP.can_internal ? '<th class="nosort"></th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>'
@@ -358,9 +358,9 @@
                 + '<td>' + result(x) + '</td>'
                 + (EP.can_internal ? '<td style="white-space:nowrap"><a href="#" data-ex-edit="' + x.id + '">' + esc(window.t('common.edit')) + '</a> · <a href="#" data-ex-del="' + x.id + '">' + esc(window.t('common.delete')) + '</a></td>' : '')
                 + '</tr>').join('');
-        return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 6px"><h3 style="margin:0;font-size:15px">' + esc(T('expected.title')) + '</h3>'
+        return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 6px"><h3 style="margin:0;font-size:var(--font-size-xl, 16px)">' + esc(T('expected.title')) + '</h3>'
             + '<span style="flex:1"></span>' + (EP.can_internal ? '<button type="button" class="dom-btn" id="exAdd">' + esc(T('expected.add')) + '</button>' : '') + '</div>'
-            + '<p class="dom-hint" style="font-size:12.5px">' + esc(T('expected.intro')) + '</p>'
+            + '<p class="dom-hint" style="font-size:var(--font-size-md, 13px)">' + esc(T('expected.intro')) + '</p>'
             + (rows.length ? '<table class="dom-table" style="margin-bottom:22px"><thead><tr><th class="nosort">' + esc(T('expected.host')) + '</th><th class="nosort">'
                 + esc(T('expected.type')) + '</th><th class="nosort">' + esc(T('expected.values')) + '</th><th class="nosort">' + esc(T('health.label')) + '</th>'
                 + (EP.can_internal ? '<th class="nosort"></th>' : '') + '</tr></thead><tbody>' + body + '</tbody></table>'
@@ -406,31 +406,31 @@
 
         // An internal domain is never sent to Certificate Transparency (GH #203).
         if (internal()) {
-            document.getElementById('certs').innerHTML = manualCertsHtml() + '<h3 style="margin:22px 0 10px;font-size:15px">' + esc(T('endpoint.certs_title')) + '</h3>' + liveHtml;
+            document.getElementById('certs').innerHTML = manualCertsHtml() + '<h3 style="margin:22px 0 10px;font-size:var(--font-size-xl, 16px)">' + esc(T('endpoint.certs_title')) + '</h3>' + liveHtml;
             return;
         }
         const ct = data.ct || [];
         const newOnes = ct.filter(c => c.acknowledged == 0).length;
         const last = (data.last_scans || {}).ct_scanned;
-        const ctHtml = '<div style="display:flex;align-items:center;gap:8px;margin:22px 0 10px"><h3 style="margin:0;font-size:15px">' + esc(T('cert.ct_title')) + '</h3>'
+        const ctHtml = '<div style="display:flex;align-items:center;gap:8px;margin:22px 0 10px"><h3 style="margin:0;font-size:var(--font-size-xl, 16px)">' + esc(T('cert.ct_title')) + '</h3>'
             + '<span class="dom-sub">' + esc(last ? T('cert.last_scan', { date: fmtDate(last) }) : T('cert.never_scanned')) + '</span><span style="flex:1"></span>'
             + (newOnes ? '<button type="button" class="dom-btn" id="ctAck">' + esc(T('cert.ack_all')) + '</button>' : '')
             + '<button type="button" class="dom-btn" id="ctScan">' + esc(T('cert.scan_now')) + '</button></div>'
-            + '<p class="dom-hint" style="font-size:12.5px">' + esc(T('cert.ct_explain')) + '</p>'
+            + '<p class="dom-hint" style="font-size:var(--font-size-md, 13px)">' + esc(T('cert.ct_explain')) + '</p>'
             + (ct.length ? '<table class="dom-table"><thead><tr><th class="nosort"></th><th class="nosort">' + esc(T('cert.names')) + '</th><th class="nosort">' + esc(T('cert.issuer')) + '</th><th class="nosort">' + esc(T('cert.issued')) + '</th><th class="nosort">' + esc(T('cert.expires')) + '</th></tr></thead><tbody>'
                 + ct.map(c => '<tr style="cursor:default"><td>' + (c.acknowledged == 0 ? '<span class="dom-pill red">' + esc(T('cert.new')) + '</span>' : '') + '</td><td>'
                     + esc(String(c.name_value || c.common_name || '').split('\n').slice(0, 4).join(', ')) + '</td><td>' + esc(c.issuer) + '</td><td>' + esc(fmtDate(c.not_before)) + '</td><td>' + esc(fmtDate(c.not_after)) + '</td></tr>').join('')
                 + '</tbody></table>' : '');
-        document.getElementById('certs').innerHTML = manualCertsHtml() + '<h3 style="margin:22px 0 10px;font-size:15px">' + esc(T('cert.live_title')) + '</h3>' + liveHtml + ctHtml;
+        document.getElementById('certs').innerHTML = manualCertsHtml() + '<h3 style="margin:22px 0 10px;font-size:var(--font-size-xl, 16px)">' + esc(T('cert.live_title')) + '</h3>' + liveHtml + ctHtml;
     }
 
     /** The certificates recorded by hand: what each is for, its type, provider and expiry, with Edit and Delete. */
     function manualCertsHtml() {
         if (!data.manual_certs_ready) return '<p class="dom-hint">' + esc(T('cert.m_not_ready')) + '</p>';
         const m = data.manual_certificates || [];
-        return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 6px"><h3 style="margin:0;font-size:15px">' + esc(T('cert.manual_title')) + '</h3>'
+        return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 6px"><h3 style="margin:0;font-size:var(--font-size-xl, 16px)">' + esc(T('cert.manual_title')) + '</h3>'
             + '<span style="flex:1"></span><button type="button" class="dom-btn" id="mcAdd">' + esc(T('cert.manual_add')) + '</button></div>'
-            + '<p class="dom-hint" style="font-size:12.5px">' + esc(T('cert.manual_intro')) + '</p>'
+            + '<p class="dom-hint" style="font-size:var(--font-size-md, 13px)">' + esc(T('cert.manual_intro')) + '</p>'
             + (m.length ? '<table class="dom-table"><thead><tr><th class="nosort">' + esc(T('cert.m_purpose')) + '</th><th class="nosort">' + esc(T('cert.m_type')) + '</th><th class="nosort">'
                 + esc(T('cert.m_provider')) + '</th><th class="nosort">' + esc(T('cert.expires')) + '</th><th class="nosort"></th></tr></thead><tbody>'
                 + m.map(c => '<tr style="cursor:default"><td><strong>' + esc(c.purpose) + '</strong>'
@@ -500,7 +500,7 @@
         let html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="dom-sub">'
             + esc(last ? T('la.last_scan', { date: fmtDate(last) }) : T('la.never_scanned')) + '</span><span style="flex:1"></span>'
             + '<button type="button" class="dom-btn" id="laScan">' + esc(T('la.scan_now')) + '</button></div>'
-            + '<p class="dom-hint" style="font-size:12.5px">' + esc(T('la.explain')) + '</p>';
+            + '<p class="dom-hint" style="font-size:var(--font-size-md, 13px)">' + esc(T('la.explain')) + '</p>';
         if (!la.length) {
             html += '<div class="dom-empty">' + esc(last ? T('la.none_found') : T('la.not_scanned')) + '</div>';
         } else {

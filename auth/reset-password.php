@@ -67,7 +67,7 @@ $token = $_GET['token'] ?? '';
 
         .header h1 {
             color: #333;
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             margin-bottom: 8px;
         }
 
@@ -133,7 +133,7 @@ $token = $_GET['token'] ?? '';
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;

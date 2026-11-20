@@ -81,7 +81,7 @@ h1 { font-size: var(--font-size-4xl, 24px); margin: 0 0 6px; line-height: 1.3; }
 .btn-ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); }
 .q { scroll-margin-top: 80px; }
 .q-head { display: flex; justify-content: space-between; gap: 12px; font-size: var(--font-size-md, 13px); color: var(--muted); margin-bottom: 8px; }
-.q-text { font-size: 17px; margin: 0 0 14px; white-space: pre-wrap; }
+.q-text { font-size: var(--font-size-2xl, 18px); margin: 0 0 14px; white-space: pre-wrap; }
 .opt { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
 .opt:hover { border-color: var(--accent); }
 .opt input { width: 20px; height: 20px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--accent); }

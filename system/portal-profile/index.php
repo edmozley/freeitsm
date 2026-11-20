@@ -69,21 +69,21 @@ requireModuleAccess('system');
 
         .pp-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border-soft, #f1f1f1); }
         .pp-row input { margin-top: 3px; }
-        .pp-row-name { font-size: 13.5px; font-weight: 600; color: var(--text, #333); }
-        .pp-row-desc { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; }
+        .pp-row-name { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
+        .pp-row-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; }
         .pp-fixed { color: var(--text-muted, #666); }
         .pp-fixed .pp-row-name { color: var(--text-muted, #666); }
         .pp-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 500;
                   background: var(--surface-2, #f0f0f0); color: var(--text-muted, #777); }
 
-        .pp-books { margin: 10px 0 0 26px; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.6; }
+        .pp-books { margin: 10px 0 0 26px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.6; }
         .pp-books a { color: var(--accent); }
         .pp-warn {
             background: var(--warning-bg, #fef3c7);
             border: 1px solid var(--warning-border, #f0d9a8);
             color: var(--warning-text, #92400e);
             border-radius: 6px; padding: 10px 12px; margin: 10px 0 0 26px;
-            font-size: 12.5px; line-height: 1.55;
+            font-size: var(--font-size-md, 13px); line-height: 1.55;
         }
         .pp-saved { font-size: var(--font-size-md, 13px); color: var(--success-text, #166534); margin-left: 12px; }
     </style>

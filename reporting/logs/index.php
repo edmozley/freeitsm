@@ -381,7 +381,7 @@ $translationNamespaces = ['common', 'reporting'];
         .jobs-scheduler.ok { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
         .jobs-scheduler.warn { background: var(--warning-bg, #fff3cd); color: var(--warning-text, #856404); }
         .jobs-scheduler code { display: block; margin-top: 6px; font-size: var(--font-size-sm, 12px); background: var(--surface, #fff); color: var(--text, #333); padding: 4px 8px; border-radius: 3px; overflow-x: auto; white-space: nowrap; user-select: all; }
-        .jobs-section-title { font-size: 15px; font-weight: 600; color: var(--text, #333); padding: 16px 15px 8px; margin: 0; }
+        .jobs-section-title { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); padding: 16px 15px 8px; margin: 0; }
         .jobs-table td { vertical-align: top; }
         .jobs-table tbody tr { cursor: default; }
         .jobs-table tbody tr.job-row-clickable { cursor: pointer; }

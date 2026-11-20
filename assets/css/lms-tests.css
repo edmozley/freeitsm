@@ -22,7 +22,7 @@ body { --accent: var(--lms-accent, #2563eb); --accent-hover: var(--lms-accent-ho
 .ct-back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted, #666); text-decoration: none; font-size: var(--font-size-md, 13px); margin-bottom: 10px; }
 .ct-back:hover { color: var(--accent); }
 .ct-title-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.ct-title-row h1 { font-size: 22px; margin: 0; }
+.ct-title-row h1 { font-size: var(--font-size-4xl, 24px); margin: 0; }
 
 .ct-grid2 { display: grid; grid-template-columns: 200px 200px 1fr; gap: 14px; }
 .ct-grid2 .full { grid-column: 1 / -1; }

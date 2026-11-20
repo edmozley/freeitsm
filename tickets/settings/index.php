@@ -705,7 +705,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         }
         /* One h2 per panel, naming its tab (Ed 2026-11-20: Checklists opened straight into
            "Closing a ticket with steps outstanding"). Further sections are h3.ts-sub. */
-        .ts-sub { font-size: 17px; font-weight: 600; margin: 0 0 10px; color: var(--text, #333); }
+        .ts-sub { font-size: var(--font-size-2xl, 18px); font-weight: 600; margin: 0 0 10px; color: var(--text, #333); }
         .section-header > .ts-sub { margin: 0; }
     </style>
     <!-- Mobile: LAYER 15e (container, tab strip, fields, all tables scroll).
@@ -6217,7 +6217,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     problemMark = ` <button type="button" class="mailbox-problem-mark"
                         onclick="showMailboxProblems(${mb.id})"
                         title="${escapeHtml(t('tickets.settings.modals.mailbox.problems_tooltip'))}"
-                        style="background:none;border:none;cursor:pointer;color:${colour};font-weight:700;font-size:15px;padding:0 4px;line-height:1;">!</button>`;
+                        style="background:none;border:none;cursor:pointer;color:${colour};font-weight:700;font-size:var(--font-size-xl, 16px);padding:0 4px;line-height:1;">!</button>`;
                 }
 
                 return `

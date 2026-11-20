@@ -175,7 +175,7 @@ $translationNamespaces = ['common', 'software'];
 
         .licence-table thead th .sort-icon {
             margin-left: 4px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
         }
 
         .licence-table tbody tr {

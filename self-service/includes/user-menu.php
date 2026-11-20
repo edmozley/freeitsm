@@ -121,7 +121,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
 
     .ss-mfa-badge {
         margin-left: auto;
-        font-size: 10px;
+        font-size: var(--font-size-xs, 11px);
         font-weight: 600;
         padding: 2px 6px;
         border-radius: 3px;
@@ -442,7 +442,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
                      linked only once the link emailed to it is opened (confirm-address.php).
                      Hidden until the server says the feature is there. */ ?>
             <div id="ssAddrBlock" style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px; margin-bottom:24px;" hidden>
-                <div style="font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:6px;"><?php echo htmlspecialchars(t('self-service.account.addr_title')); ?></div>
+                <div style="font-size:var(--font-size-xl, 16px);font-weight:600;color:var(--text,#333);margin-bottom:6px;"><?php echo htmlspecialchars(t('self-service.account.addr_title')); ?></div>
                 <div class="ss-form-hint" style="margin-bottom:12px;"><?php echo htmlspecialchars(t('self-service.account.addr_intro')); ?></div>
                 <div id="ssAddrMsg" class="ss-msg"></div>
                 <div id="ssAddrList" style="margin-bottom:12px;"></div>
@@ -458,7 +458,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
                  applies immediately — no page reload, because the whole portal is
                  driven by theme tokens on <html data-theme>. -->
             <div style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px; margin-bottom:24px;">
-                <div style="font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:12px;">
+                <div style="font-size:var(--font-size-xl, 16px);font-weight:600;color:var(--text,#333);margin-bottom:12px;">
                     <?php echo htmlspecialchars(t('self-service.account.appearance')); ?>
                 </div>
                 <div class="ss-theme-picker" id="ssThemePicker">
@@ -487,7 +487,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
                 if (!array_key_exists($__ssLang, I18n::getSupportedLocales())) $__ssLang = '';
             ?>
             <div style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px; margin-bottom:24px;">
-                <label for="ssLanguage" style="display:block;font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:12px;">
+                <label for="ssLanguage" style="display:block;font-size:var(--font-size-xl, 16px);font-weight:600;color:var(--text,#333);margin-bottom:12px;">
                     <?php echo htmlspecialchars(t('self-service.account.language')); ?>
                 </label>
                 <select id="ssLanguage" class="ss-form-input" onchange="ssSetLanguage(this.value)">
@@ -500,7 +500,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
             </div>
 
             <div style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px;">
-                <div style="font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:16px;"><?php echo htmlspecialchars(t('self-service.account.change_password')); ?></div>
+                <div style="font-size:var(--font-size-xl, 16px);font-weight:600;color:var(--text,#333);margin-bottom:16px;"><?php echo htmlspecialchars(t('self-service.account.change_password')); ?></div>
                 <div id="ssPwMsg" class="ss-msg"></div>
                 <div class="ss-form-group">
                     <label class="ss-form-label"><?php echo htmlspecialchars(t('self-service.account.current_password')); ?></label>

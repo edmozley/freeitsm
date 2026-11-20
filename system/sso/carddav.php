@@ -187,11 +187,11 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         .fld .pick-row input { margin: 0; flex-shrink: 0; width: auto; }
         .fld .pick-row .pick-name { color: var(--text, #333); }
         .fld .pick-row .pick-count { margin-left: auto; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
-        .pick-empty { padding: 14px 12px; font-size: 12.5px; color: var(--text-dim, #888); }
+        .pick-empty { padding: 14px 12px; font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); }
         .pick-actions { display: flex; gap: 14px; margin-top: 8px; font-size: var(--font-size-sm, 12px); }
         .pick-actions button { background: none; border: none; padding: 0; cursor: pointer; color: var(--sys-accent, #546e7a); font-size: var(--font-size-sm, 12px); }
         .pick-actions button:hover { text-decoration: underline; }
-        .pick-summary { margin-top: 8px; font-size: 12.5px; color: var(--text-dim, #888); }
+        .pick-summary { margin-top: 8px; font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); }
 
         /* The run history. Same table and the same pills as provider.php.
            ⚠️ The pill colours are tokens here where provider.php hardcodes the
@@ -200,7 +200,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            myself. `stopped` is AMBER on purpose: the safety brake refusing a
            run is the feature working, not a failure, and red would teach
            somebody to treat a refusal as something to fix. */
-        table.runs { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        table.runs { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
         table.runs th { text-align: left; padding: 7px 9px; color: var(--text-dim, #888); font-weight: 600; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
         table.runs td { padding: 7px 9px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); white-space: nowrap; }
         .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 700; }

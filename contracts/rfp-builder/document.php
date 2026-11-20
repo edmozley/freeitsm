@@ -52,7 +52,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
+        .page-header h1 { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -80,7 +80,7 @@ $translationNamespaces = ['common', 'contracts'];
         .stat-card.gen      { border-left-color: #10b981; }
         .stat-card.pending  { border-left-color: #f59e0b; }
         .stat-card.edited   { border-left-color: #8b5cf6; }
-        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
+        .stat-card .stat-value { font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); line-height: 1; }
         .stat-card .stat-label { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
 
         .gate-banner {
@@ -108,7 +108,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; align-items: center; gap: 12px;
         }
         .framing-panel-header h2 {
-            margin: 0; font-size: 15px; font-weight: 700; color: #075985;
+            margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 700; color: #075985;
             letter-spacing: 0.3px; text-transform: uppercase;
             flex: 1;
         }
@@ -170,9 +170,9 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; justify-content: space-between;
         }
-        .modal-edit-header h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--text, #222); }
+        .modal-edit-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222); }
         .modal-edit-header .close-x {
-            background: none; border: none; font-size: 22px; color: var(--text-dim, #888); cursor: pointer; padding: 0; line-height: 1;
+            background: none; border: none; font-size: var(--font-size-4xl, 24px); color: var(--text-dim, #888); cursor: pointer; padding: 0; line-height: 1;
         }
         .modal-edit-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
         .modal-edit-footer {
@@ -257,7 +257,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .cat-header .cat-info { flex: 1; min-width: 0; }
         .cat-header h2 {
-            margin: 0; font-size: 17px; font-weight: 600; color: var(--text, #222);
+            margin: 0; font-size: var(--font-size-2xl, 18px); font-weight: 600; color: var(--text, #222);
         }
         .cat-header .cat-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-top: 4px; line-height: 1.45; }
         .cat-header .cat-meta {
@@ -279,7 +279,7 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 18px 28px; line-height: 1.6; color: var(--text, #222);
         }
         .section-body h3 {
-            font-size: 15px; font-weight: 700; color: var(--text, #1f2937);
+            font-size: var(--font-size-xl, 16px); font-weight: 700; color: var(--text, #1f2937);
             margin: 18px 0 8px 0;
         }
         .section-body h3:first-child { margin-top: 0; }

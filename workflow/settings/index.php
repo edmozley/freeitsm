@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'workflow'];
             border-left: 3px solid var(--danger-text, #dc2626);
             color: var(--danger-text, #7f1d1d);
             border-radius: 4px;
-            font-size: 12.5px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.55;
         }
     </style>
@@ -142,22 +142,22 @@ $translationNamespaces = ['common', 'workflow'];
                 <div class="form-group">
                     <label for="fmtKey"><?php echo htmlspecialchars(t('workflow.formats.f_key')); ?></label>
                     <input type="text" id="fmtKey" class="form-input" maxlength="40" placeholder="google-chat">
-                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;font-size:11.5px;"><?php echo htmlspecialchars(t('workflow.formats.f_key_hint')); ?></small>
+                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;font-size:var(--font-size-sm, 12px);"><?php echo htmlspecialchars(t('workflow.formats.f_key_hint')); ?></small>
                 </div>
                 <div class="form-group">
                     <label for="fmtTemplate"><?php echo htmlspecialchars(t('workflow.formats.f_template')); ?></label>
-                    <textarea id="fmtTemplate" class="form-textarea" rows="6" spellcheck="false" style="font-family:ui-monospace,Consolas,monospace;font-size:12.5px;">{"text": "{{message}}"}</textarea>
-                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;font-size:11.5px;line-height:1.5;"><?php echo t('workflow.formats.f_template_hint'); ?></small>
+                    <textarea id="fmtTemplate" class="form-textarea" rows="6" spellcheck="false" style="font-family:ui-monospace,Consolas,monospace;font-size:var(--font-size-md, 13px);">{"text": "{{message}}"}</textarea>
+                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;font-size:var(--font-size-sm, 12px);line-height:1.5;"><?php echo t('workflow.formats.f_template_hint'); ?></small>
                 </div>
                 <div class="form-group">
                     <label for="fmtUrlPattern"><?php echo htmlspecialchars(t('workflow.formats.f_url_pattern')); ?></label>
                     <input type="text" id="fmtUrlPattern" class="form-input" maxlength="255" placeholder="chat\.googleapis\.com" spellcheck="false" style="font-family:ui-monospace,Consolas,monospace;">
-                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;font-size:11.5px;line-height:1.5;"><?php echo htmlspecialchars(t('workflow.formats.f_url_pattern_hint')); ?></small>
+                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;font-size:var(--font-size-sm, 12px);line-height:1.5;"><?php echo htmlspecialchars(t('workflow.formats.f_url_pattern_hint')); ?></small>
                 </div>
                 <div class="form-group">
                     <label for="fmtHint"><?php echo htmlspecialchars(t('workflow.formats.f_hint')); ?></label>
                     <input type="text" id="fmtHint" class="form-input" maxlength="255" placeholder="Google Chat: *bold*, _italic_.">
-                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;font-size:11.5px;line-height:1.5;"><?php echo htmlspecialchars(t('workflow.formats.f_hint_hint')); ?></small>
+                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;font-size:var(--font-size-sm, 12px);line-height:1.5;"><?php echo htmlspecialchars(t('workflow.formats.f_hint_hint')); ?></small>
                 </div>
                 <div id="fmtError" style="display:none;" class="wf-diagnosis"></div>
             </div>
@@ -208,9 +208,9 @@ $translationNamespaces = ['common', 'workflow'];
                 loaded = true;
                 tb.innerHTML = d.formats.map(f => `
                     <tr>
-                        <td><strong>${esc(f.label)}</strong>${f.markdown_hint ? '<br><span style="color:var(--text-dim,#777);font-size:11.5px;">' + esc(f.markdown_hint) + '</span>' : ''}</td>
+                        <td><strong>${esc(f.label)}</strong>${f.markdown_hint ? '<br><span style="color:var(--text-dim,#777);font-size:var(--font-size-sm, 12px);">' + esc(f.markdown_hint) + '</span>' : ''}</td>
                         <td><code style="font-size:var(--font-size-sm, 12px);">${esc(f.key)}</code></td>
-                        <td><code style="font-size:11.5px;word-break:break-all;">${esc((f.body_template || '').slice(0, 70))}${(f.body_template || '').length > 70 ? '…' : ''}</code></td>
+                        <td><code style="font-size:var(--font-size-sm, 12px);word-break:break-all;">${esc((f.body_template || '').slice(0, 70))}${(f.body_template || '').length > 70 ? '…' : ''}</code></td>
                         <td>${f.is_builtin
                             ? '<span class="status-badge">' + esc(window.t('workflow.formats.builtin')) + '</span>'
                             : (f.is_active ? '<span class="status-badge status-active">' + esc(window.t('workflow.list.active')) + '</span>'

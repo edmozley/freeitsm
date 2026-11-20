@@ -237,7 +237,7 @@ $emojis = ['', '😡', '🙁', '😐', '🙂', '😀'];
 body { background: var(--app-bg, #f5f5f5); }
 .csat-page { height: calc(100vh - 48px); overflow-y: auto; padding: 24px; }
 .csat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-.csat-header h1 { font-size: 22px; margin: 0; color: var(--text, #333); }
+.csat-header h1 { font-size: var(--font-size-4xl, 24px); margin: 0; color: var(--text, #333); }
 .range-picker { display: flex; gap: 4px; }
 .range-picker a {
     padding: 6px 12px; border: 1px solid var(--border, #ddd); background: var(--surface, white);

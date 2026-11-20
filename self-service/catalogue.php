@@ -48,7 +48,7 @@ $needsFormLogic = true;
 $pageStyles = <<<'CSS'
 .cat-header { margin-bottom: 20px; }
         .cat-header h1 {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 6px 0;
@@ -77,10 +77,10 @@ $pageStyles = <<<'CSS'
         .cat-card.has-image .cat-card-body { padding: 14px 18px 16px; display: flex; flex-direction: column; flex: 1; }
         .cat-card-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--surface-2, #f3f4f6); }
         .cat-card-body { display: flex; flex-direction: column; height: 100%; }
-        .cat-card-price { margin-top: auto; padding-top: 10px; font-size: 15px; font-weight: 600; color: var(--ss-accent, #0078d4); }
+        .cat-card-price { margin-top: auto; padding-top: 10px; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--ss-accent, #0078d4); }
         .cat-form-price { margin: -2px 0 12px; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--ss-accent, #0078d4); }
         .cat-card-title {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 6px;
@@ -204,7 +204,7 @@ $pageStyles = <<<'CSS'
             padding: 40px 24px;
             text-align: center;
         }
-        .cat-empty-title { font-size: 15px; font-weight: 600; color: var(--text, #333); margin-bottom: 6px; }
+        .cat-empty-title { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin-bottom: 6px; }
         .cat-empty-hint { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
 CSS;
 

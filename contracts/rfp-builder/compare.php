@@ -50,7 +50,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
+        .page-header h1 { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {

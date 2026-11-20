@@ -79,15 +79,15 @@ $contributors = getContributors();
         .con-name {
             display: flex; align-items: center; justify-content: center;
             gap: 10px; text-align: center;
-            margin: 0; font-size: 17px; font-weight: 700;
+            margin: 0; font-size: var(--font-size-2xl, 18px); font-weight: 700;
             color: var(--text, #1f2330);
         }
-        .con-star { color: #f59e0b; font-size: 15px; line-height: 1; flex-shrink: 0; }
+        .con-star { color: #f59e0b; font-size: var(--font-size-xl, 16px); line-height: 1; flex-shrink: 0; }
 
         .con-github { text-align: center; }
         .con-github a {
             display: inline-flex; align-items: center; gap: 5px;
-            font-size: 12.5px; font-weight: 500;
+            font-size: var(--font-size-md, 13px); font-weight: 500;
             color: var(--accent, #546e7a); text-decoration: none;
             padding: 3px 10px; border-radius: 999px;
             background: var(--surface-hover, #f1f5f9);
@@ -103,7 +103,7 @@ $contributors = getContributors();
         .con-date {
             margin: 0; padding-top: 10px;
             border-top: 1px solid var(--border, #e5e7eb);
-            font-size: 11.5px; color: var(--text-dim, #9ca3af);
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #9ca3af);
             text-align: center;
         }
         .con-empty { padding: 30px; text-align: center; color: var(--text-muted, #6b7280); font-size: var(--font-size-md, 13px); }

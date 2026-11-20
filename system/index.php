@@ -200,7 +200,7 @@ $translationNamespaces = ['common', 'system'];
         .system-card-wrap.has-matches:focus-within,
         .system-card-wrap.has-matches.open { z-index: 21; }
         .card-matches-label {
-            font-size: 10.5px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             letter-spacing: .6px;
             color: var(--text-dim, #888);

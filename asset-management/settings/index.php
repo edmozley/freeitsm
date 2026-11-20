@@ -229,7 +229,7 @@ $translationNamespaces = ['common', 'asset-management'];
             background: var(--surface, #fff);
         }
         .cf-block-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .cf-block-title { margin: 0 0 4px 0; font-size: 15px; font-weight: 600; color: var(--text, #333); }
+        .cf-block-title { margin: 0 0 4px 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
         .cf-block-intro { margin: 0 0 14px 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; }
         .cf-typebar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
         .cf-typebar label { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
@@ -573,7 +573,7 @@ $translationNamespaces = ['common', 'asset-management'];
             <?php /* GH #200: how an asset says it holds details its type's layout hides.
                      A setting because teams differ: one that chose its layouts deliberately
                      finds the line noise, one that inherited them wants to be told. */ ?>
-            <h3 style="margin: 28px 0 6px; font-size: 15px;"><?php echo htmlspecialchars(t('asset-management.layout.notice_heading')); ?></h3>
+            <h3 style="margin: 28px 0 6px; font-size: var(--font-size-xl, 16px);"><?php echo htmlspecialchars(t('asset-management.layout.notice_heading')); ?></h3>
             <p class="settings-description"><?php echo htmlspecialchars(t('asset-management.layout.notice_intro')); ?></p>
             <div class="form-group">
                 <label class="form-label" for="assetLayoutNotice"><?php echo htmlspecialchars(t('asset-management.layout.notice_label')); ?></label>
@@ -1002,7 +1002,7 @@ $translationNamespaces = ['common', 'asset-management'];
                              built; this is the other half, configured the same
                              way because it is the same question. */ ?>
                     <hr class="settings-divider" style="margin: 28px 0 22px; border: none; border-top: 1px solid var(--border-color, #e5e7eb);">
-                    <h3 style="margin: 0 0 6px; font-size: 15px;"><?php echo htmlspecialchars(t('asset-management.settings.lease_heading')); ?></h3>
+                    <h3 style="margin: 0 0 6px; font-size: var(--font-size-xl, 16px);"><?php echo htmlspecialchars(t('asset-management.settings.lease_heading')); ?></h3>
                     <p class="settings-description">
                         <?php echo t('asset-management.settings.lease_intro'); ?>
                     </p>
@@ -1334,7 +1334,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <div style="flex:0 0 auto;">
                                     <div style="font-size:var(--font-size-xs, 11px); font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                                         <span>65 per sheet</span>
-                                        <span style="font-size:10px; color:#889; font-weight:normal;">(38.1 × 21.2 mm)</span>
+                                        <span style="font-size:var(--font-size-xs, 11px); color:#889; font-weight:normal;">(38.1 × 21.2 mm)</span>
                                     </div>
                                     <div class="label-preview-item" data-sheet="65" style="width:38.1mm; height:21.2mm; padding:1.2mm 1.5mm; background:#fff; border:1px dashed #bbb; border-radius:2px; box-shadow:0 2px 5px rgba(0,0,0,0.06); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; box-sizing:border-box;">
                                         <div class="prevHeader" style="text-align:right; font-size:5pt; font-weight:600; color:#444; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:0.3mm; display:none;"></div>
@@ -1353,8 +1353,8 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <div style="flex:0 0 auto;">
                                     <div style="font-size:var(--font-size-xs, 11px); font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                                         <span>40 per sheet</span>
-                                        <span style="font-size:10px; color:#889; font-weight:normal;">(45.7 × 25.4 mm)</span>
-                                        <span style="font-size:9px; background:#e8f5e9; color:#2e7d32; padding:1px 4px; border-radius:3px;">Standard</span>
+                                        <span style="font-size:var(--font-size-xs, 11px); color:#889; font-weight:normal;">(45.7 × 25.4 mm)</span>
+                                        <span style="font-size:var(--font-size-xs, 11px); background:#e8f5e9; color:#2e7d32; padding:1px 4px; border-radius:3px;">Standard</span>
                                     </div>
                                     <div class="label-preview-item" data-sheet="40" style="width:45.7mm; height:25.4mm; padding:1.2mm 1.5mm; background:#fff; border:1px dashed #bbb; border-radius:2px; box-shadow:0 2px 5px rgba(0,0,0,0.06); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; box-sizing:border-box;">
                                         <div class="prevHeader" style="text-align:right; font-size:6.0pt; font-weight:600; color:#444; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:0.4mm; display:none;"></div>
@@ -1373,7 +1373,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <div style="flex:0 0 auto;">
                                     <div style="font-size:var(--font-size-xs, 11px); font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                                         <span>24 per sheet</span>
-                                        <span style="font-size:10px; color:#889; font-weight:normal;">(63.5 × 33.9 mm)</span>
+                                        <span style="font-size:var(--font-size-xs, 11px); color:#889; font-weight:normal;">(63.5 × 33.9 mm)</span>
                                     </div>
                                     <div class="label-preview-item" data-sheet="24" style="width:63.5mm; height:33.9mm; padding:1.2mm 1.5mm; background:#fff; border:1px dashed #bbb; border-radius:2px; box-shadow:0 2px 5px rgba(0,0,0,0.06); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; box-sizing:border-box;">
                                         <div class="prevHeader" style="text-align:right; font-size:7.5pt; font-weight:600; color:#444; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:0.5mm; display:none;"></div>
@@ -1392,7 +1392,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <div style="flex:0 0 auto;">
                                     <div style="font-size:var(--font-size-xs, 11px); font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                                         <span>12 per sheet</span>
-                                        <span style="font-size:10px; color:#889; font-weight:normal;">(63.5 × 72.0 mm)</span>
+                                        <span style="font-size:var(--font-size-xs, 11px); color:#889; font-weight:normal;">(63.5 × 72.0 mm)</span>
                                     </div>
                                     <div class="label-preview-item" data-sheet="12" style="width:63.5mm; height:72.0mm; padding:1.2mm 1.5mm; background:#fff; border:1px dashed #bbb; border-radius:2px; box-shadow:0 2px 5px rgba(0,0,0,0.06); display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; box-sizing:border-box;">
                                         <div class="prevHeader" style="text-align:right; font-size:7.5pt; font-weight:600; color:#444; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:0.5mm; display:none;"></div>
@@ -1462,7 +1462,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
                     <?php /* GH #200 part D: names shown one way. Its own list, saved as you add,
                              because each row is a decision on its own, not part of the form above. */ ?>
-                    <h3 style="margin: 32px 0 6px; font-size: 15px;"><?php echo htmlspecialchars(t('asset-management.names.heading')); ?></h3>
+                    <h3 style="margin: 32px 0 6px; font-size: var(--font-size-xl, 16px);"><?php echo htmlspecialchars(t('asset-management.names.heading')); ?></h3>
                     <p class="settings-description"><?php echo htmlspecialchars(t('asset-management.names.intro')); ?></p>
                     <div class="nm-add">
                         <select class="form-input" id="nmField" onchange="nmFillSuggestions()">

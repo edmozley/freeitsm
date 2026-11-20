@@ -52,7 +52,7 @@ $rT = function ($k, $p = []) { return t('system.emailed_reports.' . $k, $p); };
             --on-accent: var(--sys-on-accent, #fff);
         }
         /* Page layout, title and panels: assets/css/system-page.css (.sys-page, .sys-panel). */
-        .er-panel h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px; }
+        .er-panel h3 { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin: 0 0 4px; }
         .er-panel .er-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 14px; line-height: 1.5; }
         .er-how { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
         .er-how label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }

@@ -43,7 +43,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 24px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
+        .page-header h1 { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -65,7 +65,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .card-header {
             padding: 16px 24px; border-bottom: 1px solid var(--border-soft, #eee);
-            font-size: 15px; font-weight: 600; color: var(--text, #333);
+            font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333);
         }
         .card-body { padding: 20px 24px; }
 

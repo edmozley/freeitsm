@@ -107,7 +107,7 @@ $translationNamespaces = ['common', 'change-management'];
         .section-card-header .drag-handle:active { cursor: grabbing; }
         .section-name-input {
             flex: 1;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--cm-accent, #00897b);
             border: 1px solid transparent;

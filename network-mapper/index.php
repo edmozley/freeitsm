@@ -111,7 +111,7 @@ $translationNamespaces = ['common', 'network-mapper'];
             gap: 10px;
         }
         .nm-card-title {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #111827);
             margin: 0;

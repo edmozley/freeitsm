@@ -25,7 +25,7 @@ $pageStyles = <<<'CSS'
    left two cards per row with a band of empty page either side while the grid
    was perfectly willing to fit four. */
 .tr-wrap { width: 100%; box-sizing: border-box; margin: 0; padding: 24px 28px 48px; }
-.tr-wrap h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; color: var(--text, #333); }
+.tr-wrap h1 { font-size: var(--font-size-4xl, 24px); font-weight: 600; margin: 0 0 4px; color: var(--text, #333); }
 .tr-sub { color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); margin: 0 0 22px; }
 
 .tr-grid {

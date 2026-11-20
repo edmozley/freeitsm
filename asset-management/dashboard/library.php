@@ -210,7 +210,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .edit-panel h3 {
             margin: 0 0 16px 0;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 

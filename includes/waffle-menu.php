@@ -1438,7 +1438,7 @@ function renderWarRoomAlerts($path_prefix) {
             border-radius: 8px;
             background: #ea580c;
             color: #fff;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 700;
             line-height: 16px;
             text-align: center;
@@ -1864,7 +1864,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
 
         .mfa-badge {
             margin-left: auto;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             padding: 2px 6px;
             border-radius: 3px;

@@ -40,7 +40,7 @@ body {
 .sidebar-section { display: flex; flex-direction: column; gap: 4px; }
 
 .sidebar-label {
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -332,7 +332,7 @@ body {
     height: 22px;
     border-radius: 50%;
     background: var(--surface-3, #e0e0e0);
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 700;
     color: var(--text-muted, #555);
     flex-shrink: 0;
@@ -366,7 +366,7 @@ body {
     border-radius: 10px;
     border: 1px solid var(--border, #c9c9c9);
     background: transparent;
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     color: var(--text-dim, #888);
     white-space: nowrap;
@@ -408,7 +408,7 @@ body {
     border-radius: 50%;
     background: transparent;
     color: var(--text-dim, #888);
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     line-height: 1;
     cursor: pointer;
 }
@@ -537,7 +537,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     padding: 2px 7px;
     border-radius: 10px;
@@ -859,7 +859,7 @@ body {
 }
 
 .detail-panel-header h3 {
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     font-weight: 600;
     color: var(--text, #333);
     margin: 0;
@@ -1117,7 +1117,7 @@ body {
 }
 
 .link-item .link-type {
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     text-transform: uppercase;
     color: var(--tsk-accent, #7c3aed);
@@ -1671,7 +1671,7 @@ body {
 .tl-day {
     flex-shrink: 0;
     border-right: 1px solid var(--border-soft, #f0f0f0);
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-faint, #aaa);
     text-align: center;
     line-height: 24px;
@@ -1715,7 +1715,7 @@ body {
     color: var(--text-muted, #555);
     border-radius: 10px;
     padding: 1px 7px;
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
 }
 
@@ -1809,7 +1809,7 @@ body {
     left: -1px;
     background: var(--tsk-accent, #7c3aed);
     color: #fff;
-    font-size: 9px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 700;
     padding: 1px 5px;
     border-radius: 0 0 3px 0;
@@ -2344,7 +2344,7 @@ body {
 #taskChecklistSection .chk-step-title { font-size: var(--font-size-md, 13px); color: var(--text, #333); }
 #taskChecklistSection .chk-step.done .chk-step-title { color: var(--text-muted, #666); text-decoration: line-through; }
 #taskChecklistSection .chk-mandatory {
-    font-size: 10px; text-transform: uppercase; letter-spacing: .03em; margin-left: 6px;
+    font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .03em; margin-left: 6px;
     padding: 1px 5px; border-radius: 3px;
     background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e);
 }
@@ -2454,7 +2454,7 @@ body.module-read-only .tp-remove { display: none !important; }
 .board-column--analyst .column-analyst-badge {
     display: inline-flex; align-items: center; justify-content: center;
     width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
-    font-size: 10px; font-weight: 600;
+    font-size: var(--font-size-xs, 11px); font-weight: 600;
     background: var(--accent-soft, #e8f0fe); color: var(--accent, #2563eb);
 }
 /* The task's status, on the card, in the status's own colour (it is no longer the column). */
@@ -2661,7 +2661,7 @@ body.module-read-only .tp-remove { display: none !important; }
     text-decoration: line-through;
     color: var(--text-dim, #999);
 }
-.task-card-subtask .due-badge { font-size: 10px; padding: 1px 5px; }
+.task-card-subtask .due-badge { font-size: var(--font-size-xs, 11px); padding: 1px 5px; }
 
 /* Drag handles on checklists and their steps (2.10.0). */
 #taskChecklistSection .chk-handle {
@@ -2794,7 +2794,7 @@ body.module-read-only #ctxMenu .ctx-sep { display: none !important; }
     border: 1px solid var(--border, #e5e7eb);
     border-radius: 10px;
     box-shadow: 0 8px 24px var(--shadow);
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.45;
     text-align: left;
     white-space: normal;
@@ -2849,7 +2849,7 @@ body.module-read-only #ctxMenu .ctx-sep { display: none !important; }
 .task-hover-card .thc-title.is-done { text-decoration: line-through; color: var(--text-muted, #6b7280); }
 .task-hover-card .thc-parent {
     margin-top: 2px;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #6b7280);
 }
 .task-hover-card .thc-rows {
@@ -2865,7 +2865,7 @@ body.module-read-only #ctxMenu .ctx-sep { display: none !important; }
     gap: 8px;
     align-items: baseline;
 }
-.task-hover-card .thc-label { color: var(--text-muted, #6b7280); font-size: 11.5px; }
+.task-hover-card .thc-label { color: var(--text-muted, #6b7280); font-size: var(--font-size-sm, 12px); }
 .task-hover-card .thc-value { min-width: 0; word-break: break-word; }
 .task-hover-card .thc-muted { color: var(--text-muted, #6b7280); }
 .task-hover-card .thc-dot {
@@ -2877,7 +2877,7 @@ body.module-read-only #ctxMenu .ctx-sep { display: none !important; }
     vertical-align: 1px;
 }
 .task-hover-card .thc-overdue {
-    font-size: 10.5px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     color: var(--danger-text, #b91c1c);
     margin-left: 4px;
@@ -2895,7 +2895,7 @@ body.module-read-only #ctxMenu .ctx-sep { display: none !important; }
 .task-hover-card .thc-bar > span { display: block; height: 100%; background: var(--tsk-accent, #7c3aed); }
 .task-hover-card .thc-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
 .task-hover-card .thc-tag {
-    font-size: 10.5px;
+    font-size: var(--font-size-xs, 11px);
     padding: 1px 7px;
     border-radius: 999px;
     color: var(--thc-tg);
@@ -2914,7 +2914,7 @@ body.module-read-only #ctxMenu .ctx-sep { display: none !important; }
 /* The task ID on board cards and in the board's List view. */
 .task-card-id {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 10.5px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     color: var(--text-muted, #6b7280);
     margin-right: 6px;

@@ -301,7 +301,7 @@ $translationNamespaces = ['common', 'lms'];
         <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <span id="learnerDataTitle"><?php echo htmlspecialchars(t('lms.learner_modal.title')); ?></span>
-                <button style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-faint, #999);" onclick="LMS.closeModal('learnerDataModal')">&times;</button>
+                <button style="background:none;border:none;font-size:var(--font-size-4xl, 24px);cursor:pointer;color:var(--text-faint, #999);" onclick="LMS.closeModal('learnerDataModal')">&times;</button>
             </div>
             <div id="learnerDataBody" style="padding: 20px 24px; overflow-y: auto; flex: 1;"></div>
         </div>

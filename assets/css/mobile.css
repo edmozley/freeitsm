@@ -53,7 +53,7 @@
            which is right in dark and invisible in light. Measure backgroundImage
            too, or just look at the page. */
         color: #fff;
-        font-size: 22px;
+        font-size: var(--font-size-4xl, 24px);
         line-height: 1;
         cursor: pointer;
         padding: 4px 6px;
@@ -988,7 +988,7 @@
 
     .asset-detail-sticky { padding-left: 14px; padding-right: 14px; }
     .asset-detail-body   { padding-left: 14px; padding-right: 14px; }
-    .asset-detail-hostname { font-size: 19px; word-break: break-word; }
+    .asset-detail-hostname { font-size: var(--font-size-3xl, 20px); word-break: break-word; }
 
     .asset-detail-header .btn-sm { min-height: 38px; }
 
@@ -1323,7 +1323,7 @@
     .dashboard-page { height: auto; flex: 1 1 auto; min-height: 0; width: 100%; min-width: 0; }
 
     .dashboard-toolbar { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
-    .dashboard-toolbar h2 { font-size: 17px; }
+    .dashboard-toolbar h2 { font-size: var(--font-size-2xl, 18px); }
     .dashboard-toolbar-actions { flex: 1 1 100%; }
     .dashboard-toolbar-actions .btn { flex: 1; justify-content: center; min-height: 40px; }
 
@@ -1713,7 +1713,7 @@
         pointer-events: none;
     }
     .more-events {
-        font-size: 9px;
+        font-size: var(--font-size-xs, 11px);
         line-height: 7px;
         padding: 0;
         pointer-events: none;
@@ -1738,7 +1738,7 @@
     .week-header { overflow-y: hidden; }
     .week-body::-webkit-scrollbar,
     .day-body::-webkit-scrollbar { width: 0; }
-    .week-day-number { font-size: 17px; }
+    .week-day-number { font-size: var(--font-size-2xl, 18px); }
     .week-header-day.today .week-day-number { width: 30px; height: 30px; }
 
     /* --------------------------------------------------------------------
@@ -2177,7 +2177,7 @@
        17b — The article list.
        -------------------------------------------------------------------- */
     .article-list-header { margin-bottom: 12px; gap: 10px; }
-    .article-list-header h2 { font-size: 19px; }
+    .article-list-header h2 { font-size: var(--font-size-3xl, 20px); }
     .article-list { gap: 10px; }
     .article-card { padding: 14px; }
     /* A lift-on-hover sticks after a tap on a touchscreen. */
@@ -2246,7 +2246,7 @@
     }
 
     .article-content { padding: 16px; border-radius: 8px; }
-    .article-content-title { font-size: 22px; line-height: 1.25; }
+    .article-content-title { font-size: var(--font-size-4xl, 24px); line-height: 1.25; }
 
     /* ---- the Gmail-style collapsible meta ----
        Collapsed, the header shows the one line that answers "is this still
@@ -2347,7 +2347,7 @@
     .article-content-body pre {
         overscroll-behavior-x: contain;
         -webkit-overflow-scrolling: touch;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
     }
     /* A long unbroken string — a URL, a registry path, a hash — is a single
        word no wrapping algorithm will break by default. */
@@ -2408,7 +2408,7 @@
     .editor-popout-toggle { display: none; }
 
     .editor-scroll { padding: 12px; margin: 0; }
-    .editor-header h2 { font-size: 19px; }
+    .editor-header h2 { font-size: var(--font-size-3xl, 20px); }
     .editor-form { padding: 14px; }
     /* Two-up property rows are two unusable fields at 360px. `.form-row` here
        is FLEX (LAYER 3's grid-stacking rule is inert on it — see 16f). */
@@ -3359,7 +3359,7 @@
     /* Long labels ("AWAITING RESPONSE") wrap inside their own column instead of
        stretching it, so the columns stay equal. Centred to match the value. */
     .wt-metric-label {
-        font-size: 10px;
+        font-size: var(--font-size-xs, 11px);
         letter-spacing: 0;
         text-align: center;
         line-height: 1.25;
@@ -5197,7 +5197,7 @@
         gap: 10px;
         padding: 12px 14px 10px;
     }
-    .forms-list-toolbar h1 { font-size: 19px; }
+    .forms-list-toolbar h1 { font-size: var(--font-size-3xl, 20px); }
 
     .forms-list-toolbar .toolbar-actions {
         width: 100%;
@@ -5281,7 +5281,7 @@
        column to protect, and a one-line summary of what the form is for is
        worth two lines of a phone screen. Same shape as 26's `.notes-display`. */
     #formsTable tbody td.col-title small {
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         white-space: normal;
         max-width: none;
         overflow: visible;
@@ -5306,7 +5306,7 @@
     #formsTable tbody td:nth-child(4),
     #formsTable tbody td:nth-child(5),
     #formsTable tbody td:nth-child(6) {
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         margin-top: 4px;
     }
@@ -5381,7 +5381,7 @@
         min-height: 0;
         border-radius: 8px;
     }
-    .fill-title { font-size: 19px; }
+    .fill-title { font-size: var(--font-size-3xl, 20px); }
 
     /* Every field, in one rule with an exclusion list rather than an
        enumeration — a field type added later is covered by default instead
@@ -5448,7 +5448,7 @@
         gap: 10px;
     }
     .subs-toolbar-left { flex-wrap: wrap; gap: 8px; }
-    .subs-toolbar-left h2 { font-size: 17px; }
+    .subs-toolbar-left h2 { font-size: var(--font-size-2xl, 18px); }
     .subs-toolbar-right { flex-wrap: wrap; gap: 8px; }
 
     /* Two date filters, Clear and Export on one row is 540px.
@@ -5539,7 +5539,7 @@
     .subs-table tbody td:nth-child(n+4):not(:last-child) { display: none; }
 
     .subs-table tbody td:nth-child(1) {                  /* the row number */
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-faint, #999);
         flex: 0 0 auto;
     }
@@ -5551,7 +5551,7 @@
         min-width: 0;
     }
     .subs-table tbody td:nth-child(3) {                  /* when */
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         flex: 1 1 100%;
         margin-top: 3px;
@@ -5618,7 +5618,7 @@
     .ca-filter.active { border-color: var(--accent, #0078d4); }
 
     .ca-main { padding: 14px; }
-    .ca-main h2 { font-size: 17px; margin-bottom: 14px; }
+    .ca-main h2 { font-size: var(--font-size-2xl, 18px); margin-bottom: 14px; }
 
     .ca-card { padding: 14px; }
     .ca-card-top { flex-wrap: wrap; gap: 8px; }
@@ -5903,7 +5903,7 @@
        either the toolbar or the indicator, so this rule's only instrument is
        Ed's phone. */
     .editor-footer { padding: 8px 12px 8px; }
-    .fm-glyph { font-size: 17px; line-height: 1; }
+    .fm-glyph { font-size: var(--font-size-2xl, 18px); line-height: 1; }
     .readonly-banner { padding: 10px 12px; font-size: var(--font-size-md, 13px); }
 
     /* ═══════════════════════════════════════════════════════════════════════
@@ -6129,7 +6129,7 @@
        instead would have read the number before knowing what it counted. */
     .contracts-sidebar .sidebar-stat .stat-value,
     .rfp-sidebar .sidebar-stat .stat-value {
-        font-size: 22px;
+        font-size: var(--font-size-4xl, 24px);
         line-height: 1.1;
         font-weight: 700;
         color: var(--text, #222);
@@ -6391,7 +6391,7 @@
         padding: 0;
         border: none;
         text-align: left;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
 
@@ -6685,7 +6685,7 @@
         gap: 10px;
         padding: 14px;
     }
-    .contract-card-header h2 { font-size: 17px; line-height: 1.35; }
+    .contract-card-header h2 { font-size: var(--font-size-2xl, 18px); line-height: 1.35; }
     .contract-card-header .actions { flex-wrap: wrap; gap: 8px; }
     .contract-card-header .btn {
         flex: 1 1 auto;
@@ -7354,7 +7354,7 @@
     .search-modal-header {
         flex: 0 0 auto;
         padding: 14px 16px;
-        font-size: 17px;
+        font-size: var(--font-size-2xl, 18px);
     }
     .search-modal-body {
         flex: 1 1 auto;
@@ -7660,7 +7660,7 @@
     }
     /* The AI's reasoning sits under the requirement as a quiet second
        paragraph, which is what it already is — it only needs the room. */
-    [data-mobile-module="contracts"] .req-row-rationale { font-size: 12.5px; }
+    [data-mobile-module="contracts"] .req-row-rationale { font-size: var(--font-size-md, 13px); }
 
     /* --------------------------------------------------------------------
        28s — The edit-requirement sheet (Ed: "currently it's all squished in
@@ -8065,7 +8065,7 @@
         min-width: 0;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
 
@@ -8618,7 +8618,7 @@
         justify-content: center;
         text-align: center;
         padding: 8px 6px;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         line-height: 1.25;
         /* 🔴 THE LABELS WRAP; THEY DO NOT ELLIPSISE, and the first attempt got
            that wrong. `text-overflow: ellipsis` needs a block-level box with
@@ -8977,7 +8977,7 @@
         min-width: 0;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
     /* The shape swatch rides beside the name rather than taking a line of its
@@ -9427,7 +9427,7 @@
         padding: 12px 14px;
     }
     [data-mobile-module="network-mapper"] .nm-toolbar h1 {
-        font-size: 17px;
+        font-size: var(--font-size-2xl, 18px);
     }
     [data-mobile-module="network-mapper"] .nm-toolbar .actions {
         gap: 8px;
@@ -9498,7 +9498,7 @@
         flex: 0 0 auto;
         min-height: 38px;
         padding: 8px 14px;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
     }
     /* A lift-on-hover STICKS after a tap on a touchscreen and reads as jank
        (§7). The card is the tap target for opening a diagram, so it is the
@@ -9941,7 +9941,7 @@
         flex-wrap: wrap;
         gap: 4px 14px;
         padding: 8px 12px;
-        font-size: 11.5px;
+        font-size: var(--font-size-sm, 12px);
     }
     [data-mobile-module="network-mapper"] .nm-readonly-banner {
         flex-wrap: wrap;
@@ -10435,7 +10435,7 @@
         flex: 1 1 100%;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
     /* The name and its description are the card's heading. §23's middle
@@ -10579,7 +10579,7 @@
         margin-top: 6px;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         /* Two of these carry `white-space: nowrap` inline, which is a shrink
            floor by another name once the cell is a flex item. */
@@ -10744,7 +10744,7 @@
         padding: 14px 12px;
         margin-bottom: 12px;
     }
-    body[data-mobile-page="webhooks"] .page-title { font-size: 19px; }
+    body[data-mobile-page="webhooks"] .page-title { font-size: var(--font-size-3xl, 20px); }
     body[data-mobile-page="webhooks"] .page-subtitle { margin-bottom: 16px; }
     /* The log's header row is a title beside its filter chips; on a phone the
        chips need the width more than the alignment. */
@@ -10830,7 +10830,7 @@
         margin-top: 6px;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
     /* The workflow name leads and the status pill sits beside it. `order`,
@@ -10913,7 +10913,7 @@
         -webkit-overflow-scrolling: touch;
         max-width: 100%;
         white-space: pre;
-        font-size: 11.5px;
+        font-size: var(--font-size-sm, 12px);
     }
     /* 🔴 16px on every focusable field, or iOS zooms on focus, the sheet
        spills wide, Safari reflows to a desktop width and the whole
@@ -11332,7 +11332,7 @@
         min-width: 0;
         padding: 0 0 4px;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         overflow-wrap: anywhere;
         white-space: normal;
@@ -11409,7 +11409,7 @@
 
     /* The page-level heading blocks across the module: every card page opens
        with a title and a paragraph sized for a 720px column. */
-    [data-mobile-module="system"] .page-title { font-size: 19px; }
+    [data-mobile-module="system"] .page-title { font-size: var(--font-size-3xl, 20px); }
     [data-mobile-module="system"] .page-subtitle { font-size: var(--font-size-md, 13px); margin-bottom: 16px; }
     /* Two-up stat/summary rows, wherever a System page draws one. */
     [data-mobile-module="system"] .stat-row,
@@ -11682,7 +11682,7 @@
        -------------------------------------------------------------------- */
     [data-mobile-module="reporting"] .coming-soon-container { padding: 24px 14px; }
     [data-mobile-module="reporting"] .coming-soon-card { padding: 32px 22px; }
-    [data-mobile-module="reporting"] .coming-soon-card h2 { font-size: 19px; }
+    [data-mobile-module="reporting"] .coming-soon-card h2 { font-size: var(--font-size-3xl, 20px); }
     [data-mobile-module="reporting"] .coming-soon-card p { font-size: var(--font-size-md, 13px); }
 
     /* --------------------------------------------------------------------
@@ -11703,7 +11703,7 @@
         gap: 10px;
         margin-bottom: 14px;
     }
-    body[data-mobile-page="rep-logs"] .logs-header h2 { font-size: 19px; }
+    body[data-mobile-page="rep-logs"] .logs-header h2 { font-size: var(--font-size-3xl, 20px); }
     /* ⚠️ THE ONE A SCREENSHOT FOUND, and it was a rule of mine. Refresh first
        got `flex: 1 1 100%` — the dashboard toolbar's treatment (15d) — and on
        the dashboards that is right, because Refresh is the only action there.
@@ -11819,7 +11819,7 @@
         padding: 0;
         border: none;
         vertical-align: baseline;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         overflow-wrap: anywhere;
     }
@@ -11915,7 +11915,7 @@
         min-height: 0;
     }
     body[data-mobile-page="rep-logs"] .json-display {
-        font-size: 11.5px;
+        font-size: var(--font-size-sm, 12px);
         max-width: 100%;
     }
     /* 🔴 16px on every focusable field, or iOS zooms on focus, the sheet
@@ -11957,12 +11957,12 @@
     }
     body[data-mobile-page="rep-intune"] .kpi-card { padding: 12px 14px; }
     body[data-mobile-page="rep-intune"] .kpi-label {
-        font-size: 10.5px;
+        font-size: var(--font-size-xs, 11px);
         letter-spacing: 0.3px;
         margin-bottom: 4px;
     }
-    body[data-mobile-page="rep-intune"] .kpi-value { font-size: 22px; }
-    body[data-mobile-page="rep-intune"] .kpi-sub { font-size: 10.5px; }
+    body[data-mobile-page="rep-intune"] .kpi-value { font-size: var(--font-size-4xl, 24px); }
+    body[data-mobile-page="rep-intune"] .kpi-sub { font-size: var(--font-size-xs, 11px); }
     /* §26 again: a `translateY(-3px)` lift a finger cannot leave. */
     body[data-mobile-page="rep-intune"] .kpi-card.clickable:hover {
         transform: none;
@@ -11971,7 +11971,7 @@
     body[data-mobile-page="rep-intune"] .empty-banner {
         margin: 14px;
         padding: 12px 14px;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
     }
 
     /* --------------------------------------------------------------------
@@ -12116,7 +12116,7 @@
         margin-top: 6px;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         overflow-wrap: anywhere;
     }
@@ -12238,7 +12238,7 @@
         max-width: 100%;
         padding: 14px 12px 24px;
     }
-    [data-mobile-module="wiki"] .page-title { font-size: 19px; }
+    [data-mobile-module="wiki"] .page-title { font-size: var(--font-size-3xl, 20px); }
     [data-mobile-module="wiki"] .page-subtitle { font-size: var(--font-size-md, 13px); }
     /* 🔴 16px on every focusable field, or iOS zooms on focus, the layout
        spills wide, Safari reflows to a desktop width and the whole
@@ -12412,7 +12412,7 @@
     /* The last-scan caption is a sentence, not a figure — a full row. */
     [data-mobile-module="wiki"] .stat-chip.scan-info {
         grid-column: 1 / -1;
-        font-size: 11.5px;
+        font-size: var(--font-size-sm, 12px);
     }
 
     /* --------------------------------------------------------------------
@@ -12457,7 +12457,7 @@
         margin-top: 6px;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
     /* The file name: its own line, and it must be allowed to break — these
@@ -12555,7 +12555,7 @@
         flex: 0 0 auto;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
     /* the table's name leads */
@@ -12624,7 +12624,7 @@
         min-width: 0;
         flex: 0 0 auto;
         padding: 0;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
     /* the date leads and the status badge sits beside it */
@@ -12679,7 +12679,7 @@
         overscroll-behavior-x: contain;
         -webkit-overflow-scrolling: touch;
         white-space: pre;
-        font-size: 11.5px;
+        font-size: var(--font-size-sm, 12px);
         vertical-align: bottom;
     }
 
@@ -12761,7 +12761,7 @@
         flex: 0 0 auto;
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         /* 🔴 the inline nowrap, and only `!important` reaches it */
         white-space: normal !important;
@@ -12821,7 +12821,7 @@
         flex-wrap: wrap;
         gap: 6px 12px;
     }
-    body[data-mobile-page="wiki-file"] .file-title { font-size: 17px; overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-file"] .file-title { font-size: var(--font-size-2xl, 18px); overflow-wrap: anywhere; }
     body[data-mobile-page="wiki-file"] .file-path { font-size: var(--font-size-sm, 12px); overflow-wrap: anywhere; }
 
     /* --------------------------------------------------------------------
@@ -12834,7 +12834,7 @@
     [data-mobile-module="wiki"] .breadcrumb {
         flex-wrap: wrap;
         gap: 2px 6px;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         overflow-wrap: anywhere;
     }
     [data-mobile-module="wiki"] .breadcrumb a { padding: 4px 0; }
@@ -12874,7 +12874,7 @@
     }
     body[data-mobile-page="wiki-function"] .func-meta,
     body[data-mobile-page="wiki-function"] .func-params {
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         overflow-wrap: anywhere;
     }
     body[data-mobile-page="wiki-function"] .caller-table {
@@ -13089,7 +13089,7 @@
     body[data-mobile-page="tickets-rota"] .rota-title {
         flex: 1 1 0;
         min-width: 0;
-        font-size: 17px;
+        font-size: var(--font-size-2xl, 18px);
         margin-left: 6px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -13931,7 +13931,7 @@
     }
     body[data-mobile-page="checklists-edit"] #edTitle {
         min-width: 0;
-        font-size: 17px;
+        font-size: var(--font-size-2xl, 18px);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -14302,7 +14302,7 @@
         min-width: 0;
         padding: 11px 12px;
     }
-    body[data-mobile-module="domains"] .dom-stat .v { font-size: 22px; }
+    body[data-mobile-module="domains"] .dom-stat .v { font-size: var(--font-size-4xl, 24px); }
     body[data-mobile-module="domains"] .dom-stat .l { overflow-wrap: anywhere; }
 
     /* ---- 41d. The register: the list gets the screen -------------------
@@ -14517,7 +14517,7 @@
         flex: 0 1 auto;
         order: 7;
         color: var(--text-dim, #888);
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
     }
     body[data-mobile-page="domains-register"] #domTable tbody td:nth-child(n+5):not(:nth-child(7)) .dom-sub { display: inline; margin-left: 6px; }
     /* §11: the empty state is one colspan cell - first AND last child - so
@@ -14857,11 +14857,11 @@
     body[data-mobile-module="people"] .ppl-table-wrap { overflow: visible; }
     body[data-mobile-module="people"] .ppl-filter { flex: 1 1 100%; min-width: 0; width: 100%; margin-left: 0; min-height: 40px; }
     body[data-mobile-module="people"] .ppl-hero { padding: 14px; gap: 12px; }
-    body[data-mobile-module="people"] .ppl-hero h1 { font-size: 19px; }
+    body[data-mobile-module="people"] .ppl-hero h1 { font-size: var(--font-size-3xl, 20px); }
     body[data-mobile-module="people"] .ppl-hero-actions .ppl-btn { min-height: 36px; }
     body[data-mobile-module="people"] .ppl-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     body[data-mobile-module="people"] .ppl-stat { padding: 10px 12px; }
-    body[data-mobile-module="people"] .ppl-stat .v { font-size: 17px; }
+    body[data-mobile-module="people"] .ppl-stat .v { font-size: var(--font-size-2xl, 18px); }
     body[data-mobile-module="people"] .ppl-showall { min-height: 44px; }
     /* Companies: the search under the intro at full width, one card per row
        (minmax(0, ...) - a bare 320px track would set a floor, §14). */
@@ -15229,7 +15229,7 @@
     body[data-mobile-page^="lms-tests"] .ct-scroll { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
     body[data-mobile-page^="lms-tests"] .ct-wrap { padding: 12px 12px 40px; }
     body[data-mobile-page^="lms-tests"] .ct-section { padding: 14px; border-radius: 10px; }
-    body[data-mobile-page^="lms-tests"] .ct-intro { margin: -4px 0 12px; font-size: 13.5px; }
+    body[data-mobile-page^="lms-tests"] .ct-intro { margin: -4px 0 12px; font-size: var(--font-size-lg, 14px); }
 
     /* §3: 16px on every focusable field, or iOS zooms and reflows. Exclude
        what must not change - checkboxes and radios keep their size. Covers
@@ -15258,7 +15258,7 @@
         min-width: 0;                  /* LAYER 27: one nowrap cell pins the card */
         padding: 0;
         border: none;
-        font-size: 12.5px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         overflow-wrap: anywhere;
     }
@@ -15276,7 +15276,7 @@
         order: -1;
         text-align: right;
     }
-    body[data-mobile-page^="lms-tests"] .lms-table tbody td:first-child .ct-note { font-size: 12.5px; }
+    body[data-mobile-page^="lms-tests"] .lms-table tbody td:first-child .ct-note { font-size: var(--font-size-md, 13px); }
     /* Actions: full width and thumb-sized. `:not(:first-child)` for the
        empty-state warning in §11, though these tables draw their empty state
        as a .ct-empty div rather than a row. */
@@ -15475,7 +15475,7 @@
        still hold it (§14), so the track is minmax(0, 1fr). */
     body[data-mobile-page="projects-portfolio"] .prj-tiles { gap: 10px; margin-bottom: 12px; }
     body[data-mobile-module="projects"] .prj-tile { min-width: 0; padding: 11px 12px 11px 14px; }
-    body[data-mobile-module="projects"] .prj-tile-num { font-size: 22px; }
+    body[data-mobile-module="projects"] .prj-tile-num { font-size: var(--font-size-4xl, 24px); }
     body[data-mobile-module="projects"] .prj-tile-label { overflow-wrap: anywhere; }
     body[data-mobile-page="projects-portfolio"] .prj-toolbar { margin-bottom: 12px; }
     body[data-mobile-page="projects-portfolio"] .prj-toolbar .prj-btn { min-height: 40px; }
@@ -15632,7 +15632,7 @@
         order: 3;
         flex: 1 1 100%;
     }
-    body[data-mobile-page="projects-view"] .prj-banner h1 { font-size: 22px; overflow-wrap: anywhere; }
+    body[data-mobile-page="projects-view"] .prj-banner h1 { font-size: var(--font-size-4xl, 24px); overflow-wrap: anywhere; }
     body[data-mobile-page="projects-view"] .prj-banner-goal { font-size: var(--font-size-lg, 14px); }
     body[data-mobile-page="projects-view"] .prj-banner-facts { gap: 6px 14px; margin-top: 10px; }
     /* Edit and Delete moved to the footer (44h), so the row they left would
@@ -15687,7 +15687,7 @@
         width: 36px;
         height: 36px;
         padding: 0;
-        font-size: 22px;
+        font-size: var(--font-size-4xl, 24px);
         border-radius: 8px;
     }
     body[data-mobile-page="projects-view"] .prj-conn-row { padding: 6px 0 6px 4px; }
@@ -16211,7 +16211,7 @@
     body[data-mobile-page="projects-view"] .prj-tl-label.task { padding-left: 10px; }
     /* 44g pins the Plan row's status dot absolutely; the Timeline's name column reuses the class. */
     body[data-mobile-page="projects-view"] .prj-tl-label .prj-task-status { position: static; }
-    body[data-mobile-page="projects-view"] .prj-tl-label { font-size: 12.5px; padding: 0 8px; }
+    body[data-mobile-page="projects-view"] .prj-tl-label { font-size: var(--font-size-md, 13px); padding: 0 8px; }
     body[data-mobile-page="projects-view"] .prj-tl-scroll { max-height: 65vh; min-height: 280px; }
     body[data-mobile-page="projects-view"] .prj-tl-drag-hint { display: none; }
     body[data-mobile-page="projects-view"] .prj-tl-tools .btn { min-height: 40px; }

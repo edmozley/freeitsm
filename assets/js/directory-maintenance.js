@@ -42,12 +42,12 @@
         s.id = 'dmStyle';
         s.textContent = '.dm-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0;}'
             + '.dm-bar select{padding:5px 8px;}'
-            + '.dm-table{width:100%;border-collapse:collapse;font-size:12.5px;}'
+            + '.dm-table{width:100%;border-collapse:collapse;font-size:var(--font-size-md, 13px);}'
             + '.dm-table th{text-align:left;padding:7px 9px;color:var(--text-dim,#888);font-weight:600;border-bottom:1px solid var(--border-soft,#eee);white-space:nowrap;}'
             + '.dm-table td{padding:7px 9px;border-bottom:1px solid var(--border-soft,#f4f4f4);color:var(--text,#444);}'
-            + '.dm-dim{color:var(--text-dim,#888);font-size:12.5px;}'
+            + '.dm-dim{color:var(--text-dim,#888);font-size:var(--font-size-md, 13px);}'
             + '.dm-warn{padding:10px 12px;border-radius:6px;background:var(--warning-bg,#fff7e6);color:var(--warning-text,#92400e);margin:8px 0;font-size:var(--font-size-md, 13px);}'
-            + '.dm-skipped{margin-top:10px;font-size:12.5px;}.dm-skipped li{margin:2px 0;}'
+            + '.dm-skipped{margin-top:10px;font-size:var(--font-size-md, 13px);}.dm-skipped li{margin:2px 0;}'
             + '.btn.btn-danger{background:var(--danger-accent,#d13438);color:#fff;}.btn.btn-danger:hover{filter:brightness(1.08);}.btn[disabled]{opacity:.5;cursor:not-allowed;}'
             // The "what if" dialog. The box is the System modal (assets/css/system-page.css:
             // .sys-modal, head, body, foot); the native <dialog> around it is only the
@@ -56,7 +56,7 @@
             + 'dialog.dm-pv::backdrop{background:rgba(0,0,0,.35);}'
             + '.dm-pv .sys-modal-body h4{margin:16px 0 6px;font-size:var(--font-size-md, 13px);text-transform:uppercase;letter-spacing:.04em;color:var(--text-dim,#888);}'
             + '.dm-pv .sys-modal-body p{margin:4px 0;font-size:var(--font-size-md, 13px);line-height:1.5;}'
-            + '.dm-pv-lines{font-size:12.5px;color:var(--text-dim,#888);margin:0 0 4px;}'
+            + '.dm-pv-lines{font-size:var(--font-size-md, 13px);color:var(--text-dim,#888);margin:0 0 4px;}'
             + '.dm-pv-choice{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 4px;font-size:var(--font-size-md, 13px);}';
         document.head.appendChild(s);
     }

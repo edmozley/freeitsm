@@ -206,7 +206,7 @@ $translationNamespaces = ['common', 'software'];
 
         .software-table thead th .sort-icon {
             margin-left: 4px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
         }
 
         .software-table tbody tr.app-row {

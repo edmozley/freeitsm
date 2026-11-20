@@ -342,7 +342,7 @@
     width: 24px;
     height: 24px;
     line-height: 1;
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     cursor: pointer;
 }
 .form-table-remove:hover {

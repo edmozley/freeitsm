@@ -93,7 +93,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .summary-value {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 700;
             color: var(--text, #333);
             line-height: 1.2;
@@ -215,7 +215,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .servers-table thead th .sort-arrow {
             display: inline-block;
             margin-left: 4px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-faint, #bbb);
         }
 
@@ -251,11 +251,11 @@ $translationNamespaces = ['common', 'asset-management'];
         .hv-muted { background: var(--surface-hover, #f3f4f6); color: var(--text-muted, #666); }
         .hv-sub { color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
         .hv-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        .hv-table th, .hv-table td { text-align: left; padding: 5px 8px; border-top: 1px solid var(--border, #eee); font-size: 12.5px; }
+        .hv-table th, .hv-table td { text-align: left; padding: 5px 8px; border-top: 1px solid var(--border, #eee); font-size: var(--font-size-md, 13px); }
         .hv-flag { margin-left: 6px; font-size: var(--font-size-xs, 11px); }
         .storage-heading { margin: 14px 0 6px; font-size: var(--font-size-md, 13px); }
         /* #296 review: a collector that has gone quiet, or storage that keeps failing - the words, not only a pill. */
-        .hv-silent { flex-basis: 100%; margin-top: 4px; font-size: 12.5px; font-weight: 600; color: var(--danger-text, #b42318); }
+        .hv-silent { flex-basis: 100%; margin-top: 4px; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--danger-text, #b42318); }
         .storage-cluster { margin-top: 10px; color: var(--text, #333); }
         .storage-read { margin-top: 4px; overflow-wrap: anywhere; }
         .storage-scroll { max-width: 100%; overflow-x: auto; }
@@ -464,7 +464,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .detail-close {
             background: none;
             border: none;
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             cursor: pointer;
             color: var(--text-dim, #888);
             padding: 4px 8px;

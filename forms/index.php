@@ -65,7 +65,7 @@ $translationNamespaces = ['common', 'forms'];
         }
         .forms-list-toolbar h1 {
             margin: 0;
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             color: var(--text, #333);
         }
         .forms-list-toolbar .toolbar-actions {
@@ -142,7 +142,7 @@ $translationNamespaces = ['common', 'forms'];
             display: inline-block;
             margin-left: 4px;
             opacity: 0.4;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
         }
         .forms-table thead th.sort-asc .sort-arrow,
         .forms-table thead th.sort-desc .sort-arrow { opacity: 1; }
@@ -264,7 +264,7 @@ $translationNamespaces = ['common', 'forms'];
             width: 90%;
             box-shadow: 0 10px 40px rgba(0,0,0,0.25);
         }
-        .confirm-box h3 { margin: 0 0 8px; font-size: 17px; color: var(--text, #333); }
+        .confirm-box h3 { margin: 0 0 8px; font-size: var(--font-size-2xl, 18px); color: var(--text, #333); }
         .confirm-box p { margin: 0 0 18px; color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); line-height: 1.5; }
         .confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
     </style>
@@ -310,7 +310,7 @@ $translationNamespaces = ['common', 'forms'];
     <style>
         .ca-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; }
         .ca-modal-box { background: var(--surface, #fff); color: var(--text, #333); border-radius: 8px; width: 90%; max-width: 480px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); overflow: hidden; }
-        .ca-modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border, #e0e0e0); font-size: 17px; font-weight: 600; }
+        .ca-modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border, #e0e0e0); font-size: var(--font-size-2xl, 18px); font-weight: 600; }
         .ca-modal-body { padding: 20px 22px; }
         .ca-modal-intro { margin: 0 0 16px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         .ca-check { display: flex; align-items: center; gap: 9px; font-size: var(--font-size-lg, 14px); font-weight: 500; cursor: pointer; }
@@ -325,7 +325,7 @@ $translationNamespaces = ['common', 'forms'];
         .ca-numbers { display: flex; gap: 14px; margin-top: 12px; }
         .ca-numbers label { flex: 1; }
         .ca-numbers input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
-        .ca-note { margin: 14px 0 0; padding: 9px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
+        .ca-note { margin: 14px 0 0; padding: 9px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
         .ca-modal-footer { padding: 14px 22px; border-top: 1px solid var(--border, #e0e0e0); display: flex; gap: 10px; justify-content: flex-end; }
         .ca-btn { padding: 9px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: var(--font-size-md, 13px); font-weight: 500; }
         .ca-btn-secondary { background: var(--surface-2, #eee); color: var(--text, #333); border: 1px solid var(--border, #ddd); }

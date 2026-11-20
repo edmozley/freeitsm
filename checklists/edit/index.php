@@ -79,7 +79,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
         @media (max-width: 1000px) { .ed-grid { grid-template-columns: 1fr; } }
 
         .ed-card { background: var(--surface, #fff); border: 1px solid var(--border-soft, #e2e8f0); border-radius: 8px; padding: 20px 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .ed-card h2 { margin: 0 0 4px 0; font-size: 15px; font-weight: 700; color: var(--text, #0f172a); }
+        .ed-card h2 { margin: 0 0 4px 0; font-size: var(--font-size-xl, 16px); font-weight: 700; color: var(--text, #0f172a); }
         .ed-card .ed-sub { margin: 0 0 16px 0; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b); }
 
         .ed-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }

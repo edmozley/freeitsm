@@ -103,7 +103,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
     display: flex; align-items: center; gap: 8px;
     min-width: 0; width: 190px; height: 40px; padding: 0 10px;
     border: 0; border-radius: 6px; background: transparent;
-    color: #e5e7eb; font: inherit; font-size: 12.5px; cursor: default;
+    color: #e5e7eb; font: inherit; font-size: var(--font-size-md, 13px); cursor: default;
 }
 .fd-task:hover { background: rgba(255, 255, 255, .08); }
 .fd-task.fd-active { background: rgba(255, 255, 255, .14); }
@@ -116,7 +116,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fd-task-icon { display: flex; flex: 0 0 auto; }
 .fd-task-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fd-tray { display: flex; align-items: center; gap: 6px; height: 100%; }
-.fd-clock { display: flex; flex-direction: column; align-items: flex-end; font-size: 11.5px; line-height: 1.3; padding: 0 8px; color: #e5e7eb; }
+.fd-clock { display: flex; flex-direction: column; align-items: flex-end; font-size: var(--font-size-sm, 12px); line-height: 1.3; padding: 0 8px; color: #e5e7eb; }
 .fd-tray-transfers {
     position: relative; display: flex; align-items: center; gap: 4px;
     height: 32px; padding: 0 8px; border: 0; border-radius: 5px; overflow: hidden;
@@ -168,7 +168,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fd-sm-cols { display: grid; grid-template-columns: 1fr 1.1fr; gap: 6px; padding: 6px 10px 10px; overflow: auto; flex: 1; min-height: 0; }
 .fd-sm-col { min-width: 0; }
 .fd-sm-h { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: var(--font-size-sm, 12px); color: var(--text-muted); margin: 8px 8px 6px; }
-.fd-sm-toggle { border: 0; border-radius: 4px; padding: 3px 8px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 11.5px; cursor: pointer; }
+.fd-sm-toggle { border: 0; border-radius: 4px; padding: 3px 8px; background: var(--surface-2); color: var(--text); font: inherit; font-size: var(--font-size-sm, 12px); cursor: pointer; }
 .fd-sm-toggle:hover { background: var(--surface-hover); }
 .fd-sm-apps { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
 .fd-sm-app, .fd-sm-file, .fd-sm-mod {
@@ -202,7 +202,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
     display: inline-flex; align-items: center; gap: 6px;
     height: 30px; min-width: 30px; padding: 0 7px;
     border: 0; border-radius: 5px; background: transparent; color: var(--text);
-    font: inherit; font-size: 12.5px; cursor: pointer;
+    font: inherit; font-size: var(--font-size-md, 13px); cursor: pointer;
 }
 .fx-navbtn:hover:not(:disabled), .fx-cmd button:hover:not(:disabled) { background: var(--surface-hover); }
 .fx-navbtn:disabled, .fx-cmd button:disabled { opacity: .38; cursor: default; }
@@ -217,7 +217,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fx-crumb {
     display: inline-flex; align-items: center; gap: 5px;
     height: 24px; padding: 0 6px; border: 1px solid transparent; border-radius: 4px;
-    background: transparent; color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer;
+    background: transparent; color: var(--text); font: inherit; font-size: var(--font-size-md, 13px); cursor: pointer;
     max-width: 200px; overflow: hidden; text-overflow: ellipsis;
 }
 .fx-crumb:hover { background: var(--surface-hover); }
@@ -295,9 +295,9 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 }
 .fx-dhead button:hover { background: var(--surface-hover); }
 .fx-dhead button:last-child { justify-content: flex-end; }
-.fx-sort { font-size: 8px; color: var(--text-dim); }
+.fx-sort { font-size: var(--font-size-xs, 11px); color: var(--text-dim); }
 .fx-view-details .fx-item { height: 28px; border: 1px solid transparent; border-radius: 3px; cursor: default; }
-.fx-c { padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: 12.5px; }
+.fx-c { padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: var(--font-size-md, 13px); }
 .fx-c-name { display: flex; align-items: center; gap: 6px; color: var(--text); }
 .fx-c-name .fx-ic { display: flex; flex: 0 0 auto; }
 .fx-c-name .fx-name { overflow: hidden; text-overflow: ellipsis; }
@@ -333,7 +333,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fd-mi {
     display: flex; align-items: center; gap: 10px; width: 100%;
     height: 30px; padding: 0 10px; border: 0; border-radius: 4px;
-    background: transparent; color: var(--text); font: inherit; font-size: 12.5px; text-align: left; cursor: default;
+    background: transparent; color: var(--text); font: inherit; font-size: var(--font-size-md, 13px); text-align: left; cursor: default;
 }
 .fd-mi:hover:not(:disabled), .fd-mi:focus-visible { background: var(--surface-hover); outline: none; }
 .fd-ctx:focus { outline: none; }
@@ -374,7 +374,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fd-input:focus, .fd-select:focus { outline: none; border-color: var(--fil-accent); box-shadow: 0 0 0 1px var(--fil-accent); }
 .fd-iconbtn { width: 28px; height: 28px; border: 0; border-radius: 5px; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .fd-iconbtn:hover { background: var(--surface-hover); color: var(--text); }
-.fd-badge { display: inline-block; padding: 1px 6px; border-radius: 9px; font-size: 10.5px; background: var(--fil-accent-soft); color: var(--fil-accent); vertical-align: 1px; }
+.fd-badge { display: inline-block; padding: 1px 6px; border-radius: 9px; font-size: var(--font-size-xs, 11px); background: var(--fil-accent-soft); color: var(--fil-accent); vertical-align: 1px; }
 .fd-muted { color: var(--text-dim); }
 .fd-pad { padding: 16px; }
 .fd-note { margin: 0 16px 8px; padding: 8px 10px; border-radius: 5px; background: var(--info-bg); color: var(--info-text); font-size: var(--font-size-sm, 12px); }
@@ -420,10 +420,10 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 /* ── Properties ───────────────────────────────────────────────────────── */
 .fd-props { overflow: auto; }
 .fd-props-head { display: flex; align-items: center; gap: 12px; padding: 16px; }
-.fd-props-name { font-size: 15px; font-weight: 600; word-break: break-word; }
-.fd-props h4 { margin: 16px 16px 6px; font-size: 12.5px; }
+.fd-props-name { font-size: var(--font-size-xl, 16px); font-weight: 600; word-break: break-word; }
+.fd-props h4 { margin: 16px 16px 6px; font-size: var(--font-size-md, 13px); }
 .fd-props-versions { padding: 0 16px; }
-.fd-sha { font-family: Consolas, 'Courier New', monospace; font-size: 10.5px; color: var(--text-faint); word-break: break-all; margin-top: 2px; }
+.fd-sha { font-family: Consolas, 'Courier New', monospace; font-size: var(--font-size-xs, 11px); color: var(--text-faint); word-break: break-all; margin-top: 2px; }
 
 /* ── Transfers, search, personalise ───────────────────────────────────── */
 .fd-transfers { background: var(--surface); }
@@ -436,9 +436,9 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fd-tr-bar i { display: block; height: 100%; width: 0; background: var(--fil-accent); transition: width .2s; }
 .fd-tr-done .fd-tr-bar i { background: var(--success-accent); }
 .fd-tr-error .fd-tr-bar i { background: var(--danger-accent); width: 100% !important; }
-.fd-tr-st { font-size: 11.5px; color: var(--text-dim); }
+.fd-tr-st { font-size: var(--font-size-sm, 12px); color: var(--text-dim); }
 .fd-tr-error .fd-tr-st { color: var(--danger-text); overflow-wrap: anywhere; }
-.fd-tr-help { margin-top: 4px; padding: 0; border: 0; background: none; color: var(--fil-accent); font: inherit; font-size: 11.5px; text-decoration: underline; cursor: pointer; }
+.fd-tr-help { margin-top: 4px; padding: 0; border: 0; background: none; color: var(--fil-accent); font: inherit; font-size: var(--font-size-sm, 12px); text-decoration: underline; cursor: pointer; }
 .fd-tr-help:hover { color: var(--fil-accent-hover); }
 .fd-tr-x { border: 0; background: transparent; color: var(--text-dim); font-size: var(--font-size-2xl, 18px); width: 28px; height: 28px; border-radius: 4px; cursor: pointer; }
 .fd-tr-x:hover { background: var(--surface-hover); color: var(--text); }
@@ -452,7 +452,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fd-kb-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 10px; border: 0; border-radius: 4px; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
 .fd-kb-row:hover { background: var(--surface-hover); }
 .fd-kb-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fd-kb-meta { font-size: 11.5px; color: var(--text-dim); white-space: nowrap; }
+.fd-kb-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim); white-space: nowrap; }
 .fd-search-bar { padding: 10px; border-bottom: 1px solid var(--border-soft); }
 .fd-search-bar .fd-input { width: 100%; }
 .fd-search-out { flex: 1; }
@@ -465,7 +465,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 }
 .fd-rb-note { padding: 7px 12px; font-size: var(--font-size-sm, 12px); color: var(--text-muted); background: var(--surface-2); border-bottom: 1px solid var(--border-soft); }
 .fd-pers { padding: 6px 18px 12px; overflow: auto; }
-.fd-pers h4 { margin: 14px 0 8px; font-size: 12.5px; }
+.fd-pers h4 { margin: 14px 0 8px; font-size: var(--font-size-md, 13px); }
 .fd-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 .fd-swatch {
     width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
@@ -501,7 +501,7 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 /* GH #303: versions */
 .fx-c-name .fx-ver {
     flex-shrink: 0; margin-left: 6px; padding: 0 5px; border-radius: 8px;
-    font-size: 10px; line-height: 16px; font-weight: 600;
+    font-size: var(--font-size-xs, 11px); line-height: 16px; font-weight: 600;
     background: var(--surface-3, #eef2f7); color: var(--text-muted, #555);
 }
 .fd-ver-note { margin-top: 3px; font-size: var(--font-size-sm, 12px); color: var(--text, #333); font-style: italic; overflow-wrap: anywhere; }

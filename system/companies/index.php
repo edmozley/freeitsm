@@ -113,7 +113,7 @@ $translationNamespaces = ['common', 'system'];
         .routing-panel { background: #f7f9fa; border: 1px solid var(--border, #e3e8ea); border-radius: 6px; padding: 12px 14px; }
         .routing-path { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-soft, #eceff1); }
         .routing-path:last-child { border-bottom: none; }
-        .routing-path .rp-icon { flex: 0 0 auto; font-size: 15px; line-height: 1.3; }
+        .routing-path .rp-icon { flex: 0 0 auto; font-size: var(--font-size-xl, 16px); line-height: 1.3; }
         .routing-path .rp-body { flex: 1; min-width: 0; }
         .routing-path .rp-kind { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text, #455a64); }
         .routing-path .rp-kind .rp-flag { font-weight: 600; color: #c62828; font-size: var(--font-size-xs, 11px); margin-left: 6px; }
@@ -139,7 +139,7 @@ $translationNamespaces = ['common', 'system'];
         /* SSO help banner */
         .sso-banner { display: flex; align-items: center; gap: 12px; text-decoration: none; background: linear-gradient(135deg, #eef2ff, #e0e7ff); border: 1px solid #c7d2fe; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; }
         .sso-banner svg { flex-shrink: 0; }
-        .sso-banner .sso-text { flex: 1; color: #3730a3; font-size: 13.5px; line-height: 1.45; }
+        .sso-banner .sso-text { flex: 1; color: #3730a3; font-size: var(--font-size-lg, 14px); line-height: 1.45; }
         .sso-banner .sso-text strong { display: block; font-size: var(--font-size-lg, 14px); margin-bottom: 1px; }
         .sso-banner .sso-arrow { color: #6366f1; font-weight: 700; font-size: var(--font-size-2xl, 18px); }
 

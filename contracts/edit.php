@@ -226,7 +226,7 @@ $contract_id = $_GET['id'] ?? null;
         .person-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: var(--font-size-2xl, 18px); color: var(--text-muted, #777); cursor: pointer; line-height: 1; }
         .person-results { position: absolute; z-index: 20; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 4px; list-style: none; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.12); max-height: 240px; overflow-y: auto; }
         .person-results li { padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
-        .person-results li small { display: block; color: var(--text-muted, #777); font-size: 11.5px; }
+        .person-results li small { display: block; color: var(--text-muted, #777); font-size: var(--font-size-sm, 12px); }
         .person-results li[aria-selected="true"], .person-results li:hover { background: var(--surface-hover, #f3f4f6); }
         .party-hint { display: block; margin-top: 6px; color: var(--text-muted, #777); font-size: var(--font-size-sm, 12px); }
     </style>

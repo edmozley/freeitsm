@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.06));
         }
         .func-name {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             font-family: monospace;
             color: var(--text, #333);
@@ -143,7 +143,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             background: #e8eaf6;
             color: #3f51b5;

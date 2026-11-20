@@ -4,6 +4,8 @@
  *
  *   php scripts/tokenise_font_sizes.php            dry run: what would change, per file
  *   php scripts/tokenise_font_sizes.php --apply    write the changes
+ *   ... --round-up [--apply]                       ALSO move sizes between the steps UP to the next
+ *                                                  step (12.5px -> 13, 15px -> 16, 22px -> 24) - VISIBLE
  *
  * Only sizes ON the scale are swapped (11 12 13 14 16 18 20 24px), and the old size
  * stays as the var() fallback - font-size: 13px becomes
@@ -22,6 +24,14 @@ require __DIR__ . '/../tests/support/font_size_scope.php';
 
 $root  = realpath(__DIR__ . '/..');
 $apply = in_array('--apply', $argv, true);
+// Ed, 2026-11-20: sizes between the steps round UP to the next one. Above the top
+// step (24px) there is no token - headline and dashboard figures stay as written.
+$roundUp = in_array('--round-up', $argv, true);
+function fontSizeStepUp(float $px): ?int
+{
+    foreach (array_keys(FONT_SIZE_TOKENS) as $step) if ($step >= $px) return $step;
+    return null;
+}
 
 $totalFiles = 0; $totalSwaps = 0; $left = [];
 foreach (fontSizeScopeFiles($root) as $rel) {
@@ -34,8 +44,9 @@ foreach (fontSizeScopeFiles($root) as $rel) {
     for ($i = 0; $i < count($parts); $i += 2) {
         $line = $parts[$i];
         if (stripos($line, 'font-size') === false) continue;
-        $parts[$i] = preg_replace_callback('/(font-size\s*:\s*)(\d+(?:\.\d+)?)px/i', function ($m) use ($line, $rel, &$swaps, &$left) {
+        $parts[$i] = preg_replace_callback('/(font-size\s*:\s*)(\d+(?:\.\d+)?)px/i', function ($m) use ($line, $rel, &$swaps, &$left, $roundUp) {
             $px = $m[2];
+            if ($roundUp && !fontSizeLineIsExempt($line, $rel, (int)$px) && ($up = fontSizeStepUp((float)$px)) !== null) $px = (string)$up;
             if (!ctype_digit($px) || !isset(FONT_SIZE_TOKENS[(int)$px]) || fontSizeLineIsExempt($line, $rel, (int)$px)) {
                 if (!fontSizeLineIsExempt($line, $rel, (int)$px)) $left[$px . 'px'] = ($left[$px . 'px'] ?? 0) + 1;
                 return $m[0];

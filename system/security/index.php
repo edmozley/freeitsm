@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .settings-card h3 {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 4px 0;

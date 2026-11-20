@@ -71,7 +71,7 @@ $afterChange = loginReturnPeek() ?? ((defined('BASE_URL') ? BASE_URL : '/') . 'i
 
         .change-header h1 {
             color: #333;
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             margin-bottom: 8px;
         }
 
@@ -136,7 +136,7 @@ $afterChange = loginReturnPeek() ?? ((defined('BASE_URL') ? BASE_URL : '/') . 'i
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;

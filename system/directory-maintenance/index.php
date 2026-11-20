@@ -73,9 +73,9 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         }
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page on .dmp-wrap). */
         .dmp-card { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; }
-        .dmp-card h3 { font-size: 15px; margin: 0 0 4px; color: var(--text, #333); }
-        .dmp-card h4 { font-size: 13.5px; margin: 18px 0 4px; color: var(--text, #333); }
-        .dmp-hint { font-size: 12.5px; color: var(--text-dim, #888); margin: 0 0 6px; line-height: 1.5; }
+        .dmp-card h3 { font-size: var(--font-size-xl, 16px); margin: 0 0 4px; color: var(--text, #333); }
+        .dmp-card h4 { font-size: var(--font-size-lg, 14px); margin: 18px 0 4px; color: var(--text, #333); }
+        .dmp-hint { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 6px; line-height: 1.5; }
         .dmp-pick { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 6px 0 4px; font-size: var(--font-size-md, 13px); }
         .dmp-pick select { padding: 6px 10px; }
         .dmp-split { border-top: 1px solid var(--border-soft, #f0f0f0); margin-top: 16px; }

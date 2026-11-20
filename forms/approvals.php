@@ -58,11 +58,11 @@ $translationNamespaces = ['common', 'forms'];
         .ca-main h2 { margin: 0 0 20px; font-size: var(--font-size-3xl, 20px); color: var(--text, #333); }
         .ca-card { background: var(--surface, #fff); border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 1px 3px var(--shadow, rgba(0,0,0,0.06)); border-left: 4px solid var(--warning-border, #f0d9a8); }
         .ca-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 12px; }
-        .ca-card-title { font-size: 15px; font-weight: 600; color: var(--text, #333); }
+        .ca-card-title { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
         .ca-card-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-bottom: 12px; }
         .ca-card-meta .lbl { font-weight: 600; color: var(--text-faint, #999); }
         .ca-answers { border: 1px solid var(--border-soft, #eee); border-radius: 6px; background: var(--surface-2, #fafafa); padding: 4px 0; margin-bottom: 12px; }
-        .ca-answer { display: flex; gap: 12px; padding: 6px 12px; font-size: 12.5px; }
+        .ca-answer { display: flex; gap: 12px; padding: 6px 12px; font-size: var(--font-size-md, 13px); }
         .ca-answer .a-lbl { font-weight: 600; color: var(--text-muted, #666); flex: 0 0 40%; }
         .ca-answer .a-val { color: var(--text, #333); white-space: pre-wrap; }
         .ca-comment { width: 100%; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); font-family: inherit; background: var(--surface, #fff); color: var(--text, #333); margin-bottom: 10px; resize: vertical; min-height: 38px; }
@@ -75,16 +75,16 @@ $translationNamespaces = ['common', 'forms'];
         .ca-badge { font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 2px 9px; border-radius: 10px; }
         .ca-badge.approved { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
         .ca-badge.rejected { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); }
-        .ca-decided-note { font-size: 12.5px; color: var(--text-muted, #666); }
+        .ca-decided-note { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         /* Team approvals (GH #220): progress, the votes so far, a stuck request, the
            administrator's moves and overrides, and the Move panel. */
-        .ca-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 4px; font-size: 12.5px; }
+        .ca-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 4px; font-size: var(--font-size-md, 13px); }
         .ca-progress strong { color: var(--text, #333); }
-        .ca-votes { margin: 4px 0 8px; padding: 0; list-style: none; font-size: 12.5px; color: var(--text-muted, #666); }
+        .ca-votes { margin: 4px 0 8px; padding: 0; list-style: none; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         .ca-votes li { padding: 2px 0; }
         .ca-vote-approved { color: var(--success-text, #166534); font-weight: 600; }
         .ca-vote-rejected { color: var(--danger-text, #991b1b); font-weight: 600; }
-        .ca-stuck, .ca-override-hint { margin: 8px 0; padding: 8px 11px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
+        .ca-stuck, .ca-override-hint { margin: 8px 0; padding: 8px 11px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
         .ca-event { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 2px 0; }
         .ca-move { display: none; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
         .ca-move.open { display: flex; }
@@ -102,7 +102,7 @@ $translationNamespaces = ['common', 'forms'];
            is legible in dark mode too. */
         .ca-error { max-width: 760px; margin: 24px auto; background: var(--surface, #fff); border: 1px solid var(--danger-border, #f3c9c9); border-left: 4px solid var(--danger-accent, #d13438); border-radius: 8px; padding: 20px 22px; }
         .ca-error h3 { margin: 0 0 8px; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
-        .ca-error p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.5; color: var(--text-muted, #666); }
+        .ca-error p { margin: 0 0 14px; font-size: var(--font-size-lg, 14px); line-height: 1.5; color: var(--text-muted, #666); }
         .ca-error pre { margin: 0; padding: 12px 14px; background: var(--surface-2, #fafafa); border: 1px solid var(--border-soft, #eee); border-radius: 6px; font-family: ui-monospace, Consolas, monospace; font-size: var(--font-size-sm, 12px); line-height: 1.5; color: var(--text, #333); white-space: pre-wrap; word-break: break-word; max-height: 320px; overflow-y: auto; }
         .ca-error-actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
         .ca-error-note { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); flex: 1 1 260px; }

@@ -69,7 +69,7 @@
         st.textContent = `
 .tf-card{border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:14px 16px;margin-bottom:12px;}
 .tf-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
-.tf-title{font-weight:600;font-size:15px;color:var(--text,#1e293b);line-height:1.3;}
+.tf-title{font-weight:600;font-size:var(--font-size-xl, 16px);color:var(--text,#1e293b);line-height:1.3;}
 .tf-badge{flex-shrink:0;font-size:var(--font-size-xs, 11px);font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;}
 .tf-badge.block{background:rgba(220,38,38,.14);color:#dc2626;}
 .tf-badge.warn{background:rgba(217,119,6,.16);color:#b45309;}

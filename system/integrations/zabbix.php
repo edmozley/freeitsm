@@ -63,10 +63,10 @@ $t = fn(string $k) => htmlspecialchars(t('system.integrations.' . $k));
         .zbx-hint { font-size:var(--font-size-sm, 12px); color:var(--text-faint,#9ca3af); margin-top:5px; }
         .zbx-row { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
         .zbx-row .lbl { flex:0 0 90px; font-size:var(--font-size-md, 13px); font-weight:600; color:var(--text-dim,#6b7280); }
-        .zbx-row code { flex:1; font-size:12.5px; background:var(--surface-2,#f6f8fa); border:1px solid var(--border,#e5e7eb);
+        .zbx-row code { flex:1; font-size:var(--font-size-md, 13px); background:var(--surface-2,#f6f8fa); border:1px solid var(--border,#e5e7eb);
                         border-radius:6px; padding:8px 10px; word-break:break-all; color:var(--text,#111827); }
         pre.zbx-code { background:var(--surface-2,#f6f8fa); border:1px solid var(--border,#e5e7eb); border-radius:6px;
-                       padding:12px; font-size:12.5px; overflow-x:auto; margin:6px 0 8px; }
+                       padding:12px; font-size:var(--font-size-md, 13px); overflow-x:auto; margin:6px 0 8px; }
         .zbx-map { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; margin-bottom:14px; }
         .zbx-map label { display:block; font-size:var(--font-size-sm, 12px); font-weight:600; color:var(--text-dim,#6b7280); margin-bottom:4px; }
         .zbx-map select { width:100%; padding:8px 10px; font-size:var(--font-size-md, 13px); border:1px solid var(--border,#d1d5db); border-radius:6px;

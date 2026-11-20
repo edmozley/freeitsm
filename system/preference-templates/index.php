@@ -61,12 +61,12 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
         .pt-table td { padding: 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: top; }
         .pt-table tr:last-child td { border-bottom: none; }
         .pt-name { font-weight: 600; color: var(--text, #333); }
-        .pt-desc { font-size: 12.5px; color: var(--text-dim, #888); margin-top: 2px; }
+        .pt-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-top: 2px; }
         .pt-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-        .pt-chip { font-size: 11.5px; padding: 2px 8px; border-radius: 10px; background: var(--surface-2, #eceff1); color: var(--text-muted, #555); white-space: nowrap; }
-        .pt-badge { font-size: 11.5px; padding: 2px 8px; border-radius: 10px; background: var(--accent-soft, #e3f2fd); color: var(--accent, #546e7a); font-weight: 600; white-space: nowrap; }
+        .pt-chip { font-size: var(--font-size-sm, 12px); padding: 2px 8px; border-radius: 10px; background: var(--surface-2, #eceff1); color: var(--text-muted, #555); white-space: nowrap; }
+        .pt-badge { font-size: var(--font-size-sm, 12px); padding: 2px 8px; border-radius: 10px; background: var(--accent-soft, #e3f2fd); color: var(--accent, #546e7a); font-weight: 600; white-space: nowrap; }
         .pt-actions { white-space: nowrap; text-align: right; }
-        .pt-actions button { background: none; border: 1px solid var(--border, #ddd); border-radius: 5px; padding: 4px 10px; font-size: 12.5px; cursor: pointer; color: var(--text, #333); margin-left: 4px; }
+        .pt-actions button { background: none; border: 1px solid var(--border, #ddd); border-radius: 5px; padding: 4px 10px; font-size: var(--font-size-md, 13px); cursor: pointer; color: var(--text, #333); margin-left: 4px; }
         .pt-actions button:hover { border-color: var(--accent, #546e7a); color: var(--accent, #546e7a); }
         .pt-actions button.danger:hover { border-color: #dc2626; color: #dc2626; }
         .pt-empty { padding: 28px 10px; text-align: center; color: var(--text-faint, #999); font-size: var(--font-size-md, 13px); }
@@ -86,7 +86,7 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
         .pt-sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 14px; margin-top: 6px; }
         .pt-check { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-md, 13px); color: var(--text, #444); padding: 3px 0; cursor: pointer; }
         .pt-check input:disabled + span { color: var(--text-faint, #aaa); }
-        .pt-warn { margin: 0 0 12px; padding: 10px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
+        .pt-warn { margin: 0 0 12px; padding: 10px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .pt-people { border: 1px solid var(--border, #ddd); border-radius: 6px; max-height: 300px; overflow-y: auto; padding: 4px 10px; margin-top: 8px; }
         .pt-count { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
 

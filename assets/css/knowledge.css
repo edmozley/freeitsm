@@ -466,7 +466,7 @@
 .editor-properties .field-hint {
     display: block;
     margin-top: 5px;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.45;
     font-weight: 400;
     color: var(--text-dim, #888);
@@ -1638,7 +1638,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
 /* A card is scanned, not read: the preview is the first thing to go, because at
    240px wide it is three words and an ellipsis rather than a summary. */
 .kb-layout-cards .article-card-preview { display: none; }
-.kb-layout-cards .article-card-title { font-size: 15px; }
+.kb-layout-cards .article-card-title { font-size: var(--font-size-xl, 16px); }
 .kb-layout-cards .kb-folder-card { min-height: 0; }
 
 /* Tree — the whole shape at once. */

@@ -253,7 +253,7 @@
     border-radius: 8px;
     background: var(--accent, #ea580c);
     color: var(--on-accent, #fff);
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -488,12 +488,12 @@
     padding: 14px 16px;
     border-bottom: 1px solid var(--border, #e0e0e0);
 }
-.wr-panel-head h3 { margin: 0; font-size: 15px; color: var(--text, #333); }
+.wr-panel-head h3 { margin: 0; font-size: var(--font-size-xl, 16px); color: var(--text, #333); }
 .wr-panel-close {
     border: none;
     background: none;
     color: var(--text-muted, #666);
-    font-size: 22px;
+    font-size: var(--font-size-4xl, 24px);
     line-height: 1;
     cursor: pointer;
 }

@@ -220,7 +220,7 @@ $translationNamespaces = ['common', 'asset-management'];
             display: flex; align-items: center; gap: 6px; width: 100%;
             padding: 7px 12px; border: none; border-bottom: 1px solid var(--border-soft, #eee);
             background: var(--surface-3, #f4f6f8); color: var(--text, #333);
-            font: inherit; font-size: 12.5px; font-weight: 600; text-align: left; cursor: pointer;
+            font: inherit; font-size: var(--font-size-md, 13px); font-weight: 600; text-align: left; cursor: pointer;
             position: sticky; top: 0; z-index: 1;
         }
         .asset-group-head:hover { background: var(--surface-hover, #eceff2); }
@@ -258,7 +258,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-radius: 6px;
             background: var(--surface-hover, #eef2f6);
             border: 1px solid var(--border, #dde3ea);
-            font-size: 12.5px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text, #333);
         }
@@ -317,7 +317,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .asset-detail-hostname {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 4px 0;
@@ -878,7 +878,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .cf-chip-x {
             border: 0; background: none; cursor: pointer; line-height: 1;
-            font-size: 15px; color: var(--text-muted, #666); padding: 0 2px;
+            font-size: var(--font-size-xl, 16px); color: var(--text-muted, #666); padding: 0 2px;
         }
         .cf-chip-x:hover { color: var(--danger-text, #c0392b); }
         .cf-req { color: var(--danger-text, #c0392b); margin-left: 3px; }
@@ -1010,7 +1010,7 @@ $translationNamespaces = ['common', 'asset-management'];
             margin-bottom: 8px;
             padding: 1px 7px;
             border-radius: 3px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -1123,7 +1123,7 @@ $translationNamespaces = ['common', 'asset-management'];
             color: var(--text-muted, #666);
             padding: 1px 6px;
             border-radius: 10px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             margin-left: 4px;
         }
 
@@ -1150,7 +1150,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .asset-tickets-group {
             padding: 10px 16px 4px;
-            font-size: 10.5px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 700;
@@ -1375,7 +1375,7 @@ $translationNamespaces = ['common', 'asset-management'];
             color: var(--text-muted, #666);
             padding: 1px 6px;
             border-radius: 10px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             margin-left: 4px;
         }
 

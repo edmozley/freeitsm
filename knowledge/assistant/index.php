@@ -69,7 +69,7 @@ $canAnalyse = analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_
         .ka-card { background:var(--surface); border:1px solid var(--border); border-radius:10px;
                    padding:14px 16px; margin-bottom:10px; }
         .ka-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
-        .ka-card h3 { margin:0 0 4px; font-size:15px; font-weight:600; color:var(--text); }
+        .ka-card h3 { margin:0 0 4px; font-size:var(--font-size-xl, 16px); font-weight:600; color:var(--text); }
         .ka-count { font-size:var(--font-size-md, 13px); color:var(--text-muted); }
         .ka-count strong { color:var(--text); }
         .ka-actions { display:flex; gap:8px; flex-shrink:0; }
@@ -117,7 +117,7 @@ $canAnalyse = analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_
 
         .ka-preview { border:1px solid var(--border); border-radius:8px; padding:16px 18px; background:var(--surface);
                       font-size:var(--font-size-lg, 14px); line-height:1.6; color:var(--text); }
-        .ka-preview h1 { font-size:19px; margin:0 0 12px; }
+        .ka-preview h1 { font-size:var(--font-size-3xl, 20px); margin:0 0 12px; }
         .ka-preview h2 { font-size:var(--font-size-xl, 16px); margin:18px 0 8px; }
         .ka-preview h3 { font-size:var(--font-size-lg, 14px); margin:14px 0 6px; }
         .ka-preview p, .ka-preview li { line-height:1.6; }

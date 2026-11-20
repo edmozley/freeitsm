@@ -48,7 +48,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
+        .page-header h1 { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -81,13 +81,13 @@ $translationNamespaces = ['common', 'contracts'];
             gap: 18px; align-items: start;
         }
         .supplier-row:last-child { border-bottom: none; }
-        .supplier-name { font-size: 15px; font-weight: 600; color: var(--text, #222); }
+        .supplier-name { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222); }
         .supplier-name .trading {
             font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-weight: 400; margin-top: 2px;
         }
         .supplier-name .status-pill {
             display: inline-block; padding: 1px 7px; border-radius: 9px;
-            font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
             background: #eef0f2; color: #555;
             margin-left: 8px;
         }
@@ -135,7 +135,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222); }
         .modal-header .close-x {
-            background: none; border: none; font-size: 22px; color: var(--text-dim, #888); cursor: pointer; padding: 0; line-height: 1;
+            background: none; border: none; font-size: var(--font-size-4xl, 24px); color: var(--text-dim, #888); cursor: pointer; padding: 0; line-height: 1;
         }
         .modal-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
         .modal-footer {

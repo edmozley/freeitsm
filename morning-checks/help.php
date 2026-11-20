@@ -60,7 +60,7 @@ $translationNamespaces = ['common', 'morning-checks'];
         .mc-help-chart-bar.green { background: var(--success-accent, #28a745); }
         .mc-help-chart-bar.amber { background: var(--warning-text, #ffc107); }
         .mc-help-chart-bar.red   { background: var(--danger-accent, #dc3545); }
-        .mc-help-chart-label { font-size: 10px; color: var(--text-faint, #999); text-align: center; }
+        .mc-help-chart-label { font-size: var(--font-size-xs, 11px); color: var(--text-faint, #999); text-align: center; }
         .mc-help-chart-legend {
             display: flex;
             justify-content: center;

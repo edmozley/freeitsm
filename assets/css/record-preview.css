@@ -86,7 +86,7 @@
 
 .rp-head {
     font-weight: 600;
-    font-size: 13.5px;
+    font-size: var(--font-size-lg, 14px);
     margin-bottom: 8px;
     /* Two lines, then an ellipsis. A subject can be a paragraph, and a preview
        that grows to fit one stops being a glance. */

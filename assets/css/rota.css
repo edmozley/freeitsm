@@ -52,7 +52,7 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.15s;
-    font-size: 22px;
+    font-size: var(--font-size-4xl, 24px);
     line-height: 1;
     color: var(--text-muted, #555);
 }
@@ -245,7 +245,7 @@
     display: inline-block;
     padding: 2px 8px;
     border-radius: 10px;
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;

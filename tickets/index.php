@@ -426,7 +426,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                     <small style="color:var(--text-muted,#666);"><?php echo htmlspecialchars(t('tickets.split.subject_help')); ?></small>
                 </div>
 
-                <div class="info-box" id="splitWarning" style="display:none;margin-top:6px;padding:10px 13px;border-radius:6px;background:var(--warning-bg,#fff4e5);border-left:4px solid var(--warning-border,#ffd9a8);color:var(--warning-text,#8a5300);font-size:12.5px;"></div>
+                <div class="info-box" id="splitWarning" style="display:none;margin-top:6px;padding:10px 13px;border-radius:6px;background:var(--warning-bg,#fff4e5);border-left:4px solid var(--warning-border,#ffd9a8);color:var(--warning-text,#8a5300);font-size:var(--font-size-md, 13px);"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeSplitModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
@@ -451,7 +451,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                         <label class="form-label" id="mergePickLabel"><?php echo htmlspecialchars(t('tickets.merge.pick_survivor')); ?></label>
                         <div id="mergeCandidates" class="merge-candidates"></div>
                     </div>
-                    <div class="info-box" id="mergeEffect" style="margin-top:14px;padding:11px 13px;border-radius:6px;background:var(--accent-soft,#eff6ff);border-left:4px solid var(--accent,#0078d4);font-size:12.5px;"></div>
+                    <div class="info-box" id="mergeEffect" style="margin-top:14px;padding:11px 13px;border-radius:6px;background:var(--accent-soft,#eff6ff);border-left:4px solid var(--accent,#0078d4);font-size:var(--font-size-md, 13px);"></div>
                 </div>
 
                 <div id="mergeStageSummary" style="display:none;">
@@ -1096,7 +1096,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                     <label class="form-label"><?php echo htmlspecialchars(t('tickets.tracker.preview_label')); ?></label>
                     <pre id="escPreview" style="max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;
                         background:var(--surface-2);border:1px solid var(--border);border-radius:6px;
-                        padding:12px;font-size:12.5px;line-height:1.55;color:var(--text);margin:0;"></pre>
+                        padding:12px;font-size:var(--font-size-md, 13px);line-height:1.55;color:var(--text);margin:0;"></pre>
                     <div style="font-size:var(--font-size-sm, 12px);color:var(--text-muted);margin-top:6px;">
                         <?php echo htmlspecialchars(t('tickets.tracker.preview_hint')); ?>
                     </div>

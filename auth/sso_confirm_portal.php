@@ -135,7 +135,7 @@ function tr(string $key, string $default, array $params = []): string {
             color: #fff;
             border: none;
             border-radius: 6px;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s;

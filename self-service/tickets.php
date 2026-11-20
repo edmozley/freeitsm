@@ -54,7 +54,7 @@ $pageStyles = <<<'CSS'
     justify-content: space-between;
     gap: 10px;
 }
-.tk-list-head h2 { font-size: 15px; font-weight: 600; margin: 0; color: var(--text, #333); }
+.tk-list-head h2 { font-size: var(--font-size-xl, 16px); font-weight: 600; margin: 0; color: var(--text, #333); }
 .tk-filter {
     padding: 5px 8px;
     border: 1px solid var(--border, #e5e7eb);
@@ -196,7 +196,7 @@ $pageStyles = <<<'CSS'
     background: transparent; color: var(--text-muted, #666); border: 1px dashed var(--border, #e5e7eb); cursor: pointer; }
 .tk-mark-confidential:hover:not(:disabled) { color: var(--danger-text, #b3261e); border-color: var(--danger-border, #f5c6c2); background: var(--danger-bg, #fdecea); }
 .tk-mark-confidential:disabled { opacity: .55; cursor: progress; }
-.tk-read-subject { font-size: 17px; font-weight: 600; color: var(--text, #333); margin: 0 0 8px 0; }
+.tk-read-subject { font-size: var(--font-size-2xl, 18px); font-weight: 600; color: var(--text, #333); margin: 0 0 8px 0; }
 .tk-read-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 .tk-num {
     font-family: 'Consolas', 'Courier New', monospace;
@@ -294,7 +294,7 @@ $pageStyles = <<<'CSS'
     font-size: var(--font-size-sm, 12px);
     color: var(--text, #333);
 }
-.tk-chip button { border: none; background: none; cursor: pointer; color: var(--text-muted, #777); font-size: 15px; line-height: 1; padding: 0; }
+.tk-chip button { border: none; background: none; cursor: pointer; color: var(--text-muted, #777); font-size: var(--font-size-xl, 16px); line-height: 1; padding: 0; }
 .tk-chip button:hover { color: var(--danger-text, #c33); }
 
 @media (max-width: 900px) {
@@ -346,7 +346,7 @@ $pageStyles = <<<'CSS'
         border-bottom: 1px solid var(--border-soft, #eee);
         background: var(--surface, #fff);
         color: var(--accent, #2e7d32);
-        font-size: 15px;
+        font-size: var(--font-size-xl, 16px);
         font-weight: 600;
         cursor: pointer;
     }

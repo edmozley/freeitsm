@@ -129,7 +129,7 @@ $translationNamespaces = ['common'];
             z-index: 5;
             padding: 10px 16px;
             text-align: center;
-            font-size: 13.5px;
+            font-size: var(--font-size-lg, 14px);
             line-height: 1.4;
         }
         .login-strip-banner { background: var(--login-banner-bg, #111827); color: var(--login-banner-fg, #fff); font-weight: 600; }
@@ -139,7 +139,7 @@ $translationNamespaces = ['common'];
             bottom: 0;
             color: var(--login-footer-fg, #fff);
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
-            font-size: 12.5px;
+            font-size: var(--font-size-md, 13px);
         }
         body:has(.login-strip-banner[data-at="bottom"]) .login-strip-footer { bottom: 42px; }
         body[data-logo-pos="hidden"] .company-logo { display: none; }

@@ -80,7 +80,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
         .modal-box .sys-modal-head { margin: 0; font-size: var(--font-size-2xl, 18px); }
         .map-section { margin-bottom: 26px; }
         .map-section h4 {
-            margin: 0 0 4px; font-size: 15px; color: var(--text); font-weight: 600;
+            margin: 0 0 4px; font-size: var(--font-size-xl, 16px); color: var(--text); font-weight: 600;
         }
         .map-section .map-hint {
             font-size: var(--font-size-sm, 12px); color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;

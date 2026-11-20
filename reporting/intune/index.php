@@ -146,13 +146,13 @@ $translationNamespaces = ['common', 'reporting'];
             display: flex; justify-content: space-between; align-items: center;
         }
         .drill-header h3 {
-            margin: 0; font-size: 15px; color: var(--text, #333);
+            margin: 0; font-size: var(--font-size-xl, 16px); color: var(--text, #333);
         }
         .drill-header .drill-count {
             color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); margin-left: 8px; font-weight: normal;
         }
         .drill-close {
-            background: none; border: none; font-size: 22px; line-height: 1;
+            background: none; border: none; font-size: var(--font-size-4xl, 24px); line-height: 1;
             color: var(--text-faint, #999); cursor: pointer; padding: 0;
         }
         .drill-close:hover { color: var(--text, #333); }

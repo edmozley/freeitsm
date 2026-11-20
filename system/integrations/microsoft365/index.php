@@ -153,8 +153,8 @@ if ($isAdmin) {
                   padding: 12px 0; border-top: 1px solid var(--border-soft, #eee); }
         .ms-row:first-of-type { border-top: none; }
         .ms-name { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
-        .ms-meta { font-size: 12.5px; color: var(--text-muted, #666); margin-top: 3px; }
-        .ms-pill { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 10px; margin-right: 6px;
+        .ms-meta { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-top: 3px; }
+        .ms-pill { display: inline-block; font-size: var(--font-size-sm, 12px); font-weight: 600; padding: 2px 9px; border-radius: 10px; margin-right: 6px;
                    background: var(--surface-2, #f1f3f5); color: var(--text-muted, #666); }
         .ms-pill.on { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
         .ms-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -163,7 +163,7 @@ if ($isAdmin) {
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
         .btn-secondary { background: var(--sys-accent-soft, #eceff1); color: var(--sys-accent-hover, #455a64); }
-        .ms-note { font-size: 12.5px; color: var(--text-faint, #999); margin: 10px 0 0; }
+        .ms-note { font-size: var(--font-size-md, 13px); color: var(--text-faint, #999); margin: 10px 0 0; }
     </style>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
 </head>

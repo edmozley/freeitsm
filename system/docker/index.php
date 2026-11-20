@@ -96,7 +96,7 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
             line-height: 1.6;
         }
         .panel h3 {
-            font-size: 15px; font-weight: 600; color: var(--text, #333);
+            font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333);
             margin: 0 0 16px 0; padding-bottom: 10px;
             border-bottom: 1px solid var(--border-soft, #eee);
         }

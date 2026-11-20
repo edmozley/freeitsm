@@ -82,7 +82,7 @@ $pageStyles = <<<'CSS'
     background: var(--surface, #fff);
     border-bottom: 1px solid var(--border, #e5e7eb);
 }
-.cr-bar .course-title { font-weight: 600; font-size: 15px; color: var(--text, #333); flex: 1; min-width: 0;
+.cr-bar .course-title { font-weight: 600; font-size: var(--font-size-xl, 16px); color: var(--text, #333); flex: 1; min-width: 0;
                         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cr-bar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .cr-back {

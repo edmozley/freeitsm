@@ -80,7 +80,7 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
         .syshelp-search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: none; padding: 4px 8px; border: none; background: transparent; color: rgba(255,255,255,0.8); font-size: var(--font-size-xl, 16px); cursor: pointer; border-radius: 5px; }
         .syshelp-search-clear:hover { background: rgba(255,255,255,0.18); color: #fff; }
         .syshelp-search.has-value .syshelp-search-clear { display: block; }
-        .syshelp-search-hint { margin-top: 8px; font-size: 12.5px; opacity: 0.75; min-height: 16px; }
+        .syshelp-search-hint { margin-top: 8px; font-size: var(--font-size-md, 13px); opacity: 0.75; min-height: 16px; }
 
         /* Edge to edge — no content cap. A "tasteful" 1100px column is still a
            cap, and these pages follow the same full-width rule as the settings
@@ -96,8 +96,8 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
            dark-mode override to keep in step. */
         .syshelp-tile-icon { flex-shrink: 0; width: 44px; height: 44px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
         .syshelp-tile-icon svg { width: 24px; height: 24px; }
-        .syshelp-tile h3 { margin: 0 0 4px; font-size: 15px; color: var(--text, #1f2330); }
-        .syshelp-tile p { margin: 0; font-size: 12.5px; color: var(--text-muted, #6b7280); line-height: 1.5; }
+        .syshelp-tile h3 { margin: 0 0 4px; font-size: var(--font-size-xl, 16px); color: var(--text, #1f2330); }
+        .syshelp-tile p { margin: 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); line-height: 1.5; }
 
         /* Section deep-links: hidden until a search matches a heading inside the page. */
         .syshelp-hits { display: none; padding: 0 18px 14px 76px; flex-wrap: wrap; gap: 6px; }
@@ -108,7 +108,7 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
 
         .syshelp-empty { display: none; padding: 10px 32px 40px; }
         .syshelp-empty p { font-size: var(--font-size-lg, 14px); color: var(--text-muted, #6b7280); line-height: 1.6; }
-        .syshelp-gaps { padding: 0 32px 48px; font-size: 12.5px; color: var(--text-dim, #9ca3af); }
+        .syshelp-gaps { padding: 0 32px 48px; font-size: var(--font-size-md, 13px); color: var(--text-dim, #9ca3af); }
 
         @media (max-width: 700px) { .syshelp-grid { padding: 22px; } .syshelp-gaps { padding: 0 22px 32px; }  .syshelp-hits { padding-left: 18px; } }
 

@@ -83,7 +83,7 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
             box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
             margin-bottom: 24px;
         }
-        .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
+        .settings-card h3 { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
         .settings-card .card-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 18px 0; line-height: 1.5; }
 
         .cur-select {

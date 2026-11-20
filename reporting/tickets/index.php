@@ -53,7 +53,7 @@ $translationNamespaces = ['common', 'reporting'];
 
         .coming-soon-card h2 {
             margin: 0 0 10px 0;
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             color: var(--text, #333);
         }
 

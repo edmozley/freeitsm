@@ -55,7 +55,7 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
         .ac-toolbar select, .ac-toolbar input[type=search] { padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .ac-toolbar input[type=search] { width: 260px; max-width: 100%; }
         .ac-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); cursor: pointer; }
-        .ac-summary { font-size: 12.5px; color: var(--text-dim, #888); margin: -4px 0 10px; }
+        .ac-summary { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: -4px 0 10px; }
 
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
@@ -69,7 +69,7 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
             border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 6px 20px var(--shadow, rgba(0,0,0,.12)); padding: 4px; }
         .ac-export-menu a { display: block; padding: 8px 12px; border-radius: 5px; font-size: var(--font-size-md, 13px); color: var(--text, #333); text-decoration: none; }
         .ac-export-menu a:hover { background: var(--surface-2, #eceff1); }
-        .ac-export-menu small { display: block; color: var(--text-dim, #888); font-size: 11.5px; }
+        .ac-export-menu small { display: block; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
         .ac-export-menu { max-height: 70vh; overflow-y: auto; }
         .ac-export-company { padding: 8px 12px 2px; font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); }
         .ac-export-company:not(:first-child) { border-top: 1px solid var(--border-soft, #eee); margin-top: 4px; padding-top: 10px; }
@@ -81,7 +81,7 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
         .ac-table td { padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: top; }
         .ac-table tr.is-inactive td { color: var(--text-faint, #9aa3ab); }
         .ac-table tr.is-context td { opacity: .55; }
-        .ac-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; white-space: nowrap; }
+        .ac-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: var(--font-size-md, 13px); white-space: nowrap; }
         .ac-tree { display: inline-block; width: 14px; color: var(--text-faint, #b0bec5); }
         .ac-desc { color: var(--text-muted, #777); max-width: 420px; }
         .ac-badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; white-space: nowrap; }
@@ -120,14 +120,14 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
         .ac-toggle { margin-bottom: 4px; }
         .ac-toggle > span { font-weight: 600; color: var(--text, #444); }
         .ac-toggle > span small { display: block; font-weight: 400; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); margin-top: 2px; line-height: 1.45; }
-        .ac-note { font-size: 12.5px; line-height: 1.55; color: var(--text-muted, #666); background: var(--surface-2, #f5f7f8); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
+        .ac-note { font-size: var(--font-size-md, 13px); line-height: 1.55; color: var(--text-muted, #666); background: var(--surface-2, #f5f7f8); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
         .ac-note code { font-size: var(--font-size-sm, 12px); }
 
         /* Import preview */
         .ac-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
         .ac-count { padding: 6px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface-2, #eceff1); color: var(--text, #333); }
-        .ac-count strong { font-size: 15px; margin-right: 4px; }
-        .ac-errors { border: 1px solid #f5c2c0; background: #fdecea; color: #7d1f16; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 12.5px; }
+        .ac-count strong { font-size: var(--font-size-xl, 16px); margin-right: 4px; }
+        .ac-errors { border: 1px solid #f5c2c0; background: #fdecea; color: #7d1f16; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: var(--font-size-md, 13px); }
         .ac-errors ul { margin: 6px 0 0; padding-left: 18px; }
         .ac-errors li { margin-bottom: 3px; }
         .ac-act { font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }

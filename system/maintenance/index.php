@@ -68,11 +68,11 @@ foreach (getMaintenanceTools() as $tool) {
         .maint-card.is-hidden { display: none; }
         .maint-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .maint-card-top svg { width: 26px; height: 26px; color: var(--sys-accent, #546e7a); flex-shrink: 0; }
-        .maint-card h3 { margin: 0 0 5px; font-size: 15.5px; color: var(--text, #333); }
-        .maint-card p { margin: 0; font-size: 12.5px; color: var(--text-dim, #888); line-height: 1.45; }
+        .maint-card h3 { margin: 0 0 5px; font-size: var(--font-size-xl, 16px); color: var(--text, #333); }
+        .maint-card p { margin: 0; font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); line-height: 1.45; }
 
         /* The count: amber when there is something to look at, quiet when not. */
-        .maint-count { margin-left: auto; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
+        .maint-count { margin-left: auto; font-size: var(--font-size-sm, 12px); font-weight: 600; padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
         .maint-count.has-items { background: #fff4e5; color: #9a5b00; }
         .maint-count.is-clear  { background: var(--surface-3, #f2f4f5); color: var(--text-dim, #888); font-weight: 500; }
 

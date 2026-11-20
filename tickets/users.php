@@ -328,7 +328,7 @@ $translationNamespaces = ['common', 'tickets'];
             border-bottom: 2px solid transparent;
             border-radius: 0;
             padding: 6px 10px;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text-muted, #666);
             cursor: pointer;

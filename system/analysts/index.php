@@ -218,7 +218,7 @@ $translationNamespaces = ['common', 'tickets'];
         .lv-list li span:last-child { font-weight: 600; }
         .lv-move { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .lv-move select { padding: 6px 8px; border: 1px solid var(--border, #ccc); border-radius: 5px; background: var(--surface, #fff); color: var(--text, #333); }
-        .lv-note { font-size: 12.5px; padding: 9px 12px; border-radius: 6px; line-height: 1.5;
+        .lv-note { font-size: var(--font-size-md, 13px); padding: 9px 12px; border-radius: 6px; line-height: 1.5;
                    background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); border: 1px solid var(--warning-border, #f0d9a8); }
         .lv-option { display: flex; gap: 10px; align-items: flex-start; padding: 12px; margin-bottom: 8px; cursor: pointer;
                      border: 1px solid var(--border, #e0e0e0); border-radius: 8px; background: var(--surface, #fff); }
@@ -228,7 +228,7 @@ $translationNamespaces = ['common', 'tickets'];
         .lv-option input { margin-top: 3px; accent-color: var(--accent, #546e7a); }
         .lv-option strong { display: block; font-size: var(--font-size-lg, 14px); color: var(--text, #333); margin-bottom: 3px; }
         .lv-option .lv-muted { display: block; }
-        .lv-failed { font-size: 12.5px; color: var(--danger-text, #991b1b); background: var(--danger-bg, #fee2e2);
+        .lv-failed { font-size: var(--font-size-md, 13px); color: var(--danger-text, #991b1b); background: var(--danger-bg, #fee2e2);
                      border: 1px solid var(--danger-border, #f0c2c2); border-radius: 6px; padding: 9px 12px; margin-top: 10px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->

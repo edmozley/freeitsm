@@ -119,7 +119,7 @@ $shapes = include '../includes/shapes.php';
         /* Built-in marker pill — sits next to the row name. */
         .pms-builtin {
             display: inline-block;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             background: var(--accent-soft, #eef2ff);

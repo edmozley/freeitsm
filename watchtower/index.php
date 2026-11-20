@@ -103,7 +103,7 @@ try {
         .wt-card.wt-everyone .wt-card-name::after {
             content: attr(data-everyone-label);
             margin-left: 8px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: .04em;
@@ -221,7 +221,7 @@ try {
             min-width: 52px;
         }
         .wt-metric-value {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 700;
             line-height: 1.1;
         }
@@ -385,7 +385,7 @@ try {
         }
         .wt-wf-err {
             margin-top: 2px;
-            font-size: 11.5px;
+            font-size: var(--font-size-sm, 12px);
             line-height: 1.45;
             color: var(--text-muted, #64748b);
             word-break: break-word;

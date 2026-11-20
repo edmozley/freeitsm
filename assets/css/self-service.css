@@ -57,7 +57,7 @@ body {
     align-items: center;
     gap: 12px;
     font-weight: 600;
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     color: var(--ss-on-accent, #fff);
 }
 /* The logo is a dark-on-transparent PNG; force it white against the accent bar. */
@@ -163,7 +163,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 
 .welcome-section { margin-bottom: 24px; }
 .welcome-section h1 {
-    font-size: 22px;
+    font-size: var(--font-size-4xl, 24px);
     font-weight: 600;
     color: var(--text, #333);
     margin: 0 0 4px;
@@ -197,7 +197,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     padding: 16px 20px;
     border-bottom: 1px solid var(--border, #e5e7eb);
 }
-.section-header h2 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0; }
+.section-header h2 { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin: 0; }
 .section-header a {
     font-size: var(--font-size-sm, 12px);
     color: var(--ss-accent, #0078d4);
@@ -238,10 +238,10 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     padding: 14px 18px;
     border-bottom: 1px solid var(--border, #e5e7eb);
 }
-.rec-modal-head h2 { font-size: 15px; font-weight: 600; margin: 0; color: var(--text, #333); }
+.rec-modal-head h2 { font-size: var(--font-size-xl, 16px); font-weight: 600; margin: 0; color: var(--text, #333); }
 .rec-modal-x {
     border: none; background: none; cursor: pointer;
-    font-size: 22px; line-height: 1; padding: 0 4px;
+    font-size: var(--font-size-4xl, 24px); line-height: 1; padding: 0 4px;
     color: var(--text-muted, #777);
 }
 .rec-modal-x:hover { color: var(--text, #333); }
@@ -394,7 +394,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 }
 .summary-card:hover { box-shadow: var(--shadow, 0 2px 8px rgba(0, 0, 0, 0.08)); }
 .summary-card .card-label {
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.4px;
@@ -601,8 +601,8 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
        truncates happily, but the item still refuses to shrink below the width
        the untruncated text wants. */
     .summary-card { padding: 8px 9px; min-width: 0; }
-    .summary-card .card-label { font-size: 9px; letter-spacing: 0.2px; }
-    .summary-card .card-value { font-size: 17px; }
+    .summary-card .card-label { font-size: var(--font-size-xs, 11px); letter-spacing: 0.2px; }
+    .summary-card .card-value { font-size: var(--font-size-2xl, 18px); }
     /* Table rows get cramped; hide the least important columns rather than
        letting the table scroll sideways — see the mobile-friendly guidance. */
     .ticket-table .col-optional { display: none; }
@@ -700,7 +700,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
         min-width: 0;              /* the floor that made the header 633px */
         justify-content: flex-start;
         padding: 12px 14px;
-        font-size: 15px;
+        font-size: var(--font-size-xl, 16px);
         min-height: 44px;
     }
     .portal-nav .nav-btn.active {
@@ -1077,11 +1077,11 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 }
 .inc-card-toggle {
     margin-top: 9px; padding: 0; border: none; background: none; cursor: pointer;
-    font: inherit; font-size: 12.5px; color: var(--ss-accent, #0078d4); text-decoration: underline;
+    font: inherit; font-size: var(--font-size-md, 13px); color: var(--ss-accent, #0078d4); text-decoration: underline;
 }
 .inc-card-updates[hidden] { display: none !important; }
 .inc-card-updates { margin-top: 10px; border-top: 1px solid var(--border-soft, #f1f1f1); padding-top: 10px; }
-.inc-upd-loading { font-size: 12.5px; color: var(--text-dim, #999); }
+.inc-upd-loading { font-size: var(--font-size-md, 13px); color: var(--text-dim, #999); }
 
 /* A table with timestamps, as the request asked for — the story of the outage
    read top to bottom, oldest first. */

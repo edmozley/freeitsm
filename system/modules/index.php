@@ -38,7 +38,7 @@ $translationNamespaces = ['common', 'system'];
         .modules-container { flex: 1; min-width: 0; overflow-y: auto; }
 
         .panel { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 1px 3px var(--shadow, rgba(0,0,0,0.05)); }
-        .panel > h2 { font-size: 15px; margin: 0 0 12px; color: var(--text, #333); }
+        .panel > h2 { font-size: var(--font-size-xl, 16px); margin: 0 0 12px; color: var(--text, #333); }
 
         .mode-opt { display: block; margin: 8px 0; cursor: pointer; color: var(--text, #333); }
         .mode-opt input { margin-right: 8px; }

@@ -49,7 +49,7 @@
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 6px 10px; border-radius: 6px; font-size: var(--font-size-md, 13px); color: var(--text, #333); text-decoration: none;
 }
-.gl-jump-link.gl-depth-2 { padding-left: 24px; font-size: 12.5px; color: var(--text-muted, #666); }
+.gl-jump-link.gl-depth-2 { padding-left: 24px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
 .gl-jump-link:hover { background: var(--surface-hover, #f5f5f5); }
 .gl-jump-link.active { background: var(--accent-soft, #eef2f5); color: var(--accent, #546e7a); font-weight: 600; }
 .gl-jump-select { display: none; }

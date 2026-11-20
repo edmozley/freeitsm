@@ -235,7 +235,7 @@ $translationNamespaces = ['common', 'process-mapper'];
                         </div>
                     </div>
 
-                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.step_types_custom_heading')); ?></h4>
+                    <h4 style="margin: 22px 0 8px; font-size: var(--font-size-xl, 16px); color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.step_types_custom_heading')); ?></h4>
                     <p><?php echo t('process-mapper.help.step_types_custom_body'); ?></p>
 
                     <p class="help-note"><?php echo t('process-mapper.help.step_types_tip'); ?></p>
@@ -249,7 +249,7 @@ $translationNamespaces = ['common', 'process-mapper'];
                     </div>
                     <p><?php echo t('process-mapper.help.connectors_intro'); ?></p>
 
-                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.connectors_drawing_heading')); ?></h4>
+                    <h4 style="margin: 22px 0 8px; font-size: var(--font-size-xl, 16px); color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.connectors_drawing_heading')); ?></h4>
                     <div class="help-steps">
                         <div class="help-step">
                             <div class="help-step-num">1</div>
@@ -277,7 +277,7 @@ $translationNamespaces = ['common', 'process-mapper'];
                         </div>
                     </div>
 
-                    <h4 style="margin: 26px 0 8px; font-size: 15px; color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.connectors_menu_heading')); ?></h4>
+                    <h4 style="margin: 26px 0 8px; font-size: var(--font-size-xl, 16px); color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.connectors_menu_heading')); ?></h4>
                     <p><?php echo t('process-mapper.help.connectors_menu_intro'); ?></p>
                     <div class="help-cards cols-3">
                         <div class="help-card">

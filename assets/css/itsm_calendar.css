@@ -126,7 +126,7 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.15s;
-    font-size: 22px;
+    font-size: var(--font-size-4xl, 24px);
     line-height: 1;
     color: var(--text-muted, #555);
 }
@@ -398,7 +398,7 @@
 }
 
 .week-event-time {
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     opacity: 0.9;
 }
 

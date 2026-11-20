@@ -701,13 +701,13 @@ require __DIR__ . "/includes/header.php";
             .req-pill.sent     { background: var(--info-bg, #e0f2fe);    color: var(--info-text, #075985); }
             .req-pill.cancelled { background: var(--surface-2, #f1f3f5);  color: var(--text-muted, #666); }
             /* Cancel (GH #348): quiet beside the state, a link rather than a button. */
-            .req-cancel { margin-left: 10px; padding: 0; border: none; background: none; font: inherit; font-size: 12.5px;
+            .req-cancel { margin-left: 10px; padding: 0; border: none; background: none; font: inherit; font-size: var(--font-size-md, 13px);
                 color: var(--danger-text, #b91c1c); cursor: pointer; text-decoration: underline; }
             .req-dialog { margin: auto; border: none; border-radius: 10px; padding: 0; width: min(440px, calc(100vw - 32px));
                 background: var(--surface, #fff); color: var(--text, #333); box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
             .req-dialog::backdrop { background: rgba(0,0,0,0.45); }
-            .req-dialog h3 { margin: 0; padding: 18px 20px 6px; font-size: 17px; }
-            .req-dialog p { margin: 0; padding: 0 20px 12px; font-size: 13.5px; color: var(--text-muted, #666); }
+            .req-dialog h3 { margin: 0; padding: 18px 20px 6px; font-size: var(--font-size-2xl, 18px); }
+            .req-dialog p { margin: 0; padding: 0 20px 12px; font-size: var(--font-size-lg, 14px); color: var(--text-muted, #666); }
             .req-dialog textarea { display: block; width: calc(100% - 40px); margin: 0 20px; min-height: 90px; padding: 10px; box-sizing: border-box;
                 border: 1px solid var(--border, #d0d5da); border-radius: 6px; font: inherit; font-size: var(--font-size-lg, 14px); resize: vertical;
                 background: var(--surface, #fff); color: var(--text, #333); }

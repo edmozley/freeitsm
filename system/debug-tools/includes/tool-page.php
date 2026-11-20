@@ -80,16 +80,16 @@ $toolRunner = !empty($tool['runner']) ? preg_replace('/[^a-z0-9-]/', '', (string
         .diag-card { background: var(--surface, #fff); border-radius: 10px; padding: 24px 26px; box-shadow: 0 1px 6px var(--shadow, rgba(0,0,0,0.08)); border: 1px solid var(--border-soft, #eee); }
         .diag-head { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
         .diag-id { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); font-size: var(--font-size-xs, 11px); font-weight: 700; letter-spacing: 0.5px; padding: 4px 10px; border-radius: 4px; font-family: 'Consolas', monospace; }
-        .diag-title { font-size: 19px; color: var(--text, #333); margin: 0; flex: 1; }
+        .diag-title { font-size: var(--font-size-3xl, 20px); color: var(--text, #333); margin: 0; flex: 1; }
         .diag-category { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim, #888); background: var(--surface-3, #f5f5f5); padding: 4px 8px; border-radius: 4px; }
-        .diag-when { font-size: 13.5px; color: var(--text-muted, #555); line-height: 1.55; margin: 10px 0 16px; }
+        .diag-when { font-size: var(--font-size-lg, 14px); color: var(--text-muted, #555); line-height: 1.55; margin: 10px 0 16px; }
         .diag-section-label { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim, #888); margin: 14px 0 6px; font-weight: 600; }
-        .diag-checks { margin: 0 0 6px 18px; padding: 0; font-size: 12.5px; color: var(--text-muted, #555); line-height: 1.6; }
+        .diag-checks { margin: 0 0 6px 18px; padding: 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); line-height: 1.6; }
         .diag-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); display: flex; gap: 22px; flex-wrap: wrap; padding: 12px 0; border-top: 1px solid var(--border-soft, #f0f0f0); margin-top: 14px; }
         .diag-meta strong { color: var(--text, #333); }
         /* Destructive-tool warning: pale red wash. Light values don't match the
            --danger-* trio exactly, so they stay put and dark is overridden below. */
-        .diag-destructive { font-size: 12.5px; color: #b71c1c; background: #fdecea; border: 1px solid #f5c6cb; border-radius: 6px; padding: 10px 14px; margin: 14px 0 0; }
+        .diag-destructive { font-size: var(--font-size-md, 13px); color: #b71c1c; background: #fdecea; border: 1px solid #f5c6cb; border-radius: 6px; padding: 10px 14px; margin: 14px 0 0; }
         .diag-fields { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-soft, #f0f0f0); }
         .diag-input-row { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
         .diag-input-row:last-child { margin-bottom: 0; }

@@ -55,7 +55,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         .cc-toolbar select, .cc-toolbar input[type=search] { padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .cc-toolbar input[type=search] { width: 260px; max-width: 100%; }
         .cc-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); cursor: pointer; }
-        .cc-summary { font-size: 12.5px; color: var(--text-dim, #888); margin: -4px 0 10px; }
+        .cc-summary { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: -4px 0 10px; }
 
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
@@ -69,7 +69,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
             border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 6px 20px var(--shadow, rgba(0,0,0,.12)); padding: 4px; }
         .cc-export-menu a { display: block; padding: 8px 12px; border-radius: 5px; font-size: var(--font-size-md, 13px); color: var(--text, #333); text-decoration: none; }
         .cc-export-menu a:hover { background: var(--surface-2, #eceff1); }
-        .cc-export-menu small { display: block; color: var(--text-dim, #888); font-size: 11.5px; }
+        .cc-export-menu small { display: block; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
         .cc-export-menu { max-height: 70vh; overflow-y: auto; }
         .cc-export-company { padding: 8px 12px 2px; font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); }
         .cc-export-company:not(:first-child) { border-top: 1px solid var(--border-soft, #eee); margin-top: 4px; padding-top: 10px; }
@@ -81,7 +81,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         .cc-table td { padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: top; }
         .cc-table tr.is-inactive td { color: var(--text-faint, #9aa3ab); }
         .cc-table tr.is-context td { opacity: .55; }
-        .cc-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; white-space: nowrap; }
+        .cc-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: var(--font-size-md, 13px); white-space: nowrap; }
         .cc-tree { display: inline-block; width: 14px; color: var(--text-faint, #b0bec5); }
         .cc-desc { color: var(--text-muted, #777); max-width: 420px; }
         .cc-badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; white-space: nowrap; }
@@ -115,14 +115,14 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         .cc-toggle { margin-bottom: 4px; }
         .cc-toggle > span { font-weight: 600; color: var(--text, #444); }
         .cc-toggle > span small { display: block; font-weight: 400; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); margin-top: 2px; line-height: 1.45; }
-        .cc-note { font-size: 12.5px; line-height: 1.55; color: var(--text-muted, #666); background: var(--surface-2, #f5f7f8); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
+        .cc-note { font-size: var(--font-size-md, 13px); line-height: 1.55; color: var(--text-muted, #666); background: var(--surface-2, #f5f7f8); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
         .cc-note code { font-size: var(--font-size-sm, 12px); }
 
         /* Import preview */
         .cc-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
         .cc-count { padding: 6px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface-2, #eceff1); color: var(--text, #333); }
-        .cc-count strong { font-size: 15px; margin-right: 4px; }
-        .cc-errors { border: 1px solid #f5c2c0; background: #fdecea; color: #7d1f16; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 12.5px; }
+        .cc-count strong { font-size: var(--font-size-xl, 16px); margin-right: 4px; }
+        .cc-errors { border: 1px solid #f5c2c0; background: #fdecea; color: #7d1f16; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: var(--font-size-md, 13px); }
         .cc-errors ul { margin: 6px 0 0; padding-left: 18px; }
         .cc-errors li { margin-bottom: 3px; }
         .cc-act { font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }

@@ -186,7 +186,7 @@ $translationNamespaces = ['common', 'tickets'];
             display: inline-block;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             background: var(--success-bg, #e8f5e9);
             color: var(--success-text, #2e7d32);
@@ -216,7 +216,7 @@ $translationNamespaces = ['common', 'tickets'];
 
         .edit-panel h3 {
             margin: 0 0 16px 0;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 

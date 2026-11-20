@@ -184,7 +184,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
 }
 
 .wf-node-kind {
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     text-transform: uppercase;
     letter-spacing: 0.6px;
     color: rgba(255,255,255,0.85);
@@ -198,7 +198,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
     overflow-wrap: break-word;
 }
 .wf-node-sub {
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     color: rgba(255,255,255,0.85);
     margin-top: 4px;
     max-width: 100%;
@@ -259,7 +259,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
 }
 .wf-detail-header h3 {
     margin: 0;
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     font-weight: 600;
     color: var(--text, #333);
 }
@@ -527,7 +527,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
     align-items: center;
     gap: 5px;
     padding: 3px 8px;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     border-radius: 4px;
     cursor: pointer;
     color: var(--text-muted, #6b7280);
@@ -540,7 +540,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
 }
 .wf-arg-varwarn {
     display: block;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.5;
     color: var(--warning-text, #92400e);
 }
@@ -631,7 +631,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
 }
 .wf-var-picker-hint {
     margin: 0 0 8px;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.5;
     color: var(--text-muted, #666);
 }
@@ -639,7 +639,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
     width: 100%;
     box-sizing: border-box;
     padding: 6px 9px;
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     border-radius: 6px;
     margin-bottom: 8px;
     color: var(--text, #333);
@@ -670,7 +670,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
 .wf-var-item:hover { background: var(--wf-accent-soft, #fef3c7); }
 .wf-var-item-label {
     display: block;
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
 }
 .wf-var-item-code {
@@ -703,7 +703,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
 .wf-fmt-hint {
     display: block;
     margin-top: 5px;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.5;
     color: var(--text-muted, #6b7280);
 }
@@ -712,7 +712,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
     margin-top: 5px;
     padding: 6px 8px;
     border-radius: 4px;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.5;
     background: var(--warning-bg, #fef3c7);
     color: var(--warning-text, #92400e);
@@ -782,7 +782,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
     gap: 12px;
     margin: 16px 0 40px;
 }
-.wfx-pager-info { font-size: 12.5px; color: var(--text-muted, #666); }
+.wfx-pager-info { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
 
 .wfx-detail-head {
     display: flex;
@@ -862,7 +862,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
     margin: 0;
     padding: 10px 12px;
     border-radius: 6px;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.5;
     max-height: 260px;
     overflow: auto;
@@ -918,7 +918,7 @@ body { --accent: var(--wf-accent, #f59e0b); }
 .wf-br-items { display: flex; flex-direction: column; gap: 6px; }
 .wf-br-chip { background: linear-gradient(135deg, var(--wf-action-start, #3b82f6), var(--wf-action-end, #2563eb)); color: var(--on-accent, #fff); border-radius: 8px; padding: 7px 9px; cursor: pointer; text-align: center; }
 .wf-br-chip.selected { outline: 3px solid var(--warning-accent, #f59e0b); outline-offset: 1px; }
-.wf-br-chip .wf-node-kind { font-size: 9px; opacity: 0.85; }
+.wf-br-chip .wf-node-kind { font-size: var(--font-size-xs, 11px); opacity: 0.85; }
 .wf-br-chip .wf-node-title { font-size: var(--font-size-sm, 12px); font-weight: 600; }
 .wf-br-chip .wf-node-sub { font-size: var(--font-size-xs, 11px); opacity: 0.9; overflow-wrap: anywhere; }
 .wf-br-empty { font-size: var(--font-size-xs, 11px); color: var(--text-faint, #999); font-style: italic; padding: 2px 6px; }

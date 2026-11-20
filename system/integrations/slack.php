@@ -98,14 +98,14 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
             background: #263238; color: #eceff1;
             border-radius: 8px; padding: 14px 16px;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12.5px; line-height: 1.55;
+            font-size: var(--font-size-md, 13px); line-height: 1.55;
             overflow: auto; max-height: 360px;
             white-space: pre;
         }
         .copy-row { display: flex; gap: 8px; align-items: center; margin: 10px 0 4px; }
         .copy-row .grow { flex: 1; min-width: 0; }
         .url-box {
-            font-family: 'Consolas', 'Monaco', monospace; font-size: 12.5px;
+            font-family: 'Consolas', 'Monaco', monospace; font-size: var(--font-size-md, 13px);
             background: var(--surface-2); color: var(--text);
             border: 1px solid var(--border); border-radius: 6px;
             padding: 9px 11px; width: 100%; box-sizing: border-box;
@@ -305,7 +305,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
                 <li><?php echo t('system.integrations.slack_step5'); ?></li>
             </ol>
 
-            <h4 style="margin:18px 0 4px;font-size:15px;color:var(--text);"><?php echo htmlspecialchars(t('system.integrations.slack_scopes_heading')); ?></h4>
+            <h4 style="margin:18px 0 4px;font-size:var(--font-size-xl, 16px);color:var(--text);"><?php echo htmlspecialchars(t('system.integrations.slack_scopes_heading')); ?></h4>
             <p class="card-desc" style="margin-bottom:6px;"><?php echo htmlspecialchars(t('system.integrations.slack_scopes_desc')); ?></p>
             <ul class="scope-list">
                 <?php

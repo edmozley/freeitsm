@@ -131,7 +131,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             align-items: center;
             justify-content: center;
             margin-right: 4px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-faint, #999);
             flex-shrink: 0;
         }
@@ -211,7 +211,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             letter-spacing: 0.3px;
         }

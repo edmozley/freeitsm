@@ -52,7 +52,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
+        .page-header h1 { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -77,7 +77,7 @@ $translationNamespaces = ['common', 'contracts'];
         .stat-card.multi       { border-left-color: #10b981; }
         .stat-card.single      { border-left-color: #f59e0b; }
         .stat-card.unsupported { border-left-color: #ef4444; }
-        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
+        .stat-card .stat-value { font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); line-height: 1; }
         .stat-card .stat-label {
             font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888);
             text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px;

@@ -57,12 +57,12 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         .set-row { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--border-soft, #eee); }
         .set-row:last-of-type { border-bottom: none; }
         .set-row .lbl { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
-        .set-row .desc { font-size: 12.5px; color: var(--text-dim, #888); margin-top: 4px; line-height: 1.5; }
+        .set-row .desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-top: 4px; line-height: 1.5; }
         .set-row select, .set-row input[type="text"], .set-row input[type="number"], .set-row textarea {
             padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-lg, 14px); width: 100%; max-width: 460px;
             background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; font-family: inherit;
         }
-        .set-row .dflt { font-size: 11.5px; color: var(--text-dim, #999); margin-top: 5px; }
+        .set-row .dflt { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #999); margin-top: 5px; }
         .set-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
         .set-box { background: var(--surface-2, #f8fafc); border: 1px solid var(--border-soft, #e5e7eb); border-radius: 8px; padding: 14px 16px; font-size: var(--font-size-md, 13px); margin: 6px 0 16px; line-height: 1.55; }
         .set-box code { word-break: break-all; }
@@ -530,7 +530,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
             const d = await api('endpoints.php?profiles=1');
             if (!d.ready) { body.innerHTML = '<tr><td colspan="4" class="dom-hint">' + esc(T('endpoint.not_ready')) + '</td></tr>'; return; }
             profiles = d.profiles || [];
-            body.innerHTML = profiles.length ? profiles.map(p => '<tr data-id="' + p.id + '"><td>' + esc(p.name) + '</td><td class="dom-hint" style="font-size:12.5px">' + esc(p.summary || '') + '</td>'
+            body.innerHTML = profiles.length ? profiles.map(p => '<tr data-id="' + p.id + '"><td>' + esc(p.name) + '</td><td class="dom-hint" style="font-size:var(--font-size-md, 13px)">' + esc(p.summary || '') + '</td>'
                 + '<td>' + esc(p.used_by) + '</td>'
                 + '<td><button type="button" class="action-btn tp-edit" title="' + esc(window.t('common.edit')) + '">' + SVG_EDIT + '</button>'
                 + '<button type="button" class="action-btn delete tp-del" title="' + esc(window.t('common.delete')) + '">' + SVG_DEL + '</button></td></tr>').join('')

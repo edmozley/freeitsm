@@ -288,8 +288,8 @@ function renderTicketChecklistsInline(ticketId) {
             `;
         } else if (nextPendingItem) {
             const isMand = (nextPendingItem.is_mandatory == 1 || nextPendingItem.is_mandatory === true || nextPendingItem.is_mandatory === '1');
-            const reqInputBadge = (nextPendingItem.requires_input == 1) ? `<span style="font-size: 10px; background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 3px; margin-left: 6px;">📝 Note required</span>` : '';
-            const roleBadge = nextPendingItem.suggested_role ? `<span style="font-size: 10px; background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; margin-left: 6px;" title="Suggested Role"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; display: inline-block; vertical-align: -1px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${escapeHtml(nextPendingItem.suggested_role)}</span>` : '';
+            const reqInputBadge = (nextPendingItem.requires_input == 1) ? `<span style="font-size: var(--font-size-xs, 11px); background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 3px; margin-left: 6px;">📝 Note required</span>` : '';
+            const roleBadge = nextPendingItem.suggested_role ? `<span style="font-size: var(--font-size-xs, 11px); background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; margin-left: 6px;" title="Suggested Role"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; display: inline-block; vertical-align: -1px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${escapeHtml(nextPendingItem.suggested_role)}</span>` : '';
             
             html += `
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 0;">
@@ -330,8 +330,8 @@ function checklistStepRowHtml(ticketId, it, reopenPopout) {
     const completedDate = formatStepDatetime(it.completed_datetime);
     const completedMeta = isChecked && it.completed_by_name ? `<div style="font-size: var(--font-size-xs, 11px); color: var(--text-muted, #64748b); margin-left: 24px;">Completed by ${escapeHtml(it.completed_by_name)}${completedDate ? ' on ' + escapeHtml(completedDate) : ''}</div>` : '';
     const responseMeta = it.response_value ? `<div style="font-size: var(--font-size-xs, 11px); color: #3730a3; background: #eef2ff; padding: 3px 8px; border-radius: 4px; margin-left: 24px; margin-top: 2px; border-left: 2px solid #6366f1;"><strong>Input:</strong> ${escapeHtml(it.response_value)}</div>` : '';
-    const reqBadge = (!isChecked && it.requires_input == 1) ? `<span style="font-size: 10px; background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 3px; margin-left: 6px;">📝 Note required</span>` : '';
-    const roleBadge = it.suggested_role ? `<span style="font-size: 10px; background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; margin-left: 6px;" title="Suggested Role"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; display: inline-block; vertical-align: -1px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${escapeHtml(it.suggested_role)}</span>` : '';
+    const reqBadge = (!isChecked && it.requires_input == 1) ? `<span style="font-size: var(--font-size-xs, 11px); background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 3px; margin-left: 6px;">📝 Note required</span>` : '';
+    const roleBadge = it.suggested_role ? `<span style="font-size: var(--font-size-xs, 11px); background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; margin-left: 6px;" title="Suggested Role"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; display: inline-block; vertical-align: -1px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${escapeHtml(it.suggested_role)}</span>` : '';
 
     return `
         <div style="padding: 4px 0;">
@@ -400,7 +400,7 @@ function checklistResultStepRowHtml(ticketId, it, reopenPopout) {
             <div>
                 ${escapeHtml(it.title)}
                 ${isMand ? '<span style="color: #ef4444; font-weight: bold; margin-left: 2px;" title="Mandatory">*</span>' : ''}
-                ${it.suggested_role ? `<span style="font-size: 10px; background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">${escapeHtml(it.suggested_role)}</span>` : ''}
+                ${it.suggested_role ? `<span style="font-size: var(--font-size-xs, 11px); background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">${escapeHtml(it.suggested_role)}</span>` : ''}
             </div>
             ${checklistStepDescHtml(it)}
             ${checklistResultButtonsHtml(ticketId, it, reopenPopout)}
@@ -430,7 +430,7 @@ function chooseTicketStepResult(ticketId, itemId, result, reopenPopout) {
     }
     modal.innerHTML = `
         <div style="background: var(--surface, #ffffff); border-radius: 8px; width: 90%; max-width: 440px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid var(--border, #cbd5e1); color: var(--text, #1e293b); padding: 18px;">
-            <h4 style="margin: 0 0 8px 0; font-size: 15px; font-weight: 600;">${escapeHtml(chkT('checklists.panel.fail_title', 'What went wrong?'))}</h4>
+            <h4 style="margin: 0 0 8px 0; font-size: var(--font-size-xl, 16px); font-weight: 600;">${escapeHtml(chkT('checklists.panel.fail_title', 'What went wrong?'))}</h4>
             <p style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b); margin: 0 0 10px 0;">${escapeHtml(info ? info.item.title : '')}</p>
             <textarea id="chkFailNote" rows="3" style="width: 100%; box-sizing: border-box; padding: 7px 10px; font-size: var(--font-size-md, 13px); border: 1px solid var(--border, #cbd5e1); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333);"
                       placeholder="${escapeHtml(chkT('checklists.panel.fail_placeholder', 'Say what failed, so the record shows it'))}"></textarea>
@@ -616,7 +616,7 @@ function promptDataCapture(ticketId, item, checklistTitle, reopenPopout) {
     modal.innerHTML = `
         <div style="background: var(--surface, #ffffff); border-radius: 8px; width: 90%; max-width: 440px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid var(--border, #cbd5e1); color: var(--text, #1e293b); padding: 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h4 style="margin: 0; font-size: 15px; font-weight: 600;">📝 Step Data Capture</h4>
+                <h4 style="margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600;">📝 Step Data Capture</h4>
                 
             </div>
             <p style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b); margin: 0 0 10px 0;">
@@ -775,7 +775,7 @@ async function openAttachChecklistModal(ticketId) {
     modal.innerHTML = `
         <div class="chk-attach-dialog" style="background: var(--surface, #ffffff); border-radius: 8px; width: 90%; max-width: 560px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 1px solid var(--border, #cbd5e1); color: var(--text, #1e293b);">
             <div style="padding: 14px 18px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="margin: 0; font-size: 15px; font-weight: 600;">Attach checklist</h4>
+                <h4 style="margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600;">Attach checklist</h4>
             </div>
             <div style="padding: 12px 18px 6px 18px;">
                 <input type="text" id="chkSearchInput" onkeyup="filterTemplatesList(${ticketId})" placeholder="Search checklists..." style="width: 100%; box-sizing: border-box; padding: 7px 10px; font-size: var(--font-size-md, 13px); border: 1px solid var(--border, #cbd5e1); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333);">

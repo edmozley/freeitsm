@@ -55,7 +55,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
+        .page-header h1 { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -138,7 +138,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; align-items: center; gap: 12px;
         }
         .cat-header h2 {
-            margin: 0; font-size: 15px; font-weight: 600; color: var(--text, #222); flex: 1;
+            margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222); flex: 1;
         }
         .cat-header .cat-avg-inline {
             font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); font-variant-numeric: tabular-nums;

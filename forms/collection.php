@@ -155,7 +155,7 @@ $translationNamespaces = ['common', 'forms'];
         .detail-field-label { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted); margin-bottom: 3px; }
         .detail-field-value { font-size: var(--font-size-lg, 14px); color: var(--text); white-space: pre-wrap; }
         .detail-field-value.empty { color: var(--text-faint); font-style: italic; }
-        .col-retired { font-size: 10px; font-weight: 600; color: var(--text-faint); }
+        .col-retired { font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-faint); }
 
         @media print {
             .header, .coll-toolbar-right, .coll-selbar, .sel-col, .act-col,

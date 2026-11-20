@@ -193,7 +193,7 @@ foreach ($formActionDefs as $def) {
             display: inline-block;
             padding: 1px 7px;
             border-radius: 10px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             background: var(--forms-accent, #00897b);
             color: white;
@@ -275,11 +275,11 @@ foreach ($formActionDefs as $def) {
             flex-shrink: 0;
         }
         .properties-drawer-header h3 {
-            margin: 0; font-size: 15px; color: var(--text, #333);
+            margin: 0; font-size: var(--font-size-xl, 16px); color: var(--text, #333);
         }
         .properties-close {
             background: none; border: none;
-            font-size: 22px; line-height: 1;
+            font-size: var(--font-size-4xl, 24px); line-height: 1;
             color: var(--text-faint, #999); cursor: pointer; padding: 0 4px;
         }
         .properties-close:hover { color: var(--text, #333); }
@@ -353,7 +353,7 @@ foreach ($formActionDefs as $def) {
             background-clip: text;
         }
         .ai-modal-close {
-            background: none; border: none; font-size: 22px; line-height: 1;
+            background: none; border: none; font-size: var(--font-size-4xl, 24px); line-height: 1;
             color: var(--text-faint, #999); cursor: pointer; padding: 0;
         }
         .ai-modal-close:hover { color: var(--text, #333); }
@@ -450,7 +450,7 @@ foreach ($formActionDefs as $def) {
             gap: 10px;
             padding: 8px 12px;
             border-bottom: 1px solid var(--border-soft, #f1f5f9);
-            font-size: 12.5px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #1e293b);
         }
         .ai-proposal .ai-prop-list li:last-child { border-bottom: none; }
@@ -460,7 +460,7 @@ foreach ($formActionDefs as $def) {
             border-radius: 10px;
             color: white;
             font-weight: 600;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             letter-spacing: 0.3px;
             flex-shrink: 0;
@@ -511,7 +511,7 @@ foreach ($formActionDefs as $def) {
         .cc-price-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .cc-price-row input { flex: 0 0 140px; width: 140px; }
         .cc-price-row select { flex: 0 0 auto; width: auto; }
-        .cc-currency { font-size: 12.5px; color: var(--text-muted, #666); margin-top: 6px; }
+        .cc-currency { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-top: 6px; }
         .cc-currency button { background: none; border: none; padding: 0; color: var(--accent, #0078d4); cursor: pointer; font: inherit; text-decoration: underline; }
         .cc-currency select { margin-top: 6px; max-width: 100%; }
         .cc-hint { display: block; margin-top: 6px; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); }
@@ -525,13 +525,13 @@ foreach ($formActionDefs as $def) {
         .cc-drop.has-image { border-style: solid; padding: 0; }
         .cc-drop-remove { position: absolute; top: 8px; right: 8px; z-index: 1; padding: 5px 10px; border-radius: 5px; border: none;
             background: rgba(0,0,0,0.6); color: #fff; font-size: var(--font-size-sm, 12px); cursor: pointer; }
-        .cc-note { margin: 0 0 16px; padding: 9px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
+        .cc-note { margin: 0 0 16px; padding: 9px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
         .cc-card { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; overflow: hidden; }
         .cc-card-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
         .cc-card-body { padding: 14px 16px; }
-        .cc-card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
+        .cc-card-title { font-size: var(--font-size-xl, 16px); font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
         .cc-card-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.45; }
-        .cc-card-price { margin-top: 10px; font-size: 15px; font-weight: 600; color: var(--accent, #0078d4); }
+        .cc-card-price { margin-top: 10px; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--accent, #0078d4); }
         @media (max-width: 900px) { .cc-layout { grid-template-columns: 1fr; } .cc-side { position: static; } }
     </style>
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the

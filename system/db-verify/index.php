@@ -150,7 +150,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             margin-bottom: 20px;
             background: var(--card-bg, #fff);
         }
-        .preview-panel h3 { margin: 0 0 4px; font-size: 15px; }
+        .preview-panel h3 { margin: 0 0 4px; font-size: var(--font-size-xl, 16px); }
         .preview-readonly { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #78868f); margin-bottom: 14px; }
         .preview-line { font-size: var(--font-size-md, 13px); padding: 4px 0; }
         .preview-drops {
@@ -386,7 +386,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             align-items: center;
             gap: 5px;
             min-width: 0;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             letter-spacing: 0.03em;
             color: var(--text-dim, #999);
@@ -422,7 +422,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         .tcard-dot.warning { background: #e0a800; }
         .tcard.has-fix { border-color: #e8871e; }
         .tcard .fix-flag {
-            font-size: 10px; font-weight: 700; color: #8a4b00;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; color: #8a4b00;
         }
         [data-theme-mode="dark"] .tcard-dot.ok { background: #4ade80; }
         [data-theme-mode="dark"] .tcard-dot.created { background: #fcd34d; }
@@ -468,7 +468,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             letter-spacing: 0.04em;
             color: var(--text-muted, #666);
         }
-        .detail-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        .detail-tbl { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
         .detail-tbl th {
             text-align: left; padding: 6px 10px;
             border-bottom: 1px solid var(--border, #e0e0e0);
@@ -486,7 +486,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         }
         .kbadge {
             display: inline-block;
-            font-size: 10px; font-weight: 700;
+            font-size: var(--font-size-xs, 11px); font-weight: 700;
             padding: 1px 6px; border-radius: 4px;
             background: var(--surface-3, #eef1f4); color: var(--text-muted, #555);
             margin-left: 4px;

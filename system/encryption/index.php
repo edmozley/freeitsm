@@ -157,7 +157,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .info-section h3 {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 16px 0;

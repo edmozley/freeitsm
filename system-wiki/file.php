@@ -61,7 +61,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.06));
         }
         .file-title {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             color: var(--text, #333);
             display: flex;
@@ -151,7 +151,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         .type-badge.php { background: #e8eaf6; color: #3f51b5; }
@@ -160,7 +160,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         .dep-badge.require_once, .dep-badge.require { background: #e8f5e9; color: #2e7d32; }
@@ -173,7 +173,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         .ref-badge.SELECT { background: #e3f2fd; color: #1565c0; }
@@ -186,7 +186,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         .access-badge.read { background: #e3f2fd; color: #1565c0; }

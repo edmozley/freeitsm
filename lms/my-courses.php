@@ -49,7 +49,7 @@ $canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_
         .myc-inner { margin: 0 auto; padding: 32px 28px 56px; }
         .myc-head { display: flex; align-items: flex-start; gap: 16px; }
         .myc-head-text { flex: 1; min-width: 0; }
-        .myc-inner h1 { margin: 0 0 4px; font-size: 22px; color: var(--text, #1f2330); }
+        .myc-inner h1 { margin: 0 0 4px; font-size: var(--font-size-4xl, 24px); color: var(--text, #1f2330); }
         .myc-inner p.myc-lead { margin: 0 0 24px; color: var(--text-muted, #6b7280); font-size: var(--font-size-lg, 14px); }
 
         /* The layout switch. Same shape and the same two glyphs as the Knowledge
@@ -74,7 +74,7 @@ $canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_
             border: 1px solid var(--border, #e5e7eb); border-radius: 10px;
         }
         .myc-card-main { flex: 1; min-width: 0; }
-        .myc-card-main h3 { margin: 0 0 4px; font-size: 15.5px; color: var(--text, #1f2330); }
+        .myc-card-main h3 { margin: 0 0 4px; font-size: var(--font-size-xl, 16px); color: var(--text, #1f2330); }
         .myc-card-main p { margin: 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); line-height: 1.5; }
         .myc-meta { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
         .myc-deadline { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); }
@@ -98,7 +98,7 @@ $canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_
         .myc-progress-fill.is-done { background: #16a34a; }
         .myc-progress-label {
             display: block; margin-top: 5px;
-            font-size: 11.5px; color: var(--text-muted, #6b7280);
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280);
         }
 
         /* ---- Card layout ----

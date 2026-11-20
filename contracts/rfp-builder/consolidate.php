@@ -46,7 +46,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
+        .page-header h1 { margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -79,7 +79,7 @@ $translationNamespaces = ['common', 'contracts'];
         .stat-card.cons     { border-left-color: #3b82f6; }
         .stat-card.conf     { border-left-color: #ef4444; }
         .stat-card.linked   { border-left-color: #10b981; }
-        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
+        .stat-card .stat-value { font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222); line-height: 1; }
         .stat-card .stat-label { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
 
         .empty-card {
@@ -365,7 +365,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; align-items: center; justify-content: space-between;
         }
         .edit-modal-header .close-x {
-            background: none; border: none; font-size: 22px; color: var(--text-dim, #888);
+            background: none; border: none; font-size: var(--font-size-4xl, 24px); color: var(--text-dim, #888);
             cursor: pointer; padding: 0; line-height: 1;
         }
         .edit-modal-body {

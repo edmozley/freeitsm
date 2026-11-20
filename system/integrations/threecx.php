@@ -60,7 +60,7 @@ $t = fn(string $k) => htmlspecialchars(t('system.integrations.' . $k));
         .tcx-hint { font-size:var(--font-size-sm, 12px); color:var(--text-faint,#9ca3af); margin-top:5px; line-height:1.45; }
         .tcx-row { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
         .tcx-row .lbl { flex:0 0 90px; font-size:var(--font-size-md, 13px); font-weight:600; color:var(--text-dim,#6b7280); }
-        .tcx-row code { flex:1; font-size:12.5px; background:var(--surface-2,#f6f8fa); border:1px solid var(--border,#e5e7eb);
+        .tcx-row code { flex:1; font-size:var(--font-size-md, 13px); background:var(--surface-2,#f6f8fa); border:1px solid var(--border,#e5e7eb);
                         border-radius:6px; padding:8px 10px; word-break:break-all; color:var(--text,#111827); }
         .tcx-check { display:flex; gap:8px; align-items:flex-start; font-size:var(--font-size-md, 13px); color:var(--text,#333); margin:6px 0 4px; }
         .tcx-try { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }

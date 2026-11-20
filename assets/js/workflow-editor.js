@@ -984,8 +984,8 @@ const WFE = (() => {
                     scored.forEach(({ item: v }) => {
                         const isChecked = selectedIds.includes(String(v.id));
                         const lbl = document.createElement('label');
-                        lbl.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:12.5px; cursor:pointer; padding:3px 0; color:var(--text, #333);';
-                        const catBadge = v.category ? `<small style="font-size:10px; color:#0d9488; background:rgba(13,148,136,0.1); padding:1px 5px; border-radius:3px; margin-left:4px; font-weight:600;">${escAttr(v.category)}</small>` : '';
+                        lbl.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:var(--font-size-md, 13px); cursor:pointer; padding:3px 0; color:var(--text, #333);';
+                        const catBadge = v.category ? `<small style="font-size:var(--font-size-xs, 11px); color:#0d9488; background:rgba(13,148,136,0.1); padding:1px 5px; border-radius:3px; margin-left:4px; font-weight:600;">${escAttr(v.category)}</small>` : '';
                         lbl.innerHTML = `<input type="checkbox" value="${escAttr(v.id)}" ${isChecked ? 'checked' : ''} style="cursor:pointer;"> <span>${escAttr(v.label)}${catBadge}</span>`;
                         
                         lbl.querySelector('input').addEventListener('change', (e) => {
@@ -1160,7 +1160,7 @@ const WFE = (() => {
         wrap.style.cssText = 'border-top: 1px solid var(--border-soft, #eceff1); margin-top: 14px; padding-top: 14px;';
         wrap.innerHTML =
             '<button type="button" class="add-btn" id="wfWebhookTestBtn" style="margin:0;">Send test</button>'
-            + '<small style="display:block; color:var(--text-muted, #6b7280); margin-top:6px; font-size:11.5px;">Sends this webhook now, with sample ticket data, and shows what the endpoint returns. Nothing is saved.</small>'
+            + '<small style="display:block; color:var(--text-muted, #6b7280); margin-top:6px; font-size:var(--font-size-sm, 12px);">Sends this webhook now, with sample ticket data, and shows what the endpoint returns. Nothing is saved.</small>'
             + '<div id="wfWebhookTestResult" style="margin-top:12px;"></div>';
         host.appendChild(wrap);
 
@@ -1178,7 +1178,7 @@ const WFE = (() => {
         btn.disabled = true;
         const original = btn.textContent;
         btn.textContent = 'Sending…';
-        out.innerHTML = '<em style="color:var(--text-muted, #6b7280); font-size:12.5px;">Sending…</em>';
+        out.innerHTML = '<em style="color:var(--text-muted, #6b7280); font-size:var(--font-size-md, 13px);">Sending…</em>';
         try {
             const r = await fetch(window.WF_API + 'webhook_test.php', {
                 method: 'POST',
@@ -1377,7 +1377,7 @@ const WFE = (() => {
     /** Returns the red error box HTML for a failed webhook test. */
     function webhookTestError(msg, heading) {
         const esc = wfEsc;
-        return '<div style="border-left:3px solid var(--danger-accent, #c0392b); background:var(--danger-bg, #fdf0f0); padding:10px 12px; border-radius:4px; font-size:12.5px; color:var(--danger-text, #8a2020);">'
+        return '<div style="border-left:3px solid var(--danger-accent, #c0392b); background:var(--danger-bg, #fdf0f0); padding:10px 12px; border-radius:4px; font-size:var(--font-size-md, 13px); color:var(--danger-text, #8a2020);">'
             + (heading ? '<strong>' + esc(heading) + '</strong><br>' : '') + esc(msg) + '</div>';
     }
 
@@ -2304,7 +2304,7 @@ const WFE = (() => {
             const def = window.WF_ACTION_DEFS[a.type];
             const label = def ? def.label : a.type;
             const args = JSON.stringify(a.args || {});
-            parts.push('<div style="padding: 6px 10px; background: var(--wf-sum-action, #dbeafe); color: var(--wf-sum-action-text, inherit); border-radius: 4px; margin-bottom: 6px;"><strong>' + escHtml(label) + '</strong>: <code style="font-size: 11.5px;">' + escHtml(args) + '</code></div>');
+            parts.push('<div style="padding: 6px 10px; background: var(--wf-sum-action, #dbeafe); color: var(--wf-sum-action-text, inherit); border-radius: 4px; margin-bottom: 6px;"><strong>' + escHtml(label) + '</strong>: <code style="font-size: var(--font-size-sm, 12px);">' + escHtml(args) + '</code></div>');
         });
         if (w.name) {
             parts.unshift('<div style="margin-bottom: 8px;"><strong>' + escHtml(w.name) + '</strong>' + (w.description ? ' <span style="color:var(--text-dim, #777);">— ' + escHtml(w.description) + '</span>' : '') + '</div>');

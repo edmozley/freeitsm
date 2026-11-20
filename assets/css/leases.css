@@ -49,7 +49,7 @@
 .ls-back:hover { color: var(--accent); }
 .ls-hero { padding: 20px 22px; }
 .ls-hero-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
-.ls-hero h1 { margin: 0 0 4px; font-size: 22px; color: var(--text); }
+.ls-hero h1 { margin: 0 0 4px; font-size: var(--font-size-4xl, 24px); color: var(--text); }
 .ls-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .ls-actions .btn { padding: 7px 14px; }
 .ls-danger { color: var(--danger-text) !important; }

@@ -127,7 +127,7 @@ $title = $asset ? ($asset['asset_tag'] ?: $asset['hostname'] ?: t('asset-managem
             background: var(--accent, #546e7a);
             color: var(--on-accent, #fff);
             padding: 14px 16px;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -149,7 +149,7 @@ $title = $asset ? ($asset['asset_tag'] ?: $asset['hostname'] ?: t('asset-managem
             margin: 0 0 4px;
         }
         .asset-name { font-size: var(--font-size-4xl, 24px); font-weight: 700; margin: 0 0 12px; line-height: 1.2; word-break: break-word; }
-        .facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 14.5px; }
+        .facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: var(--font-size-xl, 16px); }
         .facts dt { color: var(--text-muted, #667); }
         .facts dd { margin: 0; font-weight: 500; word-break: break-word; }
         .field-label { display: block; font-size: var(--font-size-md, 13px); color: var(--text-muted, #667); margin: 0 0 6px; }
@@ -184,8 +184,8 @@ $title = $asset ? ($asset['asset_tag'] ?: $asset['hostname'] ?: t('asset-managem
         .saved { font-size: var(--font-size-md, 13px); color: var(--success-text, #166534); min-height: 18px; margin-top: 6px; }
         .saved.error { color: var(--danger-text, #991b1b); }
         .empty { text-align: center; padding: 40px 16px; }
-        .empty h1 { font-size: 19px; margin: 0 0 8px; }
-        .empty p { color: var(--text-muted, #667); font-size: 14.5px; margin: 0 0 18px; line-height: 1.5; }
+        .empty h1 { font-size: var(--font-size-3xl, 20px); margin: 0 0 8px; }
+        .empty p { color: var(--text-muted, #667); font-size: var(--font-size-xl, 16px); margin: 0 0 18px; line-height: 1.5; }
     </style>
 </head>
 <body>

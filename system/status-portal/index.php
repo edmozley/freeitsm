@@ -81,13 +81,13 @@ requireModuleAccess('system');
         .sp-toggle { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
         .sp-toggle input { margin-top: 3px; }
         .sp-toggle-label { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
-        .sp-toggle-hint  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-top: 3px; }
+        .sp-toggle-hint  { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; margin-top: 3px; }
 
         .sp-choices { margin-top: 18px; }
         .sp-choice { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border-soft, #f1f1f1); }
         .sp-choice input { margin-top: 3px; }
-        .sp-choice-name { font-size: 13.5px; font-weight: 600; color: var(--text, #333); }
-        .sp-choice-desc { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; }
+        .sp-choice-name { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
+        .sp-choice-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; }
         .sp-days { margin-left: 6px; width: 64px; padding: 4px 6px; font: inherit; font-size: var(--font-size-md, 13px);
                    border: 1px solid var(--border, #ddd); border-radius: 4px;
                    background: var(--surface, #fff); color: var(--text, #333); }

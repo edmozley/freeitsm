@@ -621,7 +621,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             z-index: 5;
             padding: 10px 16px;
             text-align: center;
-            font-size: 13.5px;
+            font-size: var(--font-size-lg, 14px);
             line-height: 1.4;
         }
         .login-strip-banner { background: var(--login-banner-bg, #111827); color: var(--login-banner-fg, #fff); font-weight: 600; }
@@ -631,7 +631,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             bottom: 0;
             color: var(--login-footer-fg, #fff);
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
-            font-size: 12.5px;
+            font-size: var(--font-size-md, 13px);
         }
         /* …and they must not sit on top of each other. */
         body:has(.login-strip-banner[data-at="bottom"]) .login-strip-footer { bottom: 42px; }
@@ -774,7 +774,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .portal-link a:hover { text-decoration: underline; }
         /* "Powered by FreeITSM" - very faint and small, the last line inside the
            card (Ed). currentColor + opacity, so it suits a dark card too. */
-        .powered-by { margin-top: 14px; text-align: center; font-size: 10.5px; letter-spacing: .3px; opacity: .38; }
+        .powered-by { margin-top: 14px; text-align: center; font-size: var(--font-size-xs, 11px); letter-spacing: .3px; opacity: .38; }
         .powered-by a { color: inherit; text-decoration: none; }
         .powered-by a:hover { text-decoration: underline; }
 

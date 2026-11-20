@@ -154,7 +154,7 @@ $today = DateFmt::render(new DateTime('now', new DateTimeZone(Tz::current())), '
 
         h2.pv-section-title {
             font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
-            font-size: 22px; font-weight: 700; color: #111827;
+            font-size: var(--font-size-4xl, 24px); font-weight: 700; color: #111827;
             margin: 48px 0 14px 0;
             padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;
         }
@@ -162,7 +162,7 @@ $today = DateFmt::render(new DateTime('now', new DateTimeZone(Tz::current())), '
 
         .pv-section-body h3 {
             font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
-            font-size: 15px; font-weight: 700; color: #1f2937;
+            font-size: var(--font-size-xl, 16px); font-weight: 700; color: #1f2937;
             margin: 22px 0 10px 0;
         }
         .pv-section-body h4 {
@@ -211,7 +211,7 @@ $today = DateFmt::render(new DateTime('now', new DateTimeZone(Tz::current())), '
                 gap: 8px;
                 padding: 8px 12px;
             }
-            .pv-toolbar .pv-title { flex: 1 1 100%; font-size: 15px; }
+            .pv-toolbar .pv-title { flex: 1 1 100%; font-size: var(--font-size-xl, 16px); }
             .pv-toolbar a, .pv-toolbar button {
                 flex: 1 1 auto;
                 min-height: 40px;

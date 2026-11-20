@@ -58,7 +58,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .settings-card h3 {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 4px 0;
@@ -106,7 +106,7 @@ $translationNamespaces = ['common', 'system'];
         .dlabel input[type="range"] { display: block; width: 100%; margin-top: 6px; }
         .dlabel .slot-input, .dlabel input[type="text"] { margin-top: 4px; }
         .drow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .contrast-note { font-size: 12.5px; margin-top: -4px; }
+        .contrast-note { font-size: var(--font-size-md, 13px); margin-top: -4px; }
         .contrast-note.warn { color: var(--warning-text, #92400e); }
         .contrast-note.ok   { color: var(--text-muted, #666); }
         .design-preview { position: sticky; top: 16px; }
@@ -140,7 +140,7 @@ $translationNamespaces = ['common', 'system'];
             transform-origin: top left;
             display: block;
         }
-        .preview-note { margin-top: 8px; font-size: 12.5px; color: var(--text-muted, #666); }
+        .preview-note { margin-top: 8px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         [data-hidden="1"] { display: none !important; }
 
         @media (max-width: 900px) {

@@ -63,14 +63,14 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         .set-row { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--border-soft); }
         .set-row:last-of-type { border-bottom: none; }
         .set-row .lbl { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text); }
-        .set-row .desc { font-size: 12.5px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+        .set-row .desc { font-size: var(--font-size-md, 13px); color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
         .container [hidden] { display: none !important; }   /* .fil-btn's inline-flex would otherwise beat [hidden] */
         .sto-type label { display: inline-flex; align-items: center; gap: 6px; margin-right: 18px; font-size: var(--font-size-lg, 14px); cursor: pointer; }
         .set-row input[type="text"], .set-row input[type="number"], .set-row input[type="password"] {
             padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: var(--font-size-lg, 14px); width: 100%; max-width: 520px;
             background: var(--surface); color: var(--text); box-sizing: border-box; font-family: inherit;
         }
-        .set-row .dflt { font-size: 11.5px; color: var(--text-dim); margin-top: 5px; }
+        .set-row .dflt { font-size: var(--font-size-sm, 12px); color: var(--text-dim); margin-top: 5px; }
         .set-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
         .set-box { background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 14px 16px; font-size: var(--font-size-md, 13px); margin: 6px 0 16px; line-height: 1.55; }
         .set-box.warn { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
@@ -82,7 +82,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         .fil-folders th { text-align: left; font-weight: 600; color: var(--text-muted); padding: 8px 10px; border-bottom: 1px solid var(--border); }
         .fil-folders td { padding: 8px 10px; border-bottom: 1px solid var(--border-soft); }
         .fil-folders tr.orphan td:first-child { color: var(--danger-text); }
-        .fil-pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11.5px; background: var(--surface-2); color: var(--text-muted); }
+        .fil-pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: var(--font-size-sm, 12px); background: var(--surface-2); color: var(--text-muted); }
         .fil-pill.full { background: var(--fil-accent-soft); color: var(--fil-accent); }
         .fil-filter { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; width: 320px; max-width: 100%; background: var(--surface); color: var(--text); font: inherit; margin-bottom: 10px; }
         @media (max-width: 900px) { .set-row { grid-template-columns: 1fr; gap: 8px; } }
@@ -164,7 +164,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
                     <?php endforeach; ?>
                     <div class="dflt"><?php echo $tt('attach_default'); ?></div>
                 </div></div>
-            <h3 style="margin:18px 0 4px;font-size:15px"><?php echo $tt('save_title'); ?></h3>
+            <h3 style="margin:18px 0 4px;font-size:var(--font-size-xl, 16px)"><?php echo $tt('save_title'); ?></h3>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('save_folder'); ?></div><div class="desc"><?php echo $tt('save_folder_desc'); ?></div></div>
                 <div><select id="shrSaveFolder"></select></div></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('save_ticket_folder'); ?></div><div class="desc"><?php echo $tt('save_ticket_folder_desc'); ?></div></div>

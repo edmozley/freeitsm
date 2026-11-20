@@ -178,7 +178,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         }
 
         .detail-group .value {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
@@ -354,7 +354,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         }
         .cv-modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); color: var(--text, #333); }
         .cv-modal-close {
-            background: none; border: none; font-size: 22px; line-height: 1;
+            background: none; border: none; font-size: var(--font-size-4xl, 24px); line-height: 1;
             color: var(--text-dim, #999); cursor: pointer; padding: 0;
         }
         .cv-modal-close:hover { color: var(--text, #333); }

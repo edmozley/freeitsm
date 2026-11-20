@@ -156,7 +156,7 @@ foreach ($templates as $t) {
         <main class="chk-main">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                 <div>
-                    <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 4px 0; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.list.heading')); ?></h1>
+                    <h1 style="font-size: var(--font-size-4xl, 24px); font-weight: 700; margin: 0 0 4px 0; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.list.heading')); ?></h1>
                     <p style="font-size: var(--font-size-md, 13px); color: var(--text-muted, #64748b); margin: 0;"><?php echo htmlspecialchars(t('checklists.list.heading_sub')); ?></p>
                 </div>
             </div>
@@ -187,7 +187,7 @@ foreach ($templates as $t) {
                          data-desc="<?php echo htmlspecialchars(strtolower($t['description'] ?? '')); ?>">
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <h3 style="font-size: 15px; font-weight: 600; margin: 0; color: var(--text, #0f172a);"><?php echo htmlspecialchars($t['title']); ?></h3>
+                                <h3 style="font-size: var(--font-size-xl, 16px); font-weight: 600; margin: 0; color: var(--text, #0f172a);"><?php echo htmlspecialchars($t['title']); ?></h3>
                                 <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                                     <?php if (($t['closure_mode'] ?? 'warn') === 'block'): ?>
                                         <span title="<?php echo htmlspecialchars(t('checklists.editor.closure_block') ?: 'Block closure until complete'); ?>" style="display: inline-flex; color: #dc2626;" aria-label="Block closure until complete">
@@ -217,11 +217,11 @@ foreach ($templates as $t) {
                                                 <span style="color: <?php echo $it['is_mandatory'] ? '#0d9488' : '#94a3b8'; ?>;">✓</span>
                                                 <span style="color: var(--text, #334155); overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($it['title']); ?></span>
                                                 <?php if ($it['is_mandatory']): ?>
-                                                    <span style="font-size: 10px; color: #ef4444; font-weight: bold;">*</span>
+                                                    <span style="font-size: var(--font-size-xs, 11px); color: #ef4444; font-weight: bold;">*</span>
                                                 <?php endif; ?>
                                             </div>
                                             <?php if (!empty($it['suggested_role'])): ?>
-                                                <span class="chk-step-role" style="font-size: 10px; background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">
+                                                <span class="chk-step-role" style="font-size: var(--font-size-xs, 11px); background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; display: inline-block; vertical-align: -1px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><?php echo htmlspecialchars($it['suggested_role']); ?>
                                                 </span>
                                             <?php endif; ?>

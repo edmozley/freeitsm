@@ -366,7 +366,7 @@ $translationNamespaces = ['common', 'setup'];
 
         .setup-header h1 {
             color: #333;
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
         }
 
@@ -539,7 +539,7 @@ $translationNamespaces = ['common', 'setup'];
             font-size: var(--font-size-md, 13px);
             line-height: 1.55;
         }
-        .storage-danger__title { font-weight: 700; font-size: 15px; margin-bottom: 8px; }
+        .storage-danger__title { font-weight: 700; font-size: var(--font-size-xl, 16px); margin-bottom: 8px; }
         .storage-danger p { margin: 0 0 10px; }
         .storage-danger__critical { font-weight: 600; }
         .storage-danger__step { font-weight: 600; margin-top: 14px; margin-bottom: 6px; }

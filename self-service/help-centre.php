@@ -29,7 +29,7 @@ $pageData = ['articleId' => (int)($_GET['id'] ?? $_GET['article'] ?? 0)];
 $pageStyles = <<<'CSS'
 .hc-header { margin-bottom: 20px; }
         .hc-header h1 {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 6px 0;
@@ -47,7 +47,7 @@ $pageStyles = <<<'CSS'
             background: var(--surface, #fff);
             color: var(--text, #333);
             font-family: inherit;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             margin-bottom: 20px;
         }
         .hc-search:focus { outline: none; border-color: var(--ss-accent, #0078d4); }
@@ -65,7 +65,7 @@ $pageStyles = <<<'CSS'
         }
         .hc-card:hover { border-color: var(--ss-accent, #0078d4); }
         .hc-card-title {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 6px;
@@ -99,7 +99,7 @@ $pageStyles = <<<'CSS'
             padding: 28px 32px;
         }
         .hc-article h1 {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 8px 0;
@@ -183,7 +183,7 @@ $pageStyles = <<<'CSS'
             flex: 0 0 auto; width: 38px; height: 46px; border-radius: 4px; position: relative;
             background: var(--doc-c, #64748b); color: #fff;
             display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7px;
-            font-size: 9.5px; font-weight: 700; letter-spacing: .3px;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; letter-spacing: .3px;
             clip-path: polygon(0 0, 72% 0, 100% 22%, 100% 100%, 0 100%);
         }
         .hc-doc-icon::after {
@@ -193,7 +193,7 @@ $pageStyles = <<<'CSS'
         .hc-doc-icon svg { position: absolute; top: 13px; width: 16px; height: 16px; opacity: .9; }
         .hc-doc-text { min-width: 0; flex: 1; }
         .hc-doc-name {
-            font-size: 13.5px; font-weight: 500; line-height: 1.35; overflow-wrap: anywhere;
+            font-size: var(--font-size-lg, 14px); font-weight: 500; line-height: 1.35; overflow-wrap: anywhere;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         .hc-doc-meta { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 4px; }
@@ -209,7 +209,7 @@ $pageStyles = <<<'CSS'
             background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb);
             color: var(--text-muted, #666); border-radius: 8px; padding: 8px 14px; min-height: 38px;
             display: inline-flex; align-items: center;
-            cursor: pointer; font: inherit; font-size: 13.5px; line-height: 1;
+            cursor: pointer; font: inherit; font-size: var(--font-size-lg, 14px); line-height: 1;
         }
         .hc-layout-btn:hover { border-color: var(--ss-accent, #0078d4); }
         .hc-layout-btn.active {
@@ -240,7 +240,7 @@ $pageStyles = <<<'CSS'
         .hc-tree-items { display: grid; gap: 6px; padding-left: 2px; }
         .hc-tree-item {
             background: none; border: none; text-align: left; cursor: pointer; font: inherit;
-            padding: 7px 10px; border-radius: 6px; color: var(--text, #333); font-size: 13.5px;
+            padding: 7px 10px; border-radius: 6px; color: var(--text, #333); font-size: var(--font-size-lg, 14px);
         }
         .hc-tree-item:hover { background: var(--surface-hover, #f3f4f6); color: var(--ss-accent, #0078d4); }
 
@@ -253,7 +253,7 @@ $pageStyles = <<<'CSS'
             text-align: left; padding: 9px 14px; font-size: var(--font-size-xs, 11px); font-weight: 600;
             text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted, #666);
         }
-        .hc-table td { padding: 9px 14px; border-top: 1px solid var(--border-soft, #f1f1f1); font-size: 13.5px; }
+        .hc-table td { padding: 9px 14px; border-top: 1px solid var(--border-soft, #f1f1f1); font-size: var(--font-size-lg, 14px); }
         .hc-table tbody tr { cursor: pointer; }
         .hc-table tbody tr:hover { background: var(--surface-hover, #f8fafc); }
         .hc-table .hc-td-title { color: var(--text, #333); font-weight: 500; }
@@ -267,7 +267,7 @@ $pageStyles = <<<'CSS'
             text-align: center;
         }
         .hc-empty-title {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 6px;

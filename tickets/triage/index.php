@@ -34,13 +34,13 @@ $translationNamespaces = ['common', 'tickets'];
            long queue was cut off with no way to scroll to it. */
         body { display: flex; flex-direction: column; }
         .triage-container { flex: 1; min-height: 0; overflow-y: auto; padding: 30px 20px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text); margin: 0 0 6px 0; }
+        .page-title { font-size: var(--font-size-4xl, 24px); font-weight: 600; color: var(--text); margin: 0 0 6px 0; }
         .page-subtitle { font-size: var(--font-size-md, 13px); color: var(--text-dim); margin: 0 0 24px 0; max-width: 760px; }
         .settings-card { background: var(--surface); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px var(--shadow); margin-bottom: 24px; }
 
         .triage-info { display: flex; gap: 12px; align-items: flex-start; background: var(--info-bg); border: 1px solid var(--info-border); border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; max-width: 860px; }
         .triage-info svg { flex-shrink: 0; color: var(--info-accent); margin-top: 1px; }
-        .triage-info .ti-text { font-size: 12.5px; color: var(--info-text); line-height: 1.5; }
+        .triage-info .ti-text { font-size: var(--font-size-md, 13px); color: var(--info-text); line-height: 1.5; }
         .triage-info .ti-text strong { color: var(--info-text); }
         .triage-info .ti-title { display: block; font-weight: 600; color: var(--info-text); margin-bottom: 3px; font-size: var(--font-size-md, 13px); }
 

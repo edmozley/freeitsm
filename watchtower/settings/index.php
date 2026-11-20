@@ -88,7 +88,7 @@ $translationNamespaces = ['common', 'watchtower'];
            without anything having to say so. The pill tint is a 10%-alpha wash of
            the same hex, which reads on both light and dark grounds. */
         .wt-group { border: 1px solid var(--border, #ddd); border-left-width: 3px; border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; max-width: 760px; }
-        .wt-group h3 { margin: 0 0 4px; font-size: 15px; color: var(--text, #333); display: flex; align-items: center; gap: 9px; }
+        .wt-group h3 { margin: 0 0 4px; font-size: var(--font-size-xl, 16px); color: var(--text, #333); display: flex; align-items: center; gap: 9px; }
         .wt-mod-pill { font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 2px 9px; border-radius: 10px; white-space: nowrap; letter-spacing: 0.02em; }
         .wt-opt { border-left: 3px solid transparent; }
         .wt-group .why { font-size: var(--font-size-md, 13px); color: var(--text-muted, #777); margin: 0 0 12px; line-height: 1.45; }

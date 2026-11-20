@@ -55,7 +55,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             justify-content: space-between;
             align-items: center;
         }
-        .browse-sidebar .sidebar-header h2 { font-size: 15px; color: var(--text, #111827); margin: 0; }
+        .browse-sidebar .sidebar-header h2 { font-size: var(--font-size-xl, 16px); color: var(--text, #111827); margin: 0; }
         .browse-sidebar .class-list { flex: 1; overflow-y: auto; padding: 8px 0; }
 
         .class-item {
@@ -144,7 +144,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             border: 1px solid var(--warning-border, #fcd34d);
             padding: 2px 8px;
             border-radius: 999px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 700;
             letter-spacing: 0.6px;
             text-transform: uppercase;

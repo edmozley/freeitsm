@@ -88,7 +88,7 @@ $translationNamespaces = ['common', 'change-management'];
         }
         .change-type-badge, .change-status-badge {
             display: inline-block;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             padding: 2px 8px;
             border-radius: 10px;
@@ -110,7 +110,7 @@ $translationNamespaces = ['common', 'change-management'];
 
         .change-popup-title {
             margin: 0 0 10px;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
             padding-right: 20px;
         }

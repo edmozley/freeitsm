@@ -54,7 +54,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .api-container { height: calc(100vh - 48px); overflow-y: auto; }
 
         .settings-card { background: var(--surface, #fff); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 24px; }
-        .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
+        .settings-card h3 { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
         .settings-card .card-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 20px 0; line-height: 1.5; }
 
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; text-decoration: none; }
@@ -109,7 +109,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .perm-row:nth-child(even) { background: #fafbfc; }
         .perm-resource { width: 170px; flex: none; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); padding-top: 2px; }
         .perm-actions { display: flex; flex-wrap: wrap; gap: 4px 16px; flex: 1; }
-        .perm-action { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted, #555); cursor: pointer; }
+        .perm-action { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); cursor: pointer; }
         .perm-action input { margin: 0; cursor: pointer; }
         .perm-toolbar { display: flex; justify-content: flex-end; gap: 14px; margin: 0 0 8px 0; font-size: var(--font-size-sm, 12px); }
         .perm-toolbar a { color: var(--sys-accent, #546e7a); cursor: pointer; text-decoration: underline; }
@@ -133,32 +133,32 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .scr-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; margin-top: 14px; }
         .scr-search { width: 100%; box-sizing: border-box; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .scr-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
-        .scr-filters select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 12.5px; background: var(--surface, #fff); color: var(--text, #333); min-width: 0; }
+        .scr-filters select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); min-width: 0; }
         .scr-count { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin: 4px 0 6px; }
         .scr-list { list-style: none; margin: 0; padding: 0; max-height: 640px; overflow-y: auto; border: 1px solid var(--border-soft, #eee); border-radius: 6px; }
         .scr-item { display: block; width: 100%; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border-soft, #eee); padding: 9px 12px; cursor: pointer; color: var(--text, #333); }
         .scr-item:hover { background: var(--surface-hover, #f5f5f5); }
         .scr-item.active { background: var(--surface-hover, #f0f0f0); box-shadow: inset 3px 0 0 var(--sys-accent, #546e7a); }
         .scr-item-title { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; }
-        .scr-item-meta { display: block; font-size: 11.5px; color: var(--text-dim, #888); margin-top: 2px; }
+        .scr-item-meta { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 2px; }
         .scr-empty { padding: 14px 12px; font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); }
         .scr-pick { color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); padding: 30px 0; text-align: center; }
         .scr-title { margin: 0 0 4px; font-size: var(--font-size-xl, 16px); color: var(--text, #333); }
         .scr-summary { margin: 0 0 8px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); }
-        .scr-note { font-size: 12.5px; padding: 7px 10px; border-radius: 6px; background: var(--info-bg, #eef6fb); color: var(--text, #333); margin: 0 0 10px; }
+        .scr-note { font-size: var(--font-size-md, 13px); padding: 7px 10px; border-radius: 6px; background: var(--info-bg, #eef6fb); color: var(--text, #333); margin: 0 0 10px; }
         .scr-note.writes { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); border: 1px solid var(--warning-border, #f0d9a8); }
         .scr-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
         .scr-label { display: block; font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); margin-bottom: 4px; }
         .scr-chips { display: flex; flex-wrap: wrap; gap: 4px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555); }
-        .scr-chip { font-size: 11.5px; padding: 2px 6px; border-radius: 4px; background: var(--surface-hover, #f3f3f3); border: 1px solid var(--border-soft, #eee); color: var(--text, #333); }
+        .scr-chip { font-size: var(--font-size-sm, 12px); padding: 2px 6px; border-radius: 4px; background: var(--surface-hover, #f3f3f3); border: 1px solid var(--border-soft, #eee); color: var(--text, #333); }
         .scr-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
         .scr-langs { display: inline-flex; border: 1px solid var(--border, #ddd); border-radius: 6px; overflow: hidden; }
-        .scr-lang { background: var(--surface, #fff); border: none; padding: 6px 12px; font-size: 12.5px; font-weight: 600; color: var(--text-muted, #555); cursor: pointer; }
+        .scr-lang { background: var(--surface, #fff); border: none; padding: 6px 12px; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #555); cursor: pointer; }
         .scr-lang + .scr-lang { border-left: 1px solid var(--border, #ddd); }
         .scr-lang.active { background: var(--sys-accent, #546e7a); color: #fff; }
         .scr-file { font-family: Consolas, Monaco, monospace; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .scr-actions { margin-left: auto; display: inline-flex; gap: 8px; }
-        .scr-code { margin: 0; max-height: 640px; overflow: auto; padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border, #ddd); background: var(--surface-hover, #f7f7f7); font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.5; color: var(--text, #333); white-space: pre; tab-size: 4; }
+        .scr-code { margin: 0; max-height: 640px; overflow: auto; padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border, #ddd); background: var(--surface-hover, #f7f7f7); font-family: Consolas, Monaco, monospace; font-size: var(--font-size-md, 13px); line-height: 1.5; color: var(--text, #333); white-space: pre; tab-size: 4; }
         .scr-comment { color: var(--text-dim, #888); font-style: italic; }
         @media (max-width: 900px) {
             .scr-layout { grid-template-columns: 1fr; }
@@ -170,7 +170,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .restrict-box .hint { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); margin-bottom: 10px; }
         .form-field textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); font-family: Consolas, Monaco, monospace; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); min-height: 64px; }
         .day-checks { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 10px; }
-        .day-checks label { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--text-muted, #555); font-weight: 400; }
+        .day-checks label { display: inline-flex; align-items: center; gap: 4px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); font-weight: 400; }
         .key-note { display: block; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); margin-top: 3px; }
         .key-note.bad { color: #c62828; }
         .perm-action.sensitive { color: #b45309; font-weight: 600; }
@@ -178,13 +178,13 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .tp-section { border-top: 1px solid var(--border-soft, #eee); padding-top: 16px; margin-top: 16px; }
         .tp-section:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
         .tp-section h4 { margin: 0 0 2px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
-        .tp-section p { margin: 0 0 12px; font-size: 12.5px; color: var(--text-dim, #888); line-height: 1.5; }
+        .tp-section p { margin: 0 0 12px; font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); line-height: 1.5; }
         .tp-filters { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
         .tp-filters select { padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .tp-pager { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
         [data-theme-mode="dark"] .key-note.bad { color: #fca5a5; }
         [data-theme-mode="dark"] .perm-action.sensitive { color: #fbbf24; }
-        .key-admin { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: 10.5px; font-weight: 600; background: #fff3e0; color: #b45309; vertical-align: middle; }
+        .key-admin { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; background: #fff3e0; color: #b45309; vertical-align: middle; }
         .admin-warn { display: none; margin-top: 6px; font-size: var(--font-size-sm, 12px); color: #b45309; }
         .ac-status { font-family: Consolas, Monaco, monospace; font-weight: 600; }
         .ac-status.bad { color: #c62828; }

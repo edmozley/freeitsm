@@ -14,7 +14,7 @@
     position: absolute; top: -1px; right: -2px;
     min-width: 16px; padding: 0 4px; border-radius: 8px;
     background: #dc2626; color: #fff;
-    font-size: 10px; font-weight: 700; line-height: 16px; text-align: center;
+    font-size: var(--font-size-xs, 11px); font-weight: 700; line-height: 16px; text-align: center;
 }
 .nb-count[hidden] { display: none; }
 .nb-panel {
@@ -116,7 +116,7 @@
 .nb-badge-count {
     display: inline-block; margin-left: 6px; padding: 0 5px;
     border-radius: 7px; background: var(--surface-hover, #eef1f4);
-    color: var(--text-muted, #666); font-size: 10px; font-weight: 700; line-height: 15px;
+    color: var(--text-muted, #666); font-size: var(--font-size-xs, 11px); font-weight: 700; line-height: 15px;
 }
 .nb-empty { padding: 26px 14px; text-align: center; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); }
 @media (max-width: 768px) {
@@ -127,6 +127,6 @@
     /* Same button, sized as a real tap target. */
     .nb-clear { width: 28px; height: 28px; margin: -4px -4px -4px 0; font-size: var(--font-size-xl, 16px); }
     .nb-clear svg { width: 10px; height: 10px; }
-    .nb-info { width: 28px; height: 28px; margin: -4px 8px -4px auto; font-size: 15px; }
+    .nb-info { width: 28px; height: 28px; margin: -4px 8px -4px auto; font-size: var(--font-size-xl, 16px); }
     .nb-ex-row { grid-template-columns: 84px 1fr; }
 }

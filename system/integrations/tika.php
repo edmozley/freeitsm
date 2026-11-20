@@ -89,7 +89,7 @@ $meta = integrationsProviderMeta('tika');
                      padding:12px 14px; font-size:var(--font-size-md, 13px); margin-bottom:18px; }
         .tika-warn strong { display:block; margin-bottom:4px; }
         pre.tika-code { background:var(--surface-2,#f6f8fa); border:1px solid var(--border,#e5e7eb);
-                        border-radius:6px; padding:12px; font-size:12.5px; overflow-x:auto; margin:8px 0 0; }
+                        border-radius:6px; padding:12px; font-size:var(--font-size-md, 13px); overflow-x:auto; margin:8px 0 0; }
         .tika-formats { display:flex; gap:28px; flex-wrap:wrap; font-size:var(--font-size-md, 13px); }
         .tika-formats ul { margin:6px 0 0; padding-left:18px; color:var(--text-dim,#6b7280); }
     </style>

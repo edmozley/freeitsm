@@ -147,7 +147,7 @@ $translationNamespaces = ['common', 'change-management'];
         }
 
         .approval-card-title {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 10px;

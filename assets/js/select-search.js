@@ -55,7 +55,7 @@
         '.ss-wrap.ss-block{display:block}' +
         '.ss-box{display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box;text-align:left;cursor:pointer;overflow:hidden;white-space:nowrap}' +
         '.ss-box .ss-label{flex:1;overflow:hidden;text-overflow:ellipsis}' +
-        '.ss-box .ss-caret{flex:none;opacity:.6;font-size:10px}' +
+        '.ss-box .ss-caret{flex:none;opacity:.6;font-size:var(--font-size-xs, 11px)}' +
         '.ss-box:disabled{cursor:default;opacity:.6}' +
         '.ss-pop{position:fixed;z-index:10050;box-sizing:border-box;min-width:220px;max-width:min(420px,calc(100vw - 16px));background:var(--surface,#fff);color:var(--text,#222);border:1px solid var(--border,#d1d5db);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.2);padding:6px;font-size:var(--font-size-md, 13px);font-family:inherit}' +
         '.ss-pop input.ss-find{width:100%;box-sizing:border-box;padding:7px 9px;border:1px solid var(--border,#d1d5db);border-radius:6px;background:var(--surface,#fff);color:var(--text,#222);font:inherit;margin:0 0 4px}' +

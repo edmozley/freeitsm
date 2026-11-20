@@ -169,7 +169,7 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
         .lk-modal-body label { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #64748b); text-transform: uppercase; }
         .lk-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft, #e2e8f0); display: flex; justify-content: flex-end; gap: 10px; background: var(--app-bg, #f8fafc); }
         .lk-name-input { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--border-soft, #cbd5e1); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #1e293b); }
-        .lk-modal-x { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-muted, #64748b); }
+        .lk-modal-x { background: none; border: none; font-size: var(--font-size-4xl, 24px); line-height: 1; cursor: pointer; color: var(--text-muted, #64748b); }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>
@@ -178,7 +178,7 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
 
     <div class="container">
         <div style="margin-bottom: 20px;">
-            <h1 style="font-size: 22px; font-weight: 700; color: var(--text, #0f172a); margin: 0 0 6px 0;"><?php echo htmlspecialchars(t('checklists.settings.heading')); ?></h1>
+            <h1 style="font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #0f172a); margin: 0 0 6px 0;"><?php echo htmlspecialchars(t('checklists.settings.heading')); ?></h1>
             <p style="font-size: var(--font-size-md, 13px); color: var(--text-muted, #64748b); margin: 0;"><?php echo htmlspecialchars(t('checklists.settings.heading_sub')); ?></p>
         </div>
 

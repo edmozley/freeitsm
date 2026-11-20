@@ -131,7 +131,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .au-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--font-size-sm, 12px); }
         .au-empty { padding: 44px 20px; text-align: center; color: var(--text-muted, #666); }
-        .au-empty-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
+        .au-empty-title { font-size: var(--font-size-xl, 16px); font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
         /* --- people directory (directory sync slice 1) --- */
         .au-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .au-head-btn { padding: 4px 12px; font-size: var(--font-size-sm, 12px); }
@@ -148,7 +148,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .au-person.inactive .au-person-name { color: var(--text-muted, #888); }
         .au-flag {
             display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 8px;
-            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
         }
         .au-flag.left    { background: #f8d7da; color: #721c24; }
         .au-flag.managed { background: #dbeafe; color: #1e40af; }

@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             padding: 10px 16px;
             border: 2px solid var(--border, #ddd);
             border-radius: 6px;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             background: var(--surface, #fff);
             color: var(--text, #333);
         }
@@ -66,7 +66,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 500;
         }
         .search-bar button:hover { background: var(--wiki-accent-hover, #b71c1c); }
@@ -126,7 +126,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 10px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         /* type-badge colours are DATA (language-coded), left hardcoded */

@@ -9,7 +9,7 @@
 @media (min-width: 769px) {
     /* Subject: still the largest thing on the pane, but one or two lines, not three. */
     .reading-pane .email-header { padding: 14px 30px 12px; }
-    .reading-pane .email-subject-line { font-size: 19px; line-height: 1.3; margin-bottom: 8px; }
+    .reading-pane .email-subject-line { font-size: var(--font-size-3xl, 20px); line-height: 1.3; margin-bottom: 8px; }
 
     /* From / To / Cc / Date on one line, wrapping only when they must. The rows
        stay in the markup (the phone reads them) but flow as one line here. */
@@ -68,7 +68,7 @@
         transition: height .22s ease, opacity .18s ease, border-bottom-width .22s ease, visibility 0s;
     }
     .reading-pane.pane-compact .email-header { padding-top: 8px; padding-bottom: 8px; }
-    .reading-pane.pane-compact .email-subject-line { font-size: 15px; margin-bottom: 0; }
+    .reading-pane.pane-compact .email-subject-line { font-size: var(--font-size-xl, 16px); margin-bottom: 0; }
     .reading-pane.pane-compact .email-subject-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .reading-pane.pane-compact .email-meta,
     .reading-pane.pane-compact .pane-strips {

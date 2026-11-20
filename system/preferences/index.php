@@ -330,7 +330,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
 
         .pref-section h3 {
             margin: 0 0 6px 0;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 

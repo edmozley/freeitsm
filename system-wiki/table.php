@@ -61,7 +61,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.06));
         }
         .table-name {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             font-family: monospace;
             color: var(--text, #333);

@@ -109,7 +109,7 @@ $assetsOn = moduleIsEnabled(connectToDatabase(), 'assets');
 
 
         .intune-software-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border-soft, #eee); }
-        .intune-subsection-title { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 8px 0; }
+        .intune-subsection-title { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin: 0 0 8px 0; }
         .intune-freshness-wrap { margin-top: 22px; padding: 14px 16px; background: var(--surface-3, #fafbfc); border: 1px solid var(--border-soft, #eee); border-radius: 6px; }
         .intune-freshness-title { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
         .intune-freshness-canvas-wrap { position: relative; height: 180px; }

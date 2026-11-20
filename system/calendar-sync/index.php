@@ -75,7 +75,7 @@ $translationNamespaces = ['common', 'system'];
            onto a line of its own, shredding the paragraph. */
         .cs-warn-title { display: block; font-weight: 600; margin-bottom: 4px; }
 
-        .cs-result { margin-top: 12px; padding: 11px 13px; border-radius: 4px; font-size: 12.5px; line-height: 1.55; display: none; }
+        .cs-result { margin-top: 12px; padding: 11px 13px; border-radius: 4px; font-size: var(--font-size-md, 13px); line-height: 1.55; display: none; }
         .cs-result.ok   { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
         .cs-result.bad  { background: var(--danger-bg, #f8d7da);  color: var(--danger-text, #721c24); }
         .cs-result code { font-family: Consolas, Monaco, monospace; word-break: break-all; }
@@ -88,7 +88,7 @@ $translationNamespaces = ['common', 'system'];
         .cs-people td { padding: 7px 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); vertical-align: middle; }
         .cs-people tr:last-child td { border-bottom: none; }
         .cs-people input[type="email"] {
-            width: 100%; max-width: 280px; padding: 6px 8px; font-size: 12.5px; font-family: inherit;
+            width: 100%; max-width: 280px; padding: 6px 8px; font-size: var(--font-size-md, 13px); font-family: inherit;
             border: 1px solid var(--border, #ddd); border-radius: 4px;
             background: var(--surface, #fff); color: var(--text, #333);
         }
@@ -98,7 +98,7 @@ $translationNamespaces = ['common', 'system'];
            often wrong (a local account, an LDAP import keyed differently). */
         .cs-people input.cs-inherited { color: var(--text-muted, #888); font-style: italic; }
         .cs-people .cs-analyst-name { font-weight: 600; color: var(--text, #333); }
-        .cs-people .cs-analyst-email { font-size: 11.5px; color: var(--text-muted, #888); }
+        .cs-people .cs-analyst-email { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); }
         .cs-pill { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); white-space: nowrap; }
         .cs-pill.on   { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
         .cs-pill.offp { background: var(--surface-2, #f0f0f0); color: var(--text-muted, #777); }
@@ -125,7 +125,7 @@ $translationNamespaces = ['common', 'system'];
                    border: 1px solid var(--border, #e0e0e0); border-radius: 6px; background: var(--surface-2, #f8f9fa); }
         .cs-conn.editing { border-color: var(--accent); }
         .cs-conn-main { flex: 1 1 260px; min-width: 0; }
-        .cs-conn-name { font-weight: 600; color: var(--text, #333); font-size: 13.5px; }
+        .cs-conn-name { font-weight: 600; color: var(--text, #333); font-size: var(--font-size-lg, 14px); }
         .cs-conn-detail { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); overflow-wrap: anywhere; }
         .cs-conn-btns { display: flex; gap: 6px; }
         .cs-editor { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-soft, #eee); }

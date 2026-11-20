@@ -108,7 +108,7 @@
 }
 .help-hero h1,
 .help-hero h2 { margin: 0 0 8px; font-size: 26px; font-weight: 700; color: inherit; }
-.help-hero p  { margin: 0 auto; font-size: 15px; line-height: 1.6; opacity: 0.9; max-width: 780px; }
+.help-hero p  { margin: 0 auto; font-size: var(--font-size-xl, 16px); line-height: 1.6; opacity: 0.9; max-width: 780px; }
 
 /* On dark the module accent is lifted to read on dark surfaces, so using it
    for a full-bleed banner would glare. Sit the hero on the tinted accent
@@ -165,7 +165,7 @@
 
 /* A lead paragraph — the one sentence that sets up a whole guide. */
 .help-lede {
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     color: var(--text, #444);
     line-height: 1.65;
     margin: 0 0 20px;
@@ -197,7 +197,7 @@
 }
 .help-section > h4 {
     margin: 20px 0 8px;
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     color: var(--text, #333);
 }
 .help-section > h5,
@@ -223,7 +223,7 @@
 }
 .help-subsection > h4 {
     margin: 0 0 10px calc(var(--help-indent-2) * -1);
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     color: var(--text, #333);
 }
 .help-subsection > p {
@@ -253,7 +253,7 @@
     background: var(--surface, #ffffff);
 }
 .help-card h4 { margin: 0 0 6px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
-.help-card p  { margin: 0 0 6px; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.55; }
+.help-card p  { margin: 0 0 6px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.55; }
 .help-card > :last-child { margin-bottom: 0; }
 .help-card-eg { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-style: italic; }
 
@@ -267,7 +267,7 @@
     color: var(--text, #333);
     margin-bottom: 4px;
 }
-.help-card > span { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.55; }
+.help-card > span { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.55; }
 /* ⚠️ Emphasis inside a card BODY is not a card title. The rule above matches
    `.help-card strong:first-child` as a DESCENDANT, and :first-child counts
    elements only - so a lone <strong> anywhere in a body, however much text
@@ -297,7 +297,7 @@
     color: var(--accent);
 }
 /* An emoji needs no tinted tile behind it. */
-.help-card-icon.plain { width: auto; height: auto; background: none; font-size: 22px; line-height: 1; padding-top: 2px; }
+.help-card-icon.plain { width: auto; height: auto; background: none; font-size: var(--font-size-4xl, 24px); line-height: 1; padding-top: 2px; }
 
 /* ---------------------------------------------------------------- pill tag */
 
@@ -307,7 +307,7 @@
     display: inline-block;
     padding: 1px 8px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -405,7 +405,7 @@
     border: 1px solid var(--border, #e0e0e0);
 }
 .help-flow-step.accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
-.help-flow-arrow { padding: 0 6px; color: var(--text-faint, #bbb); font-size: 15px; }
+.help-flow-arrow { padding: 0 6px; color: var(--text-faint, #bbb); font-size: var(--font-size-xl, 16px); }
 
 /* ----------------------------------------------------- definitions (term/desc) */
 
@@ -625,11 +625,11 @@
     .help-nav-link { white-space: nowrap; }
     .help-main { overflow-y: visible; }
     .help-hero { padding: 28px 16px 24px; }
-    .help-hero h2 { font-size: 21px; }
+    .help-hero h2 { font-size: var(--font-size-4xl, 24px); }
     .help-section { padding-top: 22px; padding-bottom: 22px; }
     .help-section-header { gap: 6px; }
     .help-section-num { min-width: 26px; height: 26px; font-size: var(--font-size-md, 13px); }
-    .help-section-header h3 { font-size: 17px; }
+    .help-section-header h3 { font-size: var(--font-size-2xl, 18px); }
     .help-cards,
     .help-cards.cols-3,
     .help-cards.cols-4 { grid-template-columns: minmax(0, 1fr); }

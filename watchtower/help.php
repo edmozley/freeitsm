@@ -75,7 +75,7 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-card-diagram-metrics { display: flex; gap: 16px; margin-bottom: 8px; }
         .wt-help-card-diagram-metric { text-align: center; }
         .wt-help-card-diagram-metric-value { font-size: var(--font-size-2xl, 18px); font-weight: 700; color: var(--text, #334155); }
-        .wt-help-card-diagram-metric-label { font-size: 10px; color: var(--text-dim, #94a3b8); text-transform: uppercase; }
+        .wt-help-card-diagram-metric-label { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #94a3b8); text-transform: uppercase; }
         .wt-help-card-diagram-attention {
             display: flex;
             align-items: center;

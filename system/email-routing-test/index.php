@@ -69,9 +69,9 @@ $translationNamespaces = ['common', 'system'];
         .rt-headline { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-radius: 8px; margin-bottom: 18px; }
         .rt-headline.company { background: #e8f5e9; border: 1px solid #c8e6c9; }
         .rt-headline.triage  { background: #fff3e0; border: 1px solid #ffe0b2; }
-        .rt-headline .rt-h-icon { font-size: 22px; }
+        .rt-headline .rt-h-icon { font-size: var(--font-size-4xl, 24px); }
         .rt-headline .rt-h-label { font-size: var(--font-size-sm, 12px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim, #777); }
-        .rt-headline .rt-h-value { font-size: 17px; font-weight: 600; color: var(--text, #333); }
+        .rt-headline .rt-h-value { font-size: var(--font-size-2xl, 18px); font-weight: 600; color: var(--text, #333); }
 
         .rt-steps-title { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 10px 0; }
         .rt-step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-soft, #f2f2f2); }

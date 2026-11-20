@@ -417,22 +417,22 @@ table.dt-table {
 .dt-view-entry:focus-visible { outline: 2px solid var(--dt-accent); outline-offset: 1px; }
 .dt-view-entry.is-default { border-color: var(--dt-accent); }
 .dt-view-main { flex: 1; min-width: 0; }
-.dt-view-name { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dt-view-name { font-size: var(--font-size-lg, 14px); font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .dt-view-desc {
-    font-size: 12.5px; color: var(--text-muted, #666); margin-top: 2px;
+    font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-top: 2px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.dt-view-meta { font-size: 11.5px; color: var(--text-faint, #999); margin-top: 5px; }
+.dt-view-meta { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); margin-top: 5px; }
 .dt-view-sep { margin: 0 5px; }
 .dt-view-badge {
-    font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 10px;
+    font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 1px 7px; border-radius: 10px;
     background: var(--surface-3, #eee); color: var(--text-muted, #666);
 }
 .dt-view-badge-default { background: var(--dt-accent); color: var(--on-accent, #fff); }
 .dt-view-vis-public { background: var(--surface-3, #eee); }
 .dt-view-acts { display: flex; gap: 2px; flex-shrink: 0; }
 .dt-view-act {
-    border: none; background: none; cursor: pointer; font-size: 15px; line-height: 1;
+    border: none; background: none; cursor: pointer; font-size: var(--font-size-xl, 16px); line-height: 1;
     color: var(--text-faint, #bbb); padding: 5px 7px; border-radius: 5px;
 }
 .dt-view-act:hover { background: var(--surface-3, #eee); color: var(--text, #333); }

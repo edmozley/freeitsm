@@ -79,7 +79,7 @@
     gap: 12px;
     flex-wrap: wrap;
 }
-.section-header h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--text); }
+.section-header h3 { margin: 0; font-size: var(--font-size-2xl, 18px); font-weight: 600; color: var(--text); }
 .card-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted); margin: 0 0 16px; line-height: 1.55; }
 
 /* ------------------------------------------------------------------- table */

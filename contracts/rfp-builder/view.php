@@ -101,7 +101,7 @@ $translationNamespaces = ['common', 'contracts'];
         .phase-tile.ready .phase-tile-num { background: var(--con-accent-soft, #fef3c7); color: var(--con-accent-hover, #b45309); }
         .phase-tile.done  .phase-tile-num { background: #d1fae5; color: #065f46; }
         .phase-tile-title {
-            font-size: 15px; font-weight: 600; color: var(--text, #222);
+            font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222);
         }
         .phase-tile-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; flex-grow: 1; }
         .phase-tile-stats {

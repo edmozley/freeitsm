@@ -57,9 +57,9 @@ $ready = assetLabelsSchemaReady($conn);
         .card { background: var(--surface, #fff); border: 1px solid var(--border, #e2e6ea);
                 border-radius: 12px; padding: 16px; margin-bottom: 14px; }
         .step-label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #667); margin: 0 0 8px; }
-        .step-hint { font-size: 12.5px; color: var(--text-muted, #778); margin: 6px 0 0; line-height: 1.45; }
+        .step-hint { font-size: var(--font-size-md, 13px); color: var(--text-muted, #778); margin: 6px 0 0; line-height: 1.45; }
         input.big {
-            width: 100%; min-height: 50px; font-size: 17px; padding: 10px 12px;
+            width: 100%; min-height: 50px; font-size: var(--font-size-2xl, 18px); padding: 10px 12px;
             border-radius: 10px; border: 1px solid var(--border, #cfd6dd);
             background: var(--surface, #fff); color: var(--text, #222);
             font-family: 'Consolas', monospace; letter-spacing: 0.5px;
@@ -75,7 +75,7 @@ $ready = assetLabelsSchemaReady($conn);
         .counter { font-size: var(--font-size-md, 13px); opacity: 0.9; }
         .btn-row { display: flex; gap: 8px; margin-top: 12px; }
         .btn-row button {
-            flex: 1; min-height: 46px; font-size: 15px; font-weight: 600; border-radius: 10px;
+            flex: 1; min-height: 46px; font-size: var(--font-size-xl, 16px); font-weight: 600; border-radius: 10px;
             border: 1px solid var(--border, #cfd6dd); background: var(--surface, #fff);
             color: var(--text, #222); cursor: pointer;
         }

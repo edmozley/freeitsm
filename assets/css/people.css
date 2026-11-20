@@ -47,7 +47,7 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
     background: var(--surface, #fff); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px;
     box-shadow: 0 1px 4px rgba(0,0,0,.06); border-top: 4px solid var(--ppl-accent);
 }
-.ppl-hero h1 { margin: 0; font-size: 22px; color: var(--text, #222); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ppl-hero h1 { margin: 0; font-size: var(--font-size-4xl, 24px); color: var(--text, #222); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ppl-hero-main { flex: 1; min-width: 220px; }
 .ppl-hero-sub { margin-top: 4px; font-size: var(--font-size-lg, 14px); color: var(--text-muted, #666); }
 .ppl-hero-contact { margin-top: 4px; font-size: var(--font-size-md, 13px); }
@@ -160,10 +160,10 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
 .ppl-co-top { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .ppl-co-avatar {
     flex-shrink: 0; width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-    background: hsl(var(--co-hue, 300) 55% 42%); color: #fff; font-size: 19px; font-weight: 700; letter-spacing: .5px;
+    background: hsl(var(--co-hue, 300) 55% 42%); color: #fff; font-size: var(--font-size-3xl, 20px); font-weight: 700; letter-spacing: .5px;
 }
 .ppl-co-id { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 auto; }
-.ppl-co-name { font-size: 17px; font-weight: 700; color: var(--text, #222); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; overflow-wrap: anywhere; }
+.ppl-co-name { font-size: var(--font-size-2xl, 18px); font-weight: 700; color: var(--text, #222); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; overflow-wrap: anywhere; }
 .ppl-co-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
 .ppl-co-go { flex-shrink: 0; width: 20px; height: 20px; color: var(--text-dim, #aaa); transition: color 150ms ease, transform 150ms ease; }
 .ppl-co-card:hover .ppl-co-go { color: var(--ppl-accent); transform: translateX(2px); }
@@ -297,7 +297,7 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
     flex: none; border-radius: 50%; color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
     background: var(--ppl-accent); letter-spacing: .3px;
 }
-.ppl-org-av.s { width: 24px; height: 24px; font-size: 10px; }
+.ppl-org-av.s { width: 24px; height: 24px; font-size: var(--font-size-xs, 11px); }
 .ppl-org-av.m { width: 36px; height: 36px; font-size: var(--font-size-md, 13px); }
 .ppl-org-av.l { width: 52px; height: 52px; font-size: var(--font-size-2xl, 18px); }
 .ppl-org-n { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--ppl-accent); background: var(--ppl-accent-soft); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
@@ -428,7 +428,7 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
 .ppl-org-team button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ppl-org-detail[hidden] { display: none; }
 .ppl-org-detail-who { display: flex; align-items: center; gap: 14px; }
-.ppl-org-detail-name { font-size: 17px; font-weight: 700; color: var(--text, #222); }
+.ppl-org-detail-name { font-size: var(--font-size-2xl, 18px); font-weight: 700; color: var(--text, #222); }
 .ppl-org-detail .ppl-fields { padding: 0; }
 .ppl-org-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .ppl-org-detail-actions .ppl-btn { cursor: pointer; }
@@ -494,7 +494,7 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
 .ppl-oc-card.root { border-bottom: 5px solid var(--ppl-accent); box-shadow: 0 6px 16px color-mix(in srgb, var(--ppl-accent) 25%, transparent); }
 .ppl-oc-card.root .ppl-oc-name { color: var(--ppl-accent); }
 .ppl-oc-pill {
-    position: absolute; top: -11px; right: -10px; z-index: 2; font-size: 10px; font-weight: 700; color: #fff;
+    position: absolute; top: -11px; right: -10px; z-index: 2; font-size: var(--font-size-xs, 11px); font-weight: 700; color: #fff;
     background: var(--ppl-accent); border-radius: 999px; padding: 2px 8px; box-shadow: 0 2px 6px rgba(0,0,0,.2); white-space: nowrap;
 }
 /* The one whose panel is open, when it is somebody else: a soft accent shadow and name. */
@@ -579,7 +579,7 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
 .ppl-org-side > * { flex-shrink: 0; }
 /* Centred with text-align, not display: a display here would beat its hidden attribute in the tree. */
 .ppl-org-side-foot { margin-top: auto; padding-top: 14px; text-align: center; }
-.ppl-org-keys-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font: inherit; font-size: 12.5px;
+.ppl-org-keys-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font: inherit; font-size: var(--font-size-md, 13px);
     color: var(--ppl-accent); background: none; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer; }
 .ppl-org-keys-btn:hover { background: var(--ppl-accent-soft); }
 /* margin: auto is what centres a modal dialog; a global reset takes it away. */
@@ -588,7 +588,7 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
 .ppl-org-keys::backdrop { background: rgba(0,0,0,.35); }
 .ppl-org-keys-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
 .ppl-org-keys-head h3 { margin: 0; font-size: var(--font-size-xl, 16px); }
-.ppl-org-keys-close { font-size: 22px; line-height: 1; padding: 2px 8px; background: none; border: none; color: var(--text-dim, #888); cursor: pointer; }
+.ppl-org-keys-close { font-size: var(--font-size-4xl, 24px); line-height: 1; padding: 2px 8px; background: none; border: none; color: var(--text-dim, #888); cursor: pointer; }
 .ppl-org-keys h4 { margin: 14px 0 6px; font-size: var(--font-size-sm, 12px); text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); }
 .ppl-org-keys table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
 .ppl-org-keys td { padding: 5px 0; vertical-align: top; border-bottom: 1px solid var(--border-soft, #f0f0f0); }

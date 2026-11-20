@@ -52,13 +52,13 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         /* The good news, first: it works with no AI at all. */
         .ha-good {
             background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #a7f3d0); color: var(--text, #333);
-            border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; font-size: 13.5px; line-height: 1.6;
+            border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; font-size: var(--font-size-lg, 14px); line-height: 1.6;
         }
-        .ha-good-title { font-size: 15px; font-weight: 700; color: var(--success-text, #166534); margin-bottom: 4px; }
+        .ha-good-title { font-size: var(--font-size-xl, 16px); font-weight: 700; color: var(--success-text, #166534); margin-bottom: 4px; }
         .ha-good p { margin: 0 0 8px; }
         .ha-good .ha-later { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); }
         .ha-now { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font-size: var(--font-size-md, 13px); }
-        .ha-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--surface, #fff); border: 1px solid var(--success-border, #a7f3d0); color: var(--success-text, #166534); font-weight: 600; font-size: 12.5px; }
+        .ha-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--surface, #fff); border: 1px solid var(--success-border, #a7f3d0); color: var(--success-text, #166534); font-weight: 600; font-size: var(--font-size-md, 13px); }
 
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
@@ -73,13 +73,13 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         .ha-toggle { display: flex; align-items: flex-start; gap: 10px; }
         .ha-toggle input { margin-top: 3px; }
         .ha-toggle-label { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
-        .ha-toggle-hint { display: block; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-top: 3px; }
+        .ha-toggle-hint { display: block; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; margin-top: 3px; }
 
         .ha-who-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
         .ha-filter { flex: 1 1 220px; min-width: 0; padding: 7px 10px; font: inherit; font-size: var(--font-size-md, 13px); border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
-        .ha-count { font-size: 12.5px; color: var(--text-muted, #666); margin-left: auto; }
+        .ha-count { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-left: auto; }
         .ha-list { max-height: 340px; overflow-y: auto; border: 1px solid var(--border-soft, #eee); border-radius: 6px; }
-        .ha-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border-soft, #f1f1f1); cursor: pointer; font-size: 13.5px; color: var(--text, #333); }
+        .ha-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border-soft, #f1f1f1); cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
         .ha-row:last-child { border-bottom: none; }
         .ha-row:hover { background: var(--surface-hover, #f7f7f7); }
         .ha-row .ha-user { color: var(--text-faint, #999); font-size: var(--font-size-sm, 12px); }
@@ -87,30 +87,30 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
            can still see what they would be turning on, as Status portal does. */
         .ha-disabled { opacity: .45; pointer-events: none; }
 
-        .ha-status { font-size: 13.5px; color: var(--text, #333); line-height: 1.6; }
+        .ha-status { font-size: var(--font-size-lg, 14px); color: var(--text, #333); line-height: 1.6; }
         .ha-status .ha-warn { color: var(--warning-text, #92400e); }
         .ha-status .ha-fail { color: var(--danger-text, #b91c1c); }
         .ha-langs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
         .ha-lang { font-size: var(--font-size-sm, 12px); padding: 3px 9px; border-radius: 999px; background: var(--accent-soft, #eceff1); color: var(--text, #333); }
         .ha-saved { font-size: var(--font-size-md, 13px); color: var(--success-text, #166534); margin-left: 12px; }
-        .ha-panel > p.ha-small { font-size: 12.5px; margin-bottom: 8px; }
+        .ha-panel > p.ha-small { font-size: var(--font-size-md, 13px); margin-bottom: 8px; }
         .ha-msg { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         .ha-msg.ok { color: var(--success-text, #166534); }
         .ha-msg.bad { color: var(--danger-text, #b91c1c); }
         .hv-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px 16px; margin-top: 14px; }
-        .hv-field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--text-muted, #666); min-width: 0; }
+        .hv-field { display: flex; flex-direction: column; gap: 4px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); min-width: 0; }
         .hv-field input, .hv-field select { padding: 7px 10px; font: inherit; font-size: var(--font-size-md, 13px); border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); min-width: 0; }
         .hv-model-row { display: flex; gap: 6px; }
         .hv-model-row select { flex: 1; min-width: 0; }
         .hv-status { margin-top: 14px; }
         .hask-ai { margin-top: 14px; }
         .hask-try { display: flex; gap: 8px; }
-        .hask-out { margin-top: 12px; font-size: 13.5px; color: var(--text, #333); line-height: 1.55; }
+        .hask-out { margin-top: 12px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); line-height: 1.55; }
         .hask-out .hask-answer { white-space: pre-wrap; background: var(--surface-hover, #f6f7f8); border-radius: 8px; padding: 12px 14px; }
         .hask-out .hask-meta { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 6px; }
         .ha-row .ha-named { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); white-space: nowrap; }
         .ha-panel > p.ha-named-hint { font-size: var(--font-size-sm, 12px); margin: 8px 0 0; }
-        .ha-count-pill { display: inline-block; min-width: 18px; padding: 1px 7px; border-radius: 999px; background: var(--accent, #546e7a); color: var(--on-accent, #fff); font-size: 11.5px; text-transform: none; letter-spacing: 0; vertical-align: 1px; text-align: center; }
+        .ha-count-pill { display: inline-block; min-width: 18px; padding: 1px 7px; border-radius: 999px; background: var(--accent, #546e7a); color: var(--on-accent, #fff); font-size: var(--font-size-sm, 12px); text-transform: none; letter-spacing: 0; vertical-align: 1px; text-align: center; }
         .hu-filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
         .hu-filter.hu-on { border-color: var(--accent, #546e7a); color: var(--accent, #546e7a); font-weight: 700; }
         .hu-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border-soft, #eee); border-radius: 6px; margin-bottom: 6px; }

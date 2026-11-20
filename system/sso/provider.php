@@ -187,17 +187,17 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            attribute column into a sliver. */
         table.map { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); table-layout: fixed; }
         table.map th, table.map td { text-align: left; padding: 8px 10px; vertical-align: top; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
-        table.map thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); border-bottom: 1px solid var(--border, #e0e0e0); }
+        table.map thead th { font-size: var(--font-size-sm, 12px); text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); border-bottom: 1px solid var(--border, #e0e0e0); }
         table.map tbody th { font-weight: 600; color: var(--text, #333); }
-        table.map .map-hint { display: block; font-weight: 400; font-size: 11.5px; color: var(--text-dim, #888); margin-top: 2px; line-height: 1.45; }
-        table.map input { width: 100%; box-sizing: border-box; padding: 7px 9px; font-size: 12.5px; font-family: ui-monospace, Consolas, monospace;
+        table.map .map-hint { display: block; font-weight: 400; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 2px; line-height: 1.45; }
+        table.map input { width: 100%; box-sizing: border-box; padding: 7px 9px; font-size: var(--font-size-md, 13px); font-family: ui-monospace, Consolas, monospace;
             border: 1px solid var(--border, #ddd); border-radius: 5px; background: var(--surface, #fff); color: var(--text, #333); }
-        tr.map-group td { background: var(--app-bg, #f7f7f7); font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+        tr.map-group td { background: var(--app-bg, #f7f7f7); font-size: var(--font-size-sm, 12px); font-weight: 700; text-transform: uppercase;
             letter-spacing: .04em; color: var(--text-dim, #888); padding: 7px 10px; border-bottom: 1px solid var(--border, #e6e6e6); }
         /* The example column. Before a test it is a dash, not an empty cell —
            an empty cell reads as "this field imports nothing", which is exactly
            the thing the test exists to tell you. */
-        td.map-sample { font-size: 12.5px; color: var(--text-muted, #555); word-break: break-word; }
+        td.map-sample { font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); word-break: break-word; }
         td.map-sample.filled { color: var(--text, #2e7d32); }
         td.map-sample.missing { color: #c62828; font-style: italic; }
         [data-theme-mode="dark"] td.map-sample.filled { color: #86efac; }
@@ -207,10 +207,10 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         .avail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 3px 18px; margin-top: 10px; }
         .avail-grid code { font-family: ui-monospace, Consolas, monospace; color: var(--text, #444); }
         .avail-grid span { color: var(--text-dim, #999); }
-        table.runs { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        table.runs { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
         table.runs th { text-align: left; padding: 7px 9px; color: var(--text-dim, #888); font-weight: 600; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
         table.runs td { padding: 7px 9px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); white-space: nowrap; }
-        td.run-msg { white-space: normal; color: var(--text-muted, #666); font-size: 11.5px; padding-bottom: 12px; }
+        td.run-msg { white-space: normal; color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); padding-bottom: 12px; }
         .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 700; }
         .pill.ok { background: #e8f5e9; color: #2e7d32; }
         .pill.stopped { background: #fff4ce; color: #6b5900; }
@@ -224,19 +224,19 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         .ou-row input[type=checkbox] { flex: 0 0 auto; margin: 0; cursor: pointer; }
         /* The twisty is a button-shaped span, fixed width so names line up
            whether or not a node has children. */
-        .ou-twisty { flex: 0 0 14px; width: 14px; text-align: center; cursor: pointer; color: var(--text-dim, #999); font-size: 10px; user-select: none; }
+        .ou-twisty { flex: 0 0 14px; width: 14px; text-align: center; cursor: pointer; color: var(--text-dim, #999); font-size: var(--font-size-xs, 11px); user-select: none; }
         .ou-twisty.leaf { cursor: default; opacity: 0; }
         .ou-name { flex: 1 1 auto; }
         /* Two numbers, because they answer different questions: how many sit
            here, and how many ticking this branch would bring in. */
-        .ou-count { flex: 0 0 auto; font-size: 11.5px; color: var(--text-dim, #999); white-space: nowrap; }
+        .ou-count { flex: 0 0 auto; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #999); white-space: nowrap; }
         .ou-count b { color: var(--text-muted, #666); font-weight: 600; }
         .ou-row.excluded .ou-name { text-decoration: line-through; color: var(--text-dim, #999); }
         .ou-kids.collapsed { display: none; }
         .ou-manual { margin-top: 12px; }
         .ou-ignored { background: #fff4ce; color: #6b5900; padding: 7px 10px; border-radius: 5px; margin: 8px 0 0; font-weight: 600; }
         [data-theme-mode="dark"] .ou-ignored { background: #3a3218; color: #fde68a; }
-        .ou-manual summary { cursor: pointer; font-size: 12.5px; color: var(--sys-accent, #546e7a); font-weight: 600; }
+        .ou-manual summary { cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--sys-accent, #546e7a); font-weight: 600; }
         /* The run detail modal. Namespaced `sso-` for the same reason index.php
            namespaces its own: inbox.css carries a global .modal framework that
            defaults to opacity:0/visibility:hidden, and an un-namespaced modal
@@ -248,7 +248,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            names is the thing it exists to replace. Its height is auto with a cap,
            NOT fixed: a preview with three rows in it should be three rows tall. */
         .sso-modal-header h2 { margin: 0; font: inherit; color: inherit; }
-        .sso-modal-header .sub { font-size: 12.5px; color: var(--text-dim, #888); margin-top: 3px; }
+        .sso-modal-header .sub { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-top: 3px; }
         /* Full-bleed sticky bar: the negative margin undoes the standard body's
            24px padding so the bar still runs edge to edge and sticks to the top. */
         .run-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: -24px -24px 0; padding: 12px 24px; border-bottom: 1px solid var(--border-soft, #f0f0f0); position: sticky; top: -24px; background: var(--surface, #fff); z-index: 2; }
@@ -258,18 +258,18 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
             border-radius: 20px; padding: 5px 13px; font-size: var(--font-size-sm, 12px); font-weight: 600; cursor: pointer; }
         .chip.on { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border-color: var(--sys-accent, #546e7a); }
         .chip .n { opacity: .7; margin-left: 5px; font-weight: 400; }
-        .run-search { margin-left: auto; flex: 0 1 240px; padding: 7px 11px; font-size: 12.5px; border: 1px solid var(--border, #ddd);
+        .run-search { margin-left: auto; flex: 0 1 240px; padding: 7px 11px; font-size: var(--font-size-md, 13px); border: 1px solid var(--border, #ddd);
             border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
         table.people { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); table-layout: fixed; }
-        table.people th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888);
+        table.people th { text-align: left; font-size: var(--font-size-sm, 12px); text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888);
             font-weight: 600; padding: 10px; border-bottom: 1px solid var(--border, #e6e6e6); }
         table.people td { padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); vertical-align: top; word-break: break-word; }
         table.people tr.hide { display: none; }
         .who { font-weight: 600; }
-        .who small { display: block; font-weight: 400; font-size: 11.5px; color: var(--text-dim, #999); font-family: ui-monospace, Consolas, monospace; }
+        .who small { display: block; font-weight: 400; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #999); font-family: ui-monospace, Consolas, monospace; }
         /* Colour carries the meaning at a glance: green arrives, amber changes,
            grey leaves, red needs you. */
-        .act { display: inline-block; padding: 2px 10px; border-radius: 11px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+        .act { display: inline-block; padding: 2px 10px; border-radius: 11px; font-size: var(--font-size-sm, 12px); font-weight: 700; white-space: nowrap; }
         .act.create { background: #e8f5e9; color: #2e7d32; }
         .act.update, .act.adopt { background: #fff4ce; color: #6b5900; }
         .act.deactivate, .act.skip, .act.unchanged { background: var(--app-bg, #eee); color: var(--text-dim, #777); }
@@ -280,7 +280,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         .run-empty { padding: 40px 24px; text-align: center; color: var(--text-dim, #999); font-size: var(--font-size-md, 13px); }
         /* A preview changed nothing. Say so where it cannot be missed, because
            the table below reads exactly like a record of things that happened. */
-        .preview-banner { background: #fff4ce; color: #6b5900; padding: 10px 24px; font-size: 12.5px; font-weight: 600; }
+        .preview-banner { background: #fff4ce; color: #6b5900; padding: 10px 24px; font-size: var(--font-size-md, 13px); font-weight: 600; }
         [data-theme-mode="dark"] .preview-banner { background: #3a3218; color: #fde68a; }
         table.runs tbody tr.clickable { cursor: pointer; }
         table.runs tbody tr.clickable:hover td { background: var(--surface-hover, rgba(127,127,127,0.07)); }

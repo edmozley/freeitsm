@@ -54,8 +54,8 @@ $m = fn(string $k) => t('system.managers.' . $k);
         .mg-field:first-of-type { border-top: none; padding-top: 0; }
         .mg-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
         .mg-toggle input { margin-top: 3px; }
-        .mg-label { display: block; font-size: 13.5px; font-weight: 600; color: var(--text, #333); }
-        .mg-desc  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-top: 2px; }
+        .mg-label { display: block; font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
+        .mg-desc  { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; margin-top: 2px; }
         .mg-sub { margin: 10px 0 0 26px; }
         .mg-sub select { padding: 7px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .mg-radio { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; cursor: pointer; }
@@ -75,7 +75,7 @@ $m = fn(string $k) => t('system.managers.' . $k);
         .mg-table .mg-email { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); }
         .mg-table .mg-name { color: var(--accent, #0078d4); text-decoration: none; }
         .mg-table .mg-name:hover { text-decoration: underline; }
-        .mg-chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11.5px; margin: 0 4px 3px 0;
+        .mg-chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: var(--font-size-sm, 12px); margin: 0 4px 3px 0;
             background: var(--surface-2, #eceff1); color: var(--text-muted, #555); }
         .mg-warn { display: block; margin-top: 4px; font-size: var(--font-size-sm, 12px); color: var(--warning-text, #6b5900); }
         .mg-pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }

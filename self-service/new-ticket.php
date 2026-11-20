@@ -84,7 +84,7 @@ $pageStyles = <<<'CSS'
             padding: 10px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 6px;
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-family: inherit;
             background: var(--surface, #fff);
             color: var(--text, #333);

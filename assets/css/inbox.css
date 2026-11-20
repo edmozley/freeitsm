@@ -867,7 +867,7 @@ body {
     display: inline-block;
     background: var(--accent, #0078d4);
     color: var(--on-accent, #fff);
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 10px;
@@ -1190,7 +1190,7 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .ticket-properties-chevron {
-    font-size: 10px;
+    font-size: var(--font-size-xs, 11px);
     transition: transform 0.2s;
     color: var(--text-dim, #888);
 }
@@ -1802,7 +1802,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     background: none;
     color: var(--text-muted, #666);
     cursor: pointer;
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
     line-height: 1;
     padding: 0 0 0 2px;
     flex-shrink: 0;
@@ -2120,7 +2120,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
 .ticket-context-submenu-item .ctx-snooze-when {
     margin-left: auto;
     padding-left: 14px;
-    font-size: 11.5px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #888);
     white-space: nowrap;
 }
@@ -2904,7 +2904,7 @@ body .tox-tinymce-aux {
 }
 
 .section-header h2 {
-    font-size: 22px;
+    font-size: var(--font-size-4xl, 24px);
     color: var(--text, #333);
 }
 
@@ -3494,7 +3494,7 @@ body .tox-tinymce-aux {
 
 .search-modal-header span {
     font-weight: 600;
-    font-size: 15px;
+    font-size: var(--font-size-xl, 16px);
 }
 
 .search-modal-close {
@@ -4095,7 +4095,7 @@ body .tox-tinymce-aux {
    above, so neither picker's appearance changed when they moved. */
 .asset-picker-group {
     padding: 6px 12px 3px;
-    font-size: 10.5px;
+    font-size: var(--font-size-xs, 11px);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 700;
@@ -4139,7 +4139,7 @@ body .tox-tinymce-aux {
     margin: 8px 0;
     padding: 10px 12px;
     border-radius: 6px;
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.55;
     background: var(--warning-bg, #fef3c7);
     color: var(--warning-text, #92400e);
@@ -4192,7 +4192,7 @@ body .tox-tinymce-aux {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 10px; font-size: var(--font-size-sm, 12px); line-height: 1.2;
 }
-.reply-tpl-caret { font-size: 10px; opacity: 0.7; }
+.reply-tpl-caret { font-size: var(--font-size-xs, 11px); opacity: 0.7; }
 .reply-tpl-menu {
     position: absolute; right: 0; top: calc(100% + 4px);
     background: var(--surface, #fff); border: 1px solid var(--border, #ddd);
@@ -4349,7 +4349,7 @@ body .tox-tinymce-aux {
 .sel-bar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .sel-bar-close {
     margin-left: auto; background: none; border: none; cursor: pointer;
-    color: var(--text-muted, #666); font-size: 15px; line-height: 1; padding: 2px 6px;
+    color: var(--text-muted, #666); font-size: var(--font-size-xl, 16px); line-height: 1; padding: 2px 6px;
     border-radius: 4px;
 }
 .sel-bar-close:hover { background: var(--surface-3, #e6e6e6); color: var(--text, #333); }
@@ -4415,9 +4415,9 @@ body .tox-tinymce-aux {
     background: var(--surface-2, #f3f6fa);
     border-bottom: 1px solid var(--border, #dde3ea);
     color: var(--text-muted, #555);
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
 }
-.merge-banner-icon { font-size: 17px; line-height: 1; flex: 0 0 auto; }
+.merge-banner-icon { font-size: var(--font-size-2xl, 18px); line-height: 1; flex: 0 0 auto; }
 .merge-banner-text { flex: 1 1 auto; min-width: 0; }
 .merge-banner-refs { font-weight: 600; color: var(--text, #333); }
 .merge-banner-btn { flex: 0 0 auto; padding: 5px 11px; font-size: var(--font-size-sm, 12px); }
@@ -4431,7 +4431,7 @@ body .tox-tinymce-aux {
     align-items: center;
     gap: 10px;
     padding: 8px 16px;
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     background: var(--surface-2, #f3f6fa);
     border-bottom: 1px solid var(--border, #dde3ea);
     color: var(--text-muted, #555);
@@ -4458,7 +4458,7 @@ body .tox-tinymce-aux {
     background: var(--accent, #546e7a);
     color: var(--on-accent, #fff);
     border: 2px solid var(--surface, #fff);
-    font-size: 10.5px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     letter-spacing: 0.2px;
     user-select: none;
@@ -4472,7 +4472,7 @@ body .tox-tinymce-aux {
     padding: 9px 12px;
     margin-bottom: 12px;
     border-radius: 6px;
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     background: var(--warning-bg, #fff4e5);
     border: 1px solid var(--warning-border, #ffd9a8);
     color: var(--warning-text, #8a5300);
@@ -4485,7 +4485,7 @@ body .tox-tinymce-aux {
     background: var(--surface-2, #f3f6fa);
     border-bottom: 1px solid var(--border, #dde3ea);
     color: var(--text-muted, #555);
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
 }
 
 /* Merge dialog: choosing what survives. */
@@ -4511,7 +4511,7 @@ body .tox-tinymce-aux {
    too — this is the visual half of the same promise. */
 .merge-ai-badge {
     display: inline-block; margin-left: 8px; padding: 1px 7px;
-    border-radius: 10px; font-size: 10.5px; font-weight: 600;
+    border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600;
     letter-spacing: 0.3px; text-transform: uppercase;
     background: var(--accent-soft, #eff6ff); color: var(--accent, #0078d4);
 }
@@ -4526,7 +4526,7 @@ body .tox-tinymce-aux {
     background: var(--surface-2, #f3f6fa);
     border: 1px solid var(--border, #dde3ea);
     color: var(--text-muted, #555);
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
 }
 
 /* --- Splitting a ticket (#914) --- */
@@ -4565,12 +4565,12 @@ body .tox-tinymce-aux {
 }
 .split-preview-row {
     display: flex; align-items: baseline; gap: 10px;
-    padding: 7px 11px; font-size: 12.5px;
+    padding: 7px 11px; font-size: var(--font-size-md, 13px);
     border-bottom: 1px solid var(--border, #ececec);
 }
 .split-preview-row:last-child { border-bottom: none; }
 .split-preview-dir {
-    flex: 0 0 auto; font-size: 10px; font-weight: 600; text-transform: uppercase;
+    flex: 0 0 auto; font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.3px; padding: 1px 6px; border-radius: 9px;
 }
 .split-preview-dir.inbound  { background: var(--accent-soft, #eff6ff); color: var(--accent, #0078d4); }
@@ -4916,7 +4916,7 @@ body .tox-tinymce-aux {
     background: var(--surface, #fff);
     color: var(--accent, #2b88d8);
     font: inherit;
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
     cursor: pointer;
     position: relative;
@@ -4936,7 +4936,7 @@ body .tox-tinymce-aux {
     background: var(--surface-2, #f7f8fa);
     color: var(--text-muted, #666);
     font: inherit;
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
     text-align: left;
     cursor: pointer;
@@ -5016,7 +5016,7 @@ body .tox-tinymce-aux {
     padding: 0 14px 12px;
     white-space: pre-wrap;
     line-height: 1.55;
-    font-size: 13.5px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text, #333);
 }
 
@@ -5055,7 +5055,7 @@ body .tox-tinymce-aux {
 .ai-panel-close {
     border: none;
     background: none;
-    font-size: 22px;
+    font-size: var(--font-size-4xl, 24px);
     line-height: 1;
     color: var(--text-muted, #666);
     cursor: pointer;

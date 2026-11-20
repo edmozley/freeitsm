@@ -75,7 +75,7 @@ $b = fn(string $k) => t('system.bingo.' . $k);
         .fb-card.dismissed { opacity: .5; }
         .fb-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
         .fb-mod { font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .4px; }
-        .fb-star { font-size: 22px; line-height: 1; color: var(--border, #ccc); }
+        .fb-star { font-size: var(--font-size-4xl, 24px); line-height: 1; color: var(--border, #ccc); }
         .fb-card.lit .fb-star { color: var(--star); text-shadow: 0 0 8px rgba(245, 179, 1, .45); }
         .fb-title { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); line-height: 1.3; }
         .fb-tags { margin-top: auto; display: flex; gap: 6px; flex-wrap: wrap; }

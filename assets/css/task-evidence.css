@@ -3,7 +3,7 @@
    so anything that only makes sense on screen carries .no-print. */
 
 .ev-page { flex: 1; overflow-y: auto; padding: 20px 30px 40px; background: var(--app-bg, #f5f7fa); color: var(--text, #333); }
-.ev-page h2 { margin: 0 0 6px; font-size: 22px; }
+.ev-page h2 { margin: 0 0 6px; font-size: var(--font-size-4xl, 24px); }
 .ev-intro, .ev-meta { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); margin: 0 0 16px; max-width: 900px; }
 .ev-empty { padding: 30px; text-align: center; color: var(--text-muted, #666); background: var(--surface, #fff); border-radius: 8px; }
 .ev-sub { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
@@ -59,7 +59,7 @@
     body, .ev-page { background: #fff !important; color: #000 !important; overflow: visible !important; }
     .ev-page { padding: 0; }
     .ev-table-wrap { box-shadow: none; overflow: visible; }
-    .ev-table { font-size: 10px; }
+    .ev-table { font-size: var(--font-size-xs, 11px); }
     .ev-table th, .ev-table td { padding: 4px 5px; }
     .ev-detail { break-inside: avoid; border-color: #ccc; }
     .ev-pill, .ev-flag, .ev-chip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

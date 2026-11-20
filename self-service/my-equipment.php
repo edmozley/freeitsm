@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'self-service'];
 
 $pageStyles = <<<'CSS'
 .eq-wrap { width: 100%; box-sizing: border-box; padding: 24px 28px 48px; }
-.eq-wrap h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; color: var(--text, #333); }
+.eq-wrap h1 { font-size: var(--font-size-4xl, 24px); font-weight: 600; margin: 0 0 4px; color: var(--text, #333); }
 .eq-sub { color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); margin: 0 0 22px; max-width: 640px; line-height: 1.55; }
 
 .eq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
@@ -65,7 +65,7 @@ $pageStyles = <<<'CSS'
     border-radius: 8px;
     padding: 16px 18px;
 }
-.eq-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 2px; color: var(--text, #333); word-break: break-word; }
+.eq-card h2 { font-size: var(--font-size-xl, 16px); font-weight: 600; margin: 0 0 2px; color: var(--text, #333); word-break: break-word; }
 .eq-type { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 0 0 12px; }
 
 .eq-facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: var(--font-size-md, 13px); }
@@ -73,7 +73,7 @@ $pageStyles = <<<'CSS'
 .eq-facts dd { margin: 0; color: var(--text, #333); word-break: break-word; }
 /* A serial gets typed into a form or read down a phone, so it wants to be
    unambiguous rather than pretty: 0 against O and 1 against l is the whole job. */
-.eq-facts dd.mono { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12.5px; }
+.eq-facts dd.mono { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: var(--font-size-md, 13px); }
 
 .eq-empty {
     background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb);

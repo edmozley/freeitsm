@@ -3434,8 +3434,8 @@ function displayEmail(email, recordings) {
         <div style="background:#fdeceb;border:1px solid #e6c4c4;border-radius:8px;padding:12px 16px;margin:0 0 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
             <span style="font-size:var(--font-size-2xl, 18px);">🗑️</span>
             <span style="color:#b71c1c;font-weight:600;flex:1;min-width:180px;">This ticket is in the trash — its actions are disabled until you restore it.</span>
-            <button onclick="restoreTicketFromTrash(${email.ticket_id})" style="font-size:12.5px;padding:6px 14px;border:1px solid #c8d6cf;background:#eefaf2;color:#1b7a43;border-radius:5px;cursor:pointer;font-weight:600;">↩ Restore</button>
-            <button onclick="permanentlyDeleteFromTrash(${email.ticket_id}, ${jsArg(email.ticket_number || '')})" style="font-size:12.5px;padding:6px 14px;border:1px solid #e6c4c4;background:#fff;color:#b71c1c;border-radius:5px;cursor:pointer;font-weight:600;">✕ Delete forever</button>
+            <button onclick="restoreTicketFromTrash(${email.ticket_id})" style="font-size:var(--font-size-md, 13px);padding:6px 14px;border:1px solid #c8d6cf;background:#eefaf2;color:#1b7a43;border-radius:5px;cursor:pointer;font-weight:600;">↩ Restore</button>
+            <button onclick="permanentlyDeleteFromTrash(${email.ticket_id}, ${jsArg(email.ticket_number || '')})" style="font-size:var(--font-size-md, 13px);padding:6px 14px;border:1px solid #e6c4c4;background:#fff;color:#b71c1c;border-radius:5px;cursor:pointer;font-weight:600;">✕ Delete forever</button>
         </div>` : '';
 
     const workspace = !!window.TicketWorkspace?.enabled(email);
@@ -8792,7 +8792,7 @@ function renderReplyTemplateMenu() {
 
     html += '<div class="reply-tpl-menu-sep"></div>';
     html += `<button type="button" class="reply-tpl-menu-action" onclick="event.stopPropagation(); openSaveReplyTemplateModal('new', null)">
-                <span style="font-size:15px;line-height:1;">+</span> ${escapeHtml(t('tickets.reply_modal.save_draft_as_template'))}
+                <span style="font-size:var(--font-size-xl, 16px);line-height:1;">+</span> ${escapeHtml(t('tickets.reply_modal.save_draft_as_template'))}
              </button>`;
 
     menu.innerHTML = html;
@@ -11612,7 +11612,7 @@ function populateContextAssigneeSubmenu() {
         // the row visually aligned with status / priority swatches without
         // inventing a colour per analyst.
         const initial = (a.full_name || '').charAt(0).toUpperCase() || '?';
-        const initialChip = `<span class="ctx-status-swatch" style="background:#e5e7eb; color:#374151; font-size:9px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; border:none;">${escapeHtml(initial)}</span>`;
+        const initialChip = `<span class="ctx-status-swatch" style="background:#e5e7eb; color:#374151; font-size:var(--font-size-xs, 11px); font-weight:600; display:inline-flex; align-items:center; justify-content:center; border:none;">${escapeHtml(initial)}</span>`;
         return `<div class="ticket-context-submenu-item" data-analyst-id="${a.id}" onclick="setAssigneeFromContext(${a.id})">
             ${initialChip}<span class="ctx-status-name">${escapeHtml(a.full_name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
         </div>`;
@@ -11651,7 +11651,7 @@ function populateContextTeamSubmenu() {
     sub.innerHTML = clearRow + ticketTeams.map(tm => {
         const isCurrent = (currentTeamId != null && tm.id == currentTeamId);
         const initial = (tm.name || '').charAt(0).toUpperCase() || '?';
-        const chip = `<span class="ctx-status-swatch" style="background:#e0e7ff; color:#3730a3; font-size:9px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; border:none;">${escapeHtml(initial)}</span>`;
+        const chip = `<span class="ctx-status-swatch" style="background:#e0e7ff; color:#3730a3; font-size:var(--font-size-xs, 11px); font-weight:600; display:inline-flex; align-items:center; justify-content:center; border:none;">${escapeHtml(initial)}</span>`;
         return `<div class="ticket-context-submenu-item" data-team-id="${tm.id}" onclick="setTeamFromContext(${tm.id})">
             ${chip}<span class="ctx-status-name">${escapeHtml(tm.name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
         </div>`;

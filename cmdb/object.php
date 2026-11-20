@@ -312,7 +312,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         }
         .o2-card-sub { font-size: var(--font-size-md, 13px); color: var(--text-dim, #9ca3af); margin-left: auto; }
         .o2-lede {
-            font-size: 17px; font-weight: 600;
+            font-size: var(--font-size-2xl, 18px); font-weight: 600;
             color: var(--text, #111827);
             margin-bottom: 14px;
             letter-spacing: -0.01em;
@@ -390,7 +390,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             letter-spacing: 0.02em;
         }
         .o2-tally-item b {
-            font-size: 15px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 680;
             color: var(--text, #111827);
             font-variant-numeric: tabular-nums;
@@ -441,7 +441,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             border: 1px solid var(--border-soft, #f1f2f4);
             border-radius: 8px;
             padding: 11px 13px;
-            font-size: 13.5px;
+            font-size: var(--font-size-lg, 14px);
             line-height: 1.7;
             color: var(--text-muted, #6b7280);
         }
@@ -497,7 +497,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         }
         .o2-prop-lbl .req { color: var(--danger-text, #b91c1c); }
         .o2-prop-val {
-            font-size: 15px; font-weight: 600;
+            font-size: var(--font-size-xl, 16px); font-weight: 600;
             color: var(--text, #111827);
             word-break: break-word;
             cursor: text;
@@ -505,7 +505,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             min-height: 22px;
         }
         .o2-prop-val input, .o2-prop-val select {
-            width: 100%; font: inherit; font-size: 15px;
+            width: 100%; font: inherit; font-size: var(--font-size-xl, 16px);
             padding: 1px 4px; margin: -1px -4px;
             border: 1px solid var(--cmdb-accent, #be185d);
             border-radius: 4px;
@@ -570,7 +570,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             display: flex; gap: 14px; align-items: flex-start;
         }
         .o2-ai-ico { color: var(--cmdb-accent, #be185d); flex: 0 0 auto; margin-top: 1px; }
-        .o2-ai-txt { flex: 1 1 auto; font-size: 14.5px; line-height: 1.6; color: var(--text, #111827); max-width: 100ch; }
+        .o2-ai-txt { flex: 1 1 auto; font-size: var(--font-size-xl, 16px); line-height: 1.6; color: var(--text, #111827); max-width: 100ch; }
         .o2-ai-txt.muted { color: var(--text-muted, #6b7280); font-style: italic; }
         .o2-ai-when { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); margin-top: 6px; }
 
@@ -738,7 +738,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-field input:focus, .o2-field select:focus {
             outline: none; border-color: var(--cmdb-accent, #be185d);
         }
-        .o2-field small { display: block; font-size: 11.5px; color: var(--text-dim, #9ca3af); margin-top: 5px; }
+        .o2-field small { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #9ca3af); margin-top: 5px; }
         .o2-check { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-lg, 14px); color: var(--text, #111827); }
         .o2-check input { width: auto; }
         .o2-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -794,8 +794,8 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-grade.g-may_be_interrupted { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #a16207); }
         .o2-grade.g-redundancy_reduced { background: var(--info-bg, #e0f2fe); color: var(--info-text, #0369a1); }
         .o2-grade.g-unknown { background: var(--surface-hover, #f3f4f6); color: var(--text-muted, #6b7280); }
-        .o2-grade-counts { font-size: 12.5px; font-weight: 500; color: var(--text-muted, #6b7280); }
-        .o2-limits { margin: 12px 18px 16px; padding: 10px 12px; border-left: 3px solid var(--warning-text, #a16207); background: var(--surface-hover, #f9fafb); border-radius: 0 6px 6px 0; font-size: 12.5px; color: var(--text-muted, #4b5563); }
+        .o2-grade-counts { font-size: var(--font-size-md, 13px); font-weight: 500; color: var(--text-muted, #6b7280); }
+        .o2-limits { margin: 12px 18px 16px; padding: 10px 12px; border-left: 3px solid var(--warning-text, #a16207); background: var(--surface-hover, #f9fafb); border-radius: 0 6px 6px 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #4b5563); }
         .o2-limits ul { margin: 4px 0 0; padding-left: 18px; }
 
         /* Reduced motion keeps the fades (they aid comprehension) and drops
@@ -870,7 +870,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
                     </div>
                 </div>
                 <div class="o2-preview" id="o2RelHint"></div>
-                <small style="display:block;font-size:11.5px;color:var(--text-dim,#9ca3af);margin:8px 0 4px;">
+                <small style="display:block;font-size:var(--font-size-sm, 12px);color:var(--text-dim,#9ca3af);margin:8px 0 4px;">
                     <?php echo htmlspecialchars(t('cmdb.rel_modal.ownership_note')); ?>
                 </small>
             </div>

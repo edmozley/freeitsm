@@ -120,7 +120,7 @@ body { --accent: var(--jml-accent, #a16207); --accent-hover: var(--jml-accent-ho
 .jml-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .jml-panel { background: var(--surface, #fff); border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); padding: 16px 18px; }
 .jml-panel-h { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.jml-panel-h h2 { font-size: 15px; margin: 0; color: var(--text, #222); }
+.jml-panel-h h2 { font-size: var(--font-size-xl, 16px); margin: 0; color: var(--text, #222); }
 .jml-panel-h .grow { flex: 1; }
 .jml-panel-intro { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin: 0 0 12px; line-height: 1.5; }
 .jml-muted { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); line-height: 1.5; }

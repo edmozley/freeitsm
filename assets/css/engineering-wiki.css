@@ -202,7 +202,7 @@ html[data-theme-mode="dark"] .ew-app {
 .ew-result { display: block; padding: 8px 14px; border-bottom: 1px solid var(--border-soft); color: var(--text); text-decoration: none; cursor: pointer; }
 .ew-result:hover { background: var(--surface-hover); }
 .ew-result strong { display: block; font-size: var(--font-size-md, 13px); }
-.ew-result span { display: block; color: var(--text-dim); font-size: 11.5px; margin-top: 2px; }
+.ew-result span { display: block; color: var(--text-dim); font-size: var(--font-size-sm, 12px); margin-top: 2px; }
 .ew-result em { display: block; color: var(--text-faint); font-size: var(--font-size-xs, 11px); font-style: normal; margin-top: 2px; font-family: ui-monospace, Consolas, monospace; }
 
 /* ---------------------------------------------------------------- panes and tabs */
@@ -247,7 +247,7 @@ html[data-theme-mode="dark"] .ew-app {
     border-bottom: none;
     border-radius: 8px 8px 0 0;
     color: var(--text-muted);
-    font-size: 12.5px;
+    font-size: var(--font-size-md, 13px);
     cursor: pointer;
     flex-shrink: 0;
     user-select: none;
@@ -453,6 +453,6 @@ html[data-theme-mode="dark"] .ew-app {
     .ew-app:not(.ew-sidebar-open) .ew-sidebar { display: none; }
     .ew-app.ew-no-sidebar.ew-sidebar-open .ew-sidebar { display: block; }
     .ew-view { padding: 12px 8px 48px; }
-    .ew-markdown { padding: 20px 16px; font-size: 15px; }
+    .ew-markdown { padding: 20px 16px; font-size: var(--font-size-xl, 16px); }
     .ew-address { display: none; }
 }

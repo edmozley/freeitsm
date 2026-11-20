@@ -101,7 +101,7 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
         .form-logo.align-right { margin: 0 0 28px auto; }
 
         .fill-title {
-            font-size: 22px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 4px;

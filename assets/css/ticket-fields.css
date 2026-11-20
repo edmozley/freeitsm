@@ -4,7 +4,7 @@
 /* Read-only answers (discussion #193): label above value, as many to a row as fit. */
 .tf-answers { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px 18px; margin: 0; }
 .tf-answer { min-width: 0; }
-.tf-answer dt { font-size: 11.5px; color: var(--text-muted, #666); margin: 0 0 1px; }
+.tf-answer dt { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 0 0 1px; }
 .tf-answer dd { margin: 0; font-size: var(--font-size-md, 13px); color: var(--text, #333); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* The ticket panel: the fields join the panel's own grid as if they were built in. */

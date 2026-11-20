@@ -57,8 +57,8 @@ requireModuleAccess('system');
 
         .ssp-field { padding: 14px 0; border-top: 1px solid var(--border-soft, #f1f1f1); }
         .ssp-field:first-of-type { border-top: none; padding-top: 0; }
-        .ssp-label { display: block; font-size: 13.5px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
-        .ssp-desc  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-bottom: 9px; }
+        .ssp-label { display: block; font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
+        .ssp-desc  { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; margin-bottom: 9px; }
         .ssp-input { width: 100%; max-width: 420px; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; }
 
         /* A colour needs both a picker and a typed value: an admin handed a
@@ -66,7 +66,7 @@ requireModuleAccess('system');
         .ssp-colour-row { display: flex; align-items: center; gap: 10px; }
         .ssp-colour-row input[type=color] { width: 44px; height: 34px; padding: 2px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; background: var(--surface, #fff); cursor: pointer; }
         .ssp-colour-row input[type=text] { width: 120px; font-family: Consolas, monospace; }
-        .ssp-clear { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12.5px; padding: 4px; }
+        .ssp-clear { background: none; border: none; color: var(--accent); cursor: pointer; font-size: var(--font-size-md, 13px); padding: 4px; }
 
         .ssp-toggle { display: flex; align-items: flex-start; gap: 10px; }
         .ssp-toggle input { margin-top: 3px; }
@@ -78,7 +78,7 @@ requireModuleAccess('system');
             background: var(--surface-2, #f7f7f7);
         }
         .ssp-pattern.selected { border-color: var(--accent, #546e7a); box-shadow: 0 0 0 2px rgba(84,110,122,.18); }
-        .ssp-pattern span { position: absolute; bottom: 0; left: 0; right: 0; font-size: 10.5px; text-align: center;
+        .ssp-pattern span { position: absolute; bottom: 0; left: 0; right: 0; font-size: var(--font-size-xs, 11px); text-align: center;
                             background: rgba(0,0,0,.55); color: #fff; padding: 2px 0; }
 
         /* The preview is the point of the screen: an admin choosing a colour is

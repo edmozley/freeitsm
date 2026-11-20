@@ -106,7 +106,7 @@ $translationNamespaces = ['common', 'service-status'];
         /* The badge on each update in the thread, so the two are distinguishable
            at a glance rather than only in the dialog that wrote them. */
         .inc-update-vis {
-            font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 10px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 1px 7px; border-radius: 10px;
             background: var(--surface-3, #eee); color: var(--text-muted, #666);
         }
         /* Edit and remove, on the row they belong to. Pushed right so they
@@ -114,7 +114,7 @@ $translationNamespaces = ['common', 'service-status'];
         /* The correction dialog. A textarea with room to read the whole
            update, because these run to several sentences and the thing it
            replaced was a one-line box. */
-        .upd-edit-note { margin: 0 0 14px; font-size: 12.5px; line-height: 1.5; color: var(--text-muted, #6b7280); }
+        .upd-edit-note { margin: 0 0 14px; font-size: var(--font-size-md, 13px); line-height: 1.5; color: var(--text-muted, #6b7280); }
         .upd-edit-text { height: 130px !important; }
 
         .inc-update-acts { margin-left: auto; display: inline-flex; gap: 2px; }
@@ -207,11 +207,11 @@ $translationNamespaces = ['common', 'service-status'];
            a data colour rather than chrome, so it should not follow a chrome token. */
         .svc-day-info { background: #94a3b8; }   /* logged, but not counted as downtime */
         .svc-day-down { background: #dc2626; }
-        .svc-strip-ends { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted, #9ca3af); margin-top: 4px; }
+        .svc-strip-ends { display: flex; justify-content: space-between; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #9ca3af); margin-top: 4px; }
 
         .svc-history-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: var(--font-size-sm, 12px); }
         .svc-history-table td { padding: 6px 8px; border-top: 1px solid var(--border-soft, #f1f5f9); vertical-align: middle; }
-        .svc-excluded { font-size: 10px; color: var(--text-muted, #9ca3af); font-style: italic; }
+        .svc-excluded { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #9ca3af); font-style: italic; }
 
         @media (prefers-reduced-motion: reduce) { .svc-win:active { transform: none; } }
         .service-card {

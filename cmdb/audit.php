@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'cmdb'];
             background: var(--surface,#fff); border: 1px solid var(--border,#e5e7eb);
             border-radius: 8px; padding: 12px 18px; min-width: 130px;
         }
-        .audit-stat .n { font-size: 22px; font-weight: 700; color: var(--text,#111827); display: block; }
+        .audit-stat .n { font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text,#111827); display: block; }
         .audit-stat .l { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .4px;
                          color: var(--text-muted,#6b7280); }
         .audit-stat.is-clean .n { color: #15803d; }

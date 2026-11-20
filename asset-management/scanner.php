@@ -61,13 +61,13 @@ $ready = assetLabelsSchemaReady($conn);
         .card { background: var(--surface, #fff); border: 1px solid var(--border, #e2e6ea);
                 border-radius: 12px; padding: 16px; margin-bottom: 14px; }
         .step-label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #667); margin: 0 0 8px; }
-        .hint { font-size: 12.5px; color: var(--text-muted, #778); margin: 8px 0 0; line-height: 1.45; }
+        .hint { font-size: var(--font-size-md, 13px); color: var(--text-muted, #778); margin: 8px 0 0; line-height: 1.45; }
 
         /* Mode switch. Two jobs, and which one you're doing changes what a scan
            MEANS — so it is a visible choice, not a hidden preference. */
         .modes { display: flex; gap: 0; border: 1px solid var(--border, #cfd6dd); border-radius: 10px; overflow: hidden; }
         .modes button {
-            flex: 1; min-height: 46px; font-size: 15px; font-weight: 600; border: 0; cursor: pointer;
+            flex: 1; min-height: 46px; font-size: var(--font-size-xl, 16px); font-weight: 600; border: 0; cursor: pointer;
             background: var(--surface, #fff); color: var(--text-muted, #667);
         }
         .modes button.on { background: var(--accent, #546e7a); color: var(--on-accent, #fff); }
@@ -114,7 +114,7 @@ $ready = assetLabelsSchemaReady($conn);
 
         .btn-row { display: flex; gap: 8px; margin-top: 12px; }
         .btn-row button, .btn-row a {
-            flex: 1; min-height: 46px; font-size: 15px; font-weight: 600; border-radius: 10px;
+            flex: 1; min-height: 46px; font-size: var(--font-size-xl, 16px); font-weight: 600; border-radius: 10px;
             border: 1px solid var(--border, #cfd6dd); background: var(--surface, #fff);
             color: var(--text, #222); cursor: pointer; text-decoration: none;
             display: inline-flex; align-items: center; justify-content: center;

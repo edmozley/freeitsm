@@ -45,10 +45,10 @@ function handoverDocumentCss(): string
     }
     .hb-doc .who { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 28px; }
     .hb-doc .field-label { font-size: var(--font-size-xs, 11px); color: #666; text-transform: uppercase; letter-spacing: 0.4px; }
-    .hb-doc .field-value { font-size: 15px; font-weight: 600; }
+    .hb-doc .field-value { font-size: var(--font-size-xl, 16px); font-weight: 600; }
     .hb-doc table { width: 100%; border-collapse: collapse; margin-top: 6px; }
     .hb-doc th {
-        text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px;
+        text-align: left; font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.4px;
         color: #555; padding: 8px 6px; border-bottom: 2px solid #1a1a1a; white-space: nowrap;
     }
     .hb-doc td { padding: 9px 6px; border-bottom: 1px solid #e2e2e2; vertical-align: top; }
