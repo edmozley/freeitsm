@@ -70,7 +70,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
-    <link rel="stylesheet" href="../assets/css/reading-pane.css?v=5">
+    <link rel="stylesheet" href="../assets/css/reading-pane.css?v=6">
     <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=4">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=7">

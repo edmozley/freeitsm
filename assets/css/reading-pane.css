@@ -115,3 +115,22 @@
     pointer-events: none;
     cursor: default;
 }
+
+/* Reply / forward fits the window (Ed, 2026-11-20: the drop zone was below the fold, so
+   attaching meant scrolling first). The editor had a fixed 440px; now the window takes a
+   set height and the editor FILLS what the To/Cc row, subject and drop zone leave - the
+   same treatment the phone already has in mobile.css, here for the desktop only. On a
+   short screen the editor stops at 240px and the body scrolls as before. */
+@media (min-width: 769px) {
+    #emailModal .modal-content { height: min(90vh, 900px); }
+    #emailModal .modal-body { display: flex; flex-direction: column; }
+    #emailModal .modal-body > .form-group:has(#emailBody) {
+        flex: 1; display: flex; flex-direction: column; min-height: 0; margin-bottom: 12px;
+    }
+    #emailModal .modal-body > .form-group:has(#emailBody) .tox-tinymce {
+        flex: 1 1 auto; min-height: 240px;
+        height: auto !important;        /* beat TinyMCE's inline fixed height */
+    }
+    #emailModal .modal-body > .form-group:has(#attachmentDropzone) { margin-bottom: 0; }
+    #emailModal .attachment-dropzone { padding: 10px 16px; }
+}
