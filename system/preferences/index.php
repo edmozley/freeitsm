@@ -73,6 +73,9 @@ $prefDefaults = [
     // GH #376: reopen each module's last section when you come back to it. '' (off)
     // keeps today's behaviour: a module opens on its front page.
     'remember_module_section'    => '',
+    // Start each sign-in in the company last picked in the switcher. '' (off) keeps
+    // today's behaviour: the Default company. See includes/tenancy.php.
+    'remember_company'           => '',
     // Whether the task calendar shows subtasks as well as tasks (#90). Written
     // from two places that must agree: here, and the calendar's own Show
     // control. '' is parent tasks only, which is what the calendar always did.
@@ -1159,6 +1162,22 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 </select>
                 <span class="pref-saving-hint" id="ntCompanySavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
+
+            <!-- Start each sign-in in the company last picked in the switcher. Off by
+                 default; offered, like the one above, only to someone with a choice of
+                 companies. See includes/tenancy.php, tenancyRestoreRememberedCompany(). -->
+            <div class="pref-section">
+                <h3 id="remember-company"><?php echo htmlspecialchars(t('system.preferences.remember_company_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.remember_company_desc')); ?></p>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="rememberCompanyToggleLabel" id="rememberCompanyToggle" <?php echo $prefs['remember_company'] === 'on' ? 'checked' : ''; ?>>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label" id="rememberCompanyToggleLabel"><?php echo htmlspecialchars(t('system.preferences.remember_company_label')); ?></span>
+                </div>
+                <span class="pref-saving-hint" id="rememberCompanySavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+            </div>
             <?php endif; ?>
 
             <div class="pref-section">
@@ -1571,6 +1590,17 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 workFoldHint.classList.add('show');
                 await savePref('tasks_collapse_empty_work', workFoldSelect.value);
                 setTimeout(() => workFoldHint.classList.remove('show'), 1200);
+            });
+        }
+
+        // ===== Start in the company last used (remember_company) =====
+        const rememberCompanyToggle = document.getElementById('rememberCompanyToggle');
+        const rememberCompanyHint   = document.getElementById('rememberCompanySavingHint');
+        if (rememberCompanyToggle) {
+            rememberCompanyToggle.addEventListener('change', async function() {
+                rememberCompanyHint.classList.add('show');
+                await savePref('remember_company', rememberCompanyToggle.checked ? 'on' : '');
+                setTimeout(() => rememberCompanyHint.classList.remove('show'), 1200);
             });
         }
 

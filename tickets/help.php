@@ -1041,6 +1041,7 @@ try {
                     </div>
 
                     <p><?php echo t('tickets.help.companies.switcher_body'); ?></p>
+                    <p><?php echo t('tickets.help.companies.switcher_remember'); ?></p>
 
                     <!-- Two kinds of mailbox -->
                     <p style="margin-top: 8px;"><?php echo t('tickets.help.companies.mailboxes_heading'); ?></p>
