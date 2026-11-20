@@ -1511,6 +1511,9 @@ return [
         'nt_company_heading' => 'Min virksomhed til nye sager',
         'nt_company_desc' => 'I visningen med alle virksomheder spørger Ny sag, hvilken virksomhed en sag er til. Vælg en her, så bliver den valgt for dig. Du kan stadig ændre den på formularen, og hvis du ikke længere har adgang til virksomheden, vælges ingen.',
         'nt_company_none' => 'Ingen - jeg vælger hver gang',
+        'remember_company_heading' => 'Virksomhed ved login',   // GH #409
+        'remember_company_desc' => 'Start hvert login i den virksomhed, du sidst valgte i virksomhedsvælgeren (eller i Alle virksomheder), i stedet for standardvirksomheden. En virksomhed, du ikke længere kan se, eller som er deaktiveret, springes over. Nye sager oprettes i den virksomhed, du arbejder i, så tjek vælgeren, før du opretter en.',   // GH #409
+        'remember_company_label' => 'Start i den virksomhed, jeg sidst brugte',   // GH #409
         'search_dismiss_heading' => 'Lukning af søgepanelet',
         'search_dismiss_desc' => 'Søgepanelet kan trækkes af vejen og efterlades åbent, så som standard er det kun dets ✕ eller Escape-tasten, der lukker det. Slå dette til for at få det til at lukke, så snart du klikker væk — på mappelisten, sagslisten eller værktøjslinjen. At klikke på den sag, du lige har fundet, eller dens egenskaber, lader stadig panelet være åbent, så en søgning overlever, at du handler på dens resultat.',
         'search_dismiss_label' => 'Luk det, når jeg klikker væk',

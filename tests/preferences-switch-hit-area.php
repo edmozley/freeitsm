@@ -63,7 +63,7 @@ exit(ticketWorkspaceBrowser(['index.html' => $html], ['verify' => function (stri
             $checks[] = ['label' => "$theme viewport width", 'pass' => $actualWidth === $width, 'detail' => $actualWidth];
             echo "Checking $theme at $actualWidth px...\n";
             $count = $read('document.querySelectorAll(".toggle-group").length');
-            if ($count !== 8) throw new RuntimeException('Not all switch fixtures rendered.');
+            if ($count !== 9) throw new RuntimeException('Not all switch fixtures rendered.');   // 8 templates, the notification one drawn twice
             for ($i = 0; $i < $count; $i++) {
                 $prefix = "$theme/$width switch $i";
                 $read('(()=>{window.group=document.querySelectorAll(".toggle-group")[' . $i . '];window.input=group.querySelector("input");input.checked=false;window.changes=0;group.scrollIntoView({block:"center"});return true;})()');

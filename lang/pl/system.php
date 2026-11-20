@@ -1511,6 +1511,9 @@ return [
         'nt_company_heading' => 'Moja firma dla nowych zgłoszeń',
         'nt_company_desc' => 'W widoku wszystkich firm Nowe zgłoszenie pyta, dla której firmy jest zgłoszenie. Wybierz tutaj firmę, aby była wybierana za Ciebie. Nadal możesz ją zmienić w formularzu, a jeśli nie masz już dostępu do tej firmy, nic nie zostanie wybrane.',
         'nt_company_none' => 'Brak - wybieram za każdym razem',
+        'remember_company_heading' => 'Firma po zalogowaniu',   // GH #409
+        'remember_company_desc' => 'Zaczynaj każde logowanie w firmie ostatnio wybranej w przełączniku firm (albo we Wszystkich firmach) zamiast w firmie domyślnej. Firma, której już nie widzisz albo która została dezaktywowana, jest pomijana. Nowe zgłoszenia trafiają do firmy, w której pracujesz, więc sprawdź przełącznik przed utworzeniem zgłoszenia.',   // GH #409
+        'remember_company_label' => 'Zaczynaj w ostatnio używanej firmie',   // GH #409
         'search_dismiss_heading' => 'Zamykanie panelu wyszukiwania',
         'search_dismiss_desc' => 'Panel wyszukiwania można przeciągnąć w inne miejsce i zostawić otwarty, dlatego domyślnie zamyka go tylko jego ✕ albo klawisz Escape. Włącz to, aby zamykał się, gdy tylko klikniesz gdzie indziej — na liście folderów, liście zgłoszeń albo pasku narzędzi. Kliknięcie zgłoszenia, które właśnie znalazłeś, lub jego właściwości, wciąż zostawia panel otwarty, więc wyszukiwanie przetrwa, gdy zadziałasz na jego wyniku.',
         'search_dismiss_label' => 'Zamknij, gdy klikam gdzie indziej',

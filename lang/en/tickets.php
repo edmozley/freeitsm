@@ -3874,7 +3874,7 @@ return [
             'heading' => 'Companies &amp; email routing',
             'intro'   => 'When your install serves more than one company (for example an IT provider supporting several clients), each company\'s tickets are kept separate. This section explains how inbound email finds the right company.',
             'switcher_body' => 'A <strong>company switcher</strong> appears in the header. It sets the company you\'re working in &mdash; the ticket list, folders and counts all show just that company, and any ticket you create is filed to it. Staff with access to several companies can switch between them; the current one is always shown so you can\'t reply in the wrong context. Manage the companies themselves under <strong>System &rarr; Companies</strong>.',
-            'switcher_remember' => 'To start each sign-in in the company you last picked (or in <strong>All companies</strong>) instead of the Default company, turn on <strong>Start in the company I last used</strong> under <strong>My preferences</strong>.',
+            'switcher_remember' => 'To start each sign-in in the company you last picked (or in <strong>All companies</strong>) instead of the Default company, turn on <strong>Start in the company I last used</strong> under <strong>Preferences</strong> (your account menu).',
 
             'mailboxes_heading' => 'Every mailbox is one of two kinds &mdash; this is what decides routing:',
             'card_pinned_title' => 'Pinned mailbox',

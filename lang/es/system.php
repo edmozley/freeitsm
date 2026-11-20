@@ -1511,6 +1511,9 @@ return [
         'nt_company_heading' => 'Mi empresa para tickets nuevos',
         'nt_company_desc' => 'En la vista de todas las empresas, Nuevo ticket pregunta para qué empresa es un ticket. Elija una aquí para que se seleccione por usted. Puede cambiarla en el formulario y, si ya no tiene acceso a la empresa, no se selecciona ninguna.',
         'nt_company_none' => 'Ninguna: elijo cada vez',
+        'remember_company_heading' => 'Empresa al iniciar sesión',   // GH #409
+        'remember_company_desc' => 'Empieza cada inicio de sesión en la empresa que elegiste por última vez en el selector de empresas (o en Todas las empresas), en lugar de la empresa predeterminada. Una empresa que ya no puedes ver, o que se ha desactivado, se omite. Los tickets nuevos se crean en la empresa en la que estás trabajando, así que revisa el selector antes de crear uno.',   // GH #409
+        'remember_company_label' => 'Empezar en la última empresa que usé',   // GH #409
         'search_dismiss_heading' => 'Cerrar el panel de búsqueda',
         'search_dismiss_desc' => 'El panel de búsqueda se puede arrastrar fuera del medio y dejarlo abierto, así que de forma predeterminada solo lo cierra su ✕ o la tecla Escape. Active esto para que se cierre en cuanto haga clic fuera de él — en la lista de carpetas, la lista de tickets o la barra de herramientas. Hacer clic en el ticket que acaba de encontrar, o en sus propiedades, sigue dejando el panel abierto, así que una búsqueda sobrevive a que actúe sobre su resultado.',
         'search_dismiss_label' => 'Cerrarlo al hacer clic fuera',

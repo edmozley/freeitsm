@@ -1511,6 +1511,9 @@ return [
         'nt_company_heading' => 'Perusahaan saya untuk tiket baru',
         'nt_company_desc' => 'Di tampilan semua perusahaan, Tiket baru menanyakan untuk perusahaan mana tiket dibuat. Pilih satu di sini agar dipilihkan untuk Anda. Anda tetap dapat mengubahnya di formulir, dan jika Anda tidak lagi dapat menjangkau perusahaan itu, tidak ada yang dipilih.',
         'nt_company_none' => 'Tidak ada - saya memilih setiap kali',
+        'remember_company_heading' => 'Perusahaan saat masuk',   // GH #409
+        'remember_company_desc' => 'Mulai setiap kali masuk di perusahaan yang terakhir Anda pilih di pemilih perusahaan (atau di Semua perusahaan), bukan di perusahaan default. Perusahaan yang tidak lagi dapat Anda lihat, atau yang telah dinonaktifkan, dilewati. Tiket baru dibuat di perusahaan tempat Anda bekerja, jadi periksa pemilih sebelum membuatnya.',   // GH #409
+        'remember_company_label' => 'Mulai di perusahaan yang terakhir saya gunakan',   // GH #409
         'search_dismiss_heading' => 'Menutup panel pencarian',
         'search_dismiss_desc' => 'Panel pencarian bisa digeser ke samping dan dibiarkan terbuka, jadi secara default hanya ✕ atau tombol Escape yang menutupnya. Aktifkan ini agar panel menutup begitu Anda mengklik di luar — pada daftar folder, daftar tiket, atau bilah alat. Mengklik tiket yang baru Anda temukan, atau propertinya, tetap membiarkan panel terbuka, sehingga pencarian tetap ada saat Anda menindaklanjuti hasilnya.',
         'search_dismiss_label' => 'Tutup saat saya mengklik di luar',

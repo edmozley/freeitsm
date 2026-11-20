@@ -1511,6 +1511,9 @@ return [
         'nt_company_heading' => 'Meine Firma für neue Tickets',
         'nt_company_desc' => 'In der Ansicht aller Firmen fragt Neues Ticket, für welche Firma ein Ticket ist. Wählen Sie hier eine aus, damit sie vorausgewählt wird. Im Formular können Sie sie weiterhin ändern, und wenn Sie die Firma nicht mehr erreichen können, wird nichts vorausgewählt.',
         'nt_company_none' => 'Keine - ich wähle jedes Mal',
+        'remember_company_heading' => 'Unternehmen bei der Anmeldung',   // GH #409
+        'remember_company_desc' => 'Jede Anmeldung im zuletzt im Unternehmenswechsler gewählten Unternehmen (oder in Alle Unternehmen) beginnen statt im Standardunternehmen. Ein Unternehmen, das Sie nicht mehr sehen können oder das deaktiviert wurde, wird übersprungen. Neue Tickets werden im Unternehmen angelegt, in dem Sie gerade arbeiten, prüfen Sie also den Wechsler, bevor Sie eines erstellen.',   // GH #409
+        'remember_company_label' => 'Im zuletzt verwendeten Unternehmen starten',   // GH #409
         'search_dismiss_heading' => 'Das Suchpanel schließen',
         'search_dismiss_desc' => 'Das Suchpanel lässt sich aus dem Weg ziehen und offen lassen, daher schließen es standardmäßig nur sein ✕ oder die Escape-Taste. Schalten Sie dies ein, damit es sich schließt, sobald Sie woanders klicken — auf die Ordnerliste, die Ticketliste oder die Symbolleiste. Ein Klick auf das gerade gefundene Ticket oder seine Eigenschaften lässt das Panel weiterhin offen, sodass eine Suche überlebt, wenn Sie auf ihr Ergebnis reagieren.',
         'search_dismiss_label' => 'Schließen, wenn ich woanders klicke',

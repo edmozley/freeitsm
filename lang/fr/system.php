@@ -1511,6 +1511,9 @@ return [
         'nt_company_heading' => 'Mon entreprise pour les nouveaux tickets',
         'nt_company_desc' => 'Dans la vue toutes entreprises, Nouveau ticket demande pour quelle entreprise est le ticket. Choisissez-en une ici pour qu\'elle soit choisie à votre place. Vous pouvez toujours la changer dans le formulaire, et si vous n\'avez plus accès à l\'entreprise, rien n\'est choisi.',
         'nt_company_none' => 'Aucune - je choisis à chaque fois',
+        'remember_company_heading' => 'Entreprise à la connexion',   // GH #409
+        'remember_company_desc' => 'Démarrer chaque connexion dans l\'entreprise choisie en dernier dans le sélecteur d\'entreprise (ou dans Toutes les entreprises), au lieu de l\'entreprise par défaut. Une entreprise que vous ne pouvez plus voir, ou qui a été désactivée, est ignorée. Les nouveaux tickets sont créés dans l\'entreprise où vous travaillez, vérifiez donc le sélecteur avant d\'en créer un.',   // GH #409
+        'remember_company_label' => 'Démarrer dans la dernière entreprise utilisée',   // GH #409
         'search_dismiss_heading' => 'Fermeture du panneau de recherche',
         'search_dismiss_desc' => 'Le panneau de recherche peut être déplacé et laissé ouvert, par défaut seul son ✕ ou la touche Échap le ferme. Activez ceci pour qu\'il se ferme dès que vous cliquez ailleurs — sur la liste des dossiers, la liste des tickets ou la barre d\'outils. Cliquer sur le ticket que vous venez de trouver, ou sur ses propriétés, laisse toujours le panneau ouvert, afin qu\'une recherche survive à l\'action que vous menez sur son résultat.',
         'search_dismiss_label' => 'Le fermer quand je clique ailleurs',
