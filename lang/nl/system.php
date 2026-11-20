@@ -1907,7 +1907,6 @@ return [
         'preview_col_subject' => 'Onderwerp',
         'preview_row' => 'Laptop gaat niet aan',
         'behaviour_heading' => 'Wat mensen in het portaal kunnen doen',
-        'behaviour_desc' => 'Beide staan standaard uit, zodat een bestaand portaal zich precies gedraagt zoals voordat deze instellingen er waren.',
         'self_close_label' => 'Mensen hun eigen ticket laten sluiten',
         'self_close_desc' => 'Voegt een knop <strong>Niet meer nodig</strong> toe aan een ticket in het portaal. Het ticket wordt gesloten met een notitie dat de aanvrager het heeft gesloten, zodat uit het spoor blijkt wie het deed en het er niet op lijkt dat een analist iets heeft opgelost waar hij nooit aan heeft gezeten. Ze kunnen geen ticket sluiten waar iemand al aan werkt als het is opgelost en op hun bevestiging wacht — die is al aan hen om te bevestigen.',
         'my_assets_label' => 'Mensen de apparatuur tonen die aan hen is toegewezen',

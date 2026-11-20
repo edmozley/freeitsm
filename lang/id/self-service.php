@@ -12,6 +12,21 @@
 
 return [
     'portal' => 'Portal Layanan Mandiri',
+    // GH #414: the organisation chart (self-service/org-chart.php).
+    'org_chart' => [
+        'title'        => 'Bagan organisasi',
+        'subtitle'     => 'Siapa melapor kepada siapa. Cari nama, jabatan, atau departemen, atau buka tim dengan tanda panah.',
+        'search'       => 'Cari orang',
+        'none'         => 'Belum ada siapa pun di bagan organisasi.',
+        'load_failed'  => 'Bagan organisasi tidak dapat dimuat saat ini. Silakan coba lagi sebentar lagi.',
+        'truncated'    => 'Ini organisasi yang sangat besar, jadi tidak semua orang ditampilkan.',
+        'no_line'      => 'Tidak dalam garis pelaporan',
+        'you'          => 'Anda',
+        'reports'      => 'Bawahan langsung: {count}',
+        'expand'       => 'Tampilkan tim',
+        'collapse'     => 'Sembunyikan tim',
+        'no_match'     => 'Tidak ada yang cocok.',
+    ],
     'equipment' => [
         'title' => 'Peralatan saya',
         'subtitle' => 'Peralatan yang ditugaskan kepada Anda. Jika ada yang salah di sini, atau Anda memiliki perangkat yang tidak tercantum, buat tiket dan service desk akan menanganinya.',
@@ -50,6 +65,7 @@ return [
         'team_tickets' => 'Tiket tim',
         'help_centre' => 'Pengetahuan',
         'equipment' => 'Peralatan saya',
+        'org_chart'   => 'Organisasi',   // GH #414
         'training' => 'Pelatihan',
         'help' => 'Bantuan',
         'menu' => 'Menu',
@@ -452,6 +468,13 @@ return [
         'tr_li4' => 'Hasilnya langsung ditampilkan, beserta jawaban mana yang salah dan alasannya. Jika Anda tidak lulus, Anda dapat mencoba lagi.',
         'tr_p2' => 'Kemajuan Anda disimpan seiring berjalan, sehingga Anda dapat mengerjakan kursus dalam beberapa sesi, di perangkat apa pun, dan melanjutkan dari tempat Anda berhenti.',
         'tr_tip' => '<strong>Tenggat dan pengingat:</strong> sebuah kursus mungkin memiliki tanggal yang menjadi batas penyelesaiannya. Anda memiliki sepanjang hari itu. Jika tim IT Anda mengaktifkan pengingat, Anda akan menerima email menjelang tanggal tersebut, dan lagi jika tanggal itu terlewat — pengingat berhenti begitu Anda menyelesaikan kursus.',
+        // GH #414: the organisation chart, for people who have the tab
+        'org_title' => 'Bagan organisasi',
+        'org_p1' => 'Jika tim TI Anda telah mengaktifkannya, <strong>Organisasi</strong> di navigasi atas menunjukkan siapa melapor kepada siapa di perusahaan Anda. Bagan terbuka di posisi Anda sendiri, dengan garis di atas Anda terbuka.',
+        'org_li1' => 'Klik panah di samping seseorang untuk menampilkan atau menyembunyikan timnya. Angka di samping nama adalah jumlah orang yang melapor langsung kepadanya.',
+        'org_li2' => 'Ketik di <strong>Cari orang</strong> untuk mencari seseorang menurut nama, jabatan, atau departemen, lalu pilih orangnya untuk melompat ke posisinya di bagan.',
+        'org_li3' => '<strong>Tidak dalam garis pelaporan</strong> di bagian bawah berisi orang tanpa atasan dan tanpa bawahan.',
+        'org_tip' => '<strong>Ada yang salah?</strong> Bagan dibangun dari atasan yang tercatat untuk setiap orang. Jika milik Anda salah, ajukan tiket dan tim TI akan memperbaikinya.',
         'team_title' => 'Tiket tim',
         'team_p1' => 'Anda dapat melihat tiket yang dibuat oleh orang-orang yang Anda kelola. Tiket itu ada di bawah <strong>Tiket tim</strong> di menu, terpisah dari tiket Anda sendiri di Tiket Saya.',
         'team_li_who' => '<strong>Siapa yang ada di tim Anda</strong> ditetapkan oleh tim IT Anda &mdash; dari bidang Manajer di direktori organisasi Anda, atau dipilihkan untuk Anda. Tanyakan kepada mereka jika ada yang kurang, atau seharusnya tidak ada di sana.',

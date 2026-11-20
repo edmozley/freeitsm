@@ -1907,7 +1907,6 @@ return [
         'preview_col_subject' => 'Emne',
         'preview_row' => 'Den berbare maskina vil ikkje slå seg på',
         'behaviour_heading' => 'Kva portalen lèt folk gjere',
-        'behaviour_desc' => 'Begge er av til å byrje med, så ein portal som alt er i bruk, oppfører seg akkurat som før desse innstillingane kom.',
         'self_close_label' => 'La folk lukke sine eigne saker',
         'self_close_desc' => 'Legg ein <strong>Treng det ikkje lenger</strong>-knapp på ei sak i portalen. Saka blir lukka med eit notat om at meldaren lukka henne, så sporet viser kven som gjorde det, i staden for at ein analytikar ser ut til å ha løyst noko han aldri var borti. Dei kan ikkje lukke ei sak nokon alt arbeider med dersom ho er løyst og ventar på stadfesting frå dei &mdash; den er alt deira å stadfeste.',
         'my_assets_label' => 'Vis folk utstyret som er tildelt dei',

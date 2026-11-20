@@ -154,6 +154,18 @@ return [
         'link'     => 'system/self-service/',
         'check'    => ['setting', 'self_service_show_my_assets', 'eq', '1'],
     ],
+    [
+        'id'       => 'self-service.org_chart',
+        'module'   => 'self-service',
+        'tier'     => 'extra',
+        'category' => 'customer',
+        'title'    => 'Organisation chart in the portal',
+        'what'     => 'An Organisation page in the portal showing who reports to whom in the person\'s own company - names, job titles and departments only - for everybody or only members of chosen People groups.',
+        'why'      => 'People can find who looks after what, and who their colleagues report to, without asking the service desk or HR.',
+        'done'     => 'The organisation chart is switched on in the portal.',
+        'link'     => 'system/self-service/',
+        'check'    => ['setting', 'self_service_org_chart', 'in', ['all', 'groups']],
+    ],
 
     // ---------------------------------------------------------------------
     // System -> Portal profile

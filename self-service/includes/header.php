@@ -100,6 +100,10 @@ $portalNav = [
     // worse answer than no tab. The page re-checks the setting itself, because
     // a hidden link is not a permission.
     'equipment'   => ['href' => 'my-equipment.php', 'label' => t('self-service.nav.equipment'), 'cap' => 'has_equipment'],
+    // GH #414: OFF unless an administrator switches it on, for everybody or only
+    // chosen People groups (System -> Self-service portal). The page and its
+    // endpoint ask portalOrgChartAllowed() again - a hidden tab is not a permission.
+    'org_chart'   => ['href' => 'org-chart.php',   'label' => t('self-service.nav.org_chart'), 'cap' => 'org_chart'],
     'help'        => ['href' => 'help.php',        'label' => t('self-service.nav.help')],
 ];
 
@@ -117,6 +121,14 @@ $portalNav = [
  * has never opened is mid-migration.
  */
 $portalNavCap = function (string $cap) use ($ss_user_id) {
+    if ($cap === 'org_chart') {
+        try {
+            require_once __DIR__ . '/../../includes/portal_org_chart.php';
+            return portalOrgChartAllowed(connectToDatabase(), (int)$ss_user_id);   // fails closed itself
+        } catch (Throwable) {
+            return false;
+        }
+    }
     if ($cap === 'is_manager') {
         try {
             require_once __DIR__ . '/../../includes/managers.php';
@@ -170,6 +182,7 @@ $portalNavModules = [
     'training'    => 'lms',
     'equipment'   => 'assets',
     'catalogue'   => 'forms',
+    'org_chart'   => 'people',
 ];
 foreach ($portalNav as $navKey => $navItem) {
     if (!empty($navItem['cap']) && !$portalNavCap($navItem['cap'])) {

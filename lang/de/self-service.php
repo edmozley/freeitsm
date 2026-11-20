@@ -12,6 +12,21 @@
 
 return [
     'portal' => 'Self-Service-Portal',
+    // GH #414: the organisation chart (self-service/org-chart.php).
+    'org_chart' => [
+        'title'        => 'Organigramm',
+        'subtitle'     => 'Wer an wen berichtet. Suchen Sie nach einem Namen, einer Position oder einer Abteilung, oder öffnen Sie ein Team mit dem Pfeil.',
+        'search'       => 'Personen suchen',
+        'none'         => 'Im Organigramm ist noch niemand.',
+        'load_failed'  => 'Das Organigramm konnte gerade nicht geladen werden. Bitte versuchen Sie es in einer Minute erneut.',
+        'truncated'    => 'Dies ist eine sehr große Organisation, daher werden nicht alle angezeigt.',
+        'no_line'      => 'Ohne Berichtslinie',
+        'you'          => 'Sie',
+        'reports'      => 'Direkt unterstellt: {count}',
+        'expand'       => 'Team zeigen',
+        'collapse'     => 'Team ausblenden',
+        'no_match'     => 'Niemand passt dazu.',
+    ],
     'equipment' => [
         'title' => 'Meine Geräte',
         'subtitle' => 'Die Ihnen zugewiesenen Geräte. Wenn hier etwas nicht stimmt oder Sie Geräte haben, die nicht aufgeführt sind, erstellen Sie ein Ticket und der Service Desk kümmert sich darum.',
@@ -50,6 +65,7 @@ return [
         'team_tickets' => 'Team-Tickets',
         'help_centre' => 'Wissensdatenbank',
         'equipment' => 'Meine Geräte',
+        'org_chart'   => 'Organisation',   // GH #414
         'training' => 'Schulung',
         'help' => 'Hilfe',
         'menu' => 'Menü',
@@ -452,6 +468,13 @@ return [
         'tr_li4' => 'Das Ergebnis wird Ihnen sofort angezeigt, zusammen mit den falschen Antworten und warum sie falsch waren. Haben Sie nicht bestanden, können Sie es erneut versuchen.',
         'tr_p2' => 'Ihr Fortschritt wird laufend gespeichert, sodass Sie einen Kurs in mehreren Sitzungen und auf jedem Gerät bearbeiten können und dort weitermachen, wo Sie aufgehört haben.',
         'tr_tip' => '<strong>Fristen und Erinnerungen:</strong> Ein Kurs kann ein Datum haben, bis zu dem er erledigt sein sollte. Ihnen steht der ganze Tag zur Verfügung. Hat Ihr IT-Team Erinnerungen eingeschaltet, erhalten Sie eine E-Mail, wenn sich das Datum nähert, und noch einmal, wenn es verstrichen ist — das endet, sobald Sie den Kurs abschließen.',
+        // GH #414: the organisation chart, for people who have the tab
+        'org_title' => 'Organigramm',
+        'org_p1' => 'Wenn Ihr IT-Team es eingeschaltet hat, zeigt <strong>Organisation</strong> in der oberen Navigation, wer in Ihrem Unternehmen an wen berichtet. Es öffnet sich an Ihrer eigenen Stelle, mit der Linie über Ihnen aufgeklappt.',
+        'org_li1' => 'Klicken Sie auf den Pfeil neben einer Person, um ihr Team ein- oder auszublenden. Die Zahl neben einem Namen gibt an, wie viele Personen direkt an sie berichten.',
+        'org_li2' => 'Geben Sie in <strong>Personen suchen</strong> einen Namen, eine Position oder eine Abteilung ein und wählen Sie die Person aus, um im Organigramm zu ihr zu springen.',
+        'org_li3' => '<strong>Ohne Berichtslinie</strong> ganz unten listet Personen ohne Vorgesetzten, an die auch niemand berichtet.',
+        'org_tip' => '<strong>Stimmt etwas nicht?</strong> Das Organigramm entsteht aus dem Vorgesetzten, der bei jeder Person hinterlegt ist. Ist Ihrer falsch, erstellen Sie ein Ticket, und das IT-Team korrigiert es.',
         'team_title' => 'Team-Tickets',
         'team_p1' => 'Sie können die Tickets der Personen sehen, die Sie verantworten. Sie finden sie im Menü unter <strong>Team-Tickets</strong>, getrennt von Ihren eigenen unter Meine Tickets.',
         'team_li_who' => '<strong>Wer zu Ihrem Team gehört</strong>, hat Ihr IT-Team festgelegt &mdash; über das Feld „Vorgesetzte Person“ im Verzeichnis Ihrer Organisation oder durch eine Auswahl für Sie. Fragen Sie dort nach, wenn jemand fehlt oder nicht dazugehört.',

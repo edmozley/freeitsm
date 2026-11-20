@@ -1907,7 +1907,6 @@ return [
         'preview_col_subject' => 'Assunto',
         'preview_row' => 'O notebook não liga',
         'behaviour_heading' => 'O que o portal permite às pessoas',
-        'behaviour_desc' => 'Os dois começam desligados, então um portal existente se comporta exatamente como antes de estas configurações existirem.',
         'self_close_label' => 'Deixar as pessoas fecharem o próprio ticket',
         'self_close_desc' => 'Adiciona um botão <strong>Não preciso mais</strong> ao ticket no portal. O ticket é fechado com uma nota dizendo que o solicitante o fechou, para que o histórico mostre quem fez isso, em vez de um analista parecer ter resolvido algo em que nunca tocou. Elas não podem fechar um ticket em que alguém já está trabalhando se ele foi resolvido e aguarda a confirmação delas &mdash; esse já cabe a elas confirmar.',
         'my_assets_label' => 'Mostrar às pessoas os equipamentos atribuídos a elas',

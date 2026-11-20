@@ -1907,7 +1907,6 @@ return [
         'preview_col_subject' => 'Emne',
         'preview_row' => 'Bærbar PC slår seg ikke på',
         'behaviour_heading' => 'Hva portalen lar folk gjøre',
-        'behaviour_desc' => 'Begge er av til å begynne med, så en portal som allerede er i bruk, oppfører seg akkurat som før disse innstillingene kom.',
         'self_close_label' => 'La folk lukke sin egen sak',
         'self_close_desc' => 'Legger til knappen <strong>Trengs ikke lenger</strong> på en sak i portalen. Saken lukkes med en merknad om at bestilleren lukket den, slik at sporet viser hvem som gjorde det, i stedet for at en analytiker ser ut til å ha løst noe de aldri tok i. De kan ikke lukke en sak noen allerede jobber med hvis den er løst i påvente av deres bekreftelse &mdash; den er allerede deres å bekrefte.',
         'my_assets_label' => 'Vis folk utstyret som er tildelt dem',

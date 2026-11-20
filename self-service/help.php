@@ -153,6 +153,9 @@ require __DIR__ . '/includes/header.php';
 // reading about a tab they do not have; the same test as the tab itself.
 $ssHelpIsManager = $portalNavCap('is_manager');
 if ($ssHelpIsManager) array_splice($helpNav, array_search('s7', $helpNav, true), 0, ['team']);   // before Tips, where the section sits
+// The organisation chart (GH #414) - only for somebody who has the tab.
+$ssHelpOrgChart = $portalNavCap('org_chart');
+if ($ssHelpOrgChart) array_splice($helpNav, array_search('s7', $helpNav, true), 0, ['org']);
 ?>
     <div class="help-container">
         <nav class="help-sidebar">
@@ -361,6 +364,23 @@ if ($ssHelpIsManager) array_splice($helpNav, array_search('s7', $helpNav, true),
                 <li><?php echo t('self-service.help.team_li_seen'); ?></li>
             </ul>
             <p class="help-note"><?php echo t('self-service.help.team_tip'); ?></p>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($ssHelpOrgChart): ?>
+        <!-- Organisation chart (GH #414, only when switched on for this person) -->
+        <div class="help-section" id="org">
+            <div class="help-section-header">
+                <span class="help-section-num"><?php echo $secNum('org'); ?></span>
+                <div><h3><?php echo htmlspecialchars(t('self-service.help.org_title')); ?></h3></div>
+            </div>
+            <p><?php echo t('self-service.help.org_p1'); ?></p>
+            <ul>
+                <li><?php echo t('self-service.help.org_li1'); ?></li>
+                <li><?php echo t('self-service.help.org_li2'); ?></li>
+                <li><?php echo t('self-service.help.org_li3'); ?></li>
+            </ul>
+            <p class="help-note"><?php echo t('self-service.help.org_tip'); ?></p>
         </div>
         <?php endif; ?>
 

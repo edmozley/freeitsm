@@ -21,6 +21,21 @@ return [
     // because the pages still use it for their own headings.
     // The portal end of the LMS. The tab only appears for somebody who actually
     // has a course assigned — see self-service/includes/header.php.
+    // GH #414: the organisation chart (self-service/org-chart.php).
+    'org_chart' => [
+        'title'        => 'Organisation chart',
+        'subtitle'     => 'Who reports to whom. Search for a name, job title or department, or open a team with the arrow.',
+        'search'       => 'Search people',
+        'none'         => 'There is nobody on the organisation chart yet.',
+        'load_failed'  => 'The organisation chart could not be loaded just now. Please try again in a minute.',
+        'truncated'    => 'This is a very large organisation, so not everybody is shown.',
+        'no_line'      => 'Not in a reporting line',
+        'you'          => 'You',
+        'reports'      => 'Direct reports: {count}',
+        'expand'       => 'Show team',
+        'collapse'     => 'Hide team',
+        'no_match'     => 'Nobody matches that.',
+    ],
     // ── My equipment (the assets assigned to this person) ───────────────
     'equipment' => [
         'title'       => 'My equipment',
@@ -66,6 +81,7 @@ return [
         'team_tickets' => 'Team tickets',   // shown only to managers (discussion #62)
         'help_centre' => 'Knowledge',
         'equipment'   => 'My equipment',
+        'org_chart'   => 'Organisation',   // GH #414
         'training'    => 'Training',
         'help'        => 'Help',
         // Screen-reader label for the phone nav drawer's toggle.
@@ -544,6 +560,13 @@ return [
         'tr_tip'   => '<strong>Deadlines and reminders:</strong> a course may have a date by which it should be done. You have the whole of that day. If your IT team has switched reminders on you will get an email as the date approaches, and again if it passes — those stop as soon as you finish the course.',
 
         // Managers only (discussion #62) - the section is not drawn for anyone else.
+        // GH #414: the organisation chart, for people who have the tab
+        'org_title' => 'Organisation chart',
+        'org_p1' => 'If your IT team has switched it on, <strong>Organisation</strong> in the top navigation shows who reports to whom in your company. It opens on your own place, with the line above you expanded.',
+        'org_li1' => 'Click the arrow beside somebody to show or hide their team. The number beside a name is how many people report to them directly.',
+        'org_li2' => 'Type in <strong>Search people</strong> to find somebody by name, job title or department, then pick them to jump to them on the chart.',
+        'org_li3' => '<strong>Not in a reporting line</strong> at the bottom lists people with no manager and nobody reporting to them.',
+        'org_tip' => '<strong>Something wrong?</strong> The chart is built from the manager recorded against each person. If yours is wrong, raise a ticket and the IT team will put it right.',
         'team_title'         => 'Team tickets',
         'team_p1'            => 'You can see the tickets raised by the people you manage. They are under <strong>Team tickets</strong> in the menu, apart from your own under My Tickets.',
         'team_li_who'        => '<strong>Who is on your team</strong> was set up by your IT team &mdash; from the Manager field in your organisation\'s directory, or chosen for you. Ask them if somebody is missing, or should not be there.',

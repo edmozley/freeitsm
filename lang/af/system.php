@@ -1907,7 +1907,6 @@ return [
         'preview_col_subject' => 'Onderwerp',
         'preview_row' => 'Skootrekenaar wil nie aanskakel nie',
         'behaviour_heading' => 'Wat die portaal mense toelaat om te doen',
-        'behaviour_desc' => 'Albei is aanvanklik af, sodat \'n bestaande portaal presies optree soos voordat hierdie instellings gekom het.',
         'self_close_label' => 'Laat mense hul eie kaartjie sluit',
         'self_close_desc' => 'Voeg \'n <strong>Nie meer nodig nie</strong>-knoppie by \'n kaartjie in die portaal. Die kaartjie word gesluit met \'n nota wat sê die versoeker het dit gesluit, sodat die spoor wys wie dit gedoen het eerder as dat dit lyk of \'n ontleder iets opgelos het wat hulle nooit aangeraak het nie. Hulle kan nie \'n kaartjie sluit waaraan iemand reeds werk nie as dit opgelos is en op hul bevestiging wag &mdash; dié een is reeds hulle s\'n om te bevestig.',
         'my_assets_label' => 'Wys mense die toerusting wat aan hulle toegewys is',

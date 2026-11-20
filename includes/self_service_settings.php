@@ -22,6 +22,8 @@
 // that had already chosen it degrades to no pattern, because the getter below
 // blanks any value not on this list.
 const SELF_SERVICE_PATTERNS = ['dots', 'grid', 'diagonal', 'flow', 'mesh'];
+/** Who sees the portal's organisation chart (GH #414): nobody, everybody, or chosen People groups. */
+const SELF_SERVICE_ORG_CHART_MODES = ['off', 'all', 'groups'];
 
 /** Where the portal logo sits. 'header' is the nav bar, and the default. */
 const SELF_SERVICE_LOGO_POSITIONS = ['header', 'page'];
@@ -29,15 +31,18 @@ const SELF_SERVICE_LOGO_POSITIONS = ['header', 'page'];
 /**
  * Every self-service portal setting, with its default.
  *
+ * @param bool $fresh  read the table again rather than this request's copy (for tests)
+ *
  * @return array{
  *   logo_path:string, header_colour:string, table_header_colour:string,
- *   background_pattern:string, allow_self_close:bool, show_my_assets:bool
+ *   background_pattern:string, allow_self_close:bool, show_my_assets:bool,
+ *   org_chart:string, org_chart_groups:int[]
  * }
  */
-function selfServicePortalSettings(PDO $conn): array
+function selfServicePortalSettings(PDO $conn, bool $fresh = false): array
 {
     static $cache = null;
-    if ($cache !== null) return $cache;
+    if ($cache !== null && !$fresh) return $cache;   // $fresh: a test that changes a setting mid-run
 
     $defaults = [
         'self_service_logo_path'           => '',
@@ -47,6 +52,11 @@ function selfServicePortalSettings(PDO $conn): array
         'self_service_background_pattern'  => '',
         'self_service_allow_self_close'    => '0',  // off: closing a ticket is a real action
         'self_service_show_my_assets'      => '0',
+        // GH #414: the organisation chart - 'off' | 'all' | 'groups' (only members of
+        // org_chart_groups, People group ids). Off: an MSP's customers must not see each
+        // other's staff lists by surprise. See includes/portal_org_chart.php.
+        'self_service_org_chart'           => 'off',
+        'self_service_org_chart_groups'    => '',
     ];
 
     $rows = [];
@@ -90,6 +100,9 @@ function selfServicePortalSettings(PDO $conn): array
         'background_pattern'  => $pattern,
         'allow_self_close'    => $get('self_service_allow_self_close') === '1',
         'show_my_assets'      => $get('self_service_show_my_assets') === '1',
+        'org_chart'           => in_array($get('self_service_org_chart'), SELF_SERVICE_ORG_CHART_MODES, true)
+                                 ? $get('self_service_org_chart') : 'off',
+        'org_chart_groups'    => array_values(array_filter(array_map('intval', explode(',', $get('self_service_org_chart_groups'))))),
     ];
 }
 

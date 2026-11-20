@@ -1907,7 +1907,6 @@ return [
         'preview_col_subject' => 'Subjek',
         'preview_row' => 'Komputer riba tidak mahu hidup',
         'behaviour_heading' => 'Apa yang portal benarkan orang lakukan',
-        'behaviour_desc' => 'Kedua-duanya dimatikan pada mulanya, jadi portal sedia ada berkelakuan sama seperti sebelum tetapan ini wujud.',
         'self_close_label' => 'Benarkan orang menutup tiket mereka sendiri',
         'self_close_desc' => 'Menambah butang <strong>Tidak diperlukan lagi</strong> pada tiket di dalam portal. Tiket ditutup dengan nota yang menyatakan bahawa pemohon menutupnya, jadi jejaknya menunjukkan siapa yang melakukannya dan bukannya penganalisis yang kelihatan seolah-olah menyelesaikan sesuatu yang tidak pernah disentuhnya. Mereka tidak boleh menutup tiket yang sedang dikerjakan orang lain jika ia telah diselesaikan sambil menunggu pengesahan mereka &mdash; yang itu memang untuk mereka sahkan.',
         'my_assets_label' => 'Tunjukkan kepada orang peralatan yang ditugaskan kepada mereka',

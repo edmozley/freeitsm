@@ -1907,7 +1907,6 @@ return [
         'preview_col_subject' => 'Oggetto',
         'preview_row' => 'Il portatile non si accende',
         'behaviour_heading' => 'Cosa possono fare le persone nel portale',
-        'behaviour_desc' => 'Entrambe sono disattivate all\'inizio, così un portale esistente si comporta esattamente come prima dell\'arrivo di queste impostazioni.',
         'self_close_label' => 'Consenti alle persone di chiudere il proprio ticket',
         'self_close_desc' => 'Aggiunge un pulsante <strong>Non serve più</strong> a un ticket nel portale. Il ticket viene chiuso con una nota che indica che l\'ha chiuso il richiedente, così la cronologia mostra chi è stato, invece di far sembrare che un analista abbia risolto qualcosa che non ha mai toccato. Non possono chiudere un ticket su cui qualcuno sta già lavorando se è stato risolto in attesa della loro conferma &mdash; quello spetta già a loro confermarlo.',
         'my_assets_label' => 'Mostra alle persone l\'attrezzatura loro assegnata',

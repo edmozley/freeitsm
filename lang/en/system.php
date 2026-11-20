@@ -3293,13 +3293,21 @@ return [
         'preview_row'         => 'Laptop will not turn on',
 
         'behaviour_heading' => 'What the portal lets people do',
-        'behaviour_desc'    => 'Both are off to begin with, so an existing portal behaves exactly as it did before these settings arrived.',
+        'behaviour_desc'    => 'All of these are off to begin with, so an existing portal behaves exactly as it did before these settings arrived.',
 
         'self_close_label' => 'Let people close their own ticket',
         'self_close_desc'  => 'Adds a <strong>No longer needed</strong> button to a ticket in the portal. The ticket is closed with a note saying the requester closed it, so the trail shows who did it rather than an analyst appearing to have resolved something they never touched. They cannot close a ticket somebody is already working on if it has been resolved awaiting their confirmation &mdash; that one is already theirs to confirm.',
 
         'my_assets_label' => 'Show people the equipment assigned to them',
         'my_assets_desc'  => 'Adds a <strong>My equipment</strong> page listing the assets assigned to that person, so they can check a serial number without raising a ticket to ask. Read only, and only ever their own.',
+        // GH #414: the organisation chart on the portal
+        'org_chart_label' => 'Organisation chart',
+        'org_chart_desc' => 'Adds an <strong>Organisation</strong> page showing who reports to whom in the person\'s own company: names, job titles and departments only, current staff only. Built from each person\'s manager in People.',
+        'org_chart_off' => 'Off',
+        'org_chart_all' => 'Everyone',
+        'org_chart_groups' => 'Only members of chosen People groups',
+        'org_chart_groups_label' => 'People groups who can see it',
+        'org_chart_no_groups' => 'There are no People groups yet. They come from a directory sync (System → Single sign-on).',
 
         'load_failed' => 'Could not load the settings. Nothing has been changed.',
         'save_failed' => 'Could not save the settings.',

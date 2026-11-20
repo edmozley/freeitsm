@@ -142,6 +142,25 @@ try {
         }
     }
 
+    // GH #414: the organisation chart - a fixed choice, and only real People group ids.
+    if (array_key_exists('org_chart', $in)) {
+        if (!in_array($in['org_chart'], SELF_SERVICE_ORG_CHART_MODES, true)) {
+            echo json_encode(['success' => false, 'error' => 'Unknown organisation chart choice']);
+            exit;
+        }
+        $clean['self_service_org_chart'] = $in['org_chart'];
+    }
+    if (array_key_exists('org_chart_groups', $in)) {
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array)$in['org_chart_groups']))));
+        if ($ids) {
+            $st = $conn->prepare("SELECT id FROM directory_groups WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
+            $st->execute($ids);
+            $ids = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+            sort($ids);
+        }
+        $clean['self_service_org_chart_groups'] = implode(',', $ids);
+    }
+
     if (!$clean) {
         echo json_encode(['success' => false, 'error' => 'Nothing to save']);
         exit;

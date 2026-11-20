@@ -17,6 +17,12 @@ require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
 require_once '../../includes/self_service_settings.php';
+// GH #414: the People groups the organisation chart can be limited to. Read here, not
+// fetched: a short list, and this page is already admin-only.
+$sspGroups = [];
+try {
+    $sspGroups = connectToDatabase()->query("SELECT id, display_name FROM directory_groups WHERE is_active = 1 ORDER BY display_name")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) { /* no directory tables yet */ }
 I18n::initFromSession();
 
 $current_page = 'self-service';
@@ -70,6 +76,10 @@ requireModuleAccess('system');
 
         .ssp-toggle { display: flex; align-items: flex-start; gap: 10px; }
         .ssp-toggle input { margin-top: 3px; }
+        .ssp-groups { margin-top: 14px; }
+        .ssp-groups[hidden] { display: none; }
+        .ssp-group-list { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; max-width: 420px;
+            border: 1px solid var(--border, #cfd8dc); border-radius: 6px; padding: 10px 12px; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
 
         .ssp-patterns { display: flex; flex-wrap: wrap; gap: 10px; }
         .ssp-pattern {
@@ -216,6 +226,28 @@ requireModuleAccess('system');
                     </span>
                 </label>
             </div>
+
+            <div class="ssp-field">
+                <label class="ssp-label" for="sspOrgChart"><?php echo htmlspecialchars(t('system.self_service.org_chart_label')); ?></label>
+                <div class="ssp-desc"><?php echo t('system.self_service.org_chart_desc'); ?></div>
+                <select class="ssp-input" id="sspOrgChart" style="max-width: 320px;" onchange="sspOrgChartGroupsShow()">
+                    <option value="off"><?php echo htmlspecialchars(t('system.self_service.org_chart_off')); ?></option>
+                    <option value="all"><?php echo htmlspecialchars(t('system.self_service.org_chart_all')); ?></option>
+                    <option value="groups"><?php echo htmlspecialchars(t('system.self_service.org_chart_groups')); ?></option>
+                </select>
+                <div class="ssp-groups" id="sspOrgChartGroups" hidden>
+                    <div class="ssp-label"><?php echo htmlspecialchars(t('system.self_service.org_chart_groups_label')); ?></div>
+                    <?php if (!$sspGroups): ?>
+                        <div class="ssp-desc"><?php echo htmlspecialchars(t('system.self_service.org_chart_no_groups')); ?></div>
+                    <?php else: ?>
+                        <div class="ssp-group-list">
+                        <?php foreach ($sspGroups as $g): ?>
+                            <label><input type="checkbox" name="sspOrgGroup" value="<?php echo (int)$g['id']; ?>"> <?php echo htmlspecialchars($g['display_name']); ?></label>
+                        <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
 
         <button class="btn btn-primary" id="sspSave" onclick="sspSave()"><?php echo htmlspecialchars(t('common.save')); ?></button>
@@ -356,9 +388,18 @@ requireModuleAccess('system');
         if (s.table_header_colour) document.getElementById('sspTableColourPick').value = s.table_header_colour;
         document.getElementById('sspSelfClose').checked = !!s.allow_self_close;
         document.getElementById('sspMyAssets').checked  = !!s.show_my_assets;
+        document.getElementById('sspOrgChart').value = s.org_chart || 'off';
+        const orgGroups = (s.org_chart_groups || []).map(Number);
+        document.querySelectorAll('input[name=sspOrgGroup]').forEach(b => { b.checked = orgGroups.includes(Number(b.value)); });
+        sspOrgChartGroupsShow();
         sspPattern = s.background_pattern || '';
         sspRenderPatterns();
         sspPaintPreview();
+    }
+
+    // GH #414: the group list only matters when the chart is limited to groups.
+    function sspOrgChartGroupsShow() {
+        document.getElementById('sspOrgChartGroups').hidden = document.getElementById('sspOrgChart').value !== 'groups';
     }
 
     async function sspLoad() {
@@ -390,7 +431,9 @@ requireModuleAccess('system');
                     table_header_colour: document.getElementById('sspTableColour').value.trim(),
                     background_pattern:  sspPattern,
                     allow_self_close:    document.getElementById('sspSelfClose').checked,
-                    show_my_assets:      document.getElementById('sspMyAssets').checked
+                    show_my_assets:      document.getElementById('sspMyAssets').checked,
+                    org_chart:           document.getElementById('sspOrgChart').value,
+                    org_chart_groups:    Array.from(document.querySelectorAll('input[name=sspOrgGroup]:checked')).map(b => Number(b.value))
                 })
             })).json();
             if (!d.success) {
