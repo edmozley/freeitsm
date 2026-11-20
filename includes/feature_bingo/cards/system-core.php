@@ -1085,6 +1085,18 @@ return [
         'check'    => ['rows', 'user_preferences', "preference_key = 'desktop_notifications' AND preference_value = 'on'"],
     ],
     [
+        'id'       => 'system.settings_one_page',   // GH #399
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Settings on one page',
+        'what'     => 'Any module\'s Settings -> One page: every section at once, an index down the left that follows you, and a search box that hides what does not match. Tabs brings the page back.',
+        'why'      => 'A setting is found by searching for it instead of opening tab after tab, and a whole module can be read top to bottom.',
+        'done'     => 'Somebody has switched a settings page to One page.',
+        'link'     => 'tickets/settings/',
+        'check'    => ['rows', 'user_preferences', "preference_key = 'settings_view' AND preference_value = 'page'"],
+    ],
+    [
         // GH #222: the Assets page shipped stuck on its spinner in 4.3.0.
         'id'       => 'system.page_health',
         'module'   => 'system',

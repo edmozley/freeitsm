@@ -192,4 +192,39 @@ function renderSettingsTabBar(array $visibleTabs, ?string $activeId, string $onc
         );
     }
     echo '        </div>' . "\n";
+    renderSettingsViewSwitch();
+}
+
+/**
+ * GH #399: the Tabs / One page switch for a settings page, once per page.
+ *
+ * One page shows every panel at once with an index down the left and a search box; Tabs
+ * is the page as it always was, and the default. The choice is the person's own, kept in
+ * user_preferences (settings_view = 'page' | ''), and applies to every module's settings.
+ * Everything else is assets/js/settings-view.js, which steps aside on a page whose tabs it
+ * cannot match to panels (the SSO pages draw a tab bar with no panels) and on a phone.
+ */
+function renderSettingsViewSwitch(): void
+{
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    $mode = '';
+    try {
+        if (!empty($_SESSION['analyst_id'])) {
+            $st = connectToDatabase()->prepare("SELECT preference_value FROM user_preferences WHERE analyst_id = ? AND preference_key = 'settings_view'");
+            $st->execute([(int)$_SESSION['analyst_id']]);
+            $mode = (string)$st->fetchColumn() === 'page' ? 'page' : '';
+        }
+    } catch (Throwable $e) { $mode = ''; }
+    $base = defined('BASE_URL') ? BASE_URL : '/';
+    $cfg = ['mode' => $mode, 'save' => $base . 'api/system/set_user_preference.php',
+            'labels' => function_exists('t') ? [
+                'view' => t('common.settings_view.view'), 'tabs' => t('common.settings_view.tabs'), 'page' => t('common.settings_view.page'),
+                'search' => t('common.settings_view.search'), 'none' => t('common.settings_view.none'), 'index' => t('common.settings_view.index'),
+                'elsewhere' => t('common.settings_view.elsewhere'),
+            ] : []];
+    echo '        <link rel="stylesheet" href="' . htmlspecialchars($base) . 'assets/css/settings-view.css?v=1">' . "\n";
+    echo '        <script>window.SETTINGS_VIEW = ' . json_encode($cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) . ';</script>' . "\n";
+    echo '        <script src="' . htmlspecialchars($base) . 'assets/js/settings-view.js?v=1" defer></script>' . "\n";
 }

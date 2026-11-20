@@ -1,0 +1,51 @@
+/* Settings: Tabs or One page (GH #399) - assets/js/settings-view.js.
+   Desktop only: on a phone the page stays as tabs and none of the One page rules apply. */
+
+.sv-switch { display: none; }
+.sv-index  { display: none; }
+
+@media (min-width: 769px) {
+    .sv-switch {
+        display: inline-flex; float: right; margin: 0 0 8px 12px;
+        border: 1px solid var(--border, #ccc); border-radius: 6px; overflow: hidden;
+        background: var(--surface, #fff);
+    }
+    .sv-switch button {
+        border: none; background: transparent; padding: 6px 12px; font-size: 13px; cursor: pointer;
+        color: var(--text-muted, #555);
+    }
+    .sv-switch button + button { border-left: 1px solid var(--border, #ccc); }
+    .sv-switch button[aria-pressed="true"] { background: var(--accent, #0078d4); color: var(--on-accent, #fff); }
+
+    /* One page: the index in a left column, every panel in the right one. Nothing is moved -
+       the grid places the existing children - so page scripts and ids keep working. */
+    body.sv-page .container {
+        display: grid; grid-template-columns: 230px minmax(0, 1fr); column-gap: 24px; align-items: start;
+    }
+    body.sv-page .container > * { grid-column: 2; }
+    body.sv-page .container > .sv-index {
+        display: block; grid-column: 1; grid-row: 1 / span 999;
+        position: sticky; top: 12px; max-height: calc(100vh - 90px); overflow-y: auto;
+        background: var(--surface, #fff); border: 1px solid var(--border-soft, #eee); border-radius: 8px; padding: 10px;
+    }
+    .sv-index .sv-switch { display: flex; float: none; margin: 0 0 10px; }
+    .sv-index .sv-switch button { flex: 1; }
+    body.sv-page .tabs { display: none; }
+    body.sv-page .tab-content { display: block !important; margin-bottom: 20px; scroll-margin-top: 12px; }
+    body.sv-page .tab-content.sv-hidden { display: none !important; }
+
+    .sv-search {
+        width: 100%; box-sizing: border-box; padding: 7px 10px; margin-bottom: 8px;
+        border: 1px solid var(--border, #ccc); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333);
+    }
+    .sv-list { display: flex; flex-direction: column; }
+    .sv-link {
+        display: block; padding: 6px 8px; border-radius: 5px; font-size: 13px; text-decoration: none;
+        color: var(--text, #333); border-left: 3px solid transparent;
+    }
+    .sv-link:hover { background: var(--surface-hover, #f3f3f3); }
+    .sv-link.sv-here { border-left-color: var(--accent, #0078d4); background: var(--accent-soft, #e8f4fd); font-weight: 600; }
+    .sv-link.sv-dim { opacity: 0.4; }
+    .sv-link.sv-out { color: var(--text-muted, #666); }
+    .sv-none { font-size: 12px; color: var(--text-dim, #888); padding: 6px 8px; }
+}

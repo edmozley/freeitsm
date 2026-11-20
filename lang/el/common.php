@@ -85,6 +85,16 @@ return [
         'field_phone' => 'τηλέφωνο',
         'field_mobile' => 'κινητό',
     ],
+    // GH #399: a settings page as tabs or as one page.
+    'settings_view' => [
+        'view' => 'Προβολή',
+        'tabs' => 'Καρτέλες',
+        'page' => 'Μία σελίδα',
+        'search' => 'Αναζήτηση ρυθμίσεων',
+        'none' => 'Καμία ρύθμιση δεν ταιριάζει',
+        'index' => 'Ενότητες ρυθμίσεων',
+        'elsewhere' => 'Σε άλλη σελίδα',
+    ],
     'left_panel' => [
         'tab' => 'Αριστερό πάνελ',
         'visibility' => 'Ορατότητα',

@@ -102,6 +102,16 @@ return [
     // that has a left panel (settings pages + System → Preferences). Only the
     // identical strings live here; per-module intro/description copy stays in
     // each module's own file.
+    // GH #399: a settings page as tabs or as one page with an index and search (assets/js/settings-view.js).
+    'settings_view' => [
+        'view'      => 'View',
+        'tabs'      => 'Tabs',
+        'page'      => 'One page',
+        'search'    => 'Search settings',
+        'none'      => 'No settings match',
+        'index'     => 'Settings sections',
+        'elsewhere' => 'On another page',
+    ],
     'left_panel' => [
         'tab'        => 'Left panel',
         'visibility' => 'Visibility',

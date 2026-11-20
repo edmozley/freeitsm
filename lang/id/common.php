@@ -85,6 +85,16 @@ return [
         'field_phone' => 'telepon',
         'field_mobile' => 'ponsel',
     ],
+    // GH #399: a settings page as tabs or as one page.
+    'settings_view' => [
+        'view' => 'Tampilan',
+        'tabs' => 'Tab',
+        'page' => 'Satu halaman',
+        'search' => 'Cari pengaturan',
+        'none' => 'Tidak ada pengaturan yang cocok',
+        'index' => 'Bagian pengaturan',
+        'elsewhere' => 'Di halaman lain',
+    ],
     'left_panel' => [
         'tab' => 'Panel kiri',
         'visibility' => 'Visibilitas',

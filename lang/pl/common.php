@@ -85,6 +85,16 @@ return [
         'field_phone' => 'telefon',
         'field_mobile' => 'telefon komórkowy',
     ],
+    // GH #399: a settings page as tabs or as one page.
+    'settings_view' => [
+        'view' => 'Widok',
+        'tabs' => 'Karty',
+        'page' => 'Jedna strona',
+        'search' => 'Szukaj w ustawieniach',
+        'none' => 'Brak pasujących ustawień',
+        'index' => 'Sekcje ustawień',
+        'elsewhere' => 'Na innej stronie',
+    ],
     'left_panel' => [
         'tab' => 'Lewy panel',
         'visibility' => 'Widoczność',
