@@ -72,7 +72,7 @@ $translationNamespaces = ['common', 'forms'];
 
         .section-header h2 {
             margin: 0 0 8px;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text, #333);
         }
 
@@ -91,7 +91,7 @@ $translationNamespaces = ['common', 'forms'];
             display: block;
             margin-top: 4px;
             color: var(--text-dim, #888);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .alignment-options {
@@ -140,7 +140,7 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         .alignment-option span {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             color: var(--text-muted, #666);
         }
@@ -159,7 +159,7 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         .logo-preview-label {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--text-faint, #999);
@@ -189,7 +189,7 @@ $translationNamespaces = ['common', 'forms'];
         .btn {
             padding: 10px 20px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             cursor: pointer;
             border: none;
             transition: all 0.2s;
@@ -208,7 +208,7 @@ $translationNamespaces = ['common', 'forms'];
             padding: 9px 12px;
             border: 1px solid var(--border, #ccc);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             box-sizing: border-box;
             background: var(--surface, white);
         }
@@ -256,7 +256,7 @@ $translationNamespaces = ['common', 'forms'];
             background: var(--warning-bg, #fff7e0);
             border: 1px solid var(--warning-border, #ffd86b);
             border-radius: 6px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--warning-text, #6b4f00);
         }
         .ai-form .ai-actions {
@@ -272,10 +272,10 @@ $translationNamespaces = ['common', 'forms'];
             padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .ai-form .btn-test:hover { background: var(--surface-hover, #f5f5f5); border-color: var(--forms-accent, #00897b); color: var(--forms-accent, #00897b); }
-        .ai-form .test-status { font-size: 13px; margin-left: 8px; }
+        .ai-form .test-status { font-size: var(--font-size-md, 13px); margin-left: 8px; }
         /* Collections. Every colour is a token from theme.css — a var() with a
            fallback fails SILENTLY to that fallback, so a name that does not
            exist paints a light panel on a dark page and nothing says so.
@@ -286,12 +286,12 @@ $translationNamespaces = ['common', 'forms'];
            cap. The one exception is the modal, which inherits its own. */
         .coll-name { font-weight: 600; color: var(--text); }
         .coll-row-closed .coll-name { color: var(--text-muted); }
-        .coll-desc { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-        .coll-meta { font-size: 12px; color: var(--text-dim); }
+        .coll-desc { font-size: var(--font-size-sm, 12px); color: var(--text-muted); margin-top: 3px; }
+        .coll-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim); }
         .coll-num { text-align: right; white-space: nowrap; }
 
         .coll-state {
-            font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 2px 8px; border-radius: 10px;
             white-space: nowrap;
         }
         .coll-state.open   { background: var(--success-bg); color: var(--success-text); }
@@ -339,20 +339,20 @@ $translationNamespaces = ['common', 'forms'];
         }
         .tab-content .action-btn svg { width: 16px; height: 16px; }
 
-        .coll-empty { color: var(--text-dim); font-size: 14px; padding: 24px 12px; }
+        .coll-empty { color: var(--text-dim); font-size: var(--font-size-lg, 14px); padding: 24px 12px; }
 
         /* The form picker. A scroll pane, because an install with eighty
            forms must not produce a modal taller than the screen. */
         #collFormsList { max-height: 46vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
         #collFormsList label {
             display: flex; align-items: flex-start; gap: 10px;
-            padding: 9px 12px; cursor: pointer; font-size: 13px; color: var(--text);
+            padding: 9px 12px; cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--text);
             border-bottom: 1px solid var(--border-soft);
         }
         #collFormsList label:last-child { border-bottom: none; }
         #collFormsList label:hover { background: var(--surface-hover); }
         #collFormsList input { margin-top: 2px; }
-        #collFormsList .cf-where { display: block; font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+        #collFormsList .cf-where { display: block; font-size: var(--font-size-xs, 11px); color: var(--text-dim); margin-top: 2px; }
         #collFormsList .cf-inactive { color: var(--text-faint); }
 
         .coll-effect label {
@@ -362,13 +362,13 @@ $translationNamespaces = ['common', 'forms'];
         }
         .coll-effect label:hover { border-color: var(--forms-accent, #00897b); }
         .coll-effect input { margin-top: 2px; }
-        .coll-effect .ce-text { font-size: 13px; color: var(--text); }
+        .coll-effect .ce-text { font-size: var(--font-size-md, 13px); color: var(--text); }
 
         .coll-unavailable {
             border: 1px solid var(--warning-border, var(--border));
             background: var(--warning-bg, var(--surface-2));
             color: var(--warning-text, var(--text));
-            padding: 14px 16px; border-radius: 6px; font-size: 14px;
+            padding: 14px 16px; border-radius: 6px; font-size: var(--font-size-lg, 14px);
         }
     </style>
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
@@ -462,9 +462,9 @@ $translationNamespaces = ['common', 'forms'];
 
                 <div class="coll-effect">
                     <div class="section-header" style="margin-top: 8px;">
-                        <h2 style="font-size: 16px;"><?php echo htmlspecialchars(t('forms.collections.effect_heading')); ?></h2>
+                        <h2 style="font-size: var(--font-size-xl, 16px);"><?php echo htmlspecialchars(t('forms.collections.effect_heading')); ?></h2>
                     </div>
-                    <p style="color: var(--text-muted, #666); margin-bottom: 14px; font-size: 13px;"><?php echo htmlspecialchars(t('forms.collections.effect_intro')); ?></p>
+                    <p style="color: var(--text-muted, #666); margin-bottom: 14px; font-size: var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('forms.collections.effect_intro')); ?></p>
 
                     <label>
                         <input type="radio" name="closeEffect" value="reporting_only" onchange="collSaveEffect(this.value)">
@@ -491,9 +491,9 @@ $translationNamespaces = ['common', 'forms'];
         <div class="modal-content" style="max-width: 640px;">
             <div class="modal-header" id="collFormsTitle"><?php echo htmlspecialchars(t('forms.collections.manage_title')); ?></div>
             <div class="modal-body">
-                <p style="margin: 0 0 6px; color: var(--text-muted, #666); font-size: 13px;"><?php echo htmlspecialchars(t('forms.collections.manage_intro')); ?></p>
+                <p style="margin: 0 0 6px; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('forms.collections.manage_intro')); ?></p>
                 <!-- Said BEFORE they tick, not after they save. -->
-                <p style="margin: 0 0 14px; color: var(--text-dim, #888); font-size: 12px;"><?php echo htmlspecialchars(t('forms.collections.steal_warning')); ?></p>
+                <p style="margin: 0 0 14px; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px);"><?php echo htmlspecialchars(t('forms.collections.steal_warning')); ?></p>
                 <div id="collFormsList"></div>
             </div>
             <div class="modal-footer">

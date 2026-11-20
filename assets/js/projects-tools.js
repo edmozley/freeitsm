@@ -47,7 +47,7 @@
                 +   '<div class="prj-person-name">' + esc(m.name) + (m.kind === 'analyst' && String(m.analyst_id) === String(pm) ? ' <span class="prj-pm-badge">' + esc(T('people.pm_badge')) + '</span>' : '') + '</div>'
                 +   '<div class="prj-person-kind">' + kindIcon(m.kind) + esc(T('people.kind_label_' + m.kind)) + (m.kind === 'contractor' && m.contact_id && m.supplier_name ? ' &middot; ' + esc(m.supplier_name) : '') + (m.job_title ? ' &middot; ' + esc(m.job_title) : '') + '</div>'
                 // GH #210: added before the company rule; still listed, but they cannot open the project.
-                +   (m.outside_company ? '<div class="prj-person-warn" style="font-size:12px; color: var(--warning-text, #b45309); margin-top: 2px;">' + esc(T('people.outside_company')) + '</div>' : '')
+                +   (m.outside_company ? '<div class="prj-person-warn" style="font-size:var(--font-size-sm, 12px); color: var(--warning-text, #b45309); margin-top: 2px;">' + esc(T('people.outside_company')) + '</div>' : '')
                 +   (canChange()
                         ? '<select class="prj-role-select" data-member-role="' + m.id + '" aria-label="' + esc(T('people.role')) + '">' + roleOpts(m.role_id) + '</select>'
                         : '<div class="prj-person-role">' + esc(m.role_name || T('people.no_role')) + '</div>')

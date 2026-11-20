@@ -67,8 +67,8 @@ $translationNamespaces = ['common', 'tickets'];
         .settings-shell { display: flex; flex-direction: column; height: 100vh; }
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .settings-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        thead th { text-align: left; color: var(--text-muted, #888); font-weight: 600; font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
+        table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        thead th { text-align: left; color: var(--text-muted, #888); font-weight: 600; font-size: var(--font-size-sm, 12px); padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
         tbody td { padding: 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: middle; }
         tbody tr:last-child td { border-bottom: none; }
         /* Status + company-access pills are DATA — they encode meaning and read
@@ -128,7 +128,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <button class="add-btn" onclick="openTeamModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
         </div>
-        <div id="teamsNoDeptWarning" style="display:none; margin:0 0 15px; padding:12px 15px; border-radius:6px; background:var(--warning-bg, #fef3c7); color:var(--warning-text, #92400e); border:1px solid var(--warning-border, #f0d9a8); font-size:13px; line-height:1.5;"></div>
+        <div id="teamsNoDeptWarning" style="display:none; margin:0 0 15px; padding:12px 15px; border-radius:6px; background:var(--warning-bg, #fef3c7); color:var(--warning-text, #92400e); border:1px solid var(--warning-border, #f0d9a8); font-size:var(--font-size-md, 13px); line-height:1.5;"></div>
         <table>
             <thead>
                 <tr>
@@ -477,7 +477,7 @@ $translationNamespaces = ['common', 'tickets'];
                         <label style="display:flex; align-items:center; padding:12px 15px; border-bottom:1px solid var(--border-soft,#eee); cursor:pointer; transition:background 0.2s;"
                                onmouseover="this.style.background='var(--surface-hover,#f5f5f5)'" onmouseout="this.style.background=''">
                             <input type="checkbox" name="assign_ids" value="${it.id}" ${checked} style="margin-right:12px; width:18px; height:18px;">
-                            <div><strong>${escapeHtml(label)}</strong>${inactive ? ' <span style="color:var(--text-faint,#999); font-size:12px;">(inactive)</span>' : ''}</div>
+                            <div><strong>${escapeHtml(label)}</strong>${inactive ? ' <span style="color:var(--text-faint,#999); font-size:var(--font-size-sm, 12px);">(inactive)</span>' : ''}</div>
                         </label>`;
                 }).join('');
             }
@@ -537,7 +537,7 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('teamAllCompanies').checked = !!allAccess;
             const grantedSet = new Set(granted);
             document.getElementById('teamCompanyList').innerHTML = allCompanies.map(c => `
-                <label style="display:flex; align-items:center; gap:8px; padding:4px 2px; font-size:13px; cursor:pointer;">
+                <label style="display:flex; align-items:center; gap:8px; padding:4px 2px; font-size:var(--font-size-md, 13px); cursor:pointer;">
                     <input type="checkbox" class="team-company-cb" value="${c.id}" ${grantedSet.has(Number(c.id)) ? 'checked' : ''}>
                     ${escapeHtml(c.name)}
                 </label>`).join('');

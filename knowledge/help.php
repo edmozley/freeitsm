@@ -63,7 +63,7 @@ $translationNamespaces = ['common', 'knowledge'];
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 700;
             flex-shrink: 0;
             background: var(--accent-soft);
@@ -73,7 +73,7 @@ $translationNamespaces = ['common', 'knowledge'];
         .kb-help-ai-bubble {
             padding: 10px 14px;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.55;
             color: var(--text-muted, #444);
             max-width: 80%;

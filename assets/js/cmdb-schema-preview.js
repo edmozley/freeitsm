@@ -30,32 +30,32 @@
 
     const CSS = `
 .csp-modal .modal-content { width: 820px; max-width: 95vw; }
-.csp-intro { margin: 0 0 14px; color: var(--text-muted,#666); font-size: 13px; }
-.csp-banner { margin: 0 0 14px; padding: 10px 12px; border-radius: 6px; font-size: 13px;
+.csp-intro { margin: 0 0 14px; color: var(--text-muted,#666); font-size: var(--font-size-md, 13px); }
+.csp-banner { margin: 0 0 14px; padding: 10px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px);
   background: var(--info-bg,#e0f2fe); color: var(--info-text,#075985); border: 1px solid var(--info-border,#b9def5); }
-.csp-h { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
+.csp-h { font-size: var(--font-size-md, 13px); font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
   color: var(--text-muted,#666); margin: 18px 0 8px; }
 .csp-h:first-child { margin-top: 0; }
-.csp-line { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 14px; color: var(--text,#333); }
+.csp-line { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: var(--font-size-lg, 14px); color: var(--text,#333); }
 .csp-line input[type=checkbox] { margin-top: 3px; flex: none; width: auto; }
 .csp-line .csp-nobox { width: 13px; flex: none; }
 .csp-line.csp-off .csp-main { text-decoration: line-through; color: var(--text-dim,#888); }
 .csp-main { font-weight: 500; }
-.csp-reason { display: block; font-size: 12px; color: var(--text-muted,#666); font-weight: 400; text-decoration: none; }
-.csp-why { display: block; font-size: 12px; color: var(--text-dim,#888); }
+.csp-reason { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted,#666); font-weight: 400; text-decoration: none; }
+.csp-why { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim,#888); }
 .csp-class { border: 1px solid var(--border,#e0e0e0); border-radius: 6px; padding: 6px 12px; margin-bottom: 10px; background: var(--surface,#fff); }
 .csp-class > .csp-line { font-weight: 600; }
 .csp-props { margin-left: 23px; border-left: 2px solid var(--border-soft,#eee); padding-left: 12px; }
-.csp-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; margin-left: 6px; vertical-align: 1px; text-decoration: none; }
+.csp-badge { display: inline-block; font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 1px 8px; border-radius: 10px; margin-left: 6px; vertical-align: 1px; text-decoration: none; }
 .csp-badge.new { background: var(--success-bg,#dcfce7); color: var(--success-text,#166534); }
 .csp-badge.existing { background: var(--info-bg,#e0f2fe); color: var(--info-text,#075985); }
 .csp-badge.skipped { background: var(--warning-bg,#fef3c7); color: var(--warning-text,#92400e); }
-.csp-chip { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; margin-left: 6px;
+.csp-chip { display: inline-block; font-size: var(--font-size-sm, 12px); padding: 1px 8px; border-radius: 10px; margin-left: 6px;
   background: var(--surface-2,#fafafa); border: 1px solid var(--border,#e0e0e0); color: var(--text-muted,#666); }
 .csp-chip.dep { border-color: var(--cmdb-accent,#be185d); color: var(--cmdb-accent,#be185d); }
-.csp-usage { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text-muted,#666); }
-.csp-note { font-size: 12px; color: var(--text-dim,#888); margin: 4px 0 0; }
-.csp-summary { margin-right: auto; align-self: center; font-size: 13px; color: var(--text-muted,#666); }
+.csp-usage { margin: 0; padding-left: 18px; font-size: var(--font-size-md, 13px); color: var(--text-muted,#666); }
+.csp-note { font-size: var(--font-size-sm, 12px); color: var(--text-dim,#888); margin: 4px 0 0; }
+.csp-summary { margin-right: auto; align-self: center; font-size: var(--font-size-md, 13px); color: var(--text-muted,#666); }
 `;
 
     function injectCss() {

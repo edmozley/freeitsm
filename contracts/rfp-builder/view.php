@@ -34,7 +34,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .rfp-view-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -44,14 +44,14 @@ $translationNamespaces = ['common', 'contracts'];
             margin-bottom: 24px;
         }
         .rfp-header h1 {
-            margin: 0; font-size: 24px; font-weight: 700; color: var(--text, #222);
+            margin: 0; font-size: var(--font-size-4xl, 24px); font-weight: 700; color: var(--text, #222);
             display: flex; align-items: center; gap: 12px;
         }
         .rfp-header .rfp-actions { display: flex; gap: 8px; }
 
         .status-badge {
             display: inline-block; padding: 4px 8px; border-radius: 3px;
-            font-size: 13px; font-weight: 500; text-transform: capitalize;
+            font-size: var(--font-size-md, 13px); font-weight: 500; text-transform: capitalize;
         }
         .status-badge.draft        { background: #e5e7eb; color: #374151; }
         .status-badge.collecting   { background: #dbeafe; color: #1e40af; }
@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'contracts'];
         .status-badge.abandoned    { background: #fee2e2; color: #991b1b; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s;
@@ -94,7 +94,7 @@ $translationNamespaces = ['common', 'contracts'];
         .phase-tile-num {
             width: 28px; height: 28px; border-radius: 50%;
             background: var(--surface-hover, #f3f4f6); color: var(--text-muted, #555);
-            font-size: 13px; font-weight: 700;
+            font-size: var(--font-size-md, 13px); font-weight: 700;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
@@ -103,16 +103,16 @@ $translationNamespaces = ['common', 'contracts'];
         .phase-tile-title {
             font-size: 15px; font-weight: 600; color: var(--text, #222);
         }
-        .phase-tile-desc { font-size: 13px; color: var(--text-muted, #666); line-height: 1.5; flex-grow: 1; }
+        .phase-tile-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; flex-grow: 1; }
         .phase-tile-stats {
-            display: flex; gap: 14px; font-size: 13px; color: var(--text-muted, #555);
+            display: flex; gap: 14px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555);
             padding-top: 8px; border-top: 1px solid var(--border-soft, #f0f0f0);
         }
-        .phase-tile-stats strong { color: var(--text, #222); font-size: 16px; }
+        .phase-tile-stats strong { color: var(--text, #222); font-size: var(--font-size-xl, 16px); }
         .phase-tile-cta { margin-top: auto; }
         .phase-tile-cta .btn { width: 100%; justify-content: center; }
         .phase-tile-cta .placeholder {
-            font-size: 12px; color: var(--text-dim, #999); font-style: italic; text-align: center;
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #999); font-style: italic; text-align: center;
             padding: 8px 0;
         }
 
@@ -122,16 +122,16 @@ $translationNamespaces = ['common', 'contracts'];
             margin-bottom: 16px;
         }
         .meta-card h2 {
-            margin: 0 0 14px 0; font-size: 14px; font-weight: 600;
+            margin: 0 0 14px 0; font-size: var(--font-size-lg, 14px); font-weight: 600;
             color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             display: flex; align-items: center; justify-content: space-between;
         }
         .meta-card h2 .h2-extra {
-            font-size: 12px; font-weight: 500; color: var(--text-faint, #aaa); text-transform: none; letter-spacing: 0;
+            font-size: var(--font-size-sm, 12px); font-weight: 500; color: var(--text-faint, #aaa); text-transform: none; letter-spacing: 0;
         }
         .meta-row {
             display: flex; gap: 16px; padding: 8px 0;
-            border-bottom: 1px solid var(--border-soft, #f5f5f5); font-size: 14px;
+            border-bottom: 1px solid var(--border-soft, #f5f5f5); font-size: var(--font-size-lg, 14px);
         }
         .meta-row:last-child { border-bottom: none; }
         .meta-row .meta-label { color: var(--text-dim, #888); min-width: 160px; }
@@ -146,22 +146,22 @@ $translationNamespaces = ['common', 'contracts'];
             border: 1px solid var(--border-soft, #f0f0f0);
         }
         .ai-stat .ai-stat-num {
-            font-size: 20px; font-weight: 700; color: var(--text, #222); line-height: 1.1;
+            font-size: var(--font-size-3xl, 20px); font-weight: 700; color: var(--text, #222); line-height: 1.1;
         }
         .ai-stat .ai-stat-label {
-            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px; margin-top: 4px;
         }
         .ai-stat.error .ai-stat-num   { color: #b91c1c; }
         .ai-stat.cached .ai-stat-num  { color: #047857; }
 
         .ai-log-table {
-            width: 100%; border-collapse: collapse; font-size: 13px;
+            width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px);
         }
         .ai-log-table th {
             text-align: left; padding: 8px 10px; font-weight: 600;
             color: var(--text-dim, #888); border-bottom: 1px solid var(--border-soft, #eee);
-            text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;
+            text-transform: uppercase; font-size: var(--font-size-xs, 11px); letter-spacing: 0.5px;
         }
         .ai-log-table td {
             padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f5f5f5);
@@ -172,22 +172,22 @@ $translationNamespaces = ['common', 'contracts'];
         .ai-log-table .target { color: var(--text-muted, #555); }
         .ai-log-table .target em { color: var(--text-dim, #999); font-style: normal; }
         .ai-log-table .err {
-            color: #b91c1c; font-size: 12px; margin-top: 3px;
+            color: #b91c1c; font-size: var(--font-size-sm, 12px); margin-top: 3px;
             white-space: normal; overflow-wrap: anywhere;
         }
         .status-pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .status-pill.success { background: #d1fae5; color: #065f46; }
         .status-pill.error   { background: #fee2e2; color: #991b1b; }
         .action-pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
             background: var(--surface-3, #e5e7eb); color: var(--text-muted, #374151);
-            font-size: 11px; font-weight: 500;
+            font-size: var(--font-size-xs, 11px); font-weight: 500;
         }
         .ai-empty {
-            text-align: center; padding: 28px 16px; color: var(--text-dim, #999); font-size: 13px;
+            text-align: center; padding: 28px 16px; color: var(--text-dim, #999); font-size: var(--font-size-md, 13px);
         }
 
         .loading, .error-state { text-align: center; padding: 60px; color: var(--text-dim, #999); }

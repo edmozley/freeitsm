@@ -46,39 +46,39 @@ $t = fn(string $k) => htmlspecialchars(t('system.integrations.' . $k));
         /* Gutter, width and title come from .sys-page (assets/css/system-page.css). */
         .mst-wrap { height:calc(100vh - 48px); overflow-y:auto; }
         .mst-wrap .sys-title { display:flex; align-items:center; gap:10px; }
-        .mst-state { font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; }
+        .mst-state { font-size:var(--font-size-sm, 12px); font-weight:600; padding:3px 10px; border-radius:20px; }
         .mst-state.on  { background:var(--success-bg,#ecfdf5); color:var(--success-text,#065f46); }
         .mst-state.off { background:var(--surface-2,#f3f4f6); color:var(--text-faint,#9ca3af); }
         .mst-panel { background:var(--surface,#fff); border:1px solid var(--border,#e0e0e0); border-radius:8px; padding:20px; margin-bottom:18px; }
-        .mst-panel h3 { margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-dim,#888); }
-        .mst-panel > p { font-size:13px; color:var(--text-dim,#6b7280); margin:0 0 14px; line-height:1.5; }
+        .mst-panel h3 { margin:0 0 12px; font-size:var(--font-size-md, 13px); text-transform:uppercase; letter-spacing:.5px; color:var(--text-dim,#888); }
+        .mst-panel > p { font-size:var(--font-size-md, 13px); color:var(--text-dim,#6b7280); margin:0 0 14px; line-height:1.5; }
         .mst-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
         .mst-bar h3 { margin:0; }
         .mst-ch { border:1px solid var(--border,#e5e7eb); border-radius:8px; padding:16px 18px; margin-bottom:14px; background:var(--surface-2,#fafafa); }
         .mst-row2 { display:grid; grid-template-columns:minmax(200px, 1fr) minmax(260px, 2fr); gap:14px; }
-        .mst-field label { display:block; font-size:13px; font-weight:600; color:var(--text,#333); margin-bottom:5px; }
-        .mst-field input[type=text], .mst-field input[type=password], .mst-field select { width:100%; padding:9px 12px; font-size:13px; box-sizing:border-box;
+        .mst-field label { display:block; font-size:var(--font-size-md, 13px); font-weight:600; color:var(--text,#333); margin-bottom:5px; }
+        .mst-field input[type=text], .mst-field input[type=password], .mst-field select { width:100%; padding:9px 12px; font-size:var(--font-size-md, 13px); box-sizing:border-box;
                     border:1px solid var(--border,#d1d5db); border-radius:6px; background:var(--surface,#fff); color:var(--text,#111827); }
-        .mst-hint { font-size:12px; color:var(--text-faint,#9ca3af); margin-top:5px; line-height:1.45; }
+        .mst-hint { font-size:var(--font-size-sm, 12px); color:var(--text-faint,#9ca3af); margin-top:5px; line-height:1.45; }
         .mst-groups { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin-top:14px; }
-        .mst-group h4 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-dim,#6b7280); }
-        .mst-check { display:flex; gap:8px; align-items:flex-start; font-size:13px; color:var(--text,#333); margin:5px 0; }
+        .mst-group h4 { margin:0 0 8px; font-size:var(--font-size-sm, 12px); text-transform:uppercase; letter-spacing:.4px; color:var(--text-dim,#6b7280); }
+        .mst-check { display:flex; gap:8px; align-items:flex-start; font-size:var(--font-size-md, 13px); color:var(--text,#333); margin:5px 0; }
         .mst-teams { max-height:150px; overflow-y:auto; border:1px solid var(--border,#e5e7eb); border-radius:6px; padding:6px 10px; margin-bottom:8px; background:var(--surface,#fff); }
         .mst-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
-        .mst-on { font-size:12px; color:var(--text-dim,#6b7280); }
-        .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:6px; font-size:13px;
+        .mst-on { font-size:var(--font-size-sm, 12px); color:var(--text-dim,#6b7280); }
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:6px; font-size:var(--font-size-md, 13px);
                font-weight:600; border:none; cursor:pointer; transition:all .15s; text-decoration:none; }
         .btn-primary { background:var(--sys-accent,#546e7a); color:var(--sys-on-accent,#fff); }
         .btn-primary:hover:not(:disabled) { background:#455a64; }
         .btn-secondary { background:var(--sys-accent-soft,#eceff1); color:#455a64; }
         .btn-danger { background:transparent; color:var(--danger-text,#991b1b); border:1px solid var(--danger-border,#fecaca); }
         .btn:disabled { opacity:.55; cursor:progress; }
-        .mst-result { font-size:13px; padding:8px 12px; border-radius:6px; display:none; margin-top:10px; }
+        .mst-result { font-size:var(--font-size-md, 13px); padding:8px 12px; border-radius:6px; display:none; margin-top:10px; }
         .mst-result.on { display:block; }
         .mst-result.ok  { background:var(--success-bg,#ecfdf5); color:var(--success-text,#065f46); border:1px solid var(--success-border,#a7f3d0); }
         .mst-result.bad { background:var(--danger-bg,#fef2f2); color:var(--danger-text,#991b1b); border:1px solid var(--danger-border,#fecaca); }
         .mst-warn { background:var(--warning-bg,#fef3c7); color:var(--warning-text,#92400e); border:1px solid var(--warning-border,#fcd34d);
-                    border-radius:6px; padding:12px 14px; font-size:13px; margin-bottom:18px; display:none; }
+                    border-radius:6px; padding:12px 14px; font-size:var(--font-size-md, 13px); margin-bottom:18px; display:none; }
         @media (max-width: 700px) { .mst-row2 { grid-template-columns:1fr; } }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->

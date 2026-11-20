@@ -48,31 +48,31 @@ $translationNamespaces = ['common', 'forms'];
     <style>
         .ca-container { display: flex; height: calc(100vh - 48px); background: var(--app-bg, #f5f5f5); }
         .ca-sidebar { width: 260px; background: var(--surface, #fff); border-right: 1px solid var(--border, #ddd); padding: 20px; display: flex; flex-direction: column; gap: 6px; }
-        .ca-sidebar h3 { font-size: 12px; font-weight: 600; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px; }
-        .ca-filter { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--text, #333); transition: background 0.15s; }
+        .ca-sidebar h3 { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px; }
+        .ca-filter { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text, #333); transition: background 0.15s; }
         .ca-filter:hover { background: var(--surface-hover, #f5f5f5); }
         .ca-filter.active { background: var(--accent-soft, #e8f4fd); color: var(--accent, #0078d4); font-weight: 600; }
-        .ca-filter .cnt { font-size: 12px; background: var(--border-soft, #eee); color: var(--text-muted, #666); padding: 2px 8px; border-radius: 10px; font-weight: 600; min-width: 20px; text-align: center; }
+        .ca-filter .cnt { font-size: var(--font-size-sm, 12px); background: var(--border-soft, #eee); color: var(--text-muted, #666); padding: 2px 8px; border-radius: 10px; font-weight: 600; min-width: 20px; text-align: center; }
         .ca-filter.active .cnt { background: var(--accent, #0078d4); color: var(--on-accent, #fff); }
         .ca-main { flex: 1; overflow-y: auto; padding: 24px 30px; }
-        .ca-main h2 { margin: 0 0 20px; font-size: 20px; color: var(--text, #333); }
+        .ca-main h2 { margin: 0 0 20px; font-size: var(--font-size-3xl, 20px); color: var(--text, #333); }
         .ca-card { background: var(--surface, #fff); border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 1px 3px var(--shadow, rgba(0,0,0,0.06)); border-left: 4px solid var(--warning-border, #f0d9a8); }
         .ca-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 12px; }
         .ca-card-title { font-size: 15px; font-weight: 600; color: var(--text, #333); }
-        .ca-card-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-dim, #888); margin-bottom: 12px; }
+        .ca-card-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-bottom: 12px; }
         .ca-card-meta .lbl { font-weight: 600; color: var(--text-faint, #999); }
         .ca-answers { border: 1px solid var(--border-soft, #eee); border-radius: 6px; background: var(--surface-2, #fafafa); padding: 4px 0; margin-bottom: 12px; }
         .ca-answer { display: flex; gap: 12px; padding: 6px 12px; font-size: 12.5px; }
         .ca-answer .a-lbl { font-weight: 600; color: var(--text-muted, #666); flex: 0 0 40%; }
         .ca-answer .a-val { color: var(--text, #333); white-space: pre-wrap; }
-        .ca-comment { width: 100%; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; background: var(--surface, #fff); color: var(--text, #333); margin-bottom: 10px; resize: vertical; min-height: 38px; }
+        .ca-comment { width: 100%; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); font-family: inherit; background: var(--surface, #fff); color: var(--text, #333); margin-bottom: 10px; resize: vertical; min-height: 38px; }
         .ca-actions { display: flex; gap: 10px; }
-        .ca-btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .ca-btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: var(--font-size-md, 13px); font-weight: 500; }
         .ca-btn-secondary { background: var(--surface, #fff); color: var(--text, #333); border: 1px solid var(--border, #ddd); }   /* Move (GH #220) */
         .ca-btn-approve { background: var(--success-accent, #16a34a); color: #fff; }
         .ca-btn-reject { background: var(--surface, #fff); color: var(--danger-accent, #d13438); border: 1px solid var(--danger-accent, #d13438); }
         .ca-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .ca-badge { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 10px; }
+        .ca-badge { font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 2px 9px; border-radius: 10px; }
         .ca-badge.approved { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
         .ca-badge.rejected { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); }
         .ca-decided-note { font-size: 12.5px; color: var(--text-muted, #666); }
@@ -85,27 +85,27 @@ $translationNamespaces = ['common', 'forms'];
         .ca-vote-approved { color: var(--success-text, #166534); font-weight: 600; }
         .ca-vote-rejected { color: var(--danger-text, #991b1b); font-weight: 600; }
         .ca-stuck, .ca-override-hint { margin: 8px 0; padding: 8px 11px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
-        .ca-event { font-size: 12px; color: var(--text-muted, #666); margin: 2px 0; }
+        .ca-event { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 2px 0; }
         .ca-move { display: none; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
         .ca-move.open { display: flex; }
-        .ca-move select, .ca-move input { padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .ca-move select, .ca-move input { padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .ca-move input[type=text] { flex: 1; min-width: 160px; }
         .ca-move input[type=number] { width: 70px; }
         .ca-decided-note a { color: var(--accent, #0078d4); }
         .ca-empty { text-align: center; padding: 60px 20px; color: var(--text-faint, #999); }
-        .ca-empty h3 { font-size: 16px; color: var(--text-muted, #666); margin: 0 0 6px; }
-        .ca-empty p { font-size: 13px; margin: 0; }
+        .ca-empty h3 { font-size: var(--font-size-xl, 16px); color: var(--text-muted, #666); margin: 0 0 6px; }
+        .ca-empty p { font-size: var(--font-size-md, 13px); margin: 0; }
 
         /* The list could not be loaded. Left-aligned and plain rather than
            centred like .ca-empty: this is something to read and copy, not a
            decorative "nothing here" state. Every colour is a theme token, so it
            is legible in dark mode too. */
         .ca-error { max-width: 760px; margin: 24px auto; background: var(--surface, #fff); border: 1px solid var(--danger-border, #f3c9c9); border-left: 4px solid var(--danger-accent, #d13438); border-radius: 8px; padding: 20px 22px; }
-        .ca-error h3 { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: var(--text, #333); }
+        .ca-error h3 { margin: 0 0 8px; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
         .ca-error p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.5; color: var(--text-muted, #666); }
-        .ca-error pre { margin: 0; padding: 12px 14px; background: var(--surface-2, #fafafa); border: 1px solid var(--border-soft, #eee); border-radius: 6px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.5; color: var(--text, #333); white-space: pre-wrap; word-break: break-word; max-height: 320px; overflow-y: auto; }
+        .ca-error pre { margin: 0; padding: 12px 14px; background: var(--surface-2, #fafafa); border: 1px solid var(--border-soft, #eee); border-radius: 6px; font-family: ui-monospace, Consolas, monospace; font-size: var(--font-size-sm, 12px); line-height: 1.5; color: var(--text, #333); white-space: pre-wrap; word-break: break-word; max-height: 320px; overflow-y: auto; }
         .ca-error-actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-        .ca-error-note { font-size: 12px; color: var(--text-faint, #999); flex: 1 1 260px; }
+        .ca-error-note { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); flex: 1 1 260px; }
     </style>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>

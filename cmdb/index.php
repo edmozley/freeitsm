@@ -64,7 +64,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #374151);
             border-left: 3px solid transparent;
             transition: background 0.12s, border-color 0.12s, color 0.12s;
@@ -75,7 +75,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             background: var(--surface-3, #f3f4f6);
             color: var(--text-muted, #6b7280);
             padding: 2px 8px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             border-radius: 999px;
         }
         .class-item.active .count { background: #fbcfe8; color: var(--cmdb-accent, #be185d); }
@@ -90,13 +90,13 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             justify-content: space-between;
             align-items: center;
         }
-        .main-header h2 { font-size: 18px; color: var(--text, #111827); margin: 0; }
+        .main-header h2 { font-size: var(--font-size-2xl, 18px); color: var(--text, #111827); margin: 0; }
         .main-header .actions { display: flex; gap: 10px; align-items: center; }
         .main-header input[type="text"] {
             padding: 7px 12px;
             border: 1px solid var(--border, #d1d5db);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             width: 240px;
         }
         .main-header input[type="text"]:focus { outline: none; border-color: var(--cmdb-accent, #be185d); }
@@ -108,7 +108,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .add-btn:hover { background: var(--cmdb-accent-hover, #9d174d); }
         .add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -119,13 +119,13 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
         .object-list th {
             text-align: left;
             padding: 10px 16px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             text-transform: uppercase;
             color: var(--text-muted, #6b7280);
             border-bottom: 1px solid var(--border, #e5e7eb);
             font-weight: 600;
         }
-        .object-list td { padding: 12px 16px; border-bottom: 1px solid var(--border-soft, #f3f4f6); font-size: 14px; color: var(--text, #1f2937); }
+        .object-list td { padding: 12px 16px; border-bottom: 1px solid var(--border-soft, #f3f4f6); font-size: var(--font-size-lg, 14px); color: var(--text, #1f2937); }
         .object-list tbody tr { cursor: pointer; transition: background 0.1s; }
         .object-list tbody tr:hover { background: var(--surface-hover, #fafafa); }
         .object-list tbody tr:hover .object-name { color: var(--cmdb-accent, #be185d); }
@@ -133,7 +133,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
         .object-name { font-weight: 600; color: var(--text, #111827); }
         .empty-state { padding: 80px 40px; text-align: center; color: var(--text-dim, #9ca3af); }
         .empty-state h3 { color: var(--text, #374151); font-weight: 600; margin-bottom: 8px; }
-        .empty-state p { margin-bottom: 16px; font-size: 14px; }
+        .empty-state p { margin-bottom: 16px; font-size: var(--font-size-lg, 14px); }
 
         /* Planned-state styling — pill rendered next to the name everywhere
            planned objects appear so the future-state distinction reads at a glance. */
@@ -158,17 +158,17 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             background: var(--surface-3, #f3f4f6);
             color: var(--text-muted, #4b5563);
             padding: 2px 8px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             border-radius: 999px;
             font-weight: 500;
         }
-        .parent-link { color: var(--text-muted, #6b7280); font-size: 13px; }
+        .parent-link { color: var(--text-muted, #6b7280); font-size: var(--font-size-md, 13px); }
         .parent-link strong { color: var(--text, #374151); }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; }
         .modal.active { display: flex; align-items: center; justify-content: center; }
         .modal-content { background: var(--surface, #ffffff); border-radius: 8px; width: 480px; max-width: 95vw; }
-        .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border, #e5e7eb); font-weight: 600; font-size: 16px; }
+        .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border, #e5e7eb); font-weight: 600; font-size: var(--font-size-xl, 16px); }
         .modal-body { padding: 24px; }
         .modal-actions {
             padding: 16px 24px;
@@ -178,17 +178,17 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             justify-content: flex-end;
         }
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text, #374151); margin-bottom: 6px; }
+        .form-group label { display: block; font-size: var(--font-size-md, 13px); font-weight: 500; color: var(--text, #374151); margin-bottom: 6px; }
         .form-group input, .form-group select {
             width: 100%; padding: 9px 12px; border: 1px solid var(--border, #d1d5db);
-            border-radius: 4px; font-size: 14px;
+            border-radius: 4px; font-size: var(--font-size-lg, 14px);
         }
         .form-group input:focus, .form-group select:focus {
             outline: none; border-color: var(--cmdb-accent, #be185d);
             box-shadow: 0 0 0 3px rgba(190, 24, 93, 0.1);
         }
-        .form-group small { color: var(--text-muted, #6b7280); font-size: 12px; display: block; margin-top: 4px; }
-        .btn { padding: 9px 18px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; border: 1px solid transparent; }
+        .form-group small { color: var(--text-muted, #6b7280); font-size: var(--font-size-sm, 12px); display: block; margin-top: 4px; }
+        .btn { padding: 9px 18px; border-radius: 4px; cursor: pointer; font-size: var(--font-size-lg, 14px); font-weight: 500; border: 1px solid transparent; }
         .btn-primary { background: var(--cmdb-accent, #be185d); color: var(--cmdb-on-accent, #ffffff); }
         .btn-primary:hover { background: var(--cmdb-accent-hover, #9d174d); }
         .btn-secondary { background: var(--surface, #ffffff); color: var(--text, #374151); border-color: var(--border, #d1d5db); }
@@ -198,7 +198,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             margin: 18px 0 10px 0;
             padding-top: 16px;
             border-top: 1px solid var(--border-soft, #f3f4f6);
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             color: var(--text-dim, #9ca3af);
             font-weight: 600;
@@ -207,7 +207,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
         .req-mark { color: var(--cmdb-accent, #be185d); margin-left: 3px; }
         .form-group select, .form-group textarea {
             width: 100%; padding: 9px 12px; border: 1px solid var(--border, #d1d5db);
-            border-radius: 4px; font-size: 14px; font-family: inherit;
+            border-radius: 4px; font-size: var(--font-size-lg, 14px); font-family: inherit;
         }
         .form-group select:focus, .form-group textarea:focus {
             outline: none; border-color: var(--cmdb-accent, #be185d);
@@ -233,13 +233,13 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
         .ac-result {
             padding: 7px 10px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             display: flex;
             justify-content: space-between;
         }
         .ac-result:hover, .ac-result.highlighted { background: #fdf2f8; color: var(--cmdb-accent, #be185d); }
-        .ac-result .ac-class { color: var(--text-dim, #9ca3af); font-size: 11px; }
-        .ac-empty { padding: 8px; color: var(--text-dim, #9ca3af); font-size: 12px; text-align: center; }
+        .ac-result .ac-class { color: var(--text-dim, #9ca3af); font-size: var(--font-size-xs, 11px); }
+        .ac-empty { padding: 8px; color: var(--text-dim, #9ca3af); font-size: var(--font-size-sm, 12px); text-align: center; }
 
         /* Property filters (GH #312 follow-up): one strip above the table with the
            active filters as chips, and the builder row when Filter is pressed. */
@@ -258,24 +258,24 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             border-radius: 999px;
             background: #fdf2f8;
             color: var(--text, #374151);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .flt-chip strong { font-weight: 600; color: var(--text, #111827); }
         .flt-chip-x {
             border: 0; background: transparent; cursor: pointer;
             width: 22px; height: 22px; border-radius: 50%;
-            color: var(--cmdb-accent, #be185d); font-size: 16px; line-height: 1;
+            color: var(--cmdb-accent, #be185d); font-size: var(--font-size-xl, 16px); line-height: 1;
         }
         .flt-chip-x:hover { background: rgba(190, 24, 93, 0.12); }
         .flt-link {
             border: 0; background: transparent; cursor: pointer; padding: 4px 6px;
-            color: var(--cmdb-accent, #be185d); font-size: 13px; font-weight: 500;
+            color: var(--cmdb-accent, #be185d); font-size: var(--font-size-md, 13px); font-weight: 500;
         }
         .flt-link:hover { text-decoration: underline; }
         .flt-builder { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
         .flt-builder select, .flt-builder input {
             padding: 6px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 4px;
-            font: inherit; font-size: 13px; background: var(--surface, #ffffff); color: var(--text, #111827);
+            font: inherit; font-size: var(--font-size-md, 13px); background: var(--surface, #ffffff); color: var(--text, #111827);
             max-width: 220px;
         }
         .flt-builder select:focus, .flt-builder input:focus { outline: none; border-color: var(--cmdb-accent, #be185d); }
@@ -284,7 +284,7 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
         .flt-pick input { width: 220px; }
         .flt-pick .ac-results { min-width: 220px; }
         .flt-btn {
-            padding: 6px 14px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+            padding: 6px 14px; border-radius: 4px; cursor: pointer; font: inherit; font-size: var(--font-size-md, 13px); font-weight: 600;
             border: 1px solid var(--border, #d1d5db); background: var(--surface, #ffffff); color: var(--text, #374151);
         }
         .flt-btn-primary { background: var(--cmdb-accent, #be185d); border-color: var(--cmdb-accent, #be185d); color: var(--cmdb-on-accent, #ffffff); }
@@ -298,13 +298,13 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
             box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 6px 0;
         }
         .col-menu[hidden] { display: none; }
-        .col-menu-head { padding: 6px 14px 8px; font-size: 12px; color: var(--text-muted, #6b7280); }
-        .col-menu-item { display: flex; align-items: center; gap: 10px; padding: 7px 14px; font-size: 13px; cursor: pointer; color: var(--text, #374151); }
+        .col-menu-head { padding: 6px 14px 8px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); }
+        .col-menu-item { display: flex; align-items: center; gap: 10px; padding: 7px 14px; font-size: var(--font-size-md, 13px); cursor: pointer; color: var(--text, #374151); }
         .col-menu-item:hover { background: #fdf2f8; }
         .col-menu-item.is-off { color: var(--text-dim, #9ca3af); cursor: not-allowed; }
         .col-menu-item input { margin: 0; accent-color: var(--cmdb-accent, #be185d); }
-        .col-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; color: #ffffff; font-size: 12px; font-weight: 600; }
-        .col-gone { color: var(--text-dim, #9ca3af); font-style: italic; font-size: 13px; }
+        .col-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; color: #ffffff; font-size: var(--font-size-sm, 12px); font-weight: 600; }
+        .col-gone { color: var(--text-dim, #9ca3af); font-style: italic; font-size: var(--font-size-md, 13px); }
         [data-theme-mode="dark"] .flt-chip { background: rgba(190, 24, 93, 0.15); }
         [data-theme-mode="dark"] .col-menu-item:hover { background: rgba(190, 24, 93, 0.15); }
 
@@ -346,13 +346,13 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
         <aside class="browse-sidebar">
             <div class="sidebar-header"><h2><?php echo htmlspecialchars(t('cmdb.list.classes')); ?></h2></div>
             <div class="class-list" id="classList">
-                <div style="padding: 16px; color: var(--text-dim, #9ca3af); font-size: 13px;"><?php echo htmlspecialchars(t('cmdb.list.loading')); ?></div>
+                <div style="padding: 16px; color: var(--text-dim, #9ca3af); font-size: var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('cmdb.list.loading')); ?></div>
             </div>
         </aside>
 
         <main class="browse-main">
             <?php if ($oneCompany !== ''): ?>
-                <div class="one-company-note" role="note" style="margin:12px 12px 0;padding:8px 10px;border-radius:6px;font-size:13px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);"><?php echo t('cmdb.list.one_company_note', ['company' => htmlspecialchars($oneCompany)]); ?></div>
+                <div class="one-company-note" role="note" style="margin:12px 12px 0;padding:8px 10px;border-radius:6px;font-size:var(--font-size-md, 13px);background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);"><?php echo t('cmdb.list.one_company_note', ['company' => htmlspecialchars($oneCompany)]); ?></div>
             <?php endif; ?>
             <div class="filter-bar" id="filterBar" hidden></div>
             <div class="object-list" id="objectList">

@@ -45,13 +45,13 @@ $translationNamespaces = ['common', 'system-wiki'];
             padding: 24px 20px;
         }
         .page-title {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 16px;
         }
         .page-subtitle {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin-bottom: 20px;
         }
@@ -64,7 +64,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         .tables-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .tables-table th {
             text-align: left;
@@ -91,7 +91,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             text-align: center;
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         /* op-count colours are DATA (SQL-operation coded), left hardcoded */

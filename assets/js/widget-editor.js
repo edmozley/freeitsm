@@ -208,7 +208,7 @@
         const container = document.getElementById('deptCheckboxes');
         if (!container) return;
         container.innerHTML = allDepartments.map(d =>
-            '<label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:normal;cursor:pointer;">' +
+            '<label style="display:inline-flex;align-items:center;gap:4px;font-size:var(--font-size-sm, 12px);font-weight:normal;cursor:pointer;">' +
                 '<input type="checkbox" value="' + d.id + '" class="dept-checkbox" style="width:14px;height:14px;">' +
                 escapeHtml(d.name) +
             '</label>'

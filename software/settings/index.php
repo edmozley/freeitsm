@@ -74,7 +74,7 @@ $translationNamespaces = ['common', 'software'];
 
         .section-header h3 {
             margin: 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
             display: flex;
             align-items: center;
@@ -89,7 +89,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 14px 24px;
             background: var(--surface-2, #f8f9fa);
             border-bottom: 1px solid var(--border-soft, #eee);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
             line-height: 1.5;
         }
@@ -102,7 +102,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 8px 16px;
             border: none;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             cursor: pointer;
             display: inline-flex;
@@ -161,7 +161,7 @@ $translationNamespaces = ['common', 'software'];
 
         .btn-sm {
             padding: 5px 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .key-table {
@@ -173,7 +173,7 @@ $translationNamespaces = ['common', 'software'];
             background: var(--surface-2, #f8f9fa);
             padding: 10px 24px;
             text-align: left;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #555);
             text-transform: uppercase;
@@ -184,7 +184,7 @@ $translationNamespaces = ['common', 'software'];
         .key-table tbody td {
             padding: 12px 24px;
             border-bottom: 1px solid var(--border-soft, #eee);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             vertical-align: middle;
         }
@@ -199,7 +199,7 @@ $translationNamespaces = ['common', 'software'];
 
         .api-key-value {
             font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             background: var(--surface-hover, #f5f5f5);
             padding: 4px 10px;
             border-radius: 4px;
@@ -237,7 +237,7 @@ $translationNamespaces = ['common', 'software'];
             color: var(--success-text, #2e7d32);
             padding: 3px 10px;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
         }
 
@@ -247,7 +247,7 @@ $translationNamespaces = ['common', 'software'];
             color: var(--danger-text, #c62828);
             padding: 3px 10px;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
         }
 
@@ -278,7 +278,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 40px;
             text-align: center;
             color: var(--text-dim, #888);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .loading-spinner {
@@ -313,14 +313,14 @@ $translationNamespaces = ['common', 'software'];
 
         .new-key-banner p {
             margin: 0 0 10px 0;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--success-text, #2e7d32);
             font-weight: 500;
         }
 
         .new-key-banner .key-display {
             font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             background: var(--surface, #fff);
             padding: 10px 14px;
             border-radius: 4px;
@@ -334,7 +334,7 @@ $translationNamespaces = ['common', 'software'];
 
         .new-key-banner .hint {
             margin: 10px 0 0 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
         }
 
@@ -364,13 +364,13 @@ $translationNamespaces = ['common', 'software'];
 
         .confirm-box h4 {
             margin: 0 0 12px 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
         .confirm-box p {
             margin: 0 0 20px 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-muted, #666);
         }
 
@@ -399,7 +399,7 @@ $translationNamespaces = ['common', 'software'];
                 </h3>
                 <div style="display:flex;align-items:center;gap:8px;">
                     <input type="text" id="keyLabelInput" placeholder="<?php echo htmlspecialchars(t('software.settings.label_input')); ?>" maxlength="100"
-                           style="padding:7px 12px;border:1px solid var(--border, #ddd);border-radius:4px;font-size:13px;width:180px;background:var(--surface, #fff);color:var(--text, #333);">
+                           style="padding:7px 12px;border:1px solid var(--border, #ddd);border-radius:4px;font-size:var(--font-size-md, 13px);width:180px;background:var(--surface, #fff);color:var(--text, #333);">
                     <button class="btn btn-primary" onclick="generateKey()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>

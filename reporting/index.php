@@ -74,13 +74,13 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .landing-content h2 {
-            font-size: 24px;
+            font-size: var(--font-size-4xl, 24px);
             color: var(--text, #333);
             margin: 0 0 8px 0;
         }
 
         .landing-content .subtitle {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-dim, #888);
             margin: 0 0 40px 0;
         }
@@ -116,13 +116,13 @@ $translationNamespaces = ['common', 'reporting'];
 
         .report-card h3 {
             margin: 0 0 8px 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text, #333);
         }
 
         .report-card p {
             margin: 0;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             line-height: 1.5;
         }

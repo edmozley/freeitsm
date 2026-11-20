@@ -46,7 +46,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -59,7 +59,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
@@ -82,13 +82,13 @@ $translationNamespaces = ['common', 'contracts'];
         .sidebar-section { padding: 14px 16px; }
         .sidebar-section + .sidebar-section { border-top: 1px solid var(--border-soft, #eef0f2); }
         .sidebar-section h3 {
-            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px; margin: 0 0 8px 0;
         }
 
         .supplier-link {
             display: block; padding: 7px 10px; border-radius: 5px;
-            font-size: 13px; color: var(--text, #333); text-decoration: none;
+            font-size: var(--font-size-md, 13px); color: var(--text, #333); text-decoration: none;
             margin-bottom: 2px; line-height: 1.3;
         }
         .supplier-link:hover { background: var(--surface-hover, #f5f5f5); }
@@ -97,7 +97,7 @@ $translationNamespaces = ['common', 'contracts'];
         .cat-score-row {
             display: flex; align-items: center; gap: 8px;
             padding: 7px 10px; border-radius: 5px;
-            font-size: 13px; cursor: pointer; user-select: none;
+            font-size: var(--font-size-md, 13px); cursor: pointer; user-select: none;
             margin-bottom: 2px; line-height: 1.3;
         }
         .cat-score-row:hover { background: var(--surface-hover, #f5f5f5); }
@@ -105,12 +105,12 @@ $translationNamespaces = ['common', 'contracts'];
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .cat-score-row .cat-avg {
-            font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums;
+            font-weight: 700; font-size: var(--font-size-md, 13px); font-variant-numeric: tabular-nums;
             color: var(--text-dim, #888); min-width: 32px; text-align: right;
         }
         .cat-score-row.has-score .cat-avg { color: #047857; }
         .cat-score-row .cat-count {
-            font-size: 11px; color: var(--text-faint, #aaa); font-variant-numeric: tabular-nums;
+            font-size: var(--font-size-xs, 11px); color: var(--text-faint, #aaa); font-variant-numeric: tabular-nums;
         }
 
         .scoring-main { display: flex; flex-direction: column; gap: 16px; }
@@ -121,11 +121,11 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; gap: 18px; align-items: center;
         }
         .supplier-banner .name { flex: 1; }
-        .supplier-banner .name .display { font-size: 18px; font-weight: 700; color: var(--text, #222); }
-        .supplier-banner .name .legal { font-size: 12px; color: var(--text-dim, #888); margin-top: 2px; }
-        .supplier-banner .summary { display: flex; gap: 18px; font-size: 12px; color: var(--text-muted, #666); }
+        .supplier-banner .name .display { font-size: var(--font-size-2xl, 18px); font-weight: 700; color: var(--text, #222); }
+        .supplier-banner .name .legal { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 2px; }
+        .supplier-banner .summary { display: flex; gap: 18px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .supplier-banner .summary .sm-block strong {
-            display: block; color: var(--text, #222); font-size: 18px; font-variant-numeric: tabular-nums;
+            display: block; color: var(--text, #222); font-size: var(--font-size-2xl, 18px); font-variant-numeric: tabular-nums;
         }
 
         .category-card {
@@ -141,7 +141,7 @@ $translationNamespaces = ['common', 'contracts'];
             margin: 0; font-size: 15px; font-weight: 600; color: var(--text, #222); flex: 1;
         }
         .cat-header .cat-avg-inline {
-            font-size: 13px; color: var(--text-muted, #555); font-variant-numeric: tabular-nums;
+            font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); font-variant-numeric: tabular-nums;
         }
         .cat-header .cat-avg-inline strong { color: var(--text, #222); }
 
@@ -152,12 +152,12 @@ $translationNamespaces = ['common', 'contracts'];
         .req-row:last-child { border-bottom: none; }
 
         .req-text {
-            font-size: 14px; color: var(--text, #222); line-height: 1.55;
+            font-size: var(--font-size-lg, 14px); color: var(--text, #222); line-height: 1.55;
         }
         .req-text .pills { display: flex; gap: 6px; margin-bottom: 6px; }
         .pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .pill.type-requirement { background: #dbeafe; color: #1e40af; }
         .pill.type-pain_point  { background: #fef3c7; color: #92400e; }
@@ -170,14 +170,14 @@ $translationNamespaces = ['common', 'contracts'];
             display: inline-block; margin-top: 6px;
             background: #ede9fe; color: #5b21b6;
             padding: 2px 8px; border-radius: 9px;
-            font-size: 11px; font-weight: 500;
+            font-size: var(--font-size-xs, 11px); font-weight: 500;
         }
 
         /* ─── Score boxes (0-5 click-to-light) ───────────────────── */
 
         .score-row { display: flex; align-items: center; gap: 14px; }
         .score-row .score-label {
-            font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
             min-width: 50px;
         }
@@ -187,7 +187,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; align-items: center; justify-content: center;
             border: 2px solid var(--border, #d1d5db); border-radius: 8px;
             background: var(--surface, #fff); color: var(--text-dim, #6b7280);
-            font-size: 16px; font-weight: 700;
+            font-size: var(--font-size-xl, 16px); font-weight: 700;
             cursor: pointer; user-select: none;
             transition: all 0.12s;
             font-family: inherit;
@@ -207,7 +207,7 @@ $translationNamespaces = ['common', 'contracts'];
         .score-box.selected.s5 { background: #16a34a; border-color: #166534; color: white; box-shadow: 0 2px 6px rgba(22,163,74,0.5); }
 
         .score-row .save-status {
-            font-size: 11px; color: var(--text-dim, #888); min-width: 80px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); min-width: 80px;
         }
         .score-row .save-status.saving { color: #b45309; }
         .score-row .save-status.saved  { color: #047857; }
@@ -217,11 +217,11 @@ $translationNamespaces = ['common', 'contracts'];
 
         .notes-block { display: flex; flex-direction: column; gap: 4px; }
         .notes-block label {
-            font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
         }
         .notes-block textarea {
-            padding: 10px 12px; font-size: 13px; font-family: inherit;
+            padding: 10px 12px; font-size: var(--font-size-md, 13px); font-family: inherit;
             border: 1px solid var(--border, #d1d5db); border-radius: 6px;
             background: var(--surface, #fff); color: var(--text, #222);
             resize: vertical; min-height: 70px; line-height: 1.5;
@@ -236,24 +236,24 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; align-items: center; gap: 24px;
             box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
             z-index: 800;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .averages-bar .ab-block {
             display: flex; flex-direction: column;
         }
         .averages-bar .ab-label {
-            font-size: 11px; color: rgba(255,255,255,0.6);
+            font-size: var(--font-size-xs, 11px); color: rgba(255,255,255,0.6);
             text-transform: uppercase; letter-spacing: 0.5px;
         }
         .averages-bar .ab-value {
-            font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums;
+            font-size: var(--font-size-2xl, 18px); font-weight: 700; font-variant-numeric: tabular-nums;
             margin-top: 2px;
         }
         .averages-bar .ab-grow { flex: 1; }
         .averages-bar .ab-spider {
             background: rgba(255,255,255,0.1); color: white;
             border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-            padding: 8px 14px; font-size: 13px; cursor: pointer;
+            padding: 8px 14px; font-size: var(--font-size-md, 13px); cursor: pointer;
             display: flex; align-items: center; gap: 8px;
             font-family: inherit;
         }
@@ -277,9 +277,9 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; gap: 12px;
         }
-        .spider-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222); flex: 1; }
+        .spider-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222); flex: 1; }
         .spider-header .close-x {
-            background: none; border: none; font-size: 24px; color: var(--text-dim, #888);
+            background: none; border: none; font-size: var(--font-size-4xl, 24px); color: var(--text-dim, #888);
             cursor: pointer; padding: 0; line-height: 1;
         }
         .spider-body {
@@ -292,7 +292,7 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 12px 24px; border-top: 1px solid var(--border-soft, #eee); background: var(--surface, #fff);
         }
         .spider-empty {
-            color: var(--text-dim, #999); font-size: 14px; font-style: italic; text-align: center;
+            color: var(--text-dim, #999); font-size: var(--font-size-lg, 14px); font-style: italic; text-align: center;
         }
 
         .empty-card, .loading, .error-state {
@@ -360,7 +360,7 @@ $translationNamespaces = ['common', 'contracts'];
         <div class="ab-grow"></div>
         <div class="ab-block" style="text-align:right;">
             <span class="ab-label"><?php echo htmlspecialchars(t('contracts.rfp.scoring.autosaved')); ?></span>
-            <span class="ab-value" id="abLastSaved" style="font-size:13px;">—</span>
+            <span class="ab-value" id="abLastSaved" style="font-size:var(--font-size-md, 13px);">—</span>
         </div>
         <button class="ab-spider" onclick="openSpiderModal()" title="<?php echo htmlspecialchars(t('contracts.rfp.scoring.show_radar')); ?>">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">

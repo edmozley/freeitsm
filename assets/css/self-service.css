@@ -168,7 +168,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     color: var(--text, #333);
     margin: 0 0 4px;
 }
-.welcome-section p { color: var(--text-muted, #888); font-size: 14px; margin: 0; }
+.welcome-section p { color: var(--text-muted, #888); font-size: var(--font-size-lg, 14px); margin: 0; }
 
 .portal-grid {
     display: grid;
@@ -199,7 +199,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 }
 .section-header h2 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0; }
 .section-header a {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--ss-accent, #0078d4);
     text-decoration: none;
     font-weight: 500;
@@ -259,7 +259,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #555);
     margin-bottom: 12px;
 }
@@ -273,7 +273,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 .rec-modal-foot button {
     padding: 8px 14px;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     font-family: inherit;
     cursor: pointer;
@@ -288,7 +288,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 .btn-rec-discard { background: var(--surface-hover, #f3f4f6); color: var(--text, #333); border-color: var(--border, #ddd); }
 .btn-rec-discard:hover { background: var(--surface-hover, #e5e7eb); }
 .rec-status {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #555);
     display: inline-flex;
     align-items: center;
@@ -323,7 +323,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     display: block;
 }
 .tk-recording-meta {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     margin-top: 6px;
     display: flex;
@@ -356,7 +356,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     transform: translateY(-1px);
 }
 .article-card-title {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 6px;
@@ -364,7 +364,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 /* The preview is a whole paragraph of body text; clamp it so one long article
  * cannot make its card three times the height of its neighbours. */
 .article-card-preview {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.5;
     color: var(--text-muted, #666);
     display: -webkit-box;
@@ -404,7 +404,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.summary-card .card-value { font-size: 20px; font-weight: 700; line-height: 1.1; color: var(--text, #333); }
+.summary-card .card-value { font-size: var(--font-size-3xl, 20px); font-weight: 700; line-height: 1.1; color: var(--text, #333); }
 /* Status cards colour themselves from the DB `colour` column at render time —
    these are only the fallbacks for the Total card and any uncoloured status. */
 .card-total .card-label { color: var(--text-muted, #555); }
@@ -421,7 +421,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     background: var(--ss-table-header-bg, var(--surface-hover, #f9fafb));
     padding: 10px 16px;
     text-align: left;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     color: var(--text-muted, #666);
     text-transform: uppercase;
@@ -430,7 +430,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 }
 .ticket-table td {
     padding: 12px 16px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     border-bottom: 1px solid var(--border-soft, #f3f4f6);
 }
@@ -440,17 +440,17 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 .ticket-table .ticket-link:hover { text-decoration: underline; }
 .ticket-number {
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #888);
 }
-.ticket-date { font-size: 12px; color: var(--text-faint, #999); white-space: nowrap; }
+.ticket-date { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); white-space: nowrap; }
 
 /* ── Badges ─────────────────────────────────────────────────────────────── */
 .status-badge {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -458,7 +458,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     display: inline-block;
     padding: 2px 8px;
     border-radius: 10px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 500;
 }
 /* Fallbacks, used when a lookup row has no colour of its own.
@@ -486,13 +486,13 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     border-bottom: 1px solid var(--border-soft, #f3f4f6);
 }
 .service-item:last-child { border-bottom: none; }
-.service-item .svc-name { font-size: 13px; font-weight: 500; color: var(--text, #333); }
+.service-item .svc-name { font-size: var(--font-size-md, 13px); font-weight: 500; color: var(--text, #333); }
 
 .impact-badge {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
 }
 .impact-operational    { background: var(--success-bg, #d1fae5); color: var(--success-text, #065f46); }
@@ -505,7 +505,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     text-align: center;
     padding: 16px 20px;
     color: var(--success-text, #065f46);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
 }
 .all-operational svg { vertical-align: middle; margin-right: 6px; }
@@ -557,7 +557,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     flex-shrink: 0;
 }
 .portal-action-title {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
     color: var(--text, #333);
     overflow: hidden;
@@ -566,8 +566,8 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 }
 
 /* ── States ─────────────────────────────────────────────────────────────── */
-.empty-state   { text-align: center; padding: 40px 20px; color: var(--text-faint, #999); font-size: 14px; }
-.loading-state { text-align: center; padding: 30px 20px; color: var(--text-faint, #999); font-size: 13px; }
+.empty-state   { text-align: center; padding: 40px 20px; color: var(--text-faint, #999); font-size: var(--font-size-lg, 14px); }
+.loading-state { text-align: center; padding: 30px 20px; color: var(--text-faint, #999); font-size: var(--font-size-md, 13px); }
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
@@ -722,7 +722,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
          * avatar beside this states its own colour and was never affected;
          * this states its own for the same reason. */
         color: #fff;
-        font-size: 20px;
+        font-size: var(--font-size-3xl, 20px);
         line-height: 1;
         cursor: pointer;
         border-radius: 6px;
@@ -751,7 +751,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
     }
     /* 🔑 Sized by max-height AND max-width, never by an assumed aspect ratio.
      * The stock logo is 1124x301 (a wide wordmark), but a customer swapping
@@ -785,7 +785,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="button"]),
     select,
     textarea {
-        font-size: 16px !important;
+        font-size: var(--font-size-xl, 16px) !important;
         max-width: 100%;
         box-sizing: border-box;
     }
@@ -862,7 +862,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
         line-height: 1.35;
     }
     .ticket-table tbody td:nth-child(n+3) { margin-right: 8px; }
-    .ticket-table tbody td:nth-child(n+3) .ticket-date { font-size: 13px; }
+    .ticket-table tbody td:nth-child(n+3) .ticket-date { font-size: var(--font-size-md, 13px); }
 
     /* ---- Your requests: three columns, so its own shape ----
      * The form's title leads, then the approval pill and (when the request
@@ -1050,10 +1050,10 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 /* ══ Incidents on the status panel (discussion #99) ════════════════════════
    Shown only when an administrator has switched this on AND somebody has
    written an external update, so most portals never render any of it. */
-.inc-card-note { margin: 6px 0 0; font-size: 13px; white-space: pre-wrap; }   /* planned maintenance (3.2.0) */
+.inc-card-note { margin: 6px 0 0; font-size: var(--font-size-md, 13px); white-space: pre-wrap; }   /* planned maintenance (3.2.0) */
 .inc-list-heading {
     margin: 18px 0 10px;
-    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+    font-size: var(--font-size-sm, 12px); font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
     color: var(--text-dim, #999);
 }
 .inc-card {
@@ -1068,11 +1068,11 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
    carefully, and the whole point of keeping resolved entries is reassurance. */
 .inc-card.is-resolved { border-left-color: var(--success-accent, #16a34a); }
 .inc-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.inc-card-title { font-size: 14px; font-weight: 600; color: var(--text, #333); }
-.inc-card-state { font-size: 12px; color: var(--text-muted, #666); white-space: nowrap; }
+.inc-card-title { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
+.inc-card-state { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); white-space: nowrap; }
 .inc-card-svcs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
 .inc-svc {
-    font-size: 11px; padding: 1px 8px; border-radius: 10px;
+    font-size: var(--font-size-xs, 11px); padding: 1px 8px; border-radius: 10px;
     background: var(--surface-3, #eee); color: var(--text-muted, #666);
 }
 .inc-card-toggle {
@@ -1085,13 +1085,13 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 
 /* A table with timestamps, as the request asked for — the story of the outage
    read top to bottom, oldest first. */
-.inc-upd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.inc-upd-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
 .inc-upd-table td { padding: 6px 0; vertical-align: top; border-top: 1px solid var(--border-soft, #f5f5f5); }
 .inc-upd-table tr:first-child td { border-top: none; }
-.inc-upd-when { width: 1%; white-space: nowrap; padding-right: 14px !important; color: var(--text-muted, #666); font-size: 12px; }
+.inc-upd-when { width: 1%; white-space: nowrap; padding-right: 14px !important; color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
 .inc-upd-status {
     display: inline-block; margin-right: 8px;
-    font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px;
+    font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 1px 7px; border-radius: 10px;
     background: var(--surface-3, #eee); color: var(--text-muted, #666);
 }
 .inc-upd-text { color: var(--text, #333); }

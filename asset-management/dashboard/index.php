@@ -47,7 +47,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .dashboard-toolbar h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text, #333);
         }
 
@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-radius: 6px;
             background: var(--surface, #fff);
             color: var(--text, #333);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -134,14 +134,14 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .widget-header h3 {
             margin: 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text, #333);
         }
 
         .widget-header p {
             margin: 4px 0 0 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
         }
 
@@ -181,7 +181,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 4px 8px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #555);
             background: var(--surface, #fff);
         }
@@ -215,13 +215,13 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .dashboard-empty h3 {
             margin: 0 0 8px 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text-muted, #555);
         }
 
         .dashboard-empty p {
             margin: 0 0 20px 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         @media (max-width: 900px) {

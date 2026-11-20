@@ -5,33 +5,33 @@
  */
 .cil-card { background: var(--surface, #fff); border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 16px; }
 .cil-head { padding: 12px 16px 0; }
-.cil-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
-.cil-body { padding: 8px 16px 14px; font-size: 13px; color: var(--text, #222); }
-.cil-muted { color: var(--text-dim, #888); font-size: 12px; margin: 4px 0; }
+.cil-title { font-size: var(--font-size-md, 13px); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
+.cil-body { padding: 8px 16px 14px; font-size: var(--font-size-md, 13px); color: var(--text, #222); }
+.cil-muted { color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); margin: 4px 0; }
 .cil-restricted { margin: 4px 0; font-weight: 600; color: var(--text-muted, #555); }
 .cil-current { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.cil-name { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--text, #222); text-decoration: none; }
+.cil-name { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #222); text-decoration: none; }
 .cil-name:hover span { text-decoration: underline; }
 .cil-icon { display: inline-flex; color: var(--cmdb-accent, #be185d); }
-.cil-class { font-size: 11px; font-weight: 600; color: var(--text-muted, #555); background: var(--surface-hover, #f1f5f9); border-radius: 99px; padding: 1px 8px; }
+.cil-class { font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #555); background: var(--surface-hover, #f1f5f9); border-radius: 99px; padding: 1px 8px; }
 .cil-actions { margin-left: auto; display: inline-flex; gap: 6px; }
-.cil-btn { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text, #222); cursor: pointer; }
+.cil-btn { font: inherit; font-size: var(--font-size-sm, 12px); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text, #222); cursor: pointer; }
 .cil-btn:hover { background: var(--surface-hover, #f3f4f6); }
 .cil-btn.cil-primary { background: var(--accent, #0078d4); border-color: var(--accent, #0078d4); color: var(--on-accent, #fff); margin-top: 6px; }
 .cil-btn.cil-primary:hover { background: var(--accent-hover, #106ebe); }
 .cil-btn.cil-danger { color: var(--danger-text, #b91c1c); }
-.cil-from { margin: 12px 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #888); }
+.cil-from { margin: 12px 0 4px; font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #888); }
 .cil-details { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 14px; }
 .cil-detail { display: flex; flex-direction: column; min-width: 0; }
-.cil-dl { font-size: 11px; color: var(--text-dim, #888); }
-.cil-dv { font-size: 13px; overflow: hidden; text-overflow: ellipsis; }
+.cil-dl { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); }
+.cil-dv { font-size: var(--font-size-md, 13px); overflow: hidden; text-overflow: ellipsis; }
 .cil-fresh-stale { color: var(--warning-text, #a16207); }
 .cil-fresh-failed { color: var(--danger-text, #b91c1c); }
 .cil-impact:empty { display: none; }
-.cil-impact { margin-top: 8px; font-size: 13px; }
+.cil-impact { margin-top: 8px; font-size: var(--font-size-md, 13px); }
 .cil-impact a { margin-left: 6px; }
 .cil-pick { position: relative; display: flex; gap: 6px; margin-top: 8px; }
-.cil-pick input { flex: 1; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 8px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+.cil-pick input { flex: 1; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 8px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
 .cil-pick input:focus { border-color: var(--accent, #0078d4); outline: none; }
 .cil-results { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 60; list-style: none; margin: 0; padding: 4px; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 10px; box-shadow: 0 12px 28px rgba(0,0,0,.14); max-height: 260px; overflow-y: auto; }
 .cil-results button { display: flex; flex-direction: column; align-items: flex-start; width: 100%; text-align: left; background: none; border: none; padding: 7px 9px; border-radius: 7px; cursor: pointer; color: var(--text, #222); }
@@ -39,11 +39,11 @@
 .cil-r-name { font-weight: 600; }
 .cil-noresult { padding: 9px; }
 .cil-history { margin-top: 10px; }
-.cil-history summary { cursor: pointer; font-size: 12px; color: var(--text-muted, #555); }
+.cil-history summary { cursor: pointer; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555); }
 .cil-history ul { list-style: none; margin: 6px 0 0; padding: 0; }
 .cil-history li { padding: 6px 0; border-top: 1px solid var(--border-soft, #f0f0f0); }
-.cil-count { font-size: 11px; font-weight: 700; color: var(--text-muted, #666); background: var(--surface-hover, #f1f5f9); border-radius: 99px; padding: 1px 7px; }
-.cil-h-end { font-size: 12px; color: var(--text-muted, #555); }
+.cil-count { font-size: var(--font-size-xs, 11px); font-weight: 700; color: var(--text-muted, #666); background: var(--surface-hover, #f1f5f9); border-radius: 99px; padding: 1px 7px; }
+.cil-h-end { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555); }
 .cil-live { color: var(--success-text, #15803d); }
 
 /* On the asset page the card sits in Key info, which has no cards: a plain section. */
@@ -55,8 +55,8 @@
 .cil-create-title { font-weight: 600; margin-bottom: 8px; }
 .cil-matches { list-style: none; margin: 4px 0 10px; padding: 0; }
 .cil-matches li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; border-top: 1px solid var(--border-soft, #f0f0f0); }
-.cil-field { display: flex; flex-direction: column; gap: 3px; margin: 8px 0; font-size: 12px; color: var(--text-muted, #555); }
-.cil-field input[type=text], .cil-field input[type=number], .cil-field input[type=date], .cil-field .di-type-date, .cil-field select { padding: 6px 9px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #222); max-width: 420px; }
+.cil-field { display: flex; flex-direction: column; gap: 3px; margin: 8px 0; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555); }
+.cil-field input[type=text], .cil-field input[type=number], .cil-field input[type=date], .cil-field .di-type-date, .cil-field select { padding: 6px 9px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #222); max-width: 420px; }
 .cil-field input[type=checkbox] { align-self: flex-start; }
 .cil-create-actions { display: flex; gap: 6px; margin-top: 10px; }
 .cil-create-actions .cil-primary { margin-top: 0; }

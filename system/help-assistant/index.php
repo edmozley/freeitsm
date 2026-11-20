@@ -56,11 +56,11 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         }
         .ha-good-title { font-size: 15px; font-weight: 700; color: var(--success-text, #166534); margin-bottom: 4px; }
         .ha-good p { margin: 0 0 8px; }
-        .ha-good .ha-later { color: var(--text-muted, #666); font-size: 13px; }
-        .ha-now { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 13px; }
+        .ha-good .ha-later { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); }
+        .ha-now { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font-size: var(--font-size-md, 13px); }
         .ha-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--surface, #fff); border: 1px solid var(--success-border, #a7f3d0); color: var(--success-text, #166534); font-weight: 600; font-size: 12.5px; }
 
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover:not(:disabled) { background: #455a64; }
         .btn-secondary { background: var(--surface, #fff); color: var(--text, #333); border: 1px solid var(--border, #ddd); padding: 6px 14px; }
@@ -68,21 +68,21 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         .btn:disabled { opacity: .55; cursor: progress; }
 
         .ha-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px; margin-bottom: 18px; }
-        .ha-panel h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
-        .ha-panel > p { margin: 0 0 14px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; }
+        .ha-panel h3 { margin: 0 0 4px; font-size: var(--font-size-md, 13px); text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
+        .ha-panel > p { margin: 0 0 14px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.55; }
         .ha-toggle { display: flex; align-items: flex-start; gap: 10px; }
         .ha-toggle input { margin-top: 3px; }
-        .ha-toggle-label { font-size: 14px; font-weight: 600; color: var(--text, #333); }
+        .ha-toggle-label { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
         .ha-toggle-hint { display: block; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-top: 3px; }
 
         .ha-who-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
-        .ha-filter { flex: 1 1 220px; min-width: 0; padding: 7px 10px; font: inherit; font-size: 13px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
+        .ha-filter { flex: 1 1 220px; min-width: 0; padding: 7px 10px; font: inherit; font-size: var(--font-size-md, 13px); border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
         .ha-count { font-size: 12.5px; color: var(--text-muted, #666); margin-left: auto; }
         .ha-list { max-height: 340px; overflow-y: auto; border: 1px solid var(--border-soft, #eee); border-radius: 6px; }
         .ha-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border-soft, #f1f1f1); cursor: pointer; font-size: 13.5px; color: var(--text, #333); }
         .ha-row:last-child { border-bottom: none; }
         .ha-row:hover { background: var(--surface-hover, #f7f7f7); }
-        .ha-row .ha-user { color: var(--text-faint, #999); font-size: 12px; }
+        .ha-row .ha-user { color: var(--text-faint, #999); font-size: var(--font-size-sm, 12px); }
         /* Dimmed rather than hidden while the switch is off - so somebody deciding
            can still see what they would be turning on, as Status portal does. */
         .ha-disabled { opacity: .45; pointer-events: none; }
@@ -91,15 +91,15 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         .ha-status .ha-warn { color: var(--warning-text, #92400e); }
         .ha-status .ha-fail { color: var(--danger-text, #b91c1c); }
         .ha-langs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
-        .ha-lang { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft, #eceff1); color: var(--text, #333); }
-        .ha-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
+        .ha-lang { font-size: var(--font-size-sm, 12px); padding: 3px 9px; border-radius: 999px; background: var(--accent-soft, #eceff1); color: var(--text, #333); }
+        .ha-saved { font-size: var(--font-size-md, 13px); color: var(--success-text, #166534); margin-left: 12px; }
         .ha-panel > p.ha-small { font-size: 12.5px; margin-bottom: 8px; }
-        .ha-msg { font-size: 13px; color: var(--text-muted, #666); }
+        .ha-msg { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         .ha-msg.ok { color: var(--success-text, #166534); }
         .ha-msg.bad { color: var(--danger-text, #b91c1c); }
         .hv-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px 16px; margin-top: 14px; }
         .hv-field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--text-muted, #666); min-width: 0; }
-        .hv-field input, .hv-field select { padding: 7px 10px; font: inherit; font-size: 13px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); min-width: 0; }
+        .hv-field input, .hv-field select { padding: 7px 10px; font: inherit; font-size: var(--font-size-md, 13px); border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); min-width: 0; }
         .hv-model-row { display: flex; gap: 6px; }
         .hv-model-row select { flex: 1; min-width: 0; }
         .hv-status { margin-top: 14px; }
@@ -107,18 +107,18 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         .hask-try { display: flex; gap: 8px; }
         .hask-out { margin-top: 12px; font-size: 13.5px; color: var(--text, #333); line-height: 1.55; }
         .hask-out .hask-answer { white-space: pre-wrap; background: var(--surface-hover, #f6f7f8); border-radius: 8px; padding: 12px 14px; }
-        .hask-out .hask-meta { font-size: 12px; color: var(--text-muted, #666); margin-top: 6px; }
-        .ha-row .ha-named { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted, #666); white-space: nowrap; }
-        .ha-panel > p.ha-named-hint { font-size: 12px; margin: 8px 0 0; }
+        .hask-out .hask-meta { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 6px; }
+        .ha-row .ha-named { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); white-space: nowrap; }
+        .ha-panel > p.ha-named-hint { font-size: var(--font-size-sm, 12px); margin: 8px 0 0; }
         .ha-count-pill { display: inline-block; min-width: 18px; padding: 1px 7px; border-radius: 999px; background: var(--accent, #546e7a); color: var(--on-accent, #fff); font-size: 11.5px; text-transform: none; letter-spacing: 0; vertical-align: 1px; text-align: center; }
         .hu-filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
         .hu-filter.hu-on { border-color: var(--accent, #546e7a); color: var(--accent, #546e7a); font-weight: 700; }
         .hu-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border-soft, #eee); border-radius: 6px; margin-bottom: 6px; }
         .hu-item.hu-done { opacity: .6; }
         .hu-body { flex: 1; min-width: 0; }
-        .hu-q { font-size: 14px; color: var(--text, #333); overflow-wrap: anywhere; }
-        .hu-meta { font-size: 12px; color: var(--text-muted, #666); margin-top: 3px; line-height: 1.5; }
-        .hu-empty { font-size: 13px; color: var(--text-muted, #666); padding: 8px 0; }
+        .hu-q { font-size: var(--font-size-lg, 14px); color: var(--text, #333); overflow-wrap: anywhere; }
+        .hu-meta { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 3px; line-height: 1.5; }
+        .hu-empty { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); padding: 8px 0; }
         .hv-status .ha-warnbox { background: var(--warning-bg, #fef3c7); border: 1px solid var(--warning-border, #f0d9a8); color: var(--warning-text, #92400e); border-radius: 8px; padding: 12px 14px; margin: 8px 0; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->

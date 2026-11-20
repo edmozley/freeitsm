@@ -51,8 +51,8 @@ $lT = fn(string $k) => t('system.locations.' . $k);
            column, so the page scrolls rather than being cut off. */
         /* Layout: assets/css/system-page.css (.sys-page, .sys-page-head). Only the scroll box is local. */
         .lc-container { flex: 1; min-height: 0; overflow-y: auto; }
-        .lc-uses { margin: 0 0 18px; font-size: 13px; color: var(--text-muted, #555); line-height: 1.55; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .lc-uses { margin: 0 0 18px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); line-height: 1.55; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
         .btn-secondary { background: var(--surface-2, #eceff1); color: var(--text, #333); }

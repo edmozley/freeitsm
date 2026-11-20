@@ -11,7 +11,7 @@
    columns can be resized) rather than the window's. */
 .ticket-workspace {
     --tw-gap: 16px;
-    display: block; min-width: 0; padding: 0; overflow-y: auto; font-size: 14px;
+    display: block; min-width: 0; padding: 0; overflow-y: auto; font-size: var(--font-size-lg, 14px);
     container: ticket-workspace / inline-size;
 }
 /* The list and folder columns give the workspace more room while it shows. */
@@ -28,8 +28,8 @@
 
 .ticket-workspace .tw-header { padding: 16px 20px 0; border-bottom: 1px solid var(--border); background: var(--surface); }
 .ticket-workspace .email-header { padding: 0 0 12px; border: 0; position: static; }
-.ticket-workspace .email-subject-text { white-space: normal; overflow-wrap: anywhere; font-size: 20px; line-height: 1.35; }
-.ticket-workspace .email-meta { font-size: 12px; }
+.ticket-workspace .email-subject-text { white-space: normal; overflow-wrap: anywhere; font-size: var(--font-size-3xl, 20px); line-height: 1.35; }
+.ticket-workspace .email-meta { font-size: var(--font-size-sm, 12px); }
 .ticket-workspace .email-meta-date { white-space: normal; }
 .ticket-workspace .tw-header .ticket-properties-summary { padding: 0 0 8px; }
 .ticket-workspace .tw-sla-summary { border: 0; padding: 0; background: transparent; color: var(--text-muted); font: inherit; cursor: pointer; }
@@ -43,7 +43,7 @@
    whenever the install is in "Only tickets turned into a workspace" mode. */
 .workspace-choice-available .pane-more-wrap { display: block; position: relative; }
 /* On a ticket that is a workspace, for analysts who have turned theirs off. */
-.tw-workspace-badge { color: var(--accent); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 12px; }
+.tw-workspace-badge { color: var(--accent); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: var(--font-size-sm, 12px); }
 
 /* ---- Properties column ----------------------------------------------- */
 
@@ -64,7 +64,7 @@
 /* Classification / Responsibility / Other details. */
 .ticket-workspace .tw-field-group { min-width: 0; padding: 0 0 8px; margin: 0 0 16px; border: 0; border-bottom: 1px solid var(--border); }
 .ticket-workspace .tw-field-group:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: 0; }
-.ticket-workspace .tw-field-group legend { padding: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--text); }
+.ticket-workspace .tw-field-group legend { padding: 0 0 12px; font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text); }
 .ticket-workspace .toolbar-field { width: 100%; min-width: 0; margin: 0 0 8px; }
 /* The same controls as the reading pane: only their arrangement changes.
    In particular, do not override the native confidential-field colours. */
@@ -118,7 +118,7 @@ body.ticket-popout .ticket-workspace .ticket-properties-container { position: st
     .ticket-workspace .action-toolbar { flex-wrap: wrap !important; overflow: visible !important; }
     .ticket-workspace .action-toolbar .action-btn { display: inline-flex; }
     .ticket-workspace .action-toolbar .link-add-wrap { margin-left: 0; }
-    .ticket-workspace .email-subject-text { font-size: 18px; }
+    .ticket-workspace .email-subject-text { font-size: var(--font-size-2xl, 18px); }
 }
 
 /* ---- A linked task in the Work tab (PR #212) ---------------------------- */
@@ -127,7 +127,7 @@ body.ticket-popout .ticket-workspace .ticket-properties-container { position: st
    shows its own (see openTask in ticket-workspace.js). */
 .ticket-workspace .tw-task-controls { display: flex; justify-content: flex-end; gap: 4px; flex-wrap: wrap; padding: 0 0 8px; }
 .ticket-workspace .tw-task-controls[hidden] { display: none; }
-.ticket-workspace .tw-task-controls .btn { min-height: 28px; padding: 4px 8px; font-size: 12px; line-height: 18px; background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+.ticket-workspace .tw-task-controls .btn { min-height: 28px; padding: 4px 8px; font-size: var(--font-size-sm, 12px); line-height: 18px; background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
 .ticket-workspace .tw-task-controls .btn:hover { background: var(--surface-hover); color: var(--text); }
 /* The height is set from the editor's own (the bridge's 'resize' message);
    650px is only until the first one arrives. */

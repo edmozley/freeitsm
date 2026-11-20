@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'change-management'];
 
         .section-header h2 {
             margin: 0 0 8px;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text, #333);
         }
 
@@ -66,7 +66,7 @@ $translationNamespaces = ['common', 'change-management'];
             margin-bottom: 16px;
         }
         .field-toolbar .field-save-status {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--success-accent, #16a34a);
             opacity: 0;
             transition: opacity 0.2s;
@@ -100,7 +100,7 @@ $translationNamespaces = ['common', 'change-management'];
         .section-card-header .drag-handle {
             cursor: grab;
             color: var(--text-faint, #999);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             user-select: none;
             padding: 4px;
         }
@@ -132,7 +132,7 @@ $translationNamespaces = ['common', 'change-management'];
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             line-height: 1;
         }
         .section-delete-btn:hover {
@@ -151,7 +151,7 @@ $translationNamespaces = ['common', 'change-management'];
             text-align: center;
             color: var(--text-faint, #aaa);
             font-style: italic;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .field-row {
             display: flex;
@@ -172,14 +172,14 @@ $translationNamespaces = ['common', 'change-management'];
         .field-row .drag-handle {
             cursor: grab;
             color: var(--text-faint, #bbb);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             user-select: none;
             padding: 2px 4px;
         }
         .field-row .drag-handle:active { cursor: grabbing; }
         .field-row-label {
             flex: 1;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
         .unplaced-fields {
@@ -191,13 +191,13 @@ $translationNamespaces = ['common', 'change-management'];
         }
         .unplaced-fields h4 {
             margin: 0 0 8px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--warning-text, #856404);
         }
         .unplaced-fields p.hint {
             margin: 0 0 8px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--warning-text, #856404);
         }
         .add-section-btn {
@@ -206,7 +206,7 @@ $translationNamespaces = ['common', 'change-management'];
             border: none;
             padding: 8px 14px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
         }
         .add-section-btn:hover {
@@ -227,7 +227,7 @@ $translationNamespaces = ['common', 'change-management'];
         .btn {
             padding: 10px 20px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             cursor: pointer;
             border: none;
             transition: all 0.2s;
@@ -240,21 +240,21 @@ $translationNamespaces = ['common', 'change-management'];
 
         /* Lookup tab tables */
         .lookup-table { width: 100%; border-collapse: collapse; }
-        .lookup-table th, .lookup-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: 14px; }
+        .lookup-table th, .lookup-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: var(--font-size-lg, 14px); }
         .lookup-table th { font-weight: 600; color: var(--text-muted, #666); background: var(--surface-2, #fafafa); }
         .approval-rules { max-width: 760px; }
         .ar-group { border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 14px 16px; margin: 0 0 14px 0; }
         .ar-group legend { font-weight: 600; padding: 0 6px; color: var(--text, #333); }
         .ar-choice { display: block; padding: 8px 10px; border: 1px solid var(--border-soft, #eee); border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
-        .ar-help { display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; }
+        .ar-help { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #777); margin-top: 4px; }
         /* Risk policy tab (#246) */
         .rp-rows { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
         .rp-row { display: flex; align-items: flex-start; gap: 8px; }
         .rp-n { width: 20px; padding-top: 9px; text-align: right; color: var(--text-dim, #888); font-weight: 600; flex-shrink: 0; }
         .rp-label { width: 200px; flex-shrink: 0; }
-        .rp-criteria { flex: 1; min-width: 0; resize: vertical; font-family: inherit; font-size: 13px; }
+        .rp-criteria { flex: 1; min-width: 0; resize: vertical; font-family: inherit; font-size: var(--font-size-md, 13px); }
         .rp-colour { width: 44px; height: 36px; padding: 2px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); }
-        .rp-remove { border: none; background: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--text-muted, #777); padding: 6px; }
+        .rp-remove { border: none; background: none; font-size: var(--font-size-3xl, 20px); line-height: 1; cursor: pointer; color: var(--text-muted, #777); padding: 6px; }
         .rp-remove:hover { color: var(--danger-text, #c62828); }
         .rp-warn { margin-top: 10px; }
         .rp-matrix-scroll { overflow-x: auto; margin-top: 10px; }
@@ -263,33 +263,33 @@ $translationNamespaces = ['common', 'change-management'];
         /* The settings-table row lines and padding break into dashes once the cells have gaps. */
         .tab-content table.rp-matrix td, .tab-content table.rp-matrix th { border-bottom: none; padding: 2px 6px; }
         .tab-content table.rp-matrix tbody tr:hover { background: none; }
-        .rp-matrix th { font-size: 12px; font-weight: 600; color: var(--text-muted, #666); padding: 2px 6px; text-align: center; max-width: 120px; }
+        .rp-matrix th { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #666); padding: 2px 6px; text-align: center; max-width: 120px; }
         .rp-matrix th[scope="row"] { text-align: right; }
         .rp-cell { min-width: 110px; padding: 6px; border: 2px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
         .rp-cell.is-empty { border-style: dashed; border-color: var(--danger-text, #c62828); }
-        .rp-history { border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .rp-history { border-collapse: collapse; margin-top: 10px; font-size: var(--font-size-md, 13px); }
         .rp-history td { padding: 4px 12px 4px 0; color: var(--text-muted, #666); }
         .rp-history tr.is-current td { color: var(--text, #333); font-weight: 600; }
         .rp-actions { display: flex; gap: 10px; }
-        .cm-risk-older { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0; padding: 8px 10px; border-radius: 6px; background: var(--surface-2, #f5f5f7); color: var(--text-muted, #555); font-size: 13px; }
+        .cm-risk-older { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0; padding: 8px 10px; border-radius: 6px; background: var(--surface-2, #f5f5f7); color: var(--text-muted, #555); font-size: var(--font-size-md, 13px); }
         .cm-risk-older[hidden] { display: none; }
         @media (max-width: 700px) { .rp-row { flex-wrap: wrap; } .rp-label { width: calc(100% - 70px); } .rp-criteria { flex-basis: 100%; margin-left: 28px; } }
         .ar-choice .ar-help { margin-left: 22px; }
-        .ar-sub { font-size: 13px; font-weight: 500; margin: 12px 0 6px; color: var(--text, #333); }
+        .ar-sub { font-size: var(--font-size-md, 13px); font-weight: 500; margin: 12px 0 6px; color: var(--text, #333); }
         .ar-ticks { display: flex; flex-wrap: wrap; gap: 6px 18px; }
         .ar-ticks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin-top: 8px; }
-        .ar-warning { margin-top: 8px; padding: 10px 12px; border-radius: 6px; background: var(--warning-bg, #fff8e1); border: 1px solid var(--warning-border, #ffcc80); color: var(--warning-text, #8a5a00); font-size: 13px; }
-        .ar-enforced { display: none; font-size: 12px; color: var(--warning-text, #8a5a00); margin-top: 6px; }
+        .ar-warning { margin-top: 8px; padding: 10px 12px; border-radius: 6px; background: var(--warning-bg, #fff8e1); border: 1px solid var(--warning-border, #ffcc80); color: var(--warning-text, #8a5a00); font-size: var(--font-size-md, 13px); }
+        .ar-enforced { display: none; font-size: var(--font-size-sm, 12px); color: var(--warning-text, #8a5a00); margin-top: 6px; }
         .approval-rules.is-enforce .ar-record-only select { opacity: .5; pointer-events: none; }
         .approval-rules.is-enforce .ar-record-only .ar-enforced { display: block; }
         .ar-actions { margin-top: 6px; }
         .tpl-body { padding: 16px 20px; max-height: 70vh; overflow-y: auto; }
         .tpl-body textarea, .tpl-body input[type=text] { width: 100%; box-sizing: border-box; }
         .tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 12px; }
-        .tpl-version { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border-soft, #eee); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .tpl-version { font-size: var(--font-size-md, 13px); padding: 6px 0; border-bottom: 1px solid var(--border-soft, #eee); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .tpl-version input { flex: 1; min-width: 200px; }
-        .stage-unset { display: inline-block; padding: 2px 8px; border-radius: 10px; background: var(--warning-bg, #fff8e1); border: 1px solid var(--warning-border, #ffcc80); color: var(--warning-text, #8a5a00); font-size: 11px; font-weight: 600; cursor: help; }
-        .badge-yes { display: inline-block; padding: 2px 8px; border-radius: 10px; background: var(--cm-accent-soft, #e0f2f1); color: var(--cm-accent-hover, #00695c); font-size: 11px; font-weight: 600; }
+        .stage-unset { display: inline-block; padding: 2px 8px; border-radius: 10px; background: var(--warning-bg, #fff8e1); border: 1px solid var(--warning-border, #ffcc80); color: var(--warning-text, #8a5a00); font-size: var(--font-size-xs, 11px); font-weight: 600; cursor: help; }
+        .badge-yes { display: inline-block; padding: 2px 8px; border-radius: 10px; background: var(--cm-accent-soft, #e0f2f1); color: var(--cm-accent-hover, #00695c); font-size: var(--font-size-xs, 11px); font-weight: 600; }
         .badge-no  { color: var(--text-faint, #999); }
         /* Active/Inactive uses the shared .status-badge / .status-active / .status-inactive classes from inbox.css (canonical green/red). */
         .swatch { display: inline-block; width: 18px; height: 18px; border-radius: 3px; vertical-align: middle; border: 1px solid var(--border, #ddd); margin-right: 6px; }
@@ -305,13 +305,13 @@ $translationNamespaces = ['common', 'change-management'];
         }
         .action-btn:hover { color: var(--cm-accent, #00897b); }
         .action-btn.delete:hover { color: var(--danger-text, #c62828); }
-        .add-btn { background: var(--cm-accent, #00897b); color: var(--cm-on-accent, white); padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+        .add-btn { background: var(--cm-accent, #00897b); color: var(--cm-on-accent, white); padding: 8px 16px; border: none; border-radius: 4px; font-size: var(--font-size-md, 13px); cursor: pointer; }
         .add-btn:hover { background: var(--cm-accent-hover, #00695c); }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 
         /* Modal sizing — base modal / form CSS lives in inbox.css. */
         .modal-content { padding: 20px; max-width: 500px; }
-        .modal-header { padding: 0; border-bottom: none; margin-bottom: 20px; font-size: 20px; font-weight: 600; color: var(--text, #333); }
+        .modal-header { padding: 0; border-bottom: none; margin-bottom: 20px; font-size: var(--font-size-3xl, 20px); font-weight: 600; color: var(--text, #333); }
         .modal-actions { margin-top: 20px; }
     </style>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
@@ -611,14 +611,14 @@ $translationNamespaces = ['common', 'change-management'];
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="cmSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('change-management.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="cmSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('change-management.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>
@@ -1020,7 +1020,7 @@ $translationNamespaces = ['common', 'change-management'];
                         : TT('state_draft_only');
                     if (waiting && !t.retired) state += ' · ' + TT('state_awaiting', { n: waiting.version_no });
                     return `<tr>
-                        <td><strong>${escapeHtml(t.name)}</strong>${t.scope_use ? `<div style="font-size:12px;color:var(--text-muted,#777);">${escapeHtml(t.scope_use)}</div>` : ''}</td>
+                        <td><strong>${escapeHtml(t.name)}</strong>${t.scope_use ? `<div style="font-size:var(--font-size-sm, 12px);color:var(--text-muted,#777);">${escapeHtml(t.scope_use)}</div>` : ''}</td>
                         <td>${escapeHtml(state)}</td>
                         <td><button class="action-btn" onclick="openTemplateEditor(${t.id})" title="${escapeHtml(window.t('change-management.settings.edit'))}">&#9998;</button>
                             ${data.can_write && !t.retired ? `<button class="action-btn delete" onclick="retireTemplate(${t.id})" title="${escapeHtml(TT('retire'))}">&#10005;</button>` : ''}</td>
@@ -1217,7 +1217,7 @@ $translationNamespaces = ['common', 'change-management'];
             tbody.innerHTML = rows.map(r => {
                 const safeName = escapeHtml(r.name).replace(/'/g, "\\'");
                 const swatch = r.colour
-                    ? `<span class="swatch" style="background:${escapeHtml(r.colour)};"></span><code style="font-size:12px;">${escapeHtml(r.colour)}</code>`
+                    ? `<span class="swatch" style="background:${escapeHtml(r.colour)};"></span><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(r.colour)}</code>`
                     : '<span class="badge-no">—</span>';
                 // A status with no stage is shown loudly: approvals cannot be enforced
                 // until every active status has one (includes/changes/approvals.php).

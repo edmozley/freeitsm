@@ -45,33 +45,33 @@ $e = fn(string $k, array $p = []) => htmlspecialchars(t('system.custom_fields.' 
         /* Layout: assets/css/system-page.css (.sys-page, .sys-page-head). Only the scroll box is local. */
         .cf-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f7fa); }
         .cf-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border, #e5e7eb); margin: 0 0 16px; }
-        .cf-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 9px 14px; font-size: 13px; font-weight: 600; color: var(--text-muted, #666); cursor: pointer; }
+        .cf-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 9px 14px; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #666); cursor: pointer; }
         .cf-tab.active { color: var(--sys-accent, #546e7a); border-bottom-color: var(--sys-accent, #546e7a); }
         .cf-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 0 0 12px; flex-wrap: wrap; }
-        .cf-intro { font-size: 13px; color: var(--text-muted, #555); margin: 0; max-width: 760px; }
+        .cf-intro { font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); margin: 0; max-width: 760px; }
         table.cf { width: 100%; border-collapse: collapse; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; overflow: hidden; }
-        table.cf th, table.cf td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: 13px; color: var(--text, #444); vertical-align: middle; }
-        table.cf th { background: var(--surface-3, #f9fafb); font-weight: 600; font-size: 12px; }
+        table.cf th, table.cf td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: var(--font-size-md, 13px); color: var(--text, #444); vertical-align: middle; }
+        table.cf th { background: var(--surface-3, #f9fafb); font-weight: 600; font-size: var(--font-size-sm, 12px); }
         table.cf tr:last-child td { border-bottom: none; }
-        .cf-key { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--text-dim, #888); }
-        .cf-dim { color: var(--text-dim, #888); font-size: 12px; }
+        .cf-key { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
+        .cf-dim { color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
         .cf-actions { white-space: nowrap; text-align: right; }
-        .cf-actions button { background: none; border: 1px solid var(--border, #ddd); border-radius: 5px; padding: 4px 8px; font-size: 12px; cursor: pointer; color: var(--text, #444); margin-left: 4px; }
+        .cf-actions button { background: none; border: 1px solid var(--border, #ddd); border-radius: 5px; padding: 4px 8px; font-size: var(--font-size-sm, 12px); cursor: pointer; color: var(--text, #444); margin-left: 4px; }
         .cf-actions button:hover { background: var(--surface-hover, #f3f4f6); }
         .cf-empty td { text-align: center; color: var(--text-faint, #aaa); padding: 24px; font-style: italic; }
         .cf-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2100; align-items: center; justify-content: center; }
         .cf-modal-overlay.open { display: flex; }
         .form-field { margin-bottom: 14px; }
-        .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
-        .form-field .hint { font-size: 12px; color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
-        .form-field input[type=text], .form-field input[type=number], .form-field select, .form-field textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
+        .form-field label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
+        .form-field .hint { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
+        .form-field input[type=text], .form-field input[type=number], .form-field select, .form-field textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
         .form-field textarea { min-height: 90px; }
-        .checkbox-field { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; color: var(--text, #444); }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .checkbox-field { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: var(--font-size-md, 13px); color: var(--text, #444); }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
         .btn-secondary { background: var(--surface-2, #eceff1); color: var(--text, #333); }
-        .cf-error { color: var(--danger-text, #c0392b); font-size: 13px; }
+        .cf-error { color: var(--danger-text, #c0392b); font-size: var(--font-size-md, 13px); }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>

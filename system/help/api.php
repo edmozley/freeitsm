@@ -86,7 +86,7 @@ require __DIR__ . '/_top.php';
     </div>
     <div class="help-card">
         <h4>Create a ticket from anything that can make an HTTP request</h4>
-        <pre style="background:#263238;color:#eceff1;border-radius:6px;padding:14px;font-size:12px;overflow-x:auto;">curl -X POST "https://your-server/api/v1/tickets" \
+        <pre style="background:#263238;color:#eceff1;border-radius:6px;padding:14px;font-size:var(--font-size-sm, 12px);overflow-x:auto;">curl -X POST "https://your-server/api/v1/tickets" \
   -H "Authorization: Bearer fitsm_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{"subject":"Disk space low on SQL01","requester_email":"alerts@example.com","description":"C: below 5% free.","priority":"High"}'</pre>

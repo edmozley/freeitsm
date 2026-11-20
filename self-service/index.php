@@ -617,7 +617,7 @@ require __DIR__ . "/includes/header.php";
         <style>
             #trainingSection { margin-bottom: 22px; }
             .tr-dash-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-            .tr-dash-all { font-size: 13px; font-weight: 600; text-decoration: none; color: var(--ss-accent, var(--accent, #0078d4)); }
+            .tr-dash-all { font-size: var(--font-size-md, 13px); font-weight: 600; text-decoration: none; color: var(--ss-accent, var(--accent, #0078d4)); }
 
             /* CARDS, not full-width rows. Three grids already run down this page
                — the actions, the ticket counts and the article list — and all of
@@ -655,7 +655,7 @@ require __DIR__ . "/includes/header.php";
                 display: inline-block;
                 padding: 2px 9px;
                 border-radius: 999px;
-                font-size: 11px;
+                font-size: var(--font-size-xs, 11px);
                 font-weight: 700;
                 border: 1px solid transparent;
             }
@@ -663,12 +663,12 @@ require __DIR__ . "/includes/header.php";
             .tr-dash-pill.warn    { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); border-color: var(--warning-border, #fcd34d); }
             .tr-dash-pill.neutral { background: var(--surface-3, #f5f6f8); color: var(--text-muted, #666); border-color: var(--border, #e5e7eb); }
 
-            .tr-dash-due  { font-size: 12px; color: var(--text-muted, #666); }
+            .tr-dash-due  { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
             .tr-dash-due.over { color: var(--danger-text, #991b1b); font-weight: 600; }
 
             .tr-dash-bar { height: 5px; border-radius: 3px; background: var(--surface-3, #eef0f3); overflow: hidden; }
             .tr-dash-bar-fill { height: 100%; background: var(--ss-accent, var(--accent, #0078d4)); }
-            .tr-dash-step { font-size: 11px; color: var(--text-muted, #666); }
+            .tr-dash-step { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); }
 
             @media (max-width: 640px) {
                 .tr-dash-grid { grid-template-columns: 1fr; padding: 14px; }
@@ -694,7 +694,7 @@ require __DIR__ . "/includes/header.php";
                the cards above and the Recent Tickets grid below, rather than butting
                against it — .portal-section carries no margin of its own. */
             #requestsSection { margin-bottom: 22px; }
-            .req-pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 11px; }
+            .req-pill { display: inline-block; font-size: var(--font-size-sm, 12px); font-weight: 600; padding: 2px 10px; border-radius: 11px; }
             .req-pill.pending  { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
             .req-pill.approved { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
             .req-pill.rejected { background: var(--danger-bg, #fee2e2);  color: var(--danger-text, #991b1b); }
@@ -709,9 +709,9 @@ require __DIR__ . "/includes/header.php";
             .req-dialog h3 { margin: 0; padding: 18px 20px 6px; font-size: 17px; }
             .req-dialog p { margin: 0; padding: 0 20px 12px; font-size: 13.5px; color: var(--text-muted, #666); }
             .req-dialog textarea { display: block; width: calc(100% - 40px); margin: 0 20px; min-height: 90px; padding: 10px; box-sizing: border-box;
-                border: 1px solid var(--border, #d0d5da); border-radius: 6px; font: inherit; font-size: 14px; resize: vertical;
+                border: 1px solid var(--border, #d0d5da); border-radius: 6px; font: inherit; font-size: var(--font-size-lg, 14px); resize: vertical;
                 background: var(--surface, #fff); color: var(--text, #333); }
-            .req-dialog .req-dialog-error { color: var(--danger-text, #b91c1c); padding: 6px 20px 0; font-size: 13px; }
+            .req-dialog .req-dialog-error { color: var(--danger-text, #b91c1c); padding: 6px 20px 0; font-size: var(--font-size-md, 13px); }
             .req-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px 18px; }
             .req-dialog .req-danger { background: var(--danger, #dc2626); color: #fff; border: none; }
             .req-dialog .req-danger:disabled { opacity: 0.6; }

@@ -164,12 +164,12 @@ $translationNamespaces = ['common', 'domains'];
             <div class="modal-header"><?php echo htmlspecialchars(t('domains.import.title')); ?></div>
             <div class="modal-body">
                 <div id="impStep1">
-                    <p class="dom-hint" style="font-size:13px"><?php echo htmlspecialchars(t('domains.import.intro')); ?></p>
+                    <p class="dom-hint" style="font-size:var(--font-size-md, 13px)"><?php echo htmlspecialchars(t('domains.import.intro')); ?></p>
                     <input type="file" id="impFile" accept=".csv,text/csv">
                     <div class="form-group" id="impCompanyWrap" style="display:none;margin-top:14px"><label for="impCompany"><?php echo htmlspecialchars(t('domains.field.company')); ?></label><select id="impCompany"></select></div>
                 </div>
                 <div id="impStep2" style="display:none">
-                    <p class="dom-hint" style="font-size:13px"><?php echo htmlspecialchars(t('domains.import.map_intro')); ?></p>
+                    <p class="dom-hint" style="font-size:var(--font-size-md, 13px)"><?php echo htmlspecialchars(t('domains.import.map_intro')); ?></p>
                     <div id="impMap" class="dom-form-grid"></div>
                     <div id="impPreview" style="overflow-x:auto;margin-top:10px"></div>
                 </div>
@@ -187,7 +187,7 @@ $translationNamespaces = ['common', 'domains'];
         <div class="modal-content" style="max-width:560px">
             <div class="modal-header"><?php echo htmlspecialchars(t('domains.bulk.title')); ?></div>
             <div class="modal-body">
-                <p class="dom-hint" style="font-size:13px"><?php echo htmlspecialchars(t('domains.bulk.intro')); ?></p>
+                <p class="dom-hint" style="font-size:var(--font-size-md, 13px)"><?php echo htmlspecialchars(t('domains.bulk.intro')); ?></p>
                 <div class="dom-form-grid">
                     <div class="form-group"><label for="bStatus"><?php echo htmlspecialchars(t('domains.field.status')); ?></label><select id="bStatus"></select></div>
                     <div class="form-group"><label for="bScope"><?php echo htmlspecialchars(t('domains.field.scope')); ?></label><select id="bScope"></select></div>

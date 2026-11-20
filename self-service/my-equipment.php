@@ -55,7 +55,7 @@ $translationNamespaces = ['common', 'self-service'];
 $pageStyles = <<<'CSS'
 .eq-wrap { width: 100%; box-sizing: border-box; padding: 24px 28px 48px; }
 .eq-wrap h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; color: var(--text, #333); }
-.eq-sub { color: var(--text-muted, #666); font-size: 14px; margin: 0 0 22px; max-width: 640px; line-height: 1.55; }
+.eq-sub { color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); margin: 0 0 22px; max-width: 640px; line-height: 1.55; }
 
 .eq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 
@@ -66,9 +66,9 @@ $pageStyles = <<<'CSS'
     padding: 16px 18px;
 }
 .eq-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 2px; color: var(--text, #333); word-break: break-word; }
-.eq-type { font-size: 12px; color: var(--text-muted, #666); margin: 0 0 12px; }
+.eq-type { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 0 0 12px; }
 
-.eq-facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; }
+.eq-facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: var(--font-size-md, 13px); }
 .eq-facts dt { color: var(--text-muted, #666); }
 .eq-facts dd { margin: 0; color: var(--text, #333); word-break: break-word; }
 /* A serial gets typed into a form or read down a phone, so it wants to be
@@ -78,7 +78,7 @@ $pageStyles = <<<'CSS'
 .eq-empty {
     background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb);
     border-radius: 8px; padding: 28px; text-align: center;
-    color: var(--text-muted, #666); font-size: 14px; line-height: 1.6;
+    color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); line-height: 1.6;
 }
 CSS;
 

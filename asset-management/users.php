@@ -73,7 +73,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-radius: 5px;
             background: var(--surface, #fff);
             color: var(--text, #333);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .au-list { max-height: calc(100vh - 220px); overflow-y: auto; }
         .au-person {
@@ -85,13 +85,13 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .au-person:hover { background: var(--surface-hover, #f6f6f6); }
         .au-person.selected { background: var(--surface-hover, #eef4fb); box-shadow: inset 3px 0 0 var(--accent, #0078d4); }
-        .au-person-name { font-size: 14px; font-weight: 600; color: var(--text, #333); }
-        .au-person-email { font-size: 12px; color: var(--text-muted, #666); overflow-wrap: anywhere; }
+        .au-person-name { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
+        .au-person-email { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); overflow-wrap: anywhere; }
         .au-count {
             flex-shrink: 0;
             min-width: 22px; padding: 1px 7px; border-radius: 10px;
             background: var(--accent, #0078d4); color: #fff;
-            font-size: 11px; font-weight: 700; text-align: center;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; text-align: center;
         }
         .au-detail-head {
             display: flex; align-items: flex-start; justify-content: space-between;
@@ -99,14 +99,14 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 16px;
             border-bottom: 1px solid var(--border, #eee);
         }
-        .au-detail-name { font-size: 18px; font-weight: 700; color: var(--text, #333); }
-        .au-detail-sub { font-size: 13px; color: var(--text-muted, #666); }
+        .au-detail-name { font-size: var(--font-size-2xl, 18px); font-weight: 700; color: var(--text, #333); }
+        .au-detail-sub { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         .au-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .au-btn {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 8px 14px; border-radius: 5px; border: 1px solid var(--border, #d5dbe1);
             background: var(--surface, #fff); color: var(--text, #333);
-            font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;
+            font-size: var(--font-size-md, 13px); font-weight: 600; cursor: pointer; text-decoration: none;
             transition: background 150ms ease, transform 140ms cubic-bezier(0.23,1,0.32,1);
         }
         .au-btn:hover { background: var(--surface-hover, #f6f6f6); }
@@ -115,26 +115,26 @@ $translationNamespaces = ['common', 'asset-management'];
         table.au-table { width: 100%; border-collapse: collapse; }
         table.au-table th {
             text-align: left; padding: 10px 16px;
-            font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.4px;
             color: var(--text-muted, #666); border-bottom: 1px solid var(--border, #eee);
             white-space: nowrap;
         }
         table.au-table td {
-            padding: 10px 16px; font-size: 13px;
+            padding: 10px 16px; font-size: var(--font-size-md, 13px);
             border-bottom: 1px solid var(--border-soft, #f4f4f4);
             color: var(--text, #333);
         }
         .au-type-pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
             background: var(--surface-hover, #eef1f4); color: var(--text-muted, #555);
-            font-size: 11px; font-weight: 600;
+            font-size: var(--font-size-xs, 11px); font-weight: 600;
         }
-        .au-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+        .au-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--font-size-sm, 12px); }
         .au-empty { padding: 44px 20px; text-align: center; color: var(--text-muted, #666); }
         .au-empty-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
         /* --- people directory (directory sync slice 1) --- */
         .au-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .au-head-btn { padding: 4px 12px; font-size: 12px; }
+        .au-head-btn { padding: 4px 12px; font-size: var(--font-size-sm, 12px); }
         /* The search box gets a line of its own and the filters share the next one -
            side by side in a narrow panel, the dropdowns took their full text width and
            squeezed the box to a sliver. */
@@ -143,7 +143,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .au-search select {
             flex: 1 1 0; min-width: 0;
             padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px;
-            background: var(--surface, #fff); color: var(--text, #333); font-size: 13px;
+            background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px);
         }
         .au-person.inactive .au-person-name { color: var(--text-muted, #888); }
         .au-flag {
@@ -154,8 +154,8 @@ $translationNamespaces = ['common', 'asset-management'];
         .au-flag.managed { background: #dbeafe; color: #1e40af; }
         /* The person's own details, above their equipment. */
         .au-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px 20px; padding: 16px 20px; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
-        .au-fact-label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted, #888); margin-bottom: 2px; }
-        .au-fact-value { font-size: 13px; color: var(--text, #333); }
+        .au-fact-label { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted, #888); margin-bottom: 2px; }
+        .au-fact-value { font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .au-link { color: var(--accent, #0078d4); text-decoration: none; }
         .au-link:hover { text-decoration: underline; }
         .au-reports { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
@@ -163,7 +163,7 @@ $translationNamespaces = ['common', 'asset-management'];
             display: inline-flex; align-items: center;
             padding: 3px 10px; border-radius: 12px;
             background: var(--surface-hover, #eef1f4); color: var(--text, #333);
-            font-size: 12px; text-decoration: none;
+            font-size: var(--font-size-sm, 12px); text-decoration: none;
         }
         .au-report:hover { background: var(--accent, #0078d4); color: #fff; }
         .au-report.inactive { opacity: .65; }
@@ -179,7 +179,7 @@ $translationNamespaces = ['common', 'asset-management'];
            colour inline — it overrides `border-left-color` too, or it would be
            an amber box wearing a blue bar. */
         .au-managed-note {
-            margin: 0 20px 14px; padding: 8px 12px; border-radius: 6px; font-size: 12px;
+            margin: 0 20px 14px; padding: 8px 12px; border-radius: 6px; font-size: var(--font-size-sm, 12px);
             background: var(--accent-soft, #e8f4fd); color: var(--text, #333);
             border-left: 3px solid var(--accent, #0078d4);
         }

@@ -241,7 +241,7 @@ body { background: var(--app-bg, #f5f5f5); }
 .range-picker { display: flex; gap: 4px; }
 .range-picker a {
     padding: 6px 12px; border: 1px solid var(--border, #ddd); background: var(--surface, white);
-    border-radius: 4px; color: var(--text-muted, #555); text-decoration: none; font-size: 13px;
+    border-radius: 4px; color: var(--text-muted, #555); text-decoration: none; font-size: var(--font-size-md, 13px);
 }
 .range-picker a.active { background: var(--accent, #0078d4); color: var(--on-accent, white); border-color: var(--accent, #0078d4); }
 
@@ -250,25 +250,25 @@ body { background: var(--app-bg, #f5f5f5); }
     background: var(--surface, white); border-radius: 8px; padding: 20px;
     box-shadow: 0 1px 3px var(--shadow, rgba(0,0,0,0.06));
 }
-.kpi-label { font-size: 12px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi-label { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.04em; }
 .kpi-value { font-size: 32px; font-weight: 600; color: var(--text, #333); margin-top: 6px; }
-.kpi-sub { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; }
+.kpi-sub { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 4px; }
 
 .panel {
     background: var(--surface, white); border-radius: 8px; padding: 20px; margin-bottom: 20px;
     box-shadow: 0 1px 3px var(--shadow, rgba(0,0,0,0.06));
 }
-.panel h2 { font-size: 16px; margin: 0 0 16px 0; color: var(--text, #333); }
+.panel h2 { font-size: var(--font-size-xl, 16px); margin: 0 0 16px 0; color: var(--text, #333); }
 
 .dist-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.dist-label { width: 60px; text-align: right; font-size: 20px; }
+.dist-label { width: 60px; text-align: right; font-size: var(--font-size-3xl, 20px); }
 .dist-bar { flex: 1; background: var(--surface-hover, #f0f0f0); border-radius: 4px; height: 24px; overflow: hidden; }
 .dist-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.3s; }
-.dist-count { width: 60px; font-size: 13px; color: var(--text-muted, #666); }
+.dist-count { width: 60px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
 
 table.analyst-table { width: 100%; border-collapse: collapse; }
-table.analyst-table th, table.analyst-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-soft, #eee); font-size: 14px; }
-table.analyst-table th { color: var(--text-dim, #888); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+table.analyst-table th, table.analyst-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-soft, #eee); font-size: var(--font-size-lg, 14px); }
+table.analyst-table th { color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); text-transform: uppercase; letter-spacing: 0.04em; }
 table.analyst-table td.score { font-weight: 600; }
 
 .recent-row {
@@ -279,8 +279,8 @@ table.analyst-table td.score { font-weight: 600; }
 .recent-rating { font-size: 28px; text-align: center; }
 .recent-subject { font-weight: 500; color: var(--text, #333); }
 .recent-subject a { color: var(--accent, #0078d4); text-decoration: none; }
-.recent-comment { color: var(--text-muted, #555); margin-top: 4px; font-size: 13px; font-style: italic; }
-.recent-meta { font-size: 12px; color: var(--text-dim, #888); text-align: right; }
+.recent-comment { color: var(--text-muted, #555); margin-top: 4px; font-size: var(--font-size-md, 13px); font-style: italic; }
+.recent-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); text-align: right; }
 
 .empty { color: var(--text-faint, #999); font-style: italic; padding: 20px 0; text-align: center; }
 
@@ -290,23 +290,23 @@ table.analyst-table td.score { font-weight: 600; }
     background: var(--surface, white); border-radius: 8px; padding: 14px 20px; margin-bottom: 24px;
     box-shadow: 0 1px 3px var(--shadow, rgba(0,0,0,0.06));
 }
-.cf-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-dim, #888); }
+.cf-field { display: flex; flex-direction: column; gap: 4px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
 .cf-field input, .cf-field select {
-    padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 13px;
+    padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: var(--font-size-md, 13px);
     font-family: inherit; background: var(--surface, white); color: var(--text, #333); min-width: 150px;
 }
 .cf-actions { display: flex; align-items: center; gap: 12px; }
 .cf-apply {
-    padding: 8px 18px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;
+    padding: 8px 18px; border: none; border-radius: 4px; cursor: pointer; font-size: var(--font-size-md, 13px); font-weight: 600;
     background: var(--accent, #0078d4); color: var(--on-accent, white);
 }
-.cf-clear { font-size: 13px; color: var(--accent, #0078d4); text-decoration: none; }
+.cf-clear { font-size: var(--font-size-md, 13px); color: var(--accent, #0078d4); text-decoration: none; }
 /* Phone-only: revealed by mobile.css */
 .csat-filters-head, .csat-filter-fab { display: none; }
 
-.rating-note { font-size: 12px; color: var(--text-dim, #888); margin: -8px 0 8px; }
-.recent-customer { font-size: 12px; color: var(--text-dim, #888); margin-top: 2px; }
-.csat-pager { display: flex; justify-content: center; align-items: center; gap: 16px; padding-top: 14px; font-size: 13px; color: var(--text-dim, #888); }
+.rating-note { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin: -8px 0 8px; }
+.recent-customer { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 2px; }
+.csat-pager { display: flex; justify-content: center; align-items: center; gap: 16px; padding-top: 14px; font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); }
 .csat-pager a { color: var(--accent, #0078d4); text-decoration: none; font-weight: 600; }
 </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">

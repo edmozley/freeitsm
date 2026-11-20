@@ -55,6 +55,6 @@ function backLinkHtml(PDO $conn, string $side): string
     return '<a class="back-link back-link-' . $side . '" href="' . htmlspecialchars($s['url']) . '" title="' . htmlspecialchars($s['label'] . ' - ' . $s['url']) . '" aria-label="' . htmlspecialchars($s['label']) . '">'
          . '<span aria-hidden="true">&larr;</span> <span class="back-link-label">' . htmlspecialchars($s['label']) . '</span></a>'
          . '<style>.back-link{display:inline-flex;align-items:center;gap:4px;margin-right:12px;padding:4px 10px;border-radius:14px;'
-         . 'font-size:13px;text-decoration:none;color:inherit;opacity:.85;border:1px solid currentColor;border-color:rgba(127,127,127,.45);white-space:nowrap}'
+         . 'font-size:var(--font-size-md, 13px);text-decoration:none;color:inherit;opacity:.85;border:1px solid currentColor;border-color:rgba(127,127,127,.45);white-space:nowrap}'
          . '.back-link:hover{opacity:1}@media (max-width:1700px){.back-link-analyst .back-link-label{display:none}}@media (max-width:700px){.back-link .back-link-label{display:none}}</style>';
 }

@@ -54,22 +54,22 @@ $meta = integrationsProviderMeta('tika');
 
         .tika-panel { background:var(--surface,#fff); border:1px solid var(--border,#e0e0e0);
                       border-radius:8px; padding:20px; margin-bottom:18px; }
-        .tika-panel h3 { margin:0 0 12px; font-size:13px; text-transform:uppercase;
+        .tika-panel h3 { margin:0 0 12px; font-size:var(--font-size-md, 13px); text-transform:uppercase;
                          letter-spacing:.5px; color:var(--text-dim,#888); }
 
         .tika-field { margin-bottom:14px; max-width:640px; }
-        .tika-field label { display:block; font-size:13px; font-weight:600;
+        .tika-field label { display:block; font-size:var(--font-size-md, 13px); font-weight:600;
                             color:var(--text,#333); margin-bottom:5px; }
-        .tika-field input { width:100%; padding:9px 12px; font-size:13px;
+        .tika-field input { width:100%; padding:9px 12px; font-size:var(--font-size-md, 13px);
                             border:1px solid var(--border,#d1d5db); border-radius:6px;
                             background:var(--surface,#fff); color:var(--text,#111827); }
         .tika-field input:focus { outline:none; border-color:var(--accent,#546e7a); }
-        .tika-hint { font-size:12px; color:var(--text-faint,#9ca3af); margin-top:5px; }
+        .tika-hint { font-size:var(--font-size-sm, 12px); color:var(--text-faint,#9ca3af); margin-top:5px; }
 
         /* The System button pair — inbox.css's .btn-primary sets only background
            and colour, so it needs these to look like a button at all. */
         .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 20px;
-               border-radius:6px; font-size:13px; font-weight:600; border:none;
+               border-radius:6px; font-size:var(--font-size-md, 13px); font-weight:600; border:none;
                cursor:pointer; transition:all .15s; }
         .btn-primary { background:var(--sys-accent,#546e7a); color:var(--sys-on-accent,#fff); }
         .btn-primary:hover:not(:disabled) { background:#455a64; }
@@ -77,7 +77,7 @@ $meta = integrationsProviderMeta('tika');
         .btn:disabled { opacity:.55; cursor:progress; }
         .tika-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
-        .tika-result { margin-top:12px; font-size:13px; padding:10px 12px; border-radius:6px; display:none; }
+        .tika-result { margin-top:12px; font-size:var(--font-size-md, 13px); padding:10px 12px; border-radius:6px; display:none; }
         .tika-result.on { display:block; }
         .tika-result.ok   { background:var(--success-bg,#ecfdf5); color:var(--success-text,#065f46);
                             border:1px solid var(--success-border,#a7f3d0); }
@@ -86,11 +86,11 @@ $meta = integrationsProviderMeta('tika');
 
         .tika-warn { background:var(--warning-bg,#fef3c7); color:var(--warning-text,#92400e);
                      border:1px solid var(--warning-border,#fcd34d); border-radius:6px;
-                     padding:12px 14px; font-size:13px; margin-bottom:18px; }
+                     padding:12px 14px; font-size:var(--font-size-md, 13px); margin-bottom:18px; }
         .tika-warn strong { display:block; margin-bottom:4px; }
         pre.tika-code { background:var(--surface-2,#f6f8fa); border:1px solid var(--border,#e5e7eb);
                         border-radius:6px; padding:12px; font-size:12.5px; overflow-x:auto; margin:8px 0 0; }
-        .tika-formats { display:flex; gap:28px; flex-wrap:wrap; font-size:13px; }
+        .tika-formats { display:flex; gap:28px; flex-wrap:wrap; font-size:var(--font-size-md, 13px); }
         .tika-formats ul { margin:6px 0 0; padding-left:18px; color:var(--text-dim,#6b7280); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
@@ -151,7 +151,7 @@ $meta = integrationsProviderMeta('tika');
 
         <div class="tika-panel">
             <h3><?php echo htmlspecialchars(t('system.integrations.tika_running')); ?></h3>
-            <p style="font-size:13px;color:var(--text-dim,#6b7280);margin:0">
+            <p style="font-size:var(--font-size-md, 13px);color:var(--text-dim,#6b7280);margin:0">
                 <?php echo htmlspecialchars(t('system.integrations.tika_running_body')); ?>
             </p>
 <pre class="tika-code">docker run -d --name tika --restart unless-stopped \

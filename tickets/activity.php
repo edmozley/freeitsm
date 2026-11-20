@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .sidebar-header h3 {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text);
             margin: 0 0 12px 0;
@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'tickets'];
             padding: 8px 12px;
             border: 1px solid var(--border); background: var(--surface); color: var(--text);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             box-sizing: border-box;
         }
 
@@ -87,7 +87,7 @@ $translationNamespaces = ['common', 'tickets'];
             justify-content: space-between;
             padding: 10px 20px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text);
             transition: all 0.15s;
         }
@@ -109,7 +109,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .mailbox-item .mailbox-count {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             background: var(--shadow);
             padding: 2px 8px;
@@ -134,7 +134,7 @@ $translationNamespaces = ['common', 'tickets'];
             gap: 6px;
             color: var(--accent);
             text-decoration: none;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .back-link:hover {
@@ -156,7 +156,7 @@ $translationNamespaces = ['common', 'tickets'];
 
         .activity-header h2 {
             margin: 0 0 15px 0;
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             color: var(--text);
         }
 
@@ -171,7 +171,7 @@ $translationNamespaces = ['common', 'tickets'];
             padding: 8px 12px;
             border: 1px solid var(--border); background: var(--surface); color: var(--text);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .activity-header .search-row input:focus {
@@ -188,7 +188,7 @@ $translationNamespaces = ['common', 'tickets'];
         .activity-table-wrap table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .activity-table-wrap thead th {
@@ -226,7 +226,7 @@ $translationNamespaces = ['common', 'tickets'];
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted);
             border-top: 1px solid var(--border);
             background: var(--surface);
@@ -250,7 +250,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .log-panel-header strong {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .log-panel-body {
@@ -264,7 +264,7 @@ $translationNamespaces = ['common', 'tickets'];
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             margin: 0;
             white-space: pre-wrap;
             word-break: break-word;
@@ -276,7 +276,7 @@ $translationNamespaces = ['common', 'tickets'];
             background: var(--success-bg);
             color: var(--success-text);
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
         }
 
         .badge-rejected {
@@ -285,7 +285,7 @@ $translationNamespaces = ['common', 'tickets'];
             background: var(--danger-bg);
             color: var(--danger-text);
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
         }
 
         .empty-state {
@@ -359,7 +359,7 @@ $translationNamespaces = ['common', 'tickets'];
             <div class="log-panel" id="logPanel" style="display: none;">
                 <div class="log-panel-header">
                     <strong><?php echo htmlspecialchars(t('tickets.activity.processing_log')); ?></strong>
-                    <button class="btn btn-secondary" style="padding: 3px 10px; font-size: 12px;" onclick="closeLogPanel()"><?php echo htmlspecialchars(t('common.close')); ?></button>
+                    <button class="btn btn-secondary" style="padding: 3px 10px; font-size: var(--font-size-sm, 12px);" onclick="closeLogPanel()"><?php echo htmlspecialchars(t('common.close')); ?></button>
                 </div>
                 <div class="log-panel-body">
                     <pre id="logContent"></pre>
@@ -614,11 +614,11 @@ $translationNamespaces = ['common', 'tickets'];
 
             let html = '';
             if (page > 1) {
-                html += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-right: 4px;" onclick="goToPage(${page - 1})">${escapeHtml(window.t('tickets.activity.prev'))}</button>`;
+                html += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: var(--font-size-sm, 12px); margin-right: 4px;" onclick="goToPage(${page - 1})">${escapeHtml(window.t('tickets.activity.prev'))}</button>`;
             }
             html += `<span style="margin: 0 8px;">${escapeHtml(window.t('tickets.activity.page_of', { page: page, total: totalPages }))}</span>`;
             if (page < totalPages) {
-                html += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-left: 4px;" onclick="goToPage(${page + 1})">${escapeHtml(window.t('tickets.activity.next'))}</button>`;
+                html += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: var(--font-size-sm, 12px); margin-left: 4px;" onclick="goToPage(${page + 1})">${escapeHtml(window.t('tickets.activity.next'))}</button>`;
             }
             document.getElementById('activityPagination').innerHTML = html;
         }

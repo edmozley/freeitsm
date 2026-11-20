@@ -78,17 +78,17 @@
             'transition:transform 0.2s ease}' +
         '.fitsm-confirm-overlay.active .fitsm-confirm-modal{transform:scale(1) translateY(0)}' +
         '.fitsm-confirm-header{padding:20px;border-bottom:1px solid var(--border,#e0e0e0)}' +
-        '.fitsm-confirm-header h3{margin:0;font-size:18px;font-weight:600;color:var(--text,#333)}' +
-        '.fitsm-confirm-body{padding:20px;color:var(--text-muted,#555);font-size:14px;line-height:1.5}' +
+        '.fitsm-confirm-header h3{margin:0;font-size:var(--font-size-2xl, 18px);font-weight:600;color:var(--text,#333)}' +
+        '.fitsm-confirm-body{padding:20px;color:var(--text-muted,#555);font-size:var(--font-size-lg, 14px);line-height:1.5}' +
         '.fitsm-confirm-body p{margin:0;white-space:pre-wrap}' +
         // The optional detail block (GH #312): a warning under the question.
-        '.fitsm-confirm-detail{margin-top:12px;padding:10px 12px;border-radius:4px;font-size:13px;' +
+        '.fitsm-confirm-detail{margin-top:12px;padding:10px 12px;border-radius:4px;font-size:var(--font-size-md, 13px);' +
             'line-height:1.45;background:var(--warning-bg,#fff8e1);color:var(--warning-text,#7a5300);' +
             'border:1px solid var(--warning-border,#ffe08a);overflow-wrap:anywhere}' +
         '.fitsm-confirm-detail[hidden]{display:none}' +
         '.fitsm-confirm-footer{padding:15px 20px;border-top:1px solid var(--border,#e0e0e0);display:flex;' +
             'justify-content:flex-end;gap:10px}' +
-        '.fitsm-confirm-btn{padding:8px 16px;border-radius:4px;font-size:13px;cursor:pointer;' +
+        '.fitsm-confirm-btn{padding:8px 16px;border-radius:4px;font-size:var(--font-size-md, 13px);cursor:pointer;' +
             'border:none;transition:background 0.15s;font-family:inherit;font-weight:500}' +
         '.fitsm-confirm-btn:focus-visible{outline:2px solid var(--accent,#0078d4);outline-offset:2px}' +
         '.fitsm-confirm-btn-secondary{background:var(--surface-hover,#f0f0f0);color:var(--text,#333);border:1px solid var(--border,#ddd)}' +
@@ -100,7 +100,7 @@
         // The optional checkbox. Sits under the message inside the body, so it
         // reads as part of the question rather than as a third button.
         '.fitsm-confirm-check{display:flex;align-items:flex-start;gap:8px;margin-top:14px;' +
-            'cursor:pointer;color:var(--text,#333);font-size:13px;line-height:1.4}' +
+            'cursor:pointer;color:var(--text,#333);font-size:var(--font-size-md, 13px);line-height:1.4}' +
         '.fitsm-confirm-check[hidden]{display:none}' +
         '.fitsm-confirm-check input{margin:1px 0 0;flex:none;width:15px;height:15px;cursor:pointer;' +
             'accent-color:var(--accent,#0078d4)}' +
@@ -110,7 +110,7 @@
         '.fitsm-confirm-text{display:block;margin-top:14px}' +
         '.fitsm-confirm-text[hidden]{display:none}' +
         '.fitsm-confirm-text textarea{width:100%;box-sizing:border-box;min-height:82px;resize:vertical;' +
-            'padding:8px 10px;font-size:13px;line-height:1.45;font-family:inherit;' +
+            'padding:8px 10px;font-size:var(--font-size-md, 13px);line-height:1.45;font-family:inherit;' +
             'color:var(--text,#333);background:var(--surface,#fff);' +
             'border:1px solid var(--border,#ddd);border-radius:4px}' +
         '.fitsm-confirm-text textarea:focus{outline:2px solid var(--accent,#0078d4);outline-offset:-1px}';

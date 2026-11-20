@@ -245,7 +245,7 @@ $translationNamespaces = ['common', 'service-status'];
                         <div class="help-flow-arrow">&rarr;</div>
                         <div class="help-flow-step"><?php echo htmlspecialchars(t('service-status.help.workflow_resolved')); ?></div>
                     </div>
-                    <p style="font-size: 13px; color: var(--text-muted, #555); text-align: center; margin-top: 4px;"><?php echo t('service-status.help.workflow_note_html'); ?></p>
+                    <p style="font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); text-align: center; margin-top: 4px;"><?php echo t('service-status.help.workflow_note_html'); ?></p>
 
                     <p class="help-note"><?php echo htmlspecialchars(t('service-status.help.services_tip')); ?></p>
                 </div>

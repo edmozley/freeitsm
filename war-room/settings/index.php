@@ -68,11 +68,11 @@ $choices = [0, 7, 30, 90, 180, 365];
         .tab:hover  { color: var(--war-room-accent, #ea580c); }
         .tab.active { color: var(--war-room-accent, #ea580c); border-bottom-color: var(--war-room-accent, #ea580c); }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 16px; min-height: 34px; }
-        .section-header h2 { margin: 0; font-size: 18px; color: var(--text, #333); }
+        .section-header h2 { margin: 0; font-size: var(--font-size-2xl, 18px); color: var(--text, #333); }
         .wr-set-form { max-width: 460px; }
-        .wr-set-form label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
-        .wr-set-form select { width: 100%; padding: 8px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 14px; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
-        .wr-set-hint { margin-top: 6px; font-size: 12px; color: var(--text-dim, #888); }
+        .wr-set-form label { display: block; margin-bottom: 6px; font-weight: 500; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
+        .wr-set-form select { width: 100%; padding: 8px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: var(--font-size-lg, 14px); box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
+        .wr-set-hint { margin-top: 6px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .wr-set-actions { margin-top: 18px; }
     </style>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>

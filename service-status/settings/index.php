@@ -77,10 +77,10 @@ $translationNamespaces = ['common', 'service-status'];
         body { --accent: var(--ss-accent, #10b981); }
 
         .modal-content { padding: 20px; max-width: 500px; }
-        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
+        .modal-header { font-size: var(--font-size-3xl, 20px); font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
         .modal-actions { margin-top: 20px; }
 
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.15s; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: var(--font-size-lg, 14px); font-weight: 500; transition: background-color 0.15s; }
         .btn-primary { background-color: var(--ss-accent, #10b981); color: white; }
         .btn-primary:hover { background-color: var(--ss-accent-hover, #059669); }
 
@@ -486,7 +486,7 @@ $translationNamespaces = ['common', 'service-status'];
             tbody.innerHTML = rows.map(r => {
                 const safeName = escapeHtml(r.name).replace(/'/g, "\\'");
                 const swatch = r.colour
-                    ? `<span style="display:inline-block;width:18px;height:18px;border-radius:3px;background:${escapeHtml(r.colour)};vertical-align:middle;border:1px solid var(--border, #ddd);margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(r.colour)}</code>`
+                    ? `<span style="display:inline-block;width:18px;height:18px;border-radius:3px;background:${escapeHtml(r.colour)};vertical-align:middle;border:1px solid var(--border, #ddd);margin-right:6px;"></span><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(r.colour)}</code>`
                     : '<span style="color:var(--text-dim, #999);">—</span>';
                 const yesBadge = `<span class="status-badge status-active">${escapeHtml(window.t('service-status.settings.yes'))}</span>`;
                 const noBadge = `<span style="color:var(--text-dim, #999);">${escapeHtml(window.t('service-status.settings.no'))}</span>`;

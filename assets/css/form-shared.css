@@ -60,7 +60,7 @@
     padding: 12px 14px;
     background: var(--surface-2, #fafafa);
     color: var(--text, #333);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.5;
     box-sizing: border-box;
 }
@@ -118,7 +118,7 @@
 
 /* The builder's preview draws at a smaller scale than the real thing. */
 .preview-field .form-note,
-.preview-slot .form-note { font-size: 13px; padding: 10px 12px; margin-bottom: 14px; }
+.preview-slot .form-note { font-size: var(--font-size-md, 13px); padding: 10px 12px; margin-bottom: 14px; }
 
 /* What FormRender draws for a field type a surface cannot render. Deliberately
    not an input — see assets/js/form-render.js. */
@@ -129,7 +129,7 @@
     margin-bottom: 18px;
     background: var(--danger-bg, #fee2e2);
     color: var(--danger-text, #991b1b);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     box-sizing: border-box;
 }
 
@@ -244,7 +244,7 @@
     border-radius: 6px;
     padding: 16px;
     text-align: center;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-faint, #999);
     background: var(--surface-2, #fafafa);
 }
@@ -290,7 +290,7 @@
     border-bottom: 1px solid var(--border, #ddd);
     text-align: left;
     vertical-align: top;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .form-table thead th {
@@ -313,7 +313,7 @@
     padding: 6px 8px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-family: inherit;
     box-sizing: border-box;
     background: var(--surface, #fff);
@@ -327,7 +327,7 @@
     align-items: center;
     gap: 4px;
     margin-right: 10px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     white-space: nowrap;
 }
 
@@ -356,7 +356,7 @@
     border: 1px dashed var(--border, #ddd);
     border-radius: 6px;
     padding: 12px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-faint, #999);
     background: var(--surface-2, #fafafa);
 }
@@ -364,5 +364,5 @@
 /* A table question is one place a wide field genuinely earns the whole row,
    so it never sits beside anything on a phone. */
 @media (max-width: 768px) {
-    .form-table th, .form-table td { font-size: 12px; padding: 5px 6px; }
+    .form-table th, .form-table td { font-size: var(--font-size-sm, 12px); padding: 5px 6px; }
 }

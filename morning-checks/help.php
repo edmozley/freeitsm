@@ -66,7 +66,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             justify-content: center;
             gap: 20px;
             margin-top: 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
         }
         .mc-help-chart-legend span { display: flex; align-items: center; gap: 6px; }

@@ -70,12 +70,12 @@ $translationNamespaces = ['common', 'self-service'];
         }
         .login-header h1 {
             color: #333;
-            font-size: 24px;
+            font-size: var(--font-size-4xl, 24px);
             margin-bottom: 6px;
         }
         .login-header p {
             color: #888;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .form-group {
             margin-bottom: 20px;
@@ -95,7 +95,7 @@ $translationNamespaces = ['common', 'self-service'];
                field under 16px and stays zoomed, and it depends on the DEVICE,
                not the viewport width, so a phone breakpoint would miss a handset
                held sideways. All four fields here come through this one rule. */
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             transition: border-color 0.3s;
         }
         .form-group input:focus {
@@ -103,7 +103,7 @@ $translationNamespaces = ['common', 'self-service'];
             border-color: #667eea;
         }
         .form-hint {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: #999;
             margin-top: 4px;
         }
@@ -113,7 +113,7 @@ $translationNamespaces = ['common', 'self-service'];
             padding: 12px;
             border-radius: 5px;
             margin-bottom: 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             border-left: 4px solid #c33;
             display: none;
         }
@@ -123,7 +123,7 @@ $translationNamespaces = ['common', 'self-service'];
             padding: 12px;
             border-radius: 5px;
             margin-bottom: 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             border-left: 4px solid #155724;
             display: none;
         }
@@ -134,7 +134,7 @@ $translationNamespaces = ['common', 'self-service'];
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
@@ -145,7 +145,7 @@ $translationNamespaces = ['common', 'self-service'];
         .login-links {
             text-align: center;
             margin-top: 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .login-links a {
             color: #667eea;

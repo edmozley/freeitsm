@@ -98,7 +98,7 @@ try {
             margin: 10px 14px 0;
             padding: 9px 14px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             background: #fffbeb;
             color: #92400e;
             border: 1px solid #fde68a;
@@ -128,7 +128,7 @@ try {
         <div id="assetStaleNotice" class="asset-stale-notice" hidden></div>
         <?php /* Retired assets: the same switch as the Assets list. Reloads the page,
                  which reloads the table with or without them. */ ?>
-        <label class="asset-show-retired" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;margin:0 0 6px;cursor:pointer">
+        <label class="asset-show-retired" style="display:inline-flex;align-items:center;gap:4px;font-size:var(--font-size-sm, 12px);margin:0 0 6px;cursor:pointer">
             <input type="checkbox" id="assetShowRetired" onchange="try{localStorage.setItem('assets_show_retired',this.checked?'1':'0')}catch(e){};location.reload()">
             <?php echo htmlspecialchars(t('asset-management.retired.show')); ?></label>
         <script>try{document.getElementById('assetShowRetired').checked=localStorage.getItem('assets_show_retired')==='1'}catch(e){}</script>

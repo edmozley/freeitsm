@@ -13,7 +13,7 @@
  */
 
 /** The Call button's look - shared with the JavaScript copy (phoneDialLink() in the ticket pages). */
-const PHONE_DIAL_STYLE = 'margin-left:6px;font-size:12px;font-weight:600;white-space:nowrap';
+const PHONE_DIAL_STYLE = 'margin-left:6px;font-size:var(--font-size-sm, 12px);font-weight:600;white-space:nowrap';
 
 /**
  * The number part of a phone field: everything before the first letter, so

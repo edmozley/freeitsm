@@ -109,7 +109,7 @@ try {
             margin-bottom: 24px;
         }
         .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
-        .settings-card .card-desc { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 18px 0; line-height: 1.6; }
+        .settings-card .card-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 18px 0; line-height: 1.6; }
 
         /* The measurement, stated rather than summarised. It is the whole reason
            the default is what it is, and an administrator deciding whether to
@@ -127,7 +127,7 @@ try {
         .ai-evidence table { border-collapse: collapse; margin-top: 8px; }
         .ai-evidence td { padding: 2px 14px 2px 0; }
         .ai-evidence .num { font-variant-numeric: tabular-nums; color: var(--text, #333); font-weight: 600; }
-        .ai-evidence tr.hdr td { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #999); padding-bottom: 4px; }
+        .ai-evidence tr.hdr td { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #999); padding-bottom: 4px; }
         /* A short tag on the row, rather than the same sentence nine times. */
         .ai-tag {
             display: inline-block;
@@ -135,7 +135,7 @@ try {
             padding: 1px 7px;
             border: 1px solid var(--border, #ddd);
             border-radius: 9px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-dim, #999);
         }
 
@@ -148,18 +148,18 @@ try {
         }
         .ai-row:last-child { border-bottom: none; }
         .ai-row-main { flex: 1 1 auto; min-width: 0; }
-        .ai-row-name { font-size: 14px; font-weight: 600; color: var(--text, #333); }
-        .ai-row-meta { font-size: 12px; color: var(--text-dim, #888); margin-top: 3px; }
+        .ai-row-name { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
+        .ai-row-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 3px; }
         .ai-row-meta code { font-family: 'Consolas', 'Monaco', monospace; font-size: 11.5px; }
 
         /* The switch. Same shape as the toggles elsewhere in settings. */
         .ai-switch { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; }
         .ai-switch input { width: 18px; height: 18px; cursor: pointer; }
-        .ai-switch label { font-size: 13px; color: var(--text, #333); cursor: pointer; }
+        .ai-switch label { font-size: var(--font-size-md, 13px); color: var(--text, #333); cursor: pointer; }
         .ai-row.is-na .ai-row-name,
         .ai-row.is-na .ai-row-meta { opacity: .6; }
 
-        .ai-empty { color: var(--text-dim, #888); font-size: 13px; }
+        .ai-empty { color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); }
         .ai-actions { display: flex; gap: 10px; margin-top: 4px; }
 
         @media (max-width: 768px) {

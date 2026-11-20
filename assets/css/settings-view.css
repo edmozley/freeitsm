@@ -11,7 +11,7 @@
         background: var(--surface, #fff);
     }
     .sv-switch button {
-        border: none; background: transparent; padding: 6px 12px; font-size: 13px; cursor: pointer;
+        border: none; background: transparent; padding: 6px 12px; font-size: var(--font-size-md, 13px); cursor: pointer;
         color: var(--text-muted, #555);
     }
     .sv-switch button + button { border-left: 1px solid var(--border, #ccc); }
@@ -40,12 +40,12 @@
     }
     .sv-list { display: flex; flex-direction: column; }
     .sv-link {
-        display: block; padding: 6px 8px; border-radius: 5px; font-size: 13px; text-decoration: none;
+        display: block; padding: 6px 8px; border-radius: 5px; font-size: var(--font-size-md, 13px); text-decoration: none;
         color: var(--text, #333); border-left: 3px solid transparent;
     }
     .sv-link:hover { background: var(--surface-hover, #f3f3f3); }
     .sv-link.sv-here { border-left-color: var(--accent, #0078d4); background: var(--accent-soft, #e8f4fd); font-weight: 600; }
     .sv-link.sv-dim { opacity: 0.4; }
     .sv-link.sv-out { color: var(--text-muted, #666); }
-    .sv-none { font-size: 12px; color: var(--text-dim, #888); padding: 6px 8px; }
+    .sv-none { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); padding: 6px 8px; }
 }

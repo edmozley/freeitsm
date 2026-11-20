@@ -102,7 +102,7 @@ function tr(string $key, string $default, array $params = []): string {
         }
         h1 {
             color: #1f2937;
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 700;
             margin-bottom: 12px;
         }
@@ -112,7 +112,7 @@ function tr(string $key, string $default, array $params = []): string {
             border-radius: 8px;
             padding: 14px 16px;
             margin-bottom: 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #4b5563;
             line-height: 1.5;
             text-align: left;
@@ -123,7 +123,7 @@ function tr(string $key, string $default, array $params = []): string {
         }
         .fallback-prompt {
             color: #4b5563;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             line-height: 1.5;
             margin-bottom: 24px;
             text-align: left;
@@ -150,7 +150,7 @@ function tr(string $key, string $default, array $params = []): string {
             margin-top: 16px;
             color: #6b7280;
             text-decoration: none;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             transition: color 0.15s;
         }
         .cancel-link:hover {

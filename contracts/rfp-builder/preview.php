@@ -93,21 +93,21 @@ $today = DateFmt::render(new DateTime('now', new DateTimeZone(Tz::current())), '
             padding: 10px 20px;
             display: flex; align-items: center; gap: 14px;
             font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
         .pv-toolbar .pv-title { flex: 1; font-weight: 600; }
         .pv-toolbar a, .pv-toolbar button {
             background: rgba(255,255,255,0.1); color: white;
             border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px;
-            border-radius: 6px; cursor: pointer; font-size: 13px;
+            border-radius: 6px; cursor: pointer; font-size: var(--font-size-md, 13px);
             font-family: inherit; text-decoration: none;
         }
         .pv-toolbar a:hover, .pv-toolbar button:hover {
             background: rgba(255,255,255,0.2);
         }
         .pv-toolbar .pv-print-hint {
-            font-size: 12px; color: rgba(255,255,255,0.6);
+            font-size: var(--font-size-sm, 12px); color: rgba(255,255,255,0.6);
         }
 
         .pv-page {
@@ -123,7 +123,7 @@ $today = DateFmt::render(new DateTime('now', new DateTimeZone(Tz::current())), '
             margin-bottom: 40px;
         }
         .pv-cover .pv-label {
-            font-size: 13px; color: #6b7280;
+            font-size: var(--font-size-md, 13px); color: #6b7280;
             text-transform: uppercase; letter-spacing: 2px;
             margin-bottom: 14px;
         }
@@ -132,7 +132,7 @@ $today = DateFmt::render(new DateTime('now', new DateTimeZone(Tz::current())), '
             color: #111827; line-height: 1.25;
         }
         .pv-cover .pv-meta {
-            margin-top: 18px; font-size: 13px; color: #6b7280;
+            margin-top: 18px; font-size: var(--font-size-md, 13px); color: #6b7280;
         }
 
         .pv-toc {
@@ -142,12 +142,12 @@ $today = DateFmt::render(new DateTime('now', new DateTimeZone(Tz::current())), '
             font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
         }
         .pv-toc h2 {
-            margin: 0 0 12px 0; font-size: 14px; font-weight: 700; color: #374151;
+            margin: 0 0 12px 0; font-size: var(--font-size-lg, 14px); font-weight: 700; color: #374151;
             text-transform: uppercase; letter-spacing: 0.5px;
         }
         .pv-toc ol {
             margin: 0; padding-left: 22px;
-            font-size: 13px; line-height: 1.9;
+            font-size: var(--font-size-md, 13px); line-height: 1.9;
         }
         .pv-toc a { color: #1f2937; text-decoration: none; }
         .pv-toc a:hover { color: #f59e0b; }
@@ -167,17 +167,17 @@ $today = DateFmt::render(new DateTime('now', new DateTimeZone(Tz::current())), '
         }
         .pv-section-body h4 {
             font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
-            font-size: 13px; font-weight: 700; color: #374151;
+            font-size: var(--font-size-md, 13px); font-weight: 700; color: #374151;
             margin: 16px 0 8px 0;
         }
-        .pv-section-body p { margin: 0 0 12px 0; font-size: 14px; }
+        .pv-section-body p { margin: 0 0 12px 0; font-size: var(--font-size-lg, 14px); }
         .pv-section-body ul, .pv-section-body ol {
-            margin: 0 0 14px 22px; font-size: 14px;
+            margin: 0 0 14px 22px; font-size: var(--font-size-lg, 14px);
         }
         .pv-section-body li { margin-bottom: 6px; }
         .pv-section-body strong { color: #111827; }
         .pv-section-body table {
-            border-collapse: collapse; margin: 14px 0; width: 100%; font-size: 13px;
+            border-collapse: collapse; margin: 14px 0; width: 100%; font-size: var(--font-size-md, 13px);
         }
         .pv-section-body th, .pv-section-body td {
             border: 1px solid #e5e7eb; padding: 7px 10px; text-align: left;

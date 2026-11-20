@@ -26,7 +26,7 @@ $pageStyles = <<<'CSS'
    was perfectly willing to fit four. */
 .tr-wrap { width: 100%; box-sizing: border-box; margin: 0; padding: 24px 28px 48px; }
 .tr-wrap h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; color: var(--text, #333); }
-.tr-sub { color: var(--text-muted, #666); font-size: 14px; margin: 0 0 22px; }
+.tr-sub { color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); margin: 0 0 22px; }
 
 .tr-grid {
     display: grid;
@@ -47,8 +47,8 @@ $pageStyles = <<<'CSS'
     flex-direction: column;
 }
 
-.tr-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 6px; color: var(--text, #333); }
-.tr-desc { font-size: 13px; color: var(--text-muted, #666); margin: 0 0 14px; line-height: 1.5; }
+.tr-card h2 { font-size: var(--font-size-xl, 16px); font-weight: 600; margin: 0 0 6px; color: var(--text, #333); }
+.tr-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin: 0 0 14px; line-height: 1.5; }
 
 .tr-foot { margin-top: auto; }
 
@@ -58,7 +58,7 @@ $pageStyles = <<<'CSS'
     display: inline-block;
     padding: 3px 9px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     border: 1px solid transparent;
 }
@@ -67,14 +67,14 @@ $pageStyles = <<<'CSS'
 .tr-badge.bad     { background: var(--danger-bg, #fdecea); color: var(--danger-text, #b3261e); border-color: var(--danger-border, #f5c6c2); }
 .tr-badge.neutral { background: var(--surface-3, #f5f6f8); color: var(--text-muted, #666); border-color: var(--border, #e5e7eb); }
 
-.tr-due { font-size: 12px; color: var(--text-muted, #666); }
+.tr-due { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 .tr-due.over { color: var(--danger-text, #b3261e); font-weight: 600; }
 
 /* The bar always carries words beside it. Nothing stores a percentage — the
    position in the lesson list is the honest reading, so it is the one shown. */
 .tr-bar { height: 6px; border-radius: 3px; background: var(--surface-3, #eef0f3); overflow: hidden; margin-bottom: 6px; }
 .tr-bar-fill { height: 100%; background: var(--ss-accent, var(--accent, #0078d4)); }
-.tr-step { font-size: 12px; color: var(--text-muted, #666); margin-bottom: 12px; display: block; }
+.tr-step { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-bottom: 12px; display: block; }
 
 .tr-btn {
     display: inline-block;
@@ -83,7 +83,7 @@ $pageStyles = <<<'CSS'
     text-align: center;
     padding: 9px 14px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     text-decoration: none;
     background: var(--ss-accent, var(--accent, #0078d4));

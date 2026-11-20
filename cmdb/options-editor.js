@@ -78,7 +78,7 @@
                 color: var(--text, #1f2937);
                 border: 1px solid var(--border, #d1d5db);
                 border-radius: 4px;
-                font-size: 13px;
+                font-size: var(--font-size-md, 13px);
             }
             .cmdb-opt-val:focus { outline: none; border-color: var(--cmdb-accent, #be185d); }
             .cmdb-opt-colour-wrap {
@@ -121,7 +121,7 @@
                 height: 30px;
                 border-radius: 4px;
                 cursor: pointer;
-                font-size: 13px;
+                font-size: var(--font-size-md, 13px);
                 line-height: 1;
                 padding: 0;
             }
@@ -136,7 +136,7 @@
                 padding: 7px 12px;
                 border-radius: 4px;
                 cursor: pointer;
-                font-size: 13px;
+                font-size: var(--font-size-md, 13px);
                 font-weight: 500;
                 margin-top: 6px;
                 width: 100%;

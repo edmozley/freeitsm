@@ -172,7 +172,7 @@ $translationNamespaces = ['common', 'lms'];
                 <button class="btn btn-primary" onclick="lmsSaveReminders()"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 <button class="btn btn-secondary" onclick="lmsTestReminder()"><?php echo htmlspecialchars(t('lms.settings.reminders_test')); ?></button>
                 <button class="btn btn-secondary" onclick="lmsRunReminders()"><?php echo htmlspecialchars(t('lms.settings.reminders_run')); ?></button>
-                <span id="remLastRun" style="color: var(--text-muted, #666); font-size: 13px;"></span>
+                <span id="remLastRun" style="color: var(--text-muted, #666); font-size: var(--font-size-md, 13px);"></span>
             </div>
         </div>
         <?php endif; ?>

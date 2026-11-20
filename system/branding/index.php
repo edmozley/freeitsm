@@ -65,7 +65,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .settings-card .card-desc {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin: 0 0 20px 0;
             line-height: 1.5;
@@ -77,7 +77,7 @@ $translationNamespaces = ['common', 'system'];
         .scope {
             padding: 8px 16px; border: 1px solid var(--border, #ddd); border-radius: 999px;
             background: var(--surface, #fff); color: var(--text-muted, #666);
-            font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+            font: inherit; font-size: var(--font-size-md, 13px); font-weight: 600; cursor: pointer;
         }
         .scope.active { background: var(--accent, #2b88d8); border-color: var(--accent, #2b88d8); color: var(--on-accent, #fff); }
         /* A control for a field the current screen does not have — a landing page
@@ -90,7 +90,7 @@ $translationNamespaces = ['common', 'system'];
             display: flex; align-items: center; gap: 8px;
             padding: 6px 12px 6px 6px; border: 1px solid var(--border, #ddd);
             border-radius: 999px; background: var(--surface, #fff);
-            color: var(--text, #333); font: inherit; font-size: 13px; cursor: pointer;
+            color: var(--text, #333); font: inherit; font-size: var(--font-size-md, 13px); cursor: pointer;
         }
         .preset:hover { border-color: var(--accent, #2b88d8); }
         .preset-swatch {
@@ -100,8 +100,8 @@ $translationNamespaces = ['common', 'system'];
         }
         .design-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; align-items: start; }
         .dgroup { margin-bottom: 22px; }
-        .dgroup h4 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted, #666); }
-        .dlabel { display: block; margin-bottom: 12px; font-size: 13px; color: var(--text, #333); }
+        .dgroup h4 { margin: 0 0 10px; font-size: var(--font-size-md, 13px); text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted, #666); }
+        .dlabel { display: block; margin-bottom: 12px; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .dlabel input[type="color"] { display: block; width: 100%; height: 38px; padding: 2px; margin-top: 4px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: none; cursor: pointer; }
         .dlabel input[type="range"] { display: block; width: 100%; margin-top: 6px; }
         .dlabel .slot-input, .dlabel input[type="text"] { margin-top: 4px; }
@@ -110,7 +110,7 @@ $translationNamespaces = ['common', 'system'];
         .contrast-note.warn { color: var(--warning-text, #92400e); }
         .contrast-note.ok   { color: var(--text-muted, #666); }
         .design-preview { position: sticky; top: 16px; }
-        .preview-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-muted, #666); }
+        .preview-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         /* 🔑 THE PREVIEW IS RENDERED AT A REAL DESKTOP SIZE AND THEN SCALED DOWN.
 
            Left to fill the panel the iframe was about 640px wide, so the page
@@ -173,7 +173,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .logo-preview .no-logo {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-faint, #aaa);
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -193,12 +193,12 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .logo-controls input[type="file"] {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text, #333);
         }
 
         .logo-hint {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             line-height: 1.5;
         }
@@ -212,7 +212,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .slot-grid .row-label {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text, #444);
             text-align: right;
@@ -220,7 +220,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .slot-grid .col-head {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-dim, #888);
             text-transform: uppercase;
@@ -233,7 +233,7 @@ $translationNamespaces = ['common', 'system'];
             padding: 8px 10px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-family: inherit;
             box-sizing: border-box;
             background: var(--surface, #fff);
@@ -247,7 +247,7 @@ $translationNamespaces = ['common', 'system'];
             border: 1px solid var(--border, #e0e0e0);
             border-radius: 6px;
             padding: 14px 16px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
             line-height: 1.6;
             margin-top: 16px;
@@ -260,7 +260,7 @@ $translationNamespaces = ['common', 'system'];
             border: 1px solid var(--border, #e0e0e0);
             border-radius: 3px;
             padding: 1px 5px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: #06b6d4;
             font-family: 'Consolas', 'Monaco', monospace;
         }
@@ -277,7 +277,7 @@ $translationNamespaces = ['common', 'system'];
             gap: 8px;
             padding: 10px 20px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             border: none;
             cursor: pointer;
@@ -302,7 +302,7 @@ $translationNamespaces = ['common', 'system'];
             background: none;
             color: #c62828;
             padding: 4px 6px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
         .btn-link:hover { text-decoration: underline; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -341,12 +341,12 @@ $translationNamespaces = ['common', 'system'];
                 <h3 id="back-link"><?php echo htmlspecialchars(t('system.branding.back_link_heading')); ?></h3>
                 <p class="card-desc"><?php echo htmlspecialchars(t('system.branding.back_link_desc')); ?></p>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
-                    <label style="flex:1 1 200px;font-size:13px;"><?php echo htmlspecialchars(t('system.branding.back_link_label')); ?>
+                    <label style="flex:1 1 200px;font-size:var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('system.branding.back_link_label')); ?>
                         <input type="text" id="backLinkLabel" class="slot-input" maxlength="60" autocomplete="off"
                                placeholder="<?php echo htmlspecialchars(t('system.branding.back_link_label_ph')); ?>"></label>
-                    <label style="flex:2 1 280px;font-size:13px;"><?php echo htmlspecialchars(t('system.branding.back_link_url')); ?>
+                    <label style="flex:2 1 280px;font-size:var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('system.branding.back_link_url')); ?>
                         <input type="url" id="backLinkUrl" class="slot-input" maxlength="500" autocomplete="off" placeholder="https://intranet.example.com"></label>
-                    <label style="flex:1 1 180px;font-size:13px;"><?php echo htmlspecialchars(t('system.branding.back_link_where')); ?>
+                    <label style="flex:1 1 180px;font-size:var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('system.branding.back_link_where')); ?>
                         <select id="backLinkWhere" class="slot-input">
                             <option value="portal"><?php echo htmlspecialchars(t('system.branding.back_link_where_portal')); ?></option>
                             <option value="analyst"><?php echo htmlspecialchars(t('system.branding.back_link_where_analyst')); ?></option>
@@ -399,14 +399,14 @@ $translationNamespaces = ['common', 'system'];
                 <h3 id="files-desktop"><?php echo htmlspecialchars(t('system.branding.files_heading')); ?></h3>
                 <p class="card-desc"><?php echo htmlspecialchars(t('system.branding.files_desc')); ?></p>
                 <div style="display:flex;gap:16px;flex-wrap:wrap;">
-                    <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+                    <label style="display:flex;flex-direction:column;gap:6px;font-size:var(--font-size-md, 13px);">
                         <?php echo htmlspecialchars(t('system.branding.files_logo')); ?>
                         <select id="filesLogoMode" class="slot-input" style="max-width:420px;">
                             <option value="company"><?php echo htmlspecialchars(t('system.branding.files_logo_company')); ?></option>
                             <option value="none"><?php echo htmlspecialchars(t('system.branding.files_logo_none')); ?></option>
                         </select>
                     </label>
-                    <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+                    <label style="display:flex;flex-direction:column;gap:6px;font-size:var(--font-size-md, 13px);">
                         <?php echo htmlspecialchars(t('system.branding.files_position')); ?>
                         <select id="filesLogoPosition" class="slot-input" style="max-width:220px;">
                             <option value="top-right"><?php echo htmlspecialchars(t('system.branding.files_top_right')); ?></option>

@@ -45,11 +45,11 @@ $m = fn(string $k) => t('system.managers.' . $k);
         }
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .mg-container { height: calc(100vh - 48px); overflow-y: auto; }
-        .mg-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px;
+        .mg-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: var(--font-size-md, 13px);
             background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .mg-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px; margin-bottom: 18px; }
-        .mg-panel h3 { margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
-        .mg-panel > p { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; }
+        .mg-panel h3 { margin: 0 0 4px 0; font-size: var(--font-size-md, 13px); text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
+        .mg-panel > p { margin: 0 0 16px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.55; }
         .mg-field { padding: 12px 0; border-top: 1px solid var(--border-soft, #f1f1f1); }
         .mg-field:first-of-type { border-top: none; padding-top: 0; }
         .mg-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
@@ -57,29 +57,29 @@ $m = fn(string $k) => t('system.managers.' . $k);
         .mg-label { display: block; font-size: 13.5px; font-weight: 600; color: var(--text, #333); }
         .mg-desc  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-top: 2px; }
         .mg-sub { margin: 10px 0 0 26px; }
-        .mg-sub select { padding: 7px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .mg-sub select { padding: 7px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .mg-radio { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; cursor: pointer; }
         .mg-radio input { margin-top: 3px; }
         .mg-disabled { opacity: .5; pointer-events: none; }
         .mg-actions { display: flex; align-items: center; gap: 12px; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-secondary { background: var(--surface-2, #eceff1); color: var(--text, #333); }
         .btn:disabled { opacity: .5; cursor: default; }
 
         /* Overview */
-        .mg-search { width: 100%; max-width: 360px; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); margin-bottom: 12px; }
-        .mg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .mg-table th { text-align: left; font-size: 12px; color: var(--text-muted, #888); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
+        .mg-search { width: 100%; max-width: 360px; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); margin-bottom: 12px; }
+        .mg-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        .mg-table th { text-align: left; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
         .mg-table td { padding: 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: top; }
-        .mg-table .mg-email { font-size: 12px; color: var(--text-muted, #888); }
+        .mg-table .mg-email { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); }
         .mg-table .mg-name { color: var(--accent, #0078d4); text-decoration: none; }
         .mg-table .mg-name:hover { text-decoration: underline; }
         .mg-chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11.5px; margin: 0 4px 3px 0;
             background: var(--surface-2, #eceff1); color: var(--text-muted, #555); }
-        .mg-warn { display: block; margin-top: 4px; font-size: 12px; color: var(--warning-text, #6b5900); }
-        .mg-pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; color: var(--text-muted, #666); }
-        .mg-empty { padding: 20px 10px; color: var(--text-muted, #888); font-size: 13px; }
+        .mg-warn { display: block; margin-top: 4px; font-size: var(--font-size-sm, 12px); color: var(--warning-text, #6b5900); }
+        .mg-pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
+        .mg-empty { padding: 20px 10px; color: var(--text-muted, #888); font-size: var(--font-size-md, 13px); }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>

@@ -59,7 +59,7 @@
     overflow-y: auto;
 }
 .help-sidebar h3 {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-dim, #888);
     text-transform: uppercase;
@@ -72,7 +72,7 @@
     gap: 10px;
     padding: 9px 12px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.35;
     color: var(--text-muted, #555);
     text-decoration: none;
@@ -91,7 +91,7 @@
     background: var(--surface-3, #eee);
     color: var(--text-dim, #888);
     font-weight: 700;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     flex-shrink: 0;
 }
 .help-nav-link.active .help-nav-num { background: var(--accent); color: var(--on-accent, #fff); }
@@ -139,13 +139,13 @@
 }
 .help-section-header h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     line-height: 1.35;
     color: var(--text, #333);
 }
 .help-section-header p {
     margin: 6px 0 0;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text-muted, #666);
     line-height: 1.6;
 }
@@ -159,7 +159,7 @@
     background: var(--accent-soft);
     color: var(--accent);
     font-weight: 700;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     flex-shrink: 0;
 }
 
@@ -179,7 +179,7 @@
 .help-back {
     display: inline-block;
     margin-bottom: 14px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--accent);
     text-decoration: none;
 }
@@ -190,7 +190,7 @@
 .help-section > p,
 .help-section > ul,
 .help-section > ol {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text-muted, #555);
     line-height: 1.7;
     margin: 0 0 14px;
@@ -206,7 +206,7 @@
     align-items: center;
     gap: 8px;
     margin: 0 0 8px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text, #333);
 }
 .help-section > ul,
@@ -227,7 +227,7 @@
     color: var(--text, #333);
 }
 .help-subsection > p {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text-muted, #555);
     line-height: 1.7;
     margin: 0 0 12px;
@@ -252,17 +252,17 @@
     border: 1px solid var(--border, #e0e0e0);
     background: var(--surface, #ffffff);
 }
-.help-card h4 { margin: 0 0 6px; font-size: 14px; color: var(--text, #333); }
+.help-card h4 { margin: 0 0 6px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
 .help-card p  { margin: 0 0 6px; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.55; }
 .help-card > :last-child { margin-bottom: 0; }
-.help-card-eg { font-size: 12px; color: var(--text-dim, #888); font-style: italic; }
+.help-card-eg { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-style: italic; }
 
 /* Cards whose title/body are a <strong> and loose text rather than h4 + p —
    the shape most module guides were already written in. Same look either way. */
 .help-card > strong,
 .help-card strong:first-child {
     display: block;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 4px;
@@ -281,7 +281,7 @@
 
 /* The one sanctioned card variant: icon on the left rather than above. Use it
    when the icon is an emoji standing in for a heading, not decoration. */
-.help-card.row { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; color: var(--text-muted, #555); line-height: 1.55; }
+.help-card.row { display: flex; align-items: flex-start; gap: 12px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); line-height: 1.55; }
 .help-card.row .help-card-icon { margin-bottom: 0; }
 
 .help-card-icon {
@@ -346,7 +346,7 @@
     padding: 10px 14px;
     border-radius: 8px;
     background: var(--surface-2, #fafafa);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text, #444);
     line-height: 1.55;
 }
@@ -360,7 +360,7 @@
     background: var(--accent);
     color: var(--on-accent, #fff);
     font-weight: 700;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     flex-shrink: 0;
 }
 
@@ -379,7 +379,7 @@
     padding: 8px 14px;
     background: var(--surface-2, #fafafa);
     border-radius: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #555);
     line-height: 1.55;
 }
@@ -397,7 +397,7 @@
 .help-flow-step {
     padding: 10px 16px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
     text-align: center;
     background: var(--surface-2, #fafafa);
@@ -422,14 +422,14 @@
     border-left: 3px solid var(--accent);
 }
 .help-def:last-child { margin-bottom: 0; }
-.help-def-term { font-weight: 700; font-size: 14px; color: var(--accent); }
-.help-def-desc { font-size: 13px; color: var(--text-muted, #555); line-height: 1.6; }
+.help-def-term { font-weight: 700; font-size: var(--font-size-lg, 14px); color: var(--accent); }
+.help-def-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); line-height: 1.6; }
 .help-def-desc em { color: var(--accent); font-style: normal; font-weight: 500; }
 
 /* -------------------------------------------------------------- note callout */
 
 .help-note {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.6;
     color: var(--text-muted, #555);
     background: var(--accent-soft);
@@ -472,7 +472,7 @@
     border-radius: 6px;
     padding: 12px 14px;
     margin: 0 0 14px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #555);
     line-height: 1.7;
 }
@@ -486,7 +486,7 @@
     border-radius: 8px;
     padding: 18px 20px;
     margin: 0 0 14px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     line-height: 1.8;
     overflow-x: auto;
@@ -514,7 +514,7 @@
     padding: 16px 20px;
     margin: 0 0 14px;
     font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.6;
     overflow-x: auto;
 }
@@ -533,7 +533,7 @@
 .help-content table {
     border-collapse: collapse;
     width: 100%;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .help-content table th,
 .help-content table td {
@@ -555,7 +555,7 @@
     border-radius: 3px;
     padding: 1px 5px;
     font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 
 .help-content kbd,
@@ -567,7 +567,7 @@
     border-radius: 3px;
     padding: 1px 5px;
     font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-muted, #4b5563);
 }
 
@@ -579,10 +579,10 @@
 .help-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 16px var(--help-indent);
              border-bottom: 1px solid var(--border, #ddd); }
 .help-tabs button { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
-                    padding: 10px 14px; font-size: 14px; cursor: pointer; color: var(--text-muted, #666); }
+                    padding: 10px 14px; font-size: var(--font-size-lg, 14px); cursor: pointer; color: var(--text-muted, #666); }
 .help-tabs button:hover { color: var(--accent); }
 .help-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-.help-tab-panel { margin-left: var(--help-indent); font-size: 14px; color: var(--text-muted, #555); line-height: 1.7; }   /* body copy, as .help-section > ul */
+.help-tab-panel { margin-left: var(--help-indent); font-size: var(--font-size-lg, 14px); color: var(--text-muted, #555); line-height: 1.7; }   /* body copy, as .help-section > ul */
 .help-tab-panel[hidden] { display: none; }
 
 /* ------------------------------------------------------------- checklist */
@@ -595,10 +595,10 @@
 .help-check input { margin: 3px 0 0; width: 17px; height: 17px; flex: 0 0 auto; accent-color: var(--accent); cursor: pointer; }
 .help-check-body { flex: 1; min-width: 0; line-height: 1.5; }
 .help-check-title { display: block; margin-bottom: 2px; font-weight: 700; }
-.help-check-body .help-muted { font-size: 13px; }
+.help-check-body .help-muted { font-size: var(--font-size-md, 13px); }
 .help-check.done { background: var(--accent-soft); }
 .help-check.done .help-check-title { text-decoration: line-through; opacity: 0.7; }
-.help-progress { display: flex; align-items: center; gap: 12px; margin: 0 0 16px var(--help-indent); font-size: 13px; color: var(--text-muted, #666); }
+.help-progress { display: flex; align-items: center; gap: 12px; margin: 0 0 16px var(--help-indent); font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
 .help-progress-bar { flex: 1; max-width: 320px; height: 8px; border-radius: 4px; background: var(--border, #ddd); overflow: hidden; }
 .help-progress-bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
 .help-ext::after { content: " \2197"; font-size: 0.85em; }
@@ -628,7 +628,7 @@
     .help-hero h2 { font-size: 21px; }
     .help-section { padding-top: 22px; padding-bottom: 22px; }
     .help-section-header { gap: 6px; }
-    .help-section-num { min-width: 26px; height: 26px; font-size: 13px; }
+    .help-section-num { min-width: 26px; height: 26px; font-size: var(--font-size-md, 13px); }
     .help-section-header h3 { font-size: 17px; }
     .help-cards,
     .help-cards.cols-3,

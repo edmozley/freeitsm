@@ -85,21 +85,21 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
 
         .sidebar-section { margin-bottom: 24px; }
         .sidebar-section h3 {
-            font-size: 14px; font-weight: 600; color: var(--text, #333);
+            font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333);
             margin: 0 0 12px 0;
         }
         .sidebar-stat {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: var(--text, #333); cursor: default; margin-bottom: 4px;
+            font-size: var(--font-size-lg, 14px); color: var(--text, #333); cursor: default; margin-bottom: 4px;
         }
-        .sidebar-stat .stat-value { font-weight: 700; font-size: 16px; }
+        .sidebar-stat .stat-value { font-weight: 700; font-size: var(--font-size-xl, 16px); }
         .sidebar-stat.warning .stat-value { color: var(--con-accent, #f59e0b); }
         .sidebar-links { display: flex; flex-direction: column; gap: 4px; }
         .sidebar-link {
             display: flex; align-items: center; gap: 10px;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: var(--text, #333);
+            font-size: var(--font-size-lg, 14px); color: var(--text, #333);
             text-decoration: none; transition: all 0.15s;
         }
         .sidebar-link:hover { background: #fff7ed; color: var(--con-accent, #f59e0b); }
@@ -109,7 +109,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
             padding: 10px 16px;
             background: var(--con-accent, #f59e0b); color: #fff;
             border: none; border-radius: 6px;
-            font-size: 14px; font-weight: 500;
+            font-size: var(--font-size-lg, 14px); font-weight: 500;
             cursor: pointer; transition: background 0.2s;
             text-align: center; text-decoration: none;
             box-sizing: border-box;
@@ -131,7 +131,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
             align-items: center;
         }
 
-        .contract-card-header h2 { margin: 0; font-size: 20px; color: var(--text, #333); }
+        .contract-card-header h2 { margin: 0; font-size: var(--font-size-3xl, 20px); color: var(--text, #333); }
 
         .contract-card-header .actions { display: flex; gap: 8px; }
         /* 🔴 THE ICONS ARE HIDDEN BY DEFAULT, i.e. ON DESKTOP, AND THIS LINE IS
@@ -151,7 +151,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         .cv-act-icon { display: none; }
 
         .contract-card-header .btn {
-            padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500;
+            padding: 8px 16px; border-radius: 4px; font-size: var(--font-size-md, 13px); font-weight: 500;
             text-decoration: none; cursor: pointer; transition: all 0.2s;
         }
 
@@ -169,7 +169,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
 
         .detail-group label {
             display: block;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-dim, #888);
             text-transform: uppercase;
@@ -193,7 +193,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
 
         .section-divider h3 {
             margin: 0;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--con-accent, #f59e0b);
             text-transform: uppercase;
@@ -202,7 +202,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
 
         .status-badge {
             display: inline-block; padding: 4px 8px; border-radius: 3px;
-            font-size: 13px; font-weight: 500;
+            font-size: var(--font-size-md, 13px); font-weight: 500;
         }
         .status-badge.active { background: #d4edda; color: #155724; }
         .status-badge.expired { background: #f8d7da; color: #721c24; }
@@ -218,14 +218,14 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
 
         .terms-view-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border, #e0e0e0); margin-top: 8px; }
         .terms-view-tab {
-            padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted, #666); cursor: pointer;
+            padding: 10px 20px; font-size: var(--font-size-md, 13px); font-weight: 500; color: var(--text-muted, #666); cursor: pointer;
             background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
         }
         .terms-view-tab:hover { color: var(--text, #333); background: var(--surface-hover, #f5f5f5); }
         .terms-view-tab.active { color: var(--con-accent, #f59e0b); border-bottom-color: var(--con-accent, #f59e0b); font-weight: 600; }
         .terms-view-panel { display: none; padding: 20px 0; }
         .terms-view-panel.active { display: block; }
-        .terms-view-panel .rich-content { font-size: 14px; line-height: 1.6; color: var(--text, #333); }
+        .terms-view-panel .rich-content { font-size: var(--font-size-lg, 14px); line-height: 1.6; color: var(--text, #333); }
         /* ⚠️ The list-indent fix for authored terms lives in mobile.css
            (LAYER 28l), NOT here, so it cannot touch the desktop render. The
            underlying cause — inbox.css's global `* { padding: 0 }` stripping a
@@ -255,35 +255,35 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         }
         .cr-choice:hover { background: var(--surface-hover, #f5f5f5); border-color: var(--con-accent, #f59e0b); }
         .cr-choice-icon { flex-shrink: 0; color: var(--con-accent, #f59e0b); margin-top: 1px; }
-        .cr-choice-name { display: block; font-size: 13px; font-weight: 600; }
-        .cr-choice-desc { display: block; font-size: 12px; color: var(--text-muted, #666); line-height: 1.45; }
+        .cr-choice-name { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; }
+        .cr-choice-desc { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); line-height: 1.45; }
         .cr-email-row { display: flex; gap: 8px; margin-top: 4px; }
         .cr-email-row input {
-            flex: 1; padding: 8px 10px; font: inherit; font-size: 13px;
+            flex: 1; padding: 8px 10px; font: inherit; font-size: var(--font-size-md, 13px);
             border: 1px solid var(--border, #ddd); border-radius: 6px;
             background: var(--surface, #fff); color: var(--text, #333);
         }
         .cr-email-row input:focus { outline: none; border-color: var(--con-accent, #f59e0b); }
         .cr-email-row button {
             padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;
-            font: inherit; font-size: 13px; font-weight: 500;
+            font: inherit; font-size: var(--font-size-md, 13px); font-weight: 500;
             background: var(--con-accent, #f59e0b); color: #fff;
         }
         .cr-email-row button:disabled { opacity: .6; cursor: not-allowed; }
-        .cr-count { font-size: 12px; color: var(--text-muted, #666); margin: -4px 0 14px; }
+        .cr-count { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: -4px 0 14px; }
 
         .related-list { padding: 0 30px 20px 30px; }
         .related-section { margin-bottom: 24px; }
         .related-section h3 {
-            margin: 0 0 10px 0; font-size: 13px; font-weight: 600;
+            margin: 0 0 10px 0; font-size: var(--font-size-md, 13px); font-weight: 600;
             color: var(--con-accent, #f59e0b); text-transform: uppercase; letter-spacing: 0.5px;
             padding-top: 16px; border-top: 1px solid var(--border-soft, #eee);
         }
-        .related-empty { color: var(--text-dim, #999); font-size: 13px; padding: 8px 0; }
+        .related-empty { color: var(--text-dim, #999); font-size: var(--font-size-md, 13px); padding: 8px 0; }
         .related-item {
             display: flex; align-items: center; gap: 12px;
             padding: 10px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .related-item:last-child { border-bottom: none; }
         .related-item a { color: var(--con-accent, #f59e0b); text-decoration: none; font-weight: 500; }
@@ -292,7 +292,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         .related-item .meta-sep { color: var(--text-faint, #ccc); margin: 0 4px; }
         .related-pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 11px; font-weight: 500; background: var(--surface-3, #eee); color: var(--text, #333);
+            font-size: var(--font-size-xs, 11px); font-weight: 500; background: var(--surface-3, #eee); color: var(--text, #333);
         }
         .related-pill.todo { background: #e5e7eb; color: #374151; }
         .related-pill.in-progress { background: #fde68a; color: #92400e; }
@@ -305,7 +305,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         .related-section h3 { display: flex; align-items: center; justify-content: space-between; }
         .related-add {
             border: none; background: none; cursor: pointer; padding: 0;
-            font: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0;
+            font: inherit; font-size: var(--font-size-sm, 12px); font-weight: 600; letter-spacing: 0;
             text-transform: none; color: var(--con-accent, #f59e0b);
         }
         .related-add:hover { text-decoration: underline; }
@@ -316,7 +316,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         .related-item--asset > .meta { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .asset-reference {
             flex: 1 1 120px; min-width: 90px; margin-left: auto;
-            padding: 4px 8px; font-size: 12px; font-family: inherit;
+            padding: 4px 8px; font-size: var(--font-size-sm, 12px); font-family: inherit;
             border: 1px solid var(--border, #ddd); border-radius: 4px;
             background: var(--surface, #fff); color: var(--text, #333);
         }
@@ -324,7 +324,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         .related-remove {
             flex-shrink: 0; width: 22px; height: 22px; line-height: 1;
             border: none; background: none; cursor: pointer;
-            font-size: 18px; color: var(--text-faint, #bbb); border-radius: 4px;
+            font-size: var(--font-size-2xl, 18px); color: var(--text-faint, #bbb); border-radius: 4px;
         }
         .related-remove:hover { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); }
 
@@ -335,8 +335,8 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
             background: none; font: inherit; color: var(--text, #333);
         }
         .asset-pick:hover { background: var(--surface-hover, #f5f5f5); }
-        .asset-pick-name { display: block; font-size: 13px; font-weight: 500; }
-        .asset-pick-meta { display: block; font-size: 12px; color: var(--text-muted, #666); }
+        .asset-pick-name { display: block; font-size: var(--font-size-md, 13px); font-weight: 500; }
+        .asset-pick-meta { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 
         /* Modal (namespaced to avoid clash with .modal in inbox.css) */
         .cv-modal-overlay {
@@ -352,7 +352,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
             padding: 16px 20px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .cv-modal-header h3 { margin: 0; font-size: 16px; color: var(--text, #333); }
+        .cv-modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); color: var(--text, #333); }
         .cv-modal-close {
             background: none; border: none; font-size: 22px; line-height: 1;
             color: var(--text-dim, #999); cursor: pointer; padding: 0;
@@ -362,11 +362,11 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         .cv-modal-body .form-group { margin-bottom: 14px; }
         .cv-modal-body label {
             display: block; margin-bottom: 6px; font-weight: 500;
-            font-size: 13px; color: var(--text, #333);
+            font-size: var(--font-size-md, 13px); color: var(--text, #333);
         }
         .cv-modal-body input, .cv-modal-body select, .cv-modal-body textarea {
             width: 100%; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 4px;
-            font-size: 13px; box-sizing: border-box; font-family: inherit;
+            font-size: var(--font-size-md, 13px); box-sizing: border-box; font-family: inherit;
         }
         .cv-modal-body textarea { height: 70px; resize: vertical; }
         .cv-modal-body input:focus, .cv-modal-body select:focus, .cv-modal-body textarea:focus {
@@ -378,7 +378,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
             display: flex; justify-content: flex-end; gap: 8px;
         }
         .cv-modal-footer .btn {
-            padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500;
+            padding: 8px 16px; border-radius: 4px; font-size: var(--font-size-md, 13px); font-weight: 500;
             cursor: pointer; border: none; transition: all 0.2s;
         }
         .cv-modal-footer .btn-primary { background: var(--con-accent, #f59e0b); color: #fff; }

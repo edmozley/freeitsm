@@ -73,7 +73,7 @@
     <div class="form-group full-width" id="deptFilterGroup">
         <label><?php echo htmlspecialchars(t('tickets.dashboard.form.dept_filter')); ?></label>
         <div id="deptCheckboxes" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;"></div>
-        <div style="font-size:11px;color:#888;margin-top:4px;"><?php echo htmlspecialchars(t('tickets.dashboard.form.dept_hint')); ?></div>
+        <div style="font-size:var(--font-size-xs, 11px);color:#888;margin-top:4px;"><?php echo htmlspecialchars(t('tickets.dashboard.form.dept_hint')); ?></div>
     </div>
     <div class="form-group checkbox-group" id="filterableGroup">
         <input type="checkbox" id="editFilterable" checked>

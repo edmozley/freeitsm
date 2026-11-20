@@ -42,7 +42,7 @@
         // visibility:hidden cannot be selected, so execCommand copies nothing.
         ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;' +
                            'padding:0;border:none;outline:none;box-shadow:none;' +
-                           'background:transparent;opacity:0;font-size:16px;';
+                           'background:transparent;opacity:0;font-size:var(--font-size-xl, 16px);';
         document.body.appendChild(ta);
 
         var ok = false;

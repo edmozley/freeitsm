@@ -64,7 +64,7 @@ if (!isset($_SESSION['analyst_id'])) {
         .warning-card svg { color: #f9a825; flex-shrink: 0; margin-top: 2px; }
 
         .warning-card .warning-text {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #6d4c00;
             line-height: 1.5;
         }
@@ -85,7 +85,7 @@ if (!isset($_SESSION['analyst_id'])) {
         .tip-card svg { color: #1976d2; flex-shrink: 0; }
 
         .tip-card .tip-text {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #1565c0;
             line-height: 1.4;
         }
@@ -93,7 +93,7 @@ if (!isset($_SESSION['analyst_id'])) {
         .tip-card .tip-text strong { color: #0d47a1; }
 
         .section-label {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--text-dim, #888);
@@ -116,19 +116,19 @@ if (!isset($_SESSION['analyst_id'])) {
 
         .core-card .core-info h3 {
             margin: 0 0 4px 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
         .core-card .core-info p {
             margin: 0;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
         .core-card .core-info .core-detail {
             margin: 8px 0 0 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
         }
 
@@ -151,12 +151,12 @@ if (!isset($_SESSION['analyst_id'])) {
 
         .module-card h4 {
             margin: 0 0 4px 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
 
         .module-card .module-desc {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin: 0 0 14px 0;
             line-height: 1.4;
@@ -176,7 +176,7 @@ if (!isset($_SESSION['analyst_id'])) {
             border: none;
             padding: 8px 18px;
             border-radius: 5px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s;
@@ -200,16 +200,16 @@ if (!isset($_SESSION['analyst_id'])) {
 
         .import-btn-lg {
             padding: 10px 24px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .record-count {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-faint, #999);
         }
 
         .error-text {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: #c62828;
             margin-top: 8px;
         }
@@ -251,20 +251,20 @@ if (!isset($_SESSION['analyst_id'])) {
 
         .bonus-card .bonus-info h4 {
             margin: 0 0 4px 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
 
         .bonus-card .bonus-info p {
             margin: 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             line-height: 1.4;
         }
 
         .bonus-card .bonus-info .bonus-detail {
             margin: 8px 0 0 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-faint, #999);
         }
 

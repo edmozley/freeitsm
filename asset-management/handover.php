@@ -83,12 +83,12 @@ if ($data === null) {
         .toolbar { max-width: 820px; margin: 0 auto 14px; display: flex; gap: 8px; justify-content: flex-end; }
         .tb-btn {
             padding: 8px 16px; border: 1px solid #ccd2d8; border-radius: 5px;
-            background: #fff; color: #1a1a1a; font-size: 13px; font-weight: 600; cursor: pointer;
+            background: #fff; color: #1a1a1a; font-size: var(--font-size-md, 13px); font-weight: 600; cursor: pointer;
             font-family: inherit;
         }
         .tb-btn.primary { background: #0078d4; border-color: #0078d4; color: #fff; }
         .tb-btn:active { transform: scale(0.97); }
-        .tb-msg { align-self: center; font-size: 13px; color: #2f7d32; }
+        .tb-msg { align-self: center; font-size: var(--font-size-md, 13px); color: #2f7d32; }
         <?php echo handoverDocumentCss(); ?>
         <?php echo handoverPrintCss(); ?>
     </style>

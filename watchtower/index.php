@@ -60,12 +60,12 @@ try {
             margin-bottom: 20px;
         }
         .wt-title {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             color: var(--text, #1e293b);
         }
         .wt-refresh-info {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-faint, #94a3b8);
             display: flex;
             align-items: center;
@@ -86,7 +86,7 @@ try {
             border: none;
             border-right: 1px solid var(--border, #cbd5e1);
             padding: 5px 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #64748b);
             cursor: pointer;
             white-space: nowrap;
@@ -115,7 +115,7 @@ try {
             border: 1px solid var(--border, #cbd5e1);
             border-radius: 6px;
             padding: 4px 10px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #64748b);
             cursor: pointer;
             display: flex;
@@ -167,7 +167,7 @@ try {
         }
         .wt-card-icon svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 2; fill: none; }
         .wt-card-name {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text, #334155);
         }
@@ -196,7 +196,7 @@ try {
             justify-content: center;
             min-height: 80px;
             color: var(--text-faint, #94a3b8);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .wt-card-loading .wt-spinner {
             width: 20px;
@@ -226,7 +226,7 @@ try {
             line-height: 1.1;
         }
         .wt-metric-label {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-faint, #94a3b8);
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -249,7 +249,7 @@ try {
             gap: 8px;
             padding: 6px 10px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.45;
             color: var(--text, #334155);
         }
@@ -278,7 +278,7 @@ try {
         .wt-attention-bold { font-weight: 600; }
         /* Which priorities a combined count actually covered — quieter than the
            number itself, but present, so the line can never claim the wrong set. */
-        .wt-attention-note { color: var(--text-dim, #94a3b8); font-size: 12px; }
+        .wt-attention-note { color: var(--text-dim, #94a3b8); font-size: var(--font-size-sm, 12px); }
 
         /* ── Event list ─────────────────────────────────────────────────────── */
         .wt-event-list {
@@ -294,7 +294,7 @@ try {
             padding: 5px 10px;
             background: #f8fafc;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #475569);
         }
         .wt-event-time {
@@ -320,7 +320,7 @@ try {
             padding: 5px 10px;
             background: #f8fafc;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #475569);
             overflow: hidden;
             text-overflow: ellipsis;
@@ -334,11 +334,11 @@ try {
             justify-content: space-between;
             padding: 5px 10px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             margin-top: 4px;
         }
         .wt-service-item .wt-impact-badge {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             padding: 2px 8px;
             border-radius: 10px;
@@ -358,7 +358,7 @@ try {
             padding: 8px 12px;
             background: #f0fdf4;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #166534;
             font-weight: 500;
         }
@@ -373,13 +373,13 @@ try {
             align-items: baseline;
             justify-content: space-between;
             gap: 8px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             color: var(--text, #334155);
         }
         .wt-wf-count {
             flex-shrink: 0;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--danger-text, #b91c1c);
         }
@@ -474,7 +474,7 @@ try {
                 </div>
                 <div class="wt-status-dot <?php echo $wtJobs['unhealthy'][0]['severity'] >= 4 ? 'red' : 'amber'; ?>"></div>
             </div>
-            <div class="wt-card-body" style="font-size:13px;">
+            <div class="wt-card-body" style="font-size:var(--font-size-md, 13px);">
                 <div><?php echo htmlspecialchars(t('reporting.jobs.card_body', ['n' => count($wtJobs['unhealthy'])])); ?></div>
                 <ul style="margin:6px 0 8px; padding-left:18px;">
                     <?php foreach ($wtJobs['unhealthy'] as $j): ?>
@@ -1127,7 +1127,7 @@ try {
         html += '</div>';
 
         if (kb.recent_articles && kb.recent_articles.length > 0) {
-            html += '<div style="font-size:11px;color:var(--text-faint, #94a3b8);margin-top:8px;text-transform:uppercase;letter-spacing:0.3px;">' + window.t('watchtower.knowledge.published_week') + '</div>';
+            html += '<div style="font-size:var(--font-size-xs, 11px);color:var(--text-faint, #94a3b8);margin-top:8px;text-transform:uppercase;letter-spacing:0.3px;">' + window.t('watchtower.knowledge.published_week') + '</div>';
             html += '<div class="wt-article-list">';
             kb.recent_articles.forEach(function(art) {
                 html += `<div class="wt-article">${art.title}</div>`;

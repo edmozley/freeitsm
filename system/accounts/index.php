@@ -46,18 +46,18 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
            flex column, so the page scrolls rather than being cut off. */
         .ac-container { flex: 1; min-height: 0; overflow-y: auto; }
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
-        .ac-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px;
+        .ac-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: var(--font-size-md, 13px);
             background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .ac-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 18px 20px; }
 
         .ac-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
         .ac-toolbar .ac-spacer { flex: 1; }
-        .ac-toolbar select, .ac-toolbar input[type=search] { padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .ac-toolbar select, .ac-toolbar input[type=search] { padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .ac-toolbar input[type=search] { width: 260px; max-width: 100%; }
-        .ac-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted, #555); cursor: pointer; }
+        .ac-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); cursor: pointer; }
         .ac-summary { font-size: 12.5px; color: var(--text-dim, #888); margin: -4px 0 10px; }
 
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
         .btn-secondary { background: var(--surface-2, #eceff1); color: var(--text, #333); }
@@ -67,27 +67,27 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
         .ac-export { position: relative; }
         .ac-export-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 190px; background: var(--surface, #fff);
             border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 6px 20px var(--shadow, rgba(0,0,0,.12)); padding: 4px; }
-        .ac-export-menu a { display: block; padding: 8px 12px; border-radius: 5px; font-size: 13px; color: var(--text, #333); text-decoration: none; }
+        .ac-export-menu a { display: block; padding: 8px 12px; border-radius: 5px; font-size: var(--font-size-md, 13px); color: var(--text, #333); text-decoration: none; }
         .ac-export-menu a:hover { background: var(--surface-2, #eceff1); }
         .ac-export-menu small { display: block; color: var(--text-dim, #888); font-size: 11.5px; }
         .ac-export-menu { max-height: 70vh; overflow-y: auto; }
-        .ac-export-company { padding: 8px 12px 2px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); }
+        .ac-export-company { padding: 8px 12px 2px; font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); }
         .ac-export-company:not(:first-child) { border-top: 1px solid var(--border-soft, #eee); margin-top: 4px; padding-top: 10px; }
         .ac-company { white-space: nowrap; color: var(--text-muted, #666); }
 
         .ac-table-wrap { overflow-x: auto; }
-        .ac-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .ac-table th { text-align: left; font-size: 12px; color: var(--text-muted, #888); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
+        .ac-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        .ac-table th { text-align: left; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
         .ac-table td { padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: top; }
         .ac-table tr.is-inactive td { color: var(--text-faint, #9aa3ab); }
         .ac-table tr.is-context td { opacity: .55; }
         .ac-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; white-space: nowrap; }
         .ac-tree { display: inline-block; width: 14px; color: var(--text-faint, #b0bec5); }
         .ac-desc { color: var(--text-muted, #777); max-width: 420px; }
-        .ac-badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .ac-badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; white-space: nowrap; }
         .ac-badge.on { background: #e8f5e9; color: #2e7d32; }
         .ac-badge.off { background: #f0f0f0; color: #888; }
-        .ac-kind { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .ac-kind { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; white-space: nowrap; }
         .ac-kind.expense     { background: #fff3e0; color: #b45309; }
         .ac-kind.fixed_asset { background: #e3f2fd; color: #1565c0; }
         .ac-kind.payroll     { background: #f3e5f5; color: #7b1fa2; }
@@ -100,7 +100,7 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
         .ac-actions .action-btn.delete { color: var(--danger-accent, #d13438); }
         .ac-actions .action-btn.delete:hover { background: var(--danger-bg, #fdf3f3); border-color: var(--danger-accent, #d13438); color: var(--danger-text, #a00); }
         .ac-actions .action-btn svg { width: 16px; height: 16px; }
-        .ac-empty { padding: 28px 10px; text-align: center; color: var(--text-faint, #999); font-size: 13px; }
+        .ac-empty { padding: 28px 10px; text-align: center; color: var(--text-faint, #999); font-size: var(--font-size-md, 13px); }
 
         /* Modals - namespaced so inbox.css's global .modal rules stay out of it. */
         .ac-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 2100; align-items: center; justify-content: center; }
@@ -110,32 +110,32 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
            import footer's hidden Back / Import buttons showed on step 1. Hidden means hidden. */
         .ac-modal-foot .btn[hidden] { display: none; }
         .ac-field { margin-bottom: 14px; }
-        .ac-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
-        .ac-field .hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; line-height: 1.45; }
-        .ac-field input[type=text], .ac-field textarea, .ac-field select { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; font-family: inherit; background: var(--surface, #fff); color: var(--text, #333); }
+        .ac-field label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
+        .ac-field .hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 4px; line-height: 1.45; }
+        .ac-field input[type=text], .ac-field textarea, .ac-field select { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); font-family: inherit; background: var(--surface, #fff); color: var(--text, #333); }
         .ac-field textarea { min-height: 70px; resize: vertical; }
         .ac-field input:focus, .ac-field textarea:focus, .ac-field select:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
         .ac-field input#acCode { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
         /* Toggles use inbox.css's .toggle-label / .toggle-switch (caption above, switch below). */
         .ac-toggle { margin-bottom: 4px; }
         .ac-toggle > span { font-weight: 600; color: var(--text, #444); }
-        .ac-toggle > span small { display: block; font-weight: 400; color: var(--text-dim, #888); font-size: 12px; margin-top: 2px; line-height: 1.45; }
+        .ac-toggle > span small { display: block; font-weight: 400; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); margin-top: 2px; line-height: 1.45; }
         .ac-note { font-size: 12.5px; line-height: 1.55; color: var(--text-muted, #666); background: var(--surface-2, #f5f7f8); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
-        .ac-note code { font-size: 12px; }
+        .ac-note code { font-size: var(--font-size-sm, 12px); }
 
         /* Import preview */
         .ac-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-        .ac-count { padding: 6px 12px; border-radius: 6px; font-size: 13px; background: var(--surface-2, #eceff1); color: var(--text, #333); }
+        .ac-count { padding: 6px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface-2, #eceff1); color: var(--text, #333); }
         .ac-count strong { font-size: 15px; margin-right: 4px; }
         .ac-errors { border: 1px solid #f5c2c0; background: #fdecea; color: #7d1f16; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 12.5px; }
         .ac-errors ul { margin: 6px 0 0; padding-left: 18px; }
         .ac-errors li { margin-bottom: 3px; }
-        .ac-act { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .ac-act { font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
         .ac-act.create { background: #e3f2fd; color: #1565c0; }
         .ac-act.update { background: #fff3e0; color: #b45309; }
         .ac-act.unchanged { background: #f0f0f0; color: #888; }
         .ac-act.deactivate { background: #fdecea; color: #b71c1c; }
-        .ac-done { color: #2e7d32; font-weight: 600; font-size: 13px; margin-bottom: 10px; }
+        .ac-done { color: #2e7d32; font-weight: 600; font-size: var(--font-size-md, 13px); margin-bottom: 10px; }
 
         [data-theme-mode="dark"] .ac-badge.on, [data-theme-mode="dark"] .ac-act.create { background: #16331f; color: #86efac; }
         [data-theme-mode="dark"] .ac-act.create { background: #1e3a5f; color: #90caf9; }

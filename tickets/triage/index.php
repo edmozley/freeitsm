@@ -35,32 +35,32 @@ $translationNamespaces = ['common', 'tickets'];
         body { display: flex; flex-direction: column; }
         .triage-container { flex: 1; min-height: 0; overflow-y: auto; padding: 30px 20px; }
         .page-title { font-size: 22px; font-weight: 600; color: var(--text); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim); margin: 0 0 24px 0; max-width: 760px; }
+        .page-subtitle { font-size: var(--font-size-md, 13px); color: var(--text-dim); margin: 0 0 24px 0; max-width: 760px; }
         .settings-card { background: var(--surface); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px var(--shadow); margin-bottom: 24px; }
 
         .triage-info { display: flex; gap: 12px; align-items: flex-start; background: var(--info-bg); border: 1px solid var(--info-border); border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; max-width: 860px; }
         .triage-info svg { flex-shrink: 0; color: var(--info-accent); margin-top: 1px; }
         .triage-info .ti-text { font-size: 12.5px; color: var(--info-text); line-height: 1.5; }
         .triage-info .ti-text strong { color: var(--info-text); }
-        .triage-info .ti-title { display: block; font-weight: 600; color: var(--info-text); margin-bottom: 3px; font-size: 13px; }
+        .triage-info .ti-title { display: block; font-weight: 600; color: var(--info-text); margin-bottom: 3px; font-size: var(--font-size-md, 13px); }
 
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
         .btn-primary { background: #546e7a; color: #fff; }
         .btn-primary:hover { background: #455a64; }
         .btn-secondary { background: var(--surface-hover); color: var(--text-muted); }
         .btn-secondary:hover { background: var(--border); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        table.triage { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table.triage th { text-align: left; color: var(--text-dim); font-weight: 600; font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(--border-soft); }
+        table.triage { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        table.triage th { text-align: left; color: var(--text-dim); font-weight: 600; font-size: var(--font-size-sm, 12px); padding: 8px 10px; border-bottom: 1px solid var(--border-soft); }
         table.triage td { padding: 10px; border-bottom: 1px solid var(--border-soft); color: var(--text); vertical-align: middle; }
         table.triage tr:last-child td { border-bottom: none; }
         .sender-name { font-weight: 600; color: var(--text); }
-        .sender-addr { color: var(--text-dim); font-size: 12px; }
-        .domain-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: var(--problem-badge-bg); color: var(--problem-text); }
+        .sender-addr { color: var(--text-dim); font-size: var(--font-size-sm, 12px); }
+        .domain-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); background: var(--problem-badge-bg); color: var(--problem-text); }
         .domain-chip.freemail { background: var(--warning-bg); color: var(--warning-text); }
         .subject-cell { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .table-action-btn { background: #546e7a; color: #fff; border: none; cursor: pointer; padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 5px; }
+        .table-action-btn { background: #546e7a; color: #fff; border: none; cursor: pointer; padding: 6px 14px; font-size: var(--font-size-sm, 12px); font-weight: 600; border-radius: 5px; }
         .table-action-btn:hover { background: #455a64; }
         .empty-row td { text-align: center; color: var(--text-faint); padding: 36px; font-style: italic; }
 
@@ -68,19 +68,19 @@ $translationNamespaces = ['common', 'tickets'];
         .tr-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2100; align-items: center; justify-content: center; }
         .tr-modal-overlay.open { display: flex; }
         .tr-modal { background: var(--surface); border-radius: 10px; width: 480px; max-width: 92vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .tr-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-soft); font-size: 16px; font-weight: 600; color: var(--text); }
+        .tr-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-soft); font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text); }
         .tr-modal-body { padding: 20px 24px; }
         .tr-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft); display: flex; justify-content: flex-end; gap: 10px; }
         .form-field { margin-bottom: 16px; }
-        .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-        .form-field select, .form-field input[type=text] { background: var(--surface); color: var(--text); width: 100%; padding: 9px 11px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; }
+        .form-field label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text); margin-bottom: 4px; }
+        .form-field select, .form-field input[type=text] { background: var(--surface); color: var(--text); width: 100%; padding: 9px 11px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 5px; font-size: var(--font-size-md, 13px); font-family: inherit; box-sizing: border-box; }
         .form-field select:focus, .form-field input:focus { outline: none; border-color: #546e7a; }
         .checkbox-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
         .checkbox-field input { margin-top: 3px; }
-        .checkbox-field .cb-label { font-size: 13px; color: var(--text); }
-        .checkbox-field .cb-label span { display: block; color: var(--text-faint); font-size: 12px; }
-        .triage-email-summary { font-size: 12px; color: var(--text-muted); background: var(--surface-2); border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; }
-        .freemail-note { font-size: 12px; color: var(--warning-text); margin-bottom: 12px; }
+        .checkbox-field .cb-label { font-size: var(--font-size-md, 13px); color: var(--text); }
+        .checkbox-field .cb-label span { display: block; color: var(--text-faint); font-size: var(--font-size-sm, 12px); }
+        .triage-email-summary { font-size: var(--font-size-sm, 12px); color: var(--text-muted); background: var(--surface-2); border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; }
+        .freemail-note { font-size: var(--font-size-sm, 12px); color: var(--warning-text); margin-bottom: 12px; }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>

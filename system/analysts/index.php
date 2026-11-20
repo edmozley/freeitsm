@@ -64,9 +64,9 @@ $translationNamespaces = ['common', 'tickets'];
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .settings-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-        .section-header h2 { font-size: 16px; font-weight: 600; color: var(--text, #333); margin: 0; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        thead th { text-align: left; color: var(--text-muted, #888); font-weight: 600; font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
+        .section-header h2 { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin: 0; }
+        table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        thead th { text-align: left; color: var(--text-muted, #888); font-weight: 600; font-size: var(--font-size-sm, 12px); padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
         tbody td { padding: 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: middle; }
         tbody tr:last-child td { border-bottom: none; }
         /* Status / role / company-access pills are DATA — they encode meaning and
@@ -79,28 +79,28 @@ $translationNamespaces = ['common', 'tickets'];
         .av-toolbar, .av-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 12px; margin-bottom: 12px; }
         .av-filters { padding: 12px; border: 1px solid var(--border-soft, #eee); border-radius: 8px; background: var(--surface-2, #f7f9fa); }
         .av-filters[hidden], .av-field[hidden] { display: none; }
-        .av-field { display: flex; flex-direction: column; gap: 3px; font-size: 11px; font-weight: 600; color: var(--text-muted, #888); }
+        .av-field { display: flex; flex-direction: column; gap: 3px; font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #888); }
         .av-field select, .av-search {
-            padding: 7px 8px; border: 1px solid var(--border, #ccc); border-radius: 5px; font: inherit; font-size: 13px; font-weight: 400;
+            padding: 7px 8px; border: 1px solid var(--border, #ccc); border-radius: 5px; font: inherit; font-size: var(--font-size-md, 13px); font-weight: 400;
             background: var(--surface, #fff); color: var(--text, #333);
         }
         .av-search { min-width: 240px; flex: 0 1 280px; }
         .av-search::placeholder { color: var(--text-faint, #999); }
-        .av-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text, #333); padding-bottom: 7px; }
+        .av-check { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--text, #333); padding-bottom: 7px; }
         .av-check input { accent-color: var(--accent, #546e7a); }
-        .av-btn { padding: 7px 14px; font-size: 13px; }
-        .av-badge { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border-radius: 9px; font-size: 11px; font-weight: 700;
+        .av-btn { padding: 7px 14px; font-size: var(--font-size-md, 13px); }
+        .av-badge { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border-radius: 9px; font-size: var(--font-size-xs, 11px); font-weight: 700;
             background: var(--accent, #546e7a); color: var(--on-accent, #fff); text-align: center; }
         .av-badge[hidden] { display: none; }
         .av-menu-wrap { position: relative; }
         .av-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; min-width: 280px; padding: 4px;
             background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
         .av-menu button { display: block; width: 100%; text-align: left; padding: 8px 10px; border: none; border-radius: 5px; background: none;
-            font: inherit; font-size: 13px; color: var(--text, #333); cursor: pointer; }
+            font: inherit; font-size: var(--font-size-md, 13px); color: var(--text, #333); cursor: pointer; }
         .av-menu button:hover { background: var(--surface-hover, #f5f5f5); }
-        .av-shown { font-size: 12px; color: var(--text-muted, #888); margin: 0 0 10px; min-height: 16px; }
+        .av-shown { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); margin: 0 0 10px; min-height: 16px; }
         .av-loading, .av-empty { text-align: center; color: var(--text-muted, #888); padding: 20px; }
-        .av-via { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: 11px;
+        .av-via { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: var(--font-size-xs, 11px);
             background: var(--surface-2, #f0f2f4); color: var(--text-muted, #666); }
         /* Every group's table gets the same column widths, so the columns line up
            from one group to the next instead of each table sizing itself. */
@@ -134,7 +134,7 @@ $translationNamespaces = ['common', 'tickets'];
            the ways out. Theme variables only, so it follows light and dark. */
         .signin-conflict-badge {
             display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
-            padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+            padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600;
             background: var(--warning-bg, #fff3e0); color: var(--warning-text, #e65100);
             border: 1px solid var(--warning-border, #ffcc80); cursor: pointer; font-family: inherit;
         }
@@ -148,15 +148,15 @@ $translationNamespaces = ['common', 'tickets'];
             background: var(--warning-bg, #fff3e0); color: var(--warning-text, #e65100); border: 1px solid var(--warning-border, #ffcc80); }
         .sc-head-icon svg { width: 22px; height: 22px; }
         .sc-head h3 { margin: 0 0 4px; font-size: inherit; font-weight: inherit; color: var(--text, #333); }
-        .sc-head p { margin: 0; font-size: 13px; font-weight: 400; line-height: 1.5; color: var(--text-muted, #666); }
+        .sc-head p { margin: 0; font-size: var(--font-size-md, 13px); font-weight: 400; line-height: 1.5; color: var(--text-muted, #666); }
 
         /* The picture: analyst on top, a branch down to each team. */
         .sc-tree { background: var(--surface-2, #f7f9fa); border: 1px solid var(--border-soft, #eee); border-radius: 10px; padding: 16px 12px 14px; margin-bottom: 16px; }
-        .sc-tree-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint, #999); text-align: center; margin-bottom: 10px; }
+        .sc-tree-label { font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint, #999); text-align: center; margin-bottom: 10px; }
         .sc-person { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .sc-avatar { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 16px; background: var(--accent, #546e7a); color: var(--on-accent, #fff); }
-        .sc-person-name { font-weight: 600; font-size: 14px; color: var(--text, #333); }
+            font-weight: 700; font-size: var(--font-size-xl, 16px); background: var(--accent, #546e7a); color: var(--on-accent, #fff); }
+        .sc-person-name { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
         .sc-stem { width: 2px; height: 16px; margin: 6px auto 0; background: var(--border, #ccc); }
         .sc-branches { display: flex; justify-content: center; }
         .sc-branch { position: relative; flex: 1 1 0; max-width: 200px; padding: 16px 6px 0; display: flex; justify-content: center; }
@@ -168,22 +168,22 @@ $translationNamespaces = ['common', 'tickets'];
         .sc-branch::after { content: ''; position: absolute; top: 0; left: calc(50% - 1px); width: 2px; height: 16px; background: var(--border, #ccc); }
         .sc-team { width: 100%; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-top: 3px solid var(--sc-tone, var(--border, #ccc));
             border-radius: 8px; padding: 10px 10px 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
-        .sc-team-name { font-weight: 600; font-size: 13px; color: var(--text, #333); margin-bottom: 8px; overflow-wrap: anywhere; }
-        .sc-method { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 12px; font-size: 12px; font-weight: 600;
+        .sc-team-name { font-weight: 600; font-size: var(--font-size-md, 13px); color: var(--text, #333); margin-bottom: 8px; overflow-wrap: anywhere; }
+        .sc-method { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 12px; font-size: var(--font-size-sm, 12px); font-weight: 600;
             background: var(--sc-tone-bg, var(--surface-2, #f0f0f0)); color: var(--sc-tone, var(--text, #333)); }
         .sc-method svg { width: 13px; height: 13px; flex: 0 0 13px; }
-        .sc-vs { text-align: center; margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--warning-text, #e65100); }
+        .sc-vs { text-align: center; margin-top: 10px; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--warning-text, #e65100); }
 
-        .sc-box { border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+        .sc-box { border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; display: flex; gap: 10px; align-items: flex-start; font-size: var(--font-size-md, 13px); line-height: 1.5; }
         .sc-box svg { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 1px; }
         .sc-box strong { display: block; margin-bottom: 2px; }
         .sc-box.info { background: var(--info-bg, #e3f2fd); color: var(--info-text, #0d47a1); border: 1px solid var(--info-border, #90caf9); }
 
-        .sc-fix-title { font-size: 13px; font-weight: 600; color: var(--text, #333); margin: 0 0 8px; }
+        .sc-fix-title { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); margin: 0 0 8px; }
         .sc-fix { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--border-soft, #eee); border-radius: 8px; margin-bottom: 8px; background: var(--surface, #fff); }
-        .sc-fix-num { flex: 0 0 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+        .sc-fix-num { flex: 0 0 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-sm, 12px); font-weight: 700;
             background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); border: 1px solid var(--success-border, #a5d6a7); }
-        .sc-fix-text { flex: 1; font-size: 13px; line-height: 1.4; color: var(--text-muted, #666); }
+        .sc-fix-text { flex: 1; font-size: var(--font-size-md, 13px); line-height: 1.4; color: var(--text-muted, #666); }
         .sc-fix-text strong { display: block; color: var(--text, #333); }
         .sc-fix .btn { flex: 0 0 auto; }
         @media (max-width: 520px) {
@@ -211,12 +211,12 @@ $translationNamespaces = ['common', 'tickets'];
         .btn.btn-danger { background: var(--danger-accent, #d13438); color: #fff; border: none; }
         .btn.btn-danger:hover { filter: brightness(1.08); }
         .lv-section { margin-bottom: 20px; }
-        .lv-section h4 { font-size: 14px; font-weight: 600; color: var(--text, #333); margin: 0 0 8px; }
-        .lv-muted { font-size: 13px; color: var(--text-muted, #666); line-height: 1.5; }
-        .lv-list { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; color: var(--text, #333); }
+        .lv-section h4 { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); margin: 0 0 8px; }
+        .lv-muted { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; }
+        .lv-list { list-style: none; padding: 0; margin: 0 0 10px; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .lv-list li { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--border, #eee); }
         .lv-list li span:last-child { font-weight: 600; }
-        .lv-move { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--text, #333); }
+        .lv-move { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .lv-move select { padding: 6px 8px; border: 1px solid var(--border, #ccc); border-radius: 5px; background: var(--surface, #fff); color: var(--text, #333); }
         .lv-note { font-size: 12.5px; padding: 9px 12px; border-radius: 6px; line-height: 1.5;
                    background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); border: 1px solid var(--warning-border, #f0d9a8); }
@@ -226,7 +226,7 @@ $translationNamespaces = ['common', 'tickets'];
         .lv-option.is-chosen { border-color: var(--accent, #546e7a); background: var(--accent-soft, #eef2f5); }
         .lv-option.is-disabled { cursor: not-allowed; opacity: .6; }
         .lv-option input { margin-top: 3px; accent-color: var(--accent, #546e7a); }
-        .lv-option strong { display: block; font-size: 14px; color: var(--text, #333); margin-bottom: 3px; }
+        .lv-option strong { display: block; font-size: var(--font-size-lg, 14px); color: var(--text, #333); margin-bottom: 3px; }
         .lv-option .lv-muted { display: block; }
         .lv-failed { font-size: 12.5px; color: var(--danger-text, #991b1b); background: var(--danger-bg, #fee2e2);
                      border: 1px solid var(--danger-border, #f0c2c2); border-radius: 6px; padding: 9px 12px; margin-top: 10px; }
@@ -363,7 +363,7 @@ $translationNamespaces = ['common', 'tickets'];
                         } catch (Exception $e) { /* table may not exist yet */ }
                         ?>
                     </select>
-                    <small id="analystTeamSigninNote" style="display:none; margin: 4px 0; padding: 6px 8px; border-radius: 4px; font-size: 12px;"></small>
+                    <small id="analystTeamSigninNote" style="display:none; margin: 4px 0; padding: 6px 8px; border-radius: 4px; font-size: var(--font-size-sm, 12px);"></small>
                     <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.signin_help')); ?> <?php echo htmlspecialchars(t('tickets.settings.team_signin.follow_help')); ?></small>
                 </div>
 
@@ -379,7 +379,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </label>
                     <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all_help')); ?></small>
                     <div id="analystCompanyList" style="display: none; margin-top: 8px; max-height: 180px; overflow-y: auto; border: 1px solid var(--border-soft, #eee); border-radius: 6px; padding: 8px;"></div>
-                    <div id="analystTeamAccessNote" style="display: none; margin-top: 8px; font-size: 12px; color: var(--text-muted, #666); line-height: 1.5;"></div>
+                    <div id="analystTeamAccessNote" style="display: none; margin-top: 8px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); line-height: 1.5;"></div>
                 </div>
 
                 <div class="form-group">
@@ -390,7 +390,7 @@ $translationNamespaces = ['common', 'tickets'];
                         </span>
                         <?php echo htmlspecialchars(t('tickets.settings.modals.analyst.active')); ?>
                     </label>
-                    <small style="display:block; margin-top:6px; font-size:12px; color:var(--text-muted, #666);">Somebody leaving? Use the bin icon on their row instead - it can hand their open work to someone else first.</small>
+                    <small style="display:block; margin-top:6px; font-size:var(--font-size-sm, 12px); color:var(--text-muted, #666);">Somebody leaving? Use the bin icon on their row instead - it can hand their open work to someone else first.</small>
                 </div>
 
                 <div class="form-group">
@@ -957,7 +957,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderAnalystCompanyList(companies, grantedIds) {
             const granted = new Set((grantedIds || []).map(Number));
             document.getElementById('analystCompanyList').innerHTML = companies.map(c => `
-                <label style="display:flex; align-items:center; gap:8px; padding:4px 2px; font-size:13px; cursor:pointer;">
+                <label style="display:flex; align-items:center; gap:8px; padding:4px 2px; font-size:var(--font-size-md, 13px); cursor:pointer;">
                     <input type="checkbox" class="analyst-company-cb" value="${c.id}" ${granted.has(Number(c.id)) ? 'checked' : ''}>
                     ${escapeHtml(c.name)}
                 </label>`).join('');
@@ -1364,7 +1364,7 @@ $translationNamespaces = ['common', 'tickets'];
                                style="margin-right: 12px; width: 18px; height: 18px;">
                         <div>
                             <strong>${escapeHtml(team.name)}</strong>
-                            ${team.description ? `<div style="font-size: 12px; color: var(--text-muted, #666); margin-top: 2px;">${escapeHtml(team.description)}</div>` : ''}
+                            ${team.description ? `<div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 2px;">${escapeHtml(team.description)}</div>` : ''}
                         </div>
                     </label>
                 `).join('');

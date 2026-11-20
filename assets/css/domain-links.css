@@ -5,8 +5,8 @@
  */
 .dl-card { background: var(--surface, #fff); border: 1px solid var(--border-soft, #eee); border-radius: 10px; overflow: visible; }
 .dl-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border-soft, #eee); }
-.dl-title { font-size: 14px; font-weight: 600; color: var(--text, #333); }
-.dl-count { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 10px; background: var(--surface-hover, #f0f0f0); color: var(--text-muted, #555); }
+.dl-title { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
+.dl-count { font-size: var(--font-size-xs, 11px); font-weight: 700; padding: 1px 8px; border-radius: 10px; background: var(--surface-hover, #f0f0f0); color: var(--text-muted, #555); }
 .dl-body { padding: 12px 16px 14px; }
 .dl-bare .dl-body { padding: 0; }
 .dl-hint { margin: 0 0 10px; font-size: 12.5px; color: var(--text-dim, #888); }
@@ -17,14 +17,14 @@
 .dl-link { font-weight: 600; color: #4d7c0f; text-decoration: none; }
 :root[data-theme-mode="dark"] .dl-link { color: #a3e635; }
 .dl-link:hover { text-decoration: underline; }
-.dl-sub { font-size: 12px; color: var(--text-dim, #888); margin-top: 2px; }
-.dl-none { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 10px; }
+.dl-sub { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 2px; }
+.dl-none { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 10px; }
 .dl-total { font-size: 12.5px; font-weight: 600; color: var(--text-muted, #555); margin: 0 0 10px; }
-.dl-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9px; vertical-align: middle; }
+.dl-pill { display: inline-block; font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 1px 7px; border-radius: 9px; vertical-align: middle; }
 .dl-pill.ok   { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
 .dl-pill.warn { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
 .dl-pill.bad  { background: var(--danger-bg, #fee2e2);  color: var(--danger-text, #991b1b); }
-.dl-grade { display: inline-block; min-width: 18px; text-align: center; font-size: 11px; font-weight: 700; padding: 1px 5px; border-radius: 5px; vertical-align: middle;
+.dl-grade { display: inline-block; min-width: 18px; text-align: center; font-size: var(--font-size-xs, 11px); font-weight: 700; padding: 1px 5px; border-radius: 5px; vertical-align: middle;
             background: var(--surface-hover, #f0f0f0); color: var(--text-muted, #555); }
 .dl-grade.g-A { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
 .dl-grade.g-D, .dl-grade.g-F { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); }
@@ -33,10 +33,10 @@
 .dl-x:hover { color: var(--danger-accent, #d13438); border-color: var(--danger-accent, #d13438); }
 .dl-search { position: relative; }
 .dl-search input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px;
-                   font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+                   font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
 .dl-results { position: absolute; z-index: 40; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 4px; list-style: none; max-height: 220px; overflow-y: auto;
               background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
-.dl-results li { padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text, #333); }
+.dl-results li { padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
 .dl-results li:hover, .dl-results li:focus { background: var(--surface-hover, #f0f0f0); outline: none; }
 .dl-results li small { display: block; color: var(--text-dim, #888); font-size: 11.5px; }
 .dl-results li.dl-dim { cursor: default; color: var(--text-dim, #888); }

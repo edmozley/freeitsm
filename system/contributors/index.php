@@ -97,7 +97,7 @@ $contributors = getContributors();
 
         .con-what {
             margin: 0; flex: 1;
-            font-size: 13px; line-height: 1.6;
+            font-size: var(--font-size-md, 13px); line-height: 1.6;
             color: var(--text-muted, #6b7280);
         }
         .con-date {
@@ -106,7 +106,7 @@ $contributors = getContributors();
             font-size: 11.5px; color: var(--text-dim, #9ca3af);
             text-align: center;
         }
-        .con-empty { padding: 30px; text-align: center; color: var(--text-muted, #6b7280); font-size: 13px; }
+        .con-empty { padding: 30px; text-align: center; color: var(--text-muted, #6b7280); font-size: var(--font-size-md, 13px); }
 
         @media (max-width: 700px) {
             .con-list { grid-template-columns: 1fr; }

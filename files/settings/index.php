@@ -62,23 +62,23 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         .tab.active { color: var(--fil-accent); border-bottom-color: var(--fil-accent); }
         .set-row { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--border-soft); }
         .set-row:last-of-type { border-bottom: none; }
-        .set-row .lbl { font-weight: 600; font-size: 14px; color: var(--text); }
+        .set-row .lbl { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text); }
         .set-row .desc { font-size: 12.5px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
         .container [hidden] { display: none !important; }   /* .fil-btn's inline-flex would otherwise beat [hidden] */
-        .sto-type label { display: inline-flex; align-items: center; gap: 6px; margin-right: 18px; font-size: 14px; cursor: pointer; }
+        .sto-type label { display: inline-flex; align-items: center; gap: 6px; margin-right: 18px; font-size: var(--font-size-lg, 14px); cursor: pointer; }
         .set-row input[type="text"], .set-row input[type="number"], .set-row input[type="password"] {
-            padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; width: 100%; max-width: 520px;
+            padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: var(--font-size-lg, 14px); width: 100%; max-width: 520px;
             background: var(--surface); color: var(--text); box-sizing: border-box; font-family: inherit;
         }
         .set-row .dflt { font-size: 11.5px; color: var(--text-dim); margin-top: 5px; }
         .set-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
-        .set-box { background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 14px 16px; font-size: 13px; margin: 6px 0 16px; line-height: 1.55; }
+        .set-box { background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 14px 16px; font-size: var(--font-size-md, 13px); margin: 6px 0 16px; line-height: 1.55; }
         .set-box.warn { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
         .set-box code { word-break: break-all; }
-        .fil-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font: inherit; font-size: 13px; }
+        .fil-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font: inherit; font-size: var(--font-size-md, 13px); }
         .fil-btn.primary { background: var(--fil-accent); border-color: var(--fil-accent); color: var(--fil-on-accent); }
         .fil-btn:disabled { opacity: .5; cursor: default; }
-        .fil-folders { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .fil-folders { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
         .fil-folders th { text-align: left; font-weight: 600; color: var(--text-muted); padding: 8px 10px; border-bottom: 1px solid var(--border); }
         .fil-folders td { padding: 8px 10px; border-bottom: 1px solid var(--border-soft); }
         .fil-folders tr.orphan td:first-child { color: var(--danger-text); }
@@ -98,7 +98,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
 
         <?php if (settingsTabVisible($visibleTabs, 'folders')): ?>
         <div class="tab-content<?php echo $activeTabId === 'folders' ? ' active' : ''; ?>" id="folders-tab" data-capability="<?php echo capKey(Cap::FILES_FOLDERS); ?>">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('folders_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('folders_title'); ?></h2>
             <div class="set-box"><?php echo $tt('folders_intro'); ?></div>
             <input type="search" class="fil-filter" id="folFilter" placeholder="<?php echo $tt('folders_filter'); ?>">
             <table class="fil-folders">
@@ -110,7 +110,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
 
         <?php if (settingsTabVisible($visibleTabs, 'storage')): ?>
         <div class="tab-content<?php echo $activeTabId === 'storage' ? ' active' : ''; ?>" id="storage-tab" data-capability="<?php echo capKey(Cap::FILES_STORAGE); ?>">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('storage_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('storage_title'); ?></h2>
             <div class="set-box" id="stoState"></div>
             <div class="set-box" id="stoMove" hidden>
                 <div id="stoMoveText"></div>
@@ -143,19 +143,19 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
                 <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_prefix'); ?></div><div class="desc"><?php echo $tt('s3_prefix_desc'); ?></div></div>
                     <div><input type="text" id="s3Prefix" spellcheck="false" placeholder="freeitsm/">
                         <div style="margin-top:10px"><label><input type="checkbox" id="s3PathStyle"> <?php echo $tt('s3_path_style'); ?></label></div>
-                        <div class="set-actions" style="margin-top:12px"><button type="button" class="fil-btn" id="s3Test"><?php echo $tt('test'); ?></button><span id="s3TestMsg" style="font-size:13px"></span></div>
+                        <div class="set-actions" style="margin-top:12px"><button type="button" class="fil-btn" id="s3Test"><?php echo $tt('test'); ?></button><span id="s3TestMsg" style="font-size:var(--font-size-md, 13px)"></span></div>
                     </div></div>
             </div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('max_upload'); ?></div><div class="desc"><?php echo $tt('max_upload_desc'); ?></div></div>
                 <div><input type="number" id="stoMax" min="1" style="width:160px"> MB<div class="dflt"><?php echo $tt('max_upload_default'); ?></div></div></div>
             <div class="set-box warn"><?php echo $tt('storage_move_note'); ?></div>
-            <div class="set-actions"><button type="button" class="fil-btn primary" id="stoSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="stoMsg" style="font-size:13px"></span></div>
+            <div class="set-actions"><button type="button" class="fil-btn primary" id="stoSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="stoMsg" style="font-size:var(--font-size-md, 13px)"></span></div>
         </div>
         <?php endif; ?>
 
         <?php if (settingsTabVisible($visibleTabs, 'sharing')): /* GH #303 */ ?>
         <div class="tab-content<?php echo $activeTabId === 'sharing' ? ' active' : ''; ?>" id="sharing-tab" data-capability="<?php echo capKey(Cap::FILES_SHARING); ?>">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('sharing_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('sharing_title'); ?></h2>
             <div class="set-box"><?php echo $tt('sharing_intro'); ?></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('attach_mode'); ?></div><div class="desc"><?php echo $tt('attach_mode_desc'); ?></div></div>
                 <div id="shrModes">
@@ -169,13 +169,13 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
                 <div><select id="shrSaveFolder"></select></div></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('save_ticket_folder'); ?></div><div class="desc"><?php echo $tt('save_ticket_folder_desc'); ?></div></div>
                 <div><label><input type="checkbox" id="shrTicketFolder"> <?php echo $tt('save_ticket_folder_on'); ?></label></div></div>
-            <div class="set-actions"><button type="button" class="fil-btn primary" id="shrSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="shrMsg" style="font-size:13px"></span></div>
+            <div class="set-actions"><button type="button" class="fil-btn primary" id="shrSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="shrMsg" style="font-size:var(--font-size-md, 13px)"></span></div>
         </div>
         <?php endif; ?>
 
         <?php if (settingsTabVisible($visibleTabs, 'versions')): /* GH #303 */ ?>
         <div class="tab-content<?php echo $activeTabId === 'versions' ? ' active' : ''; ?>" id="versions-tab" data-capability="<?php echo capKey(Cap::FILES_VERSIONS); ?>">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('versions_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('versions_title'); ?></h2>
             <div class="set-box"><?php echo $tt('versions_intro'); ?></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('conflict_choices'); ?></div><div class="desc"><?php echo $tt('conflict_choices_desc'); ?></div></div>
                 <div id="verChoices">
@@ -188,17 +188,17 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
                 <div><select id="verDefault"></select></div></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('keep_versions'); ?></div><div class="desc"><?php echo $tt('keep_versions_desc'); ?></div></div>
                 <div><select id="verKeep"></select><div class="dflt"><?php echo $tt('keep_versions_default'); ?></div></div></div>
-            <div class="set-actions"><button type="button" class="fil-btn primary" id="verSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="verMsg" style="font-size:13px"></span></div>
+            <div class="set-actions"><button type="button" class="fil-btn primary" id="verSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="verMsg" style="font-size:var(--font-size-md, 13px)"></span></div>
         </div>
         <?php endif; ?>
 
         <?php if (settingsTabVisible($visibleTabs, 'recycle')): ?>
         <div class="tab-content<?php echo $activeTabId === 'recycle' ? ' active' : ''; ?>" id="recycle-tab" data-capability="<?php echo capKey(Cap::FILES_RECYCLE); ?>">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('recycle_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('recycle_title'); ?></h2>
             <div class="set-box" id="rbState"></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('recycle_days'); ?></div><div class="desc"><?php echo $tt('recycle_days_desc'); ?></div></div>
                 <div><input type="number" id="rbDays" min="0" style="width:160px"> <?php echo $tt('recycle_days_unit'); ?><div class="dflt" id="rbNotSet" hidden><?php echo $tt('recycle_not_set'); ?></div></div></div>
-            <div class="set-actions"><button type="button" class="fil-btn primary" id="rbSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="rbMsg" style="font-size:13px"></span></div>
+            <div class="set-actions"><button type="button" class="fil-btn primary" id="rbSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="rbMsg" style="font-size:var(--font-size-md, 13px)"></span></div>
         </div>
         <?php endif; ?>
     </div>

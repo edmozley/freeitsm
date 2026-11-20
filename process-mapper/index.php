@@ -206,7 +206,7 @@ try {
                     </div>
                 </div>
                 <hr style="margin: 16px 0; border: none; border-top: 1px solid #e0e0e0;">
-                <h4 style="margin-bottom: 12px; font-size: 13px; color: #666;"><?php echo htmlspecialchars(t('process-mapper.detail.connectors')); ?></h4>
+                <h4 style="margin-bottom: 12px; font-size: var(--font-size-md, 13px); color: #666;"><?php echo htmlspecialchars(t('process-mapper.detail.connectors')); ?></h4>
                 <div id="detailConnectors"></div>
             </div>
             <!-- Lane detail body (shown when a lane is selected) -->
@@ -234,7 +234,7 @@ try {
                     <label class="form-label"><?php echo htmlspecialchars(t('process-mapper.detail.order')); ?></label>
                     <input type="number" class="form-input" id="detailLaneOrder" min="0" onchange="PM.updateLaneFromDetail()">
                 </div>
-                <p style="font-size: 12px; color: #888; line-height: 1.5; margin-top: 8px;">
+                <p style="font-size: var(--font-size-sm, 12px); color: #888; line-height: 1.5; margin-top: 8px;">
                     <?php echo htmlspecialchars(t('process-mapper.detail.lane_hint')); ?>
                 </p>
             </div>

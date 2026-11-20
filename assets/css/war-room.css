@@ -27,7 +27,7 @@
 .wr-sidebar-heading,
 .wr-group {
     margin: 0 0 6px 4px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     letter-spacing: 0.4px;
     text-transform: uppercase;
@@ -45,7 +45,7 @@
     background: var(--surface, #fff);
     color: var(--text, #333);
     font: inherit;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     cursor: pointer;
 }
 .wr-side-btn:hover { border-color: var(--accent, #ea580c); color: var(--accent, #ea580c); }
@@ -63,7 +63,7 @@
     background: none;
     color: var(--text, #333);
     font: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     text-align: left;
     cursor: pointer;
 }
@@ -77,7 +77,7 @@
     font-weight: 600;
 }
 
-.wr-lock { flex-shrink: 0; font-size: 16px; line-height: 1; opacity: 0.55; }
+.wr-lock { flex-shrink: 0; font-size: var(--font-size-xl, 16px); line-height: 1; opacity: 0.55; }
 .wr-unread {
     flex-shrink: 0;
     min-width: 20px;
@@ -85,7 +85,7 @@
     border-radius: 10px;
     background: var(--accent, #ea580c);
     color: var(--on-accent, #fff);
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 700;
     text-align: center;
 }
@@ -111,8 +111,8 @@
     margin-bottom: 6px;
 }
 .wr-title-wrap { min-width: 0; }
-.wr-title { margin: 0; font-size: 18px; color: var(--text, #333); overflow-wrap: anywhere; }
-.wr-topic { margin-top: 2px; font-size: 12px; color: var(--text-muted, #666); overflow-wrap: anywhere; }
+.wr-title { margin: 0; font-size: var(--font-size-2xl, 18px); color: var(--text, #333); overflow-wrap: anywhere; }
+.wr-topic { margin-top: 2px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); overflow-wrap: anywhere; }
 
 .wr-tools { display: flex; gap: 6px; flex-shrink: 0; }
 .wr-tool {
@@ -122,14 +122,14 @@
     background: var(--surface, #fff);
     color: var(--text, #333);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     cursor: pointer;
 }
 .wr-tool:hover { border-color: var(--accent, #ea580c); color: var(--accent, #ea580c); }
 
 .wr-intro {
     margin: 0 0 12px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #666);
 }
 
@@ -149,20 +149,20 @@
     padding: 32px 12px;
     text-align: center;
     color: var(--text-dim, #999);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .wr-msg { padding: 7px 0; border-bottom: 1px solid var(--border-soft, #f2f2f2); }
 .wr-msg:last-child { border-bottom: none; }
 
 .wr-msg-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
-.wr-msg-author { font-size: 13px; font-weight: 600; color: var(--text, #333); }
-.wr-msg-time { font-size: 11px; color: var(--text-dim, #999); }
+.wr-msg-author { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); }
+.wr-msg-time { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); }
 
 /* Author text is arbitrary and messages can contain a pasted URL or a stack
    trace, so both have to be allowed to break rather than widen the column. */
 .wr-msg-body {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.5;
     color: var(--text, #333);
     white-space: pre-wrap;      /* keep the line breaks people typed */
@@ -195,7 +195,7 @@
     border-radius: 10px;
     background: var(--danger-accent, #c62828);
     color: #fff;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 700;
     text-align: center;
 }
@@ -226,7 +226,7 @@
     background: none;
     color: var(--text, #333);
     font: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     text-align: left;
     cursor: pointer;
 }
@@ -265,7 +265,7 @@
 .wr-composer { position: relative; }
 
 .wr-msg { position: relative; }
-.wr-msg-flag { font-size: 11px; font-style: italic; color: var(--text-dim, #999); }
+.wr-msg-flag { font-size: var(--font-size-xs, 11px); font-style: italic; color: var(--text-dim, #999); }
 
 /* Actions appear on hover on a pointer device, and are always visible on touch —
    there is no hover on a phone, and a control you cannot reach is not a control. */
@@ -288,7 +288,7 @@
     background: var(--surface, #fff);
     color: var(--text-muted, #666);
     font: inherit;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     cursor: pointer;
 }
 .wr-msg-act:hover { border-color: var(--accent, #ea580c); color: var(--accent, #ea580c); }
@@ -322,19 +322,19 @@
     border-radius: 6px;
     background: var(--surface-hover, #fafafa);
     color: var(--text, #333);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     text-decoration: none;
 }
 .wr-file:hover { border-color: var(--accent, #ea580c); }
 .wr-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wr-file-size { flex-shrink: 0; font-size: 11px; color: var(--text-dim, #999); }
+.wr-file-size { flex-shrink: 0; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); }
 
 /* ---- presence (in the sidebar, under the channels) ---- */
 .wr-presence {
     margin-top: 16px;
     padding: 10px 12px;
     border-top: 1px solid var(--border-soft, #f0f0f0);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.5;
     color: var(--text-dim, #888);
     overflow-wrap: anywhere;        /* a long list of names must not widen the panel */
@@ -344,7 +344,7 @@
 
 .wr-presence-label {
     margin: 8px 0 2px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     letter-spacing: 0.3px;
     text-transform: uppercase;
@@ -361,7 +361,7 @@
     margin-top: 14px;
     padding-top: 12px;
     border-top: 1px solid var(--border-soft, #f0f0f0);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.4;
     color: var(--text-muted, #666);
     cursor: pointer;
@@ -369,7 +369,7 @@
 .wr-desktop-opt input { margin-top: 2px; flex-shrink: 0; }
 
 .wr-pref { margin-top: 12px; }
-.wr-pref-label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--text-muted, #666); }
+.wr-pref-label { display: block; margin-bottom: 4px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 .wr-pref select {
     width: 100%;
     padding: 6px 8px;
@@ -378,9 +378,9 @@
     background: var(--surface, #fff);
     color: var(--text, #333);
     font: inherit;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
-.wr-pref-hint { margin-top: 5px; font-size: 11px; line-height: 1.4; color: var(--text-dim, #999); }
+.wr-pref-hint { margin-top: 5px; font-size: var(--font-size-xs, 11px); line-height: 1.4; color: var(--text-dim, #999); }
 
 /* ---- composer ---- */
 /* `align-items: stretch` (the default) is what actually keeps the box and the
@@ -401,7 +401,7 @@
     background: var(--surface, #fff);
     color: var(--text, #333);
     font: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.35;
     resize: vertical;               /* drag it taller for a long message */
     box-sizing: border-box;
@@ -426,7 +426,7 @@
     border-radius: 6px;
     background: var(--surface, #fff);
     color: var(--text-muted, #666);
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     line-height: 1;
     cursor: pointer;
 }
@@ -446,10 +446,10 @@
     border-radius: 12px;
     background: var(--surface-hover, #f0f0f0);
     color: var(--text, #333);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 .wr-chip > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wr-chip-x { border: none; background: none; color: var(--text-muted, #666); font-size: 14px; line-height: 1; cursor: pointer; }
+.wr-chip-x { border: none; background: none; color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); line-height: 1; cursor: pointer; }
 
 .wr-archived-note {
     margin-top: 12px;
@@ -458,7 +458,7 @@
     border-radius: 6px;
     background: var(--surface-hover, #fafafa);
     color: var(--text-muted, #666);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 /* ---- side panel: search and the situation report ----
@@ -507,14 +507,14 @@
     background: var(--surface, #fff);
     color: var(--text, #333);
     font: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     box-sizing: border-box;
 }
-.wr-scope { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 13px; color: var(--text-muted, #666); }
-.wr-muted { color: var(--text-dim, #999); font-size: 13px; padding: 8px 0; }
-.wr-warn  { color: var(--danger-accent, #c62828); font-size: 13px; padding: 8px 0; line-height: 1.5; }
-.wr-hint  { margin: 4px 0 12px; font-size: 12px; color: var(--text-dim, #999); }
-.wr-field-label { display: block; margin: 12px 0 4px; font-size: 13px; font-weight: 500; color: var(--text, #333); }
+.wr-scope { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
+.wr-muted { color: var(--text-dim, #999); font-size: var(--font-size-md, 13px); padding: 8px 0; }
+.wr-warn  { color: var(--danger-accent, #c62828); font-size: var(--font-size-md, 13px); padding: 8px 0; line-height: 1.5; }
+.wr-hint  { margin: 4px 0 12px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #999); }
+.wr-field-label { display: block; margin: 12px 0 4px; font-size: var(--font-size-md, 13px); font-weight: 500; color: var(--text, #333); }
 
 .wr-results { display: flex; flex-direction: column; gap: 6px; }
 .wr-result {
@@ -531,9 +531,9 @@
 }
 .wr-result:hover { border-color: var(--accent, #ea580c); }
 .wr-result-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
-.wr-result-channel { font-size: 12px; font-weight: 600; color: var(--accent, #ea580c); }
-.wr-result-meta { font-size: 11px; color: var(--text-dim, #999); }
-.wr-result-snippet { font-size: 13px; line-height: 1.45; color: var(--text-muted, #555); overflow-wrap: anywhere; }
+.wr-result-channel { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--accent, #ea580c); }
+.wr-result-meta { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); }
+.wr-result-snippet { font-size: var(--font-size-md, 13px); line-height: 1.45; color: var(--text-muted, #555); overflow-wrap: anywhere; }
 
 .wr-sitrep-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 .wr-sitrep-form select {
@@ -543,7 +543,7 @@
     background: var(--surface, #fff);
     color: var(--text, #333);
     font: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 .wr-sitrep-go { align-self: flex-start; }
 /* The report is model prose inserted as TEXT — pre-wrap is what keeps its
@@ -554,7 +554,7 @@
     border-radius: 6px;
     background: var(--surface-hover, #fafafa);
     color: var(--text, #333);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.6;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -565,7 +565,7 @@
     justify-content: space-between;
     gap: 10px;
     margin-top: 8px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-dim, #999);
 }
 
@@ -598,7 +598,7 @@
     padding: 14px 16px;
     border-bottom: 1px solid var(--border, #e0e0e0);
 }
-.wr-modal-head h3 { margin: 0; font-size: 16px; color: var(--text, #333); }
+.wr-modal-head h3 { margin: 0; font-size: var(--font-size-xl, 16px); color: var(--text, #333); }
 .wr-modal-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px; }
 .wr-modal-actions { display: flex; gap: 8px; margin-top: 18px; }
 
@@ -609,9 +609,9 @@
     gap: 8px;
     padding: 7px 8px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text, #333);
 }
 .wr-member:hover { background: var(--surface-hover, #f5f5f5); }
 .wr-member-btn { width: 100%; border: none; background: none; font: inherit; text-align: left; cursor: pointer; }
-.wr-here-dot { margin-left: auto; font-size: 11px; color: var(--success-accent, #2e7d32); }
+.wr-here-dot { margin-left: auto; font-size: var(--font-size-xs, 11px); color: var(--success-accent, #2e7d32); }

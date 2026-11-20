@@ -892,27 +892,27 @@ function renderAiResult(added, created, errors) {
     let html = '';
     if (added.length > 0) {
         html += `<div style="margin-bottom: 16px;">
-            <div style="font-weight: 600; color: #166534; margin-bottom: 6px; font-size: 13px;">${escapeHtml(window.t('cmdb.ai_suggest.added_heading'))} <em>${escapeHtml(activeClassForProps.name)}</em></div>
-            <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
+            <div style="font-weight: 600; color: #166534; margin-bottom: 6px; font-size: var(--font-size-md, 13px);">${escapeHtml(window.t('cmdb.ai_suggest.added_heading'))} <em>${escapeHtml(activeClassForProps.name)}</em></div>
+            <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: var(--font-size-md, 13px);">
                 ${added.map(l => `<li>${escapeHtml(l)}</li>`).join('')}
             </ul>
         </div>`;
     }
     if (created.length > 0) {
         html += `<div style="margin-bottom: 16px; padding: 12px; background: #fdf4ff; border: 1px solid #f3e8ff; border-radius: 6px;">
-            <div style="font-weight: 600; color: #6b21a8; margin-bottom: 6px; font-size: 13px;">${escapeHtml(window.t('cmdb.ai_suggest.created_heading'))}</div>
-            <ul style="margin: 0 0 8px 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
+            <div style="font-weight: 600; color: #6b21a8; margin-bottom: 6px; font-size: var(--font-size-md, 13px);">${escapeHtml(window.t('cmdb.ai_suggest.created_heading'))}</div>
+            <ul style="margin: 0 0 8px 0; padding-left: 20px; color: #1f2937; font-size: var(--font-size-md, 13px);">
                 ${created.map(c => `<li><strong>${escapeHtml(c.name)}</strong> — ${escapeHtml(window.t('cmdb.ai_suggest.created_empty'))}</li>`).join('')}
             </ul>
-            <div style="color: #6b21a8; font-size: 12px;">
+            <div style="color: #6b21a8; font-size: var(--font-size-sm, 12px);">
                 ${window.t('cmdb.ai_suggest.created_note')}
             </div>
         </div>`;
     }
     if (hasErrors) {
         html += `<div style="margin-bottom: 8px;">
-            <div style="font-weight: 600; color: #b91c1c; margin-bottom: 6px; font-size: 13px;">${escapeHtml(window.t('cmdb.ai_suggest.failed_heading'))}</div>
-            <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
+            <div style="font-weight: 600; color: #b91c1c; margin-bottom: 6px; font-size: var(--font-size-md, 13px);">${escapeHtml(window.t('cmdb.ai_suggest.failed_heading'))}</div>
+            <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: var(--font-size-md, 13px);">
                 ${errors.map(e => `<li><strong>${escapeHtml(e.label)}</strong> — ${escapeHtml(e.error)}</li>`).join('')}
             </ul>
         </div>`;

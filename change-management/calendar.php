@@ -75,7 +75,7 @@ $translationNamespaces = ['common', 'change-management'];
             right: 10px;
             background: none;
             border: none;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             cursor: pointer;
             color: var(--text-faint, #999);
             line-height: 1;
@@ -124,7 +124,7 @@ $translationNamespaces = ['common', 'change-management'];
             justify-content: space-between;
             gap: 12px;
             padding: 4px 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #555);
         }
         .change-popup-label {

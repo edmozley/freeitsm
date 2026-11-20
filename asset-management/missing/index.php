@@ -39,15 +39,15 @@ $ready = AssetCompleteness::ready($conn);
         .mi-intro { color: var(--text-muted, #666); margin: 0 0 16px; max-width: none; }
         .mi-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
         .mi-bar select { padding: 7px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
-        .mi-count { color: var(--text-muted, #666); font-size: 13px; margin-left: auto; }
+        .mi-count { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); margin-left: auto; }
         .mi-table { width: 100%; border-collapse: collapse; background: var(--surface, #fff); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
-        .mi-table th, .mi-table td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border-soft, #eee); vertical-align: top; font-size: 13px; }
+        .mi-table th, .mi-table td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border-soft, #eee); vertical-align: top; font-size: var(--font-size-md, 13px); }
         .mi-table th { background: var(--surface-2, #f7f7f7); font-weight: 600; color: var(--text, #333); }
         .mi-asset a { font-weight: 600; color: var(--accent, #1565c0); text-decoration: none; }
-        .mi-asset .mi-tag { display: block; color: var(--text-dim, #888); font-size: 12px; }
+        .mi-asset .mi-tag { display: block; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
         .mi-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-        .mi-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; border-radius: 12px; background: #fff4e5; color: #8a4b00; border: 1px solid #ffd8a8; font-size: 12px; }
-        .mi-chip button { border: none; background: transparent; color: inherit; font-size: 11px; cursor: pointer; padding: 1px 6px; border-radius: 10px; text-decoration: underline; }
+        .mi-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; border-radius: 12px; background: #fff4e5; color: #8a4b00; border: 1px solid #ffd8a8; font-size: var(--font-size-sm, 12px); }
+        .mi-chip button { border: none; background: transparent; color: inherit; font-size: var(--font-size-xs, 11px); cursor: pointer; padding: 1px 6px; border-radius: 10px; text-decoration: underline; }
         .mi-chip button:hover { background: rgba(0,0,0,0.06); }
         .mi-empty { padding: 30px; text-align: center; color: var(--text-muted, #666); background: var(--surface, #fff); border-radius: 8px; }
         :root[data-theme="dark"] .mi-chip, :root[data-theme-mode="dark"] .mi-chip { background: #3a2a12; color: #ffcf8a; border-color: #5c4120; }

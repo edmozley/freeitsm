@@ -244,10 +244,10 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
 
         /* My details + signatures (#80). */
         .sig-details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px; }
-        .sig-details-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text, #333); }
+        .sig-details-grid label { display: flex; flex-direction: column; gap: 4px; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .sig-details-grid input, .sig-field input[type="text"] {
             padding: 9px 10px; border: 1px solid var(--border, #ddd); border-radius: 4px;
-            font-size: 14px; font-family: inherit;
+            font-size: var(--font-size-lg, 14px); font-family: inherit;
             background: var(--surface, #fff);
             color: var(--text, #333);
             box-sizing: border-box;
@@ -275,7 +275,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             margin-bottom: 16px;
             padding: 10px 14px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.4;
             background: var(--surface-2, rgba(84, 110, 122, 0.1));
             color: var(--text, #333);
@@ -287,39 +287,39 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             flex-shrink: 0;
             stroke: var(--sys-accent, #546e7a);
         }
-        .sig-btn { padding: 8px 16px; border-radius: 4px; border: 1px solid var(--border, #ddd); cursor: pointer; font-size: 13px; font-family: inherit; }
+        .sig-btn { padding: 8px 16px; border-radius: 4px; border: 1px solid var(--border, #ddd); cursor: pointer; font-size: var(--font-size-md, 13px); font-family: inherit; }
         .sig-btn-primary { background: var(--accent, #2d6a4f); color: #fff; border-color: transparent; }
         .sig-btn-secondary { background: var(--surface-2, #f1f1f1); color: var(--text, #333); }
         .sig-btn-danger { background: var(--danger-bg, #f8d7da); color: var(--danger-text, #721c24); border-color: transparent; }
         .sig-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
-        .sig-empty { color: var(--text-muted, #666); font-size: 13px; padding: 10px 0; }
+        .sig-empty { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); padding: 10px 0; }
         .sig-error { color: var(--danger-text, #721c24); }
         .sig-card { border: 1px solid var(--border, #ddd); border-radius: 6px; overflow: hidden; }
         .sig-card-head {
             display: flex; align-items: center; gap: 10px; padding: 8px 12px;
-            background: var(--surface-2, #f9f9f9); border-bottom: 1px solid var(--border, #ddd); font-size: 13px;
+            background: var(--surface-2, #f9f9f9); border-bottom: 1px solid var(--border, #ddd); font-size: var(--font-size-md, 13px);
         }
         .sig-card-actions { margin-left: auto; display: flex; gap: 6px; }
         .sig-default-badge {
-            font-size: 11px; padding: 2px 8px; border-radius: 10px;
+            font-size: var(--font-size-xs, 11px); padding: 2px 8px; border-radius: 10px;
             background: var(--success-bg, #d4edda); color: var(--success-text, #155724);
         }
-        .sig-card-body { padding: 12px; font-size: 13px; line-height: 1.5; background: var(--surface, #fff); color: var(--text, #333); }
+        .sig-card-body { padding: 12px; font-size: var(--font-size-md, 13px); line-height: 1.5; background: var(--surface, #fff); color: var(--text, #333); }
         .sig-editor { margin-top: 14px; padding: 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface-2, #f9f9f9); }
-        .sig-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; margin-bottom: 10px; max-width: 420px; }
+        .sig-field { display: flex; flex-direction: column; gap: 4px; font-size: var(--font-size-md, 13px); margin-bottom: 10px; max-width: 420px; }
         .sig-default-row { flex-direction: row !important; align-items: center; gap: 8px; }
         .sig-codes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0; }
-        .sig-codes-label { font-size: 12px; color: var(--text-muted, #666); margin-right: 4px; }
+        .sig-codes-label { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-right: 4px; }
         .sig-code {
-            font-family: Consolas, Monaco, monospace; font-size: 11px; cursor: pointer;
+            font-family: Consolas, Monaco, monospace; font-size: var(--font-size-xs, 11px); cursor: pointer;
             padding: 3px 8px; border-radius: 10px;
             border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text-muted, #666);
         }
         .sig-preview-wrap { margin-top: 10px; }
-        .sig-preview-label { font-size: 12px; color: var(--text-muted, #666); margin-bottom: 4px; }
+        .sig-preview-label { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-bottom: 4px; }
         .sig-preview {
             border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 12px; min-height: 60px;
-            background: #ffffff; color: #333333; font-family: Arial, sans-serif; font-size: 13px; line-height: 1.5;
+            background: #ffffff; color: #333333; font-family: Arial, sans-serif; font-size: var(--font-size-md, 13px); line-height: 1.5;
         }
         .sig-editor-actions { display: flex; gap: 8px; margin-top: 12px; }
         .pref-section {
@@ -336,7 +336,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
 
         .pref-section p {
             margin: 0 0 16px 0;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
@@ -385,7 +385,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
 
         .anim-option {
             padding: 8px 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             color: var(--text-muted, #666);
             background: var(--surface-3, #f5f5f5);
@@ -399,7 +399,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
         .anim-option.active { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
 
         .pref-language-select {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             padding: 8px 12px;
             border: 2px solid var(--border, #ddd);
             border-radius: 6px;
@@ -412,7 +412,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
 
         .pref-saving-hint {
             margin-left: 10px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             opacity: 0;
             transition: opacity 0.2s;
@@ -422,27 +422,27 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
         /* The sidebar's module ticks (#124): the same coloured tiles as the waffle. */
         .app-sidebar-pick { margin-top: 14px; }
         .app-sidebar-pick[hidden] { display: none; }
-        .app-sidebar-pick-hint { margin: 0 0 8px; color: var(--text-muted, #666); font-size: 13px; }
+        .app-sidebar-pick-hint { margin: 0 0 8px; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); }
         .app-sidebar-pick-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 14px; }
-        .app-sidebar-pick-item { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .app-sidebar-pick-item { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: 6px; cursor: pointer; font-size: var(--font-size-lg, 14px); }
         .app-sidebar-pick-item:hover { background: var(--surface-hover, #f0f0f0); }
         .app-sidebar-pick-item .waffle-module-icon { width: 26px; height: 26px; margin: 0; border-radius: 6px; flex-shrink: 0; }
         .app-sidebar-pick-item .waffle-module-icon svg { width: 16px; height: 16px; }
 
         /* Module order (GH #187) - the list itself is assets/js/reorder-list.js. */
         .module-order-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
-        .module-order-note { font-size: 12px; color: var(--text-dim, #888); margin-top: 8px; }
+        .module-order-note { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 8px; }
 
         /* Money (GH #189) - the three format dropdowns, and one row per currency exception. */
         .money-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
         .money-picker .pref-language-select { min-width: 160px; flex: 1; }
-        .money-sub { font-size: 13px; font-weight: 600; color: var(--text, #333); margin: 18px 0 2px; }
+        .money-sub { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); margin: 18px 0 2px; }
         .money-exc { border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
         .money-exc-head { display: flex; align-items: center; gap: 10px; }
-        .money-exc-head .nm { flex: 1; font-size: 14px; color: var(--text, #333); }
+        .money-exc-head .nm { flex: 1; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
         .money-exc-head code { font-weight: 600; margin-right: 6px; }
-        .money-exc-head .eg { font-size: 13px; color: var(--text-muted, #666); font-variant-numeric: tabular-nums; }
-        .money-exc-head button { border: none; background: none; cursor: pointer; color: var(--text-dim, #888); font-size: 18px; line-height: 1; padding: 2px 6px; }
+        .money-exc-head .eg { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); font-variant-numeric: tabular-nums; }
+        .money-exc-head button { border: none; background: none; cursor: pointer; color: var(--text-dim, #888); font-size: var(--font-size-2xl, 18px); line-height: 1; padding: 2px 6px; }
         .money-exc-head button:hover { color: var(--danger, #c62828); }
         .money-add { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
 
@@ -465,7 +465,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
         .sidebar-panel-row:last-child { border-bottom: none; }
 
         .sidebar-panel-label {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
 
@@ -743,7 +743,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     <option value="portal" <?php echo $prefs['default_landing_page'] === 'portal' ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.preferences.landing_portal')); ?></option>
                 </select>
                 <span class="pref-saving-hint" id="landingSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
-                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;"><?php echo htmlspecialchars(t('system.preferences.landing_note')); ?></p>
+                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);"><?php echo htmlspecialchars(t('system.preferences.landing_note')); ?></p>
             </div>
 
             <?php /* Watchtower's "Mine" view (#58). Six of the ten cards have no
@@ -756,7 +756,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     <button class="anim-option" data-wtimp="show"><?php echo htmlspecialchars(t('watchtower.scope.impersonal_show')); ?></button>
                     <button class="anim-option" data-wtimp="hide"><?php echo htmlspecialchars(t('watchtower.scope.impersonal_hide')); ?></button>
                 </div>
-                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;">
+                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);">
                     <?php echo htmlspecialchars(t('watchtower.scope.impersonal_note')); ?>
                 </p>
             </div>
@@ -778,7 +778,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     <?php /* Says WHY rather than showing nothing. A control that is
                              simply absent reads as a bug; one that explains itself
                              does not generate a support ticket. */ ?>
-                    <p class="pref-hint" style="color:var(--text-muted,#666);font-size:13px;">
+                    <p class="pref-hint" style="color:var(--text-muted,#666);font-size:var(--font-size-md, 13px);">
                         <?php echo htmlspecialchars(t('system.preferences.workcal_disabled')); ?>
                     </p>
                 <?php else: ?>
@@ -796,7 +796,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                              that is simply missing reads as a bug, and one that is
                              greyed out with no reason is worse — this is the
                              screen where somebody is deciding. */ ?>
-                    <p class="pref-hint" id="workCalPushWhy" style="display:none;margin-top:8px;color:var(--text-muted,#666);font-size:12px;"></p>
+                    <p class="pref-hint" id="workCalPushWhy" style="display:none;margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);"></p>
 
                     <div id="workCalPushPanel" style="display:none;margin-top:12px;">
                         <?php /* Which connection (#133), when the system has more
@@ -804,10 +804,10 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                                  by side, say. Hidden when there is only one - a
                                  choice of one is not a choice. */ ?>
                         <div id="workCalConnRow" style="display:none;margin-bottom:10px;">
-                            <div style="font-size:13px;margin-bottom:6px;"><?php echo htmlspecialchars(t('system.preferences.workcal_conn')); ?></div>
+                            <div style="font-size:var(--font-size-md, 13px);margin-bottom:6px;"><?php echo htmlspecialchars(t('system.preferences.workcal_conn')); ?></div>
                             <select id="workCalConn" class="pref-language-select"></select>
                         </div>
-                        <p class="pref-hint" style="color:var(--text-muted,#666);font-size:12px;" id="workCalPushInfo"></p>
+                        <p class="pref-hint" style="color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);" id="workCalPushInfo"></p>
 
                         <?php /* CalDAV (#133). The analyst signs in as themselves
                                  and chooses their own calendar: a CalDAV server has
@@ -815,10 +815,10 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                                  nobody else has the password that reaches theirs.
                                  Shown only when the system's connection is CalDAV. */ ?>
                         <div id="calDavPanel" style="display:none;margin-top:12px;max-width:560px;" data-sys-cap="sign-in form">
-                            <p class="pref-hint" id="calDavIntro" style="color:var(--text-muted,#666);font-size:12px;"></p>
+                            <p class="pref-hint" id="calDavIntro" style="color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);"></p>
 
                             <div id="calDavCurrent" style="display:none;margin:8px 0 12px;">
-                                <span id="calDavCurrentText" style="font-size:13px;"></span>
+                                <span id="calDavCurrentText" style="font-size:var(--font-size-md, 13px);"></span>
                                 <button type="button" class="sig-btn sig-btn-secondary" id="calDavChange" style="margin-left:8px;"><?php echo htmlspecialchars(t('system.preferences.caldav_change')); ?></button>
                                 <button type="button" class="sig-btn sig-btn-danger" id="calDavForget" style="margin-left:4px;"><?php echo htmlspecialchars(t('system.preferences.caldav_forget')); ?></button>
                             </div>
@@ -830,16 +830,16 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                                     <label><span><?php echo htmlspecialchars(t('system.preferences.caldav_password')); ?></span>
                                         <input type="password" id="calDavPass" autocomplete="current-password"></label>
                                 </div>
-                                <p class="pref-hint" style="color:var(--text-muted,#666);font-size:12px;margin-top:0;"><?php echo htmlspecialchars(t('system.preferences.caldav_password_hint')); ?></p>
+                                <p class="pref-hint" style="color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);margin-top:0;"><?php echo htmlspecialchars(t('system.preferences.caldav_password_hint')); ?></p>
                                 <button type="button" class="sig-btn sig-btn-secondary" id="calDavFind"><?php echo htmlspecialchars(t('system.preferences.caldav_find')); ?></button>
 
                                 <div id="calDavPick" style="display:none;margin-top:12px;">
-                                    <div style="font-size:13px;margin-bottom:6px;"><?php echo htmlspecialchars(t('system.preferences.caldav_choose')); ?></div>
+                                    <div style="font-size:var(--font-size-md, 13px);margin-bottom:6px;"><?php echo htmlspecialchars(t('system.preferences.caldav_choose')); ?></div>
                                     <select id="calDavCal" class="pref-language-select"></select>
                                     <button type="button" class="sig-btn sig-btn-primary" id="calDavSave" style="margin-left:8px;"><?php echo htmlspecialchars(t('common.save')); ?></button>
                                 </div>
                             </div>
-                            <p class="pref-hint" id="calDavMsg" style="display:none;margin-top:10px;font-size:12px;"></p>
+                            <p class="pref-hint" id="calDavMsg" style="display:none;margin-top:10px;font-size:var(--font-size-sm, 12px);"></p>
                         </div>
 
                         <?php /* Tasks (#75). Deliberately INSIDE the push panel:
@@ -853,14 +853,14 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                                  a task has two datable things and you should be
                                  able to say "the deadline but not the slot". */ ?>
                         <div style="margin-top:16px;">
-                            <div style="font-size:13px;margin-bottom:6px;"><?php echo htmlspecialchars(t('system.preferences.taskcal_heading')); ?></div>
+                            <div style="font-size:var(--font-size-md, 13px);margin-bottom:6px;"><?php echo htmlspecialchars(t('system.preferences.taskcal_heading')); ?></div>
                             <div class="anim-toggle" id="taskCalToggle">
                                 <button class="anim-option" data-taskcal="off"><?php echo htmlspecialchars(t('system.preferences.taskcal_off')); ?></button>
                                 <button class="anim-option" data-taskcal="work"><?php echo htmlspecialchars(t('system.preferences.taskcal_work')); ?></button>
                                 <button class="anim-option" data-taskcal="due"><?php echo htmlspecialchars(t('system.preferences.taskcal_due')); ?></button>
                                 <button class="anim-option" data-taskcal="both"><?php echo htmlspecialchars(t('system.preferences.taskcal_both')); ?></button>
                             </div>
-                            <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;">
+                            <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);">
                                 <?php echo htmlspecialchars(t('system.preferences.taskcal_note')); ?>
                             </p>
                         </div>
@@ -876,12 +876,12 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                         </button>
 
                         <div style="margin-top:14px;">
-                            <div style="font-size:13px;margin-bottom:6px;"><?php echo htmlspecialchars(t('system.preferences.workcal_detail')); ?></div>
+                            <div style="font-size:var(--font-size-md, 13px);margin-bottom:6px;"><?php echo htmlspecialchars(t('system.preferences.workcal_detail')); ?></div>
                             <div class="anim-toggle" id="workCalDetailToggle">
                                 <button class="anim-option" data-workcaldetail="full"><?php echo htmlspecialchars(t('system.preferences.workcal_detail_full')); ?></button>
                                 <button class="anim-option" data-workcaldetail="ref"><?php echo htmlspecialchars(t('system.preferences.workcal_detail_ref')); ?></button>
                             </div>
-                            <p class="pref-hint" id="workCalDetailLocked" style="display:none;margin-top:8px;color:var(--text-muted,#666);font-size:12px;">
+                            <p class="pref-hint" id="workCalDetailLocked" style="display:none;margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);">
                                 <?php echo htmlspecialchars(t('system.preferences.workcal_detail_locked')); ?>
                             </p>
                         </div>
@@ -944,7 +944,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                      page looks live and reads as a broken button. -->
                 <button type="button" class="sig-btn sig-btn-secondary" id="notifSoundPreview" style="margin-left:8px;vertical-align:middle;"><?php echo htmlspecialchars(t('system.preferences.sound_play')); ?></button>
                 <span class="pref-saving-hint" id="notifSoundHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
-                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;"><?php echo htmlspecialchars(t('system.preferences.sound_note')); ?></p>
+                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);"><?php echo htmlspecialchars(t('system.preferences.sound_note')); ?></p>
             </div>
 
             <!-- Desktop notifications. Beside the chime because it is the same
@@ -961,7 +961,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 </div>
                 <button type="button" class="sig-btn sig-btn-secondary" id="desktopNotifTest" style="margin-top:10px;"><?php echo htmlspecialchars(t('system.preferences.desktop_test')); ?></button>
                 <span class="pref-saving-hint" id="desktopNotifHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
-                <p class="pref-hint" id="desktopNotifState" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;"></p>
+                <p class="pref-hint" id="desktopNotifState" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);"></p>
             </div>
 
             <!-- Task assignment by email. -->
@@ -1133,7 +1133,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     <button class="anim-option" data-msmode="keep"><?php echo htmlspecialchars(t('system.preferences.multiselect_keep')); ?></button>
                     <button class="anim-option" data-msmode="bar"><?php echo htmlspecialchars(t('system.preferences.multiselect_bar')); ?></button>
                 </div>
-                <p class="pref-hint" id="multiSelectPaneHint" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;"></p>
+                <p class="pref-hint" id="multiSelectPaneHint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);"></p>
             </div>
 
             <?php

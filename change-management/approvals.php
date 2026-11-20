@@ -49,7 +49,7 @@ $translationNamespaces = ['common', 'change-management'];
         }
 
         .approvals-sidebar h3 {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-dim, #888);
             text-transform: uppercase;
@@ -64,7 +64,7 @@ $translationNamespaces = ['common', 'change-management'];
             padding: 10px 14px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             transition: background 0.15s;
         }
@@ -78,7 +78,7 @@ $translationNamespaces = ['common', 'change-management'];
         }
 
         .approval-filter .filter-count {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             background: var(--border-soft, #eee);
             color: var(--text-muted, #666);
             padding: 2px 8px;
@@ -108,7 +108,7 @@ $translationNamespaces = ['common', 'change-management'];
 
         .approvals-header h2 {
             margin: 0;
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             color: var(--text, #333);
         }
 
@@ -135,7 +135,7 @@ $translationNamespaces = ['common', 'change-management'];
         }
 
         .approval-card-ref {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-dim, #888);
             font-family: monospace;
@@ -157,7 +157,7 @@ $translationNamespaces = ['common', 'change-management'];
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
         }
 
@@ -184,13 +184,13 @@ $translationNamespaces = ['common', 'change-management'];
         }
 
         .approval-empty h3 {
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text-muted, #666);
             margin: 0 0 6px;
         }
 
         .approval-empty p {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             margin: 0;
         }
     </style>

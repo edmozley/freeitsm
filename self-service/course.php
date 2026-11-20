@@ -86,7 +86,7 @@ $pageStyles = <<<'CSS'
                         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cr-bar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .cr-back {
-    font-size: 13px; padding: 6px 12px; border-radius: 6px; text-decoration: none;
+    font-size: var(--font-size-md, 13px); padding: 6px 12px; border-radius: 6px; text-decoration: none;
     border: 1px solid var(--border, #e5e7eb); color: var(--text, #333); background: var(--surface, #fff);
 }
 .cr-frame { width: 100%; height: calc(100vh - var(--ss-chrome, 48px) - 49px); border: 0; display: block; background: var(--surface, #fff); }

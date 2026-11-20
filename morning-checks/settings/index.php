@@ -73,7 +73,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             margin-bottom: 20px;
             min-height: 42px;
         }
-        .section-header h2 { margin: 0; font-size: 18px; color: var(--text, #2c3e50); }
+        .section-header h2 { margin: 0; font-size: var(--font-size-2xl, 18px); color: var(--text, #2c3e50); }
 
         /* Check items list. Rendered as a flat list with thin separators
            rather than per-row cards — the outer .tab-content already
@@ -108,10 +108,10 @@ $translationNamespaces = ['common', 'morning-checks'];
 
         /* Check info */
         .check-info { flex: 1; min-width: 0; }
-        .check-info strong { display: block; color: var(--text, #333); font-size: 14px; margin-bottom: 2px; }
+        .check-info strong { display: block; color: var(--text, #333); font-size: var(--font-size-lg, 14px); margin-bottom: 2px; }
         .check-description {
             display: block;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             white-space: nowrap;
             overflow: hidden;
@@ -132,7 +132,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             padding: 10px 8px;
             text-align: left;
             border-bottom: 1px solid var(--border-soft, #f0f0f0);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .lookup-table th { font-weight: 600; color: var(--text-muted, #666); background: var(--surface-2, #fafafa); }
         .lookup-table td:last-child,
@@ -175,7 +175,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             text-align: center;
             padding: 40px 20px;
             color: var(--text-faint, #999);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         /* Module accent (cyan) — drives tabs, toggles, focus rings, shared
@@ -234,8 +234,8 @@ $translationNamespaces = ['common', 'morning-checks'];
                  to a current StatusID (e.g. left over from a deleted
                  status). Hidden when no orphans exist. -->
             <div id="orphanSection" style="display: none; margin-top: 32px; padding: 16px; background: var(--warning-bg, #fff8e1); border: 1px solid var(--warning-border, #ffd54f); border-radius: 6px;">
-                <h3 style="margin: 0 0 6px; font-size: 16px; color: var(--warning-text, #663d00);">⚠ <?php echo htmlspecialchars(t('morning-checks.settings.orphan_heading')); ?></h3>
-                <p style="font-size: 13px; color: var(--warning-text, #5d4a00); margin-bottom: 14px;">
+                <h3 style="margin: 0 0 6px; font-size: var(--font-size-xl, 16px); color: var(--warning-text, #663d00);">⚠ <?php echo htmlspecialchars(t('morning-checks.settings.orphan_heading')); ?></h3>
+                <p style="font-size: var(--font-size-md, 13px); color: var(--warning-text, #5d4a00); margin-bottom: 14px;">
                     <?php echo t('morning-checks.settings.orphan_intro_html'); ?>
                 </p>
                 <table class="lookup-table" id="orphanTable">
@@ -335,18 +335,18 @@ $translationNamespaces = ['common', 'morning-checks'];
             <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_intro')); ?></p>
 
             <div class="form-group">
-                <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--text, #333); font-size: 13px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_bar_fill')); ?></label>
+                <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--text, #333); font-size: var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('morning-checks.settings.chart_bar_fill')); ?></label>
                 <div style="display: flex; gap: 24px; margin-top: 4px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text, #333);">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text, #333);">
                         <input type="radio" name="chartFill" value="plain" id="chartFillPlain">
                         <?php echo htmlspecialchars(t('morning-checks.settings.chart_plain')); ?>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text, #333);">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text, #333);">
                         <input type="radio" name="chartFill" value="gradient" id="chartFillGradient">
                         <?php echo htmlspecialchars(t('morning-checks.settings.chart_gradient')); ?>
                     </label>
                 </div>
-                <p style="font-size: 12px; color: var(--text-dim, #888); margin-top: 8px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_fill_help')); ?></p>
+                <p style="font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 8px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_fill_help')); ?></p>
             </div>
         </div>
     </div>
@@ -863,15 +863,15 @@ $translationNamespaces = ['common', 'morning-checks'];
                 ).join('');
                 return `
                     <tr data-label="${escapeHtmlAttr(row.label)}">
-                        <td><code style="background: var(--surface-2, #f5f5f5); padding: 2px 6px; border-radius: 3px; font-size: 12px;">${escapeHtml(row.label)}</code></td>
+                        <td><code style="background: var(--surface-2, #f5f5f5); padding: 2px 6px; border-radius: 3px; font-size: var(--font-size-sm, 12px);">${escapeHtml(row.label)}</code></td>
                         <td>${row.count}</td>
                         <td>
-                            <select class="orphan-target" data-idx="${idx}" style="padding: 6px 10px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 13px;">
+                            <select class="orphan-target" data-idx="${idx}" style="padding: 6px 10px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: var(--font-size-md, 13px);">
                                 ${options}
                             </select>
                         </td>
                         <td>
-                            <button type="button" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="normaliseOneOrphan(${idx})">${escapeHtml(window.t('morning-checks.settings.orphan_map'))}</button>
+                            <button type="button" class="btn btn-primary" style="padding: 6px 12px; font-size: var(--font-size-sm, 12px);" onclick="normaliseOneOrphan(${idx})">${escapeHtml(window.t('morning-checks.settings.orphan_map'))}</button>
                         </td>
                     </tr>
                 `;
@@ -930,7 +930,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                         <span class="status-swatch" style="background-color: ${escapeHtmlAttr(s.Colour)}"></span>
                         ${escapeHtml(s.Label)}
                     </td>
-                    <td><code style="font-size: 12px; color: var(--text-muted, #666);">${escapeHtml(s.Colour)}</code></td>
+                    <td><code style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666);">${escapeHtml(s.Colour)}</code></td>
                     <td>${s.RequiresNotes ? '<span class="badge-yes">' + escapeHtml(window.t('morning-checks.settings.yes')) + '</span>' : '<span class="badge-no">' + escapeHtml(window.t('morning-checks.settings.no')) + '</span>'}</td>
                     <td><span class="status-badge status-${s.IsActive ? 'active' : 'inactive'}">${s.IsActive ? escapeHtml(window.t('morning-checks.settings.status_active')) : escapeHtml(window.t('morning-checks.settings.status_inactive'))}</span></td>
                     <td>
@@ -1109,11 +1109,11 @@ $translationNamespaces = ['common', 'morning-checks'];
                 // actually happen rather than list both hopefully.
                 const routed = g.AnalystName
                     ? escapeHtml(g.AnalystName)
-                    : (g.TeamName ? escapeHtml(g.TeamName) + ' <span style="color:var(--text-dim,#999);font-size:11px;">('
+                    : (g.TeamName ? escapeHtml(g.TeamName) + ' <span style="color:var(--text-dim,#999);font-size:var(--font-size-xs, 11px);">('
                         + escapeHtml(window.t('morning-checks.settings.route_team_word')) + ')</span>'
                         : `<span style="color:var(--text-dim,#999);">${escapeHtml(window.t('morning-checks.settings.route_nobody'))}</span>`);
                 return `<tr>
-                    <td><strong>${escapeHtml(g.GroupName)}</strong>${g.GroupDescription ? `<div style="font-size:12px;color:var(--text-muted,#666);">${escapeHtml(g.GroupDescription)}</div>` : ''}</td>
+                    <td><strong>${escapeHtml(g.GroupName)}</strong>${g.GroupDescription ? `<div style="font-size:var(--font-size-sm, 12px);color:var(--text-muted,#666);">${escapeHtml(g.GroupDescription)}</div>` : ''}</td>
                     <td>${routed}</td>
                     <td>${Number(g.CheckCount) || 0}</td>
                     <td>${Number(g.SortOrder) || 0}</td>

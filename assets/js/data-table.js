@@ -1380,7 +1380,7 @@
                         <label class="dt-pop-item">
                             <input type="checkbox" value="${esc(v)}" ${selected.has(v) ? 'checked' : ''}>
                             <span class="dt-pop-value">${esc(labels.get(v) ?? v)}</span>
-                            <span style="color:#999;font-size:11px;">${distinct.get(v)}</span>
+                            <span style="color:#999;font-size:var(--font-size-xs, 11px);">${distinct.get(v)}</span>
                         </label>`).join('')}
                 </div>
                 <div class="dt-pop-buttons">

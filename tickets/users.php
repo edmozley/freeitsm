@@ -61,7 +61,7 @@ $translationNamespaces = ['common', 'tickets'];
 
         .users-list-header h3 {
             margin: 0 0 10px 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
@@ -70,7 +70,7 @@ $translationNamespaces = ['common', 'tickets'];
             padding: 10px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             box-sizing: border-box;
         }
 
@@ -108,13 +108,13 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .user-email {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
             margin-bottom: 4px;
         }
 
         .user-meta {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             display: flex;
             gap: 15px;
@@ -135,14 +135,14 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .user-detail-name {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 5px 0;
         }
 
         .user-detail-email {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-muted, #666);
         }
 
@@ -162,21 +162,21 @@ $translationNamespaces = ['common', 'tickets'];
         /* The person editor's styles live with it now: includes/person_editor.php. */
 
         .info-label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin-bottom: 4px;
             text-transform: uppercase;
         }
 
         .info-value {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
 
         /* The Unlink beside "Signs in with" - a link-weight action, not a toolbar button. */
         .btn-link-inline {
             background: none; border: 0; padding: 0; margin-left: 6px;
-            font: inherit; font-size: 13px; color: var(--accent, #0078d4);
+            font: inherit; font-size: var(--font-size-md, 13px); color: var(--accent, #0078d4);
             cursor: pointer; text-decoration: underline;
         }
         .btn-link-inline:hover { color: var(--accent-hover, #005a9e); }
@@ -219,7 +219,7 @@ $translationNamespaces = ['common', 'tickets'];
         .ticket-row-header {
             font-weight: 600;
             background-color: var(--surface-hover, #f0f0f0);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
             text-transform: uppercase;
         }
@@ -248,7 +248,7 @@ $translationNamespaces = ['common', 'tickets'];
             box-sizing: border-box;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             text-align: center;
             white-space: nowrap;   /* keep "Awaiting Response" on one line */
         }
@@ -258,11 +258,11 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .ticket-priority {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .ticket-date {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
@@ -272,7 +272,7 @@ $translationNamespaces = ['common', 'tickets'];
             justify-content: center;
             flex: 1;
             color: var(--text-dim, #888);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             padding: 40px;
             text-align: center;
         }
@@ -299,7 +299,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .user-count {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin-top: 8px;
         }
@@ -354,8 +354,8 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .group-name { font-weight: 600; color: var(--text, #333); margin-bottom: 4px; }
-        .group-desc { font-size: 13px; color: var(--text-muted, #666); margin-bottom: 4px; }
-        .group-meta { font-size: 12px; color: var(--text-dim, #888); display: flex; gap: 15px; }
+        .group-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-bottom: 4px; }
+        .group-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); display: flex; gap: 15px; }
 
         .member-row {
             display: grid;
@@ -369,19 +369,19 @@ $translationNamespaces = ['common', 'tickets'];
         .member-row-header {
             font-weight: 600;
             background-color: var(--surface-hover, #f0f0f0);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
             text-transform: uppercase;
         }
 
         .member-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .member-secondary { font-size: 12px; color: var(--text-dim, #888); }
+        .member-secondary { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
 
         .member-kind {
             display: inline-block;
             padding: 3px 8px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             background-color: var(--surface-3, #f8f9fa);
             border: 1px solid var(--border, #e0e0e0);
             color: var(--text-muted, #666);
@@ -429,17 +429,17 @@ $translationNamespaces = ['common', 'tickets'];
 
         .member-result:hover { background-color: var(--surface-2, #f5f5f5); }
         .member-result-name { font-weight: 500; color: var(--text, #333); }
-        .member-result-meta { font-size: 12px; color: var(--text-dim, #888); }
+        .member-result-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
 
         .member-add-until { display: flex; flex-direction: column; gap: 4px; }
-        .member-add-until label { font-size: 12px; color: var(--text-muted, #666); }
+        .member-add-until label { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 
         /* Members this analyst's company filter removed. Said out loud rather
            than silently dropped — an access list you cannot see all of is worth
            knowing about. */
         .hidden-note {
             padding: 10px 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
             background-color: var(--surface-3, #f8f9fa);
             border-bottom: 1px solid var(--border, #e0e0e0);
@@ -698,7 +698,7 @@ $translationNamespaces = ['common', 'tickets'];
             const add = (labelKey, value, dialHref) => {
                 if (value === null || value === undefined || value === '') return;
                 const call = dialHref
-                    ? ` <a class="phone-dial" style="margin-left:6px;font-size:12px;font-weight:600;white-space:nowrap" href="${escapeHtml(dialHref)}"`
+                    ? ` <a class="phone-dial" style="margin-left:6px;font-size:var(--font-size-sm, 12px);font-weight:600;white-space:nowrap" href="${escapeHtml(dialHref)}"`
                       + (/^https:/i.test(dialHref) ? ' target="_blank" rel="noopener"' : '')
                       + ` title="${escapeHtml(t('common.phone_dial.call_title', { number: String(value) }))}">${escapeHtml(t('common.phone_dial.call'))}</a>`
                     : '';

@@ -57,7 +57,7 @@ $translationNamespaces = ['common', 'contracts'];
 
         .sidebar-section { margin-bottom: 24px; }
         .sidebar-section h3 {
-            font-size: 14px; font-weight: 600; color: var(--text, #333);
+            font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333);
             margin: 0 0 12px 0;
         }
 
@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'contracts'];
             background: var(--surface, white);
             border: 1px solid var(--border, #ddd);
             border-radius: 6px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-dim, #888);
             cursor: pointer;
             text-align: left;
@@ -85,14 +85,14 @@ $translationNamespaces = ['common', 'contracts'];
             align-items: center;
             padding: 10px 12px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             cursor: default;
             margin-bottom: 4px;
         }
         .sidebar-stat .stat-value {
             font-weight: 700;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
         }
         .sidebar-stat.warning .stat-value { color: var(--con-accent, #f59e0b); }
 
@@ -100,7 +100,7 @@ $translationNamespaces = ['common', 'contracts'];
         .sidebar-link {
             display: flex; align-items: center; gap: 10px;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: var(--text, #333);
+            font-size: var(--font-size-lg, 14px); color: var(--text, #333);
             text-decoration: none; transition: all 0.15s;
         }
         .sidebar-link:hover { background: #fff7ed; color: var(--con-accent, #f59e0b); }
@@ -114,7 +114,7 @@ $translationNamespaces = ['common', 'contracts'];
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s;
@@ -133,23 +133,23 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             padding: 18px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
-        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
+        .section-card .section-header h2 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
 
         .section-card table { width: 100%; border-collapse: collapse; }
         .section-card table th {
-            text-align: left; padding: 12px 24px; font-size: 12px; font-weight: 600;
+            text-align: left; padding: 12px 24px; font-size: var(--font-size-sm, 12px); font-weight: 600;
             color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             border-bottom: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafafa);
         }
         .section-card table td {
-            padding: 14px 24px; font-size: 14px; color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
+            padding: 14px 24px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
         }
         .section-card table tr:last-child td { border-bottom: none; }
         .section-card table tr:hover { background: var(--surface-hover, #fafafa); }
 
         /* Canonical pill shape (matches .status-badge in inbox.css); the
            active/expired/expiring colours are contract-lifecycle specific. */
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: var(--font-size-sm, 12px); font-weight: 500; }
         .status-badge.active { background: #d4edda; color: #155724; }
         .status-badge.expired { background: #f8d7da; color: #721c24; }
         .status-badge.expiring { background: #fff3cd; color: #856404; }
@@ -172,22 +172,22 @@ $translationNamespaces = ['common', 'contracts'];
         .search-result-item:hover { background: #fff7ed; border-color: var(--con-accent, #f59e0b); }
         .search-result-type {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
             margin-right: 8px;
         }
         .search-result-type.contract { background: #fff3cd; color: #856404; }
         .search-result-type.supplier { background: #d4edda; color: #155724; }
         .search-result-type.contact { background: #d6e9f8; color: #1a5276; }
-        .search-result-title { font-weight: 600; color: var(--text, #333); font-size: 14px; }
-        .search-result-meta { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; }
+        .search-result-title { font-weight: 600; color: var(--text, #333); font-size: var(--font-size-lg, 14px); }
+        .search-result-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 4px; }
 
         /* Dark-mode overrides for pale amber tints (light values kept hardcoded) */
         [data-theme-mode="dark"] .sidebar-link:hover { background: #3a2e12; }
         [data-theme-mode="dark"] .search-result-item:hover { background: #3a2e12; }
         /* Supplier or customer (#153) */
-        .party-filter { font: inherit; font-size: 13px; padding: 5px 8px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
-        .party-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; background: var(--con-accent-soft, #fef3c7); color: var(--text, #333); vertical-align: 1px; }
-        .row-company { font-size: 12px; color: var(--text-muted, #777); margin-top: 2px; }
+        .party-filter { font: inherit; font-size: var(--font-size-md, 13px); padding: 5px 8px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
+        .party-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; background: var(--con-accent-soft, #fef3c7); color: var(--text, #333); vertical-align: 1px; }
+        .row-company { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #777); margin-top: 2px; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">

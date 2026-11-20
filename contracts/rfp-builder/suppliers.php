@@ -39,7 +39,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -52,7 +52,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
@@ -83,7 +83,7 @@ $translationNamespaces = ['common', 'contracts'];
         .supplier-row:last-child { border-bottom: none; }
         .supplier-name { font-size: 15px; font-weight: 600; color: var(--text, #222); }
         .supplier-name .trading {
-            font-size: 12px; color: var(--text-dim, #888); font-weight: 400; margin-top: 2px;
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-weight: 400; margin-top: 2px;
         }
         .supplier-name .status-pill {
             display: inline-block; padding: 1px 7px; border-radius: 9px;
@@ -93,23 +93,23 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .supplier-name .status-pill.prospective { background: #fef3c7; color: #92400e; }
         .supplier-name .invited-at {
-            font-size: 11px; color: var(--text-faint, #aaa); margin-top: 4px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-faint, #aaa); margin-top: 4px;
         }
 
         .supplier-field label {
-            display: block; font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
+            display: block; font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
             margin-bottom: 3px;
         }
         .supplier-field input[type="date"], .supplier-field .di-type-date,
         .supplier-field textarea {
-            width: 100%; padding: 6px 10px; font-size: 13px;
+            width: 100%; padding: 6px 10px; font-size: var(--font-size-md, 13px);
             border: 1px solid var(--border, #d1d5db); border-radius: 5px;
             font-family: inherit;
         }
         .supplier-field textarea { resize: vertical; min-height: 38px; }
         .supplier-field .save-status {
-            font-size: 11px; color: var(--text-dim, #888); margin-top: 4px; min-height: 14px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); margin-top: 4px; min-height: 14px;
         }
         .supplier-field .save-status.saving { color: #b45309; }
         .supplier-field .save-status.saved  { color: #047857; }
@@ -133,7 +133,7 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222); }
+        .modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222); }
         .modal-header .close-x {
             background: none; border: none; font-size: 22px; color: var(--text-dim, #888); cursor: pointer; padding: 0; line-height: 1;
         }
@@ -145,7 +145,7 @@ $translationNamespaces = ['common', 'contracts'];
 
         .modal-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border-soft, #eee); }
         .modal-tab {
-            flex: 1; padding: 10px 14px; font-size: 13px; font-weight: 500;
+            flex: 1; padding: 10px 14px; font-size: var(--font-size-md, 13px); font-weight: 500;
             color: var(--text-muted, #555); background: var(--surface, white); border: none; cursor: pointer;
             border-bottom: 2px solid transparent;
             font-family: inherit;
@@ -155,15 +155,15 @@ $translationNamespaces = ['common', 'contracts'];
 
         .form-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
         .form-row label {
-            font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
         }
-        .form-row .help { font-size: 12px; color: var(--text-dim, #888); }
+        .form-row .help { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .form-row input[type="text"],
         .form-row input[type="date"], .form-row .di-type-date,
         .form-row select,
         .form-row textarea {
-            padding: 8px 10px; font-size: 14px; font-family: inherit;
+            padding: 8px 10px; font-size: var(--font-size-lg, 14px); font-family: inherit;
             border: 1px solid var(--border, #d1d5db); border-radius: 6px;
             color: var(--text, #222); background: var(--surface, white);
         }
@@ -263,7 +263,7 @@ $translationNamespaces = ['common', 'contracts'];
                         <label for="newNotes"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.rfp_notes_optional')); ?></label>
                         <textarea id="newNotes" rows="2"></textarea>
                     </div>
-                    <div class="help" style="background:var(--con-accent-soft, #fef3c7);border:1px solid #fde68a;border-radius:6px;padding:8px 12px;color:var(--con-accent-hover, #92400e);font-size:12px;">
+                    <div class="help" style="background:var(--con-accent-soft, #fef3c7);border:1px solid #fde68a;border-radius:6px;padding:8px 12px;color:var(--con-accent-hover, #92400e);font-size:var(--font-size-sm, 12px);">
                         <?php echo htmlspecialchars(t('contracts.rfp.suppliers.prospective_help')); ?>
                     </div>
                 </div>

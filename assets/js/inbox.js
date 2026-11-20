@@ -2156,8 +2156,8 @@ function renderEmailList() {
         const ticketId = email.ticket_id || email.id;
         const trashActions = inTrash ? `
                 <div style="display:flex;gap:8px;margin-top:7px;">
-                    <button onclick="event.stopPropagation(); restoreTicketFromTrash(${ticketId})" style="font-size:11px;padding:3px 9px;border:1px solid #c8d6cf;background:#eefaf2;color:#1b7a43;border-radius:4px;cursor:pointer;">↩ Restore</button>
-                    <button onclick="event.stopPropagation(); permanentlyDeleteFromTrash(${ticketId}, ${jsArg(email.ticket_number || '')})" style="font-size:11px;padding:3px 9px;border:1px solid #e6c4c4;background:#fdeceb;color:#b71c1c;border-radius:4px;cursor:pointer;">✕ Delete forever</button>
+                    <button onclick="event.stopPropagation(); restoreTicketFromTrash(${ticketId})" style="font-size:var(--font-size-xs, 11px);padding:3px 9px;border:1px solid #c8d6cf;background:#eefaf2;color:#1b7a43;border-radius:4px;cursor:pointer;">↩ Restore</button>
+                    <button onclick="event.stopPropagation(); permanentlyDeleteFromTrash(${ticketId}, ${jsArg(email.ticket_number || '')})" style="font-size:var(--font-size-xs, 11px);padding:3px 9px;border:1px solid #e6c4c4;background:#fdeceb;color:#b71c1c;border-radius:4px;cursor:pointer;">✕ Delete forever</button>
                 </div>` : '';
         // Reserve a slot for the SLA dot; populated asynchronously by loadInboxSlaIndicators()
         // once the batch endpoint responds. Stays empty (and invisible) for tickets without SLA.
@@ -3432,7 +3432,7 @@ function displayEmail(email, recordings) {
     const isTrashed = !!email.deleted_datetime;
     const trashBanner = isTrashed ? `
         <div style="background:#fdeceb;border:1px solid #e6c4c4;border-radius:8px;padding:12px 16px;margin:0 0 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <span style="font-size:18px;">🗑️</span>
+            <span style="font-size:var(--font-size-2xl, 18px);">🗑️</span>
             <span style="color:#b71c1c;font-weight:600;flex:1;min-width:180px;">This ticket is in the trash — its actions are disabled until you restore it.</span>
             <button onclick="restoreTicketFromTrash(${email.ticket_id})" style="font-size:12.5px;padding:6px 14px;border:1px solid #c8d6cf;background:#eefaf2;color:#1b7a43;border-radius:5px;cursor:pointer;font-weight:600;">↩ Restore</button>
             <button onclick="permanentlyDeleteFromTrash(${email.ticket_id}, ${jsArg(email.ticket_number || '')})" style="font-size:12.5px;padding:6px 14px;border:1px solid #e6c4c4;background:#fff;color:#b71c1c;border-radius:5px;cursor:pointer;font-weight:600;">✕ Delete forever</button>
@@ -4656,9 +4656,9 @@ function renderEscalateAttachments(files) {
 
     const sending = files.filter(f => !f.skip_reason).length;
     box.innerHTML =
-        '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;">'
+        '<div style="font-size:var(--font-size-sm, 12px);font-weight:600;color:var(--text);margin-bottom:4px;">'
         + escapeHtml(t('tickets.tracker.attach_heading').replace('{count}', sending)) + '</div>'
-        + '<ul style="margin:0;padding-left:18px;font-size:12px;color:var(--text-muted);">' + rows + '</ul>';
+        + '<ul style="margin:0;padding-left:18px;font-size:var(--font-size-sm, 12px);color:var(--text-muted);">' + rows + '</ul>';
     box.style.display = '';
 }
 
@@ -4677,7 +4677,7 @@ function renderEscalateConfidential(isConfidential) {
     }
     if (!box) return;
     if (!isConfidential) { box.style.display = 'none'; box.innerHTML = ''; return; }
-    box.style.cssText = 'margin:10px 0;padding:10px 12px;border-radius:6px;font-size:13px;line-height:1.45;'
+    box.style.cssText = 'margin:10px 0;padding:10px 12px;border-radius:6px;font-size:var(--font-size-md, 13px);line-height:1.45;'
         + 'background:var(--warning-bg,#fff4ce);border:1px solid var(--warning-border,#f0d78c);color:var(--warning-text,#6b5900);';
     box.innerHTML = '<strong>' + escapeHtml(t('tickets.tracker.confidential_title')) + '</strong><br>'
         + escapeHtml(t('tickets.tracker.confidential_body'))
@@ -6275,7 +6275,7 @@ function refreshCurrentView() {
  */
 function requesterDialHtml(email) {
     return (email.requester_dial || []).map(d =>
-        ` · ${escapeHtml(d.number)} <a class="phone-dial" style="margin-left:4px;font-size:12px;font-weight:600;white-space:nowrap" href="${escapeHtml(d.href)}"`
+        ` · ${escapeHtml(d.number)} <a class="phone-dial" style="margin-left:4px;font-size:var(--font-size-sm, 12px);font-weight:600;white-space:nowrap" href="${escapeHtml(d.href)}"`
         + (/^https:/i.test(d.href) ? ' target="_blank" rel="noopener"' : '')
         + ` title="${escapeHtml(t('common.phone_dial.call_title', { number: d.number }))}">${escapeHtml(t('common.phone_dial.call'))}</a>`
     ).join('');
@@ -13302,7 +13302,7 @@ function openWriteUpModal() {
                     <button class="modal-close" onclick="closeWriteUpModal()">&times;</button>
                 </div>
                 <div class="modal-body" id="wuBody" style="max-height:60vh;overflow-y:auto;">
-                    <div id="wuStatus" style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Reading the ticket…</div>
+                    <div id="wuStatus" style="font-size:var(--font-size-md, 13px);color:var(--text-muted);margin-bottom:12px;">Reading the ticket…</div>
                     <div id="wuContent"></div>
                 </div>
                 <div class="modal-footer" id="wuFoot"></div>
@@ -13429,7 +13429,7 @@ function wuFinish(data) {
     if (data.verdict === 'article') {
         statusEl.textContent = 'Draft ready — read it before publishing.';
         contentEl.insertAdjacentHTML('beforeend',
-            '<div style="font-size:12px;color:var(--text-muted);margin-top:12px;">' +
+            '<div style="font-size:var(--font-size-sm, 12px);color:var(--text-muted);margin-top:12px;">' +
             'Saving puts this in the knowledge base as an unpublished draft. Nobody can read it until you publish it.</div>');
         footEl.innerHTML =
             '<button class="btn btn-secondary" onclick="closeWriteUpModal()">Cancel</button>' +
@@ -13444,10 +13444,10 @@ function wuFinish(data) {
     }
     if ((data.questions || []).length) {
         contentEl.insertAdjacentHTML('beforeend',
-            '<p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;">Answer what you can and it will try again.</p>' +
+            '<p style="font-size:var(--font-size-md, 13px);color:var(--text-muted);margin:0 0 14px;">Answer what you can and it will try again.</p>' +
             data.questions.map(q =>
                 '<div class="wu-q" style="margin-bottom:14px;">' +
-                '<label style="display:block;font-size:13px;margin-bottom:5px;line-height:1.45;">' + escapeHtml(q) + '</label>' +
+                '<label style="display:block;font-size:var(--font-size-md, 13px);margin-bottom:5px;line-height:1.45;">' + escapeHtml(q) + '</label>' +
                 '<textarea class="form-textarea" style="width:100%;box-sizing:border-box;min-height:58px;"></textarea></div>').join(''));
         footEl.innerHTML =
             '<button class="btn btn-secondary" onclick="closeWriteUpModal()">Close</button>' +
@@ -13733,7 +13733,7 @@ async function loadAiSummary(ticketId) {
         // be, rather than leave the analyst wondering where it went.
         if (d.confidential && _aiSummaryTicketId === ticketId) {
             const slot = document.getElementById('aiSummarySlot');
-            if (slot) slot.innerHTML = '<div class="ai-summary-confidential" style="font-size:12px;color:var(--text-muted,#666);padding:6px 0;">' + escapeHtml(d.error || '') + '</div>';
+            if (slot) slot.innerHTML = '<div class="ai-summary-confidential" style="font-size:var(--font-size-sm, 12px);color:var(--text-muted,#666);padding:6px 0;">' + escapeHtml(d.error || '') + '</div>';
             return;
         }
         if (!d.success || d.disabled || _aiSummaryTicketId !== ticketId) return;
@@ -14122,9 +14122,9 @@ async function openChangeRequester() {
             const others = Math.max(0, (m.tickets || 0) - 1);
             picked.innerHTML = `<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="crqMerge" checked>
                 <span>${escapeHtml(T(others ? 'merge' : 'merge_only', { name: m.from.name, email: m.from.email || '', into: m.to.name, n: others }))}
-                <br><span style="color:var(--text-muted);font-size:12px">${escapeHtml(m.delete ? T('merge_delete') : T('merge_keep'))}</span></span></label>`;
+                <br><span style="color:var(--text-muted);font-size:var(--font-size-sm, 12px)">${escapeHtml(m.delete ? T('merge_delete') : T('merge_keep'))}</span></span></label>`;
         } else if (m && m.reason && m.reason !== 'same') {
-            picked.innerHTML = `<div style="color:var(--text-muted);font-size:12px">${escapeHtml(T('no_merge_' + m.reason, { name: m.from.name || '' }))}</div>`;
+            picked.innerHTML = `<div style="color:var(--text-muted);font-size:var(--font-size-sm, 12px)">${escapeHtml(T('no_merge_' + m.reason, { name: m.from.name || '' }))}</div>`;
         } else {
             picked.innerHTML = '';
         }

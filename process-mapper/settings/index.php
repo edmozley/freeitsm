@@ -79,7 +79,7 @@ $shapes = include '../includes/shapes.php';
             max-width: 500px;
         }
         .modal-header {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             margin-bottom: 20px;
             color: var(--text, #333);
@@ -110,7 +110,7 @@ $shapes = include '../includes/shapes.php';
             background: var(--accent-soft, #eaf4fc);
         }
         .pms-shape-name {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-muted, #666);
             text-align: center;
         }
@@ -204,14 +204,14 @@ $shapes = include '../includes/shapes.php';
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="pmsSidebarMode" value="always" onchange="PMS.saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('process-mapper.left_panel.mode_always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-faint, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('process-mapper.left_panel.mode_always_hint')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="pmsSidebarMode" value="hover" onchange="PMS.saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('process-mapper.left_panel.mode_hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-faint, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('process-mapper.left_panel.mode_hover_hint')); ?>
                         </span>
                     </label>
@@ -321,7 +321,7 @@ $shapes = include '../includes/shapes.php';
                 const upDisabled   = i === 0 ? 'disabled' : '';
                 const downDisabled = i === types.length - 1 ? 'disabled' : '';
                 const deleteDisabled = row.is_builtin ? 'disabled' : '';
-                const swatch = `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${esc(row.color)}; vertical-align:middle; border:1px solid var(--border, #ddd); margin-right:6px;"></span><code style="font-size:12px;">${esc(row.color)}</code>`;
+                const swatch = `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${esc(row.color)}; vertical-align:middle; border:1px solid var(--border, #ddd); margin-right:6px;"></span><code style="font-size:var(--font-size-sm, 12px);">${esc(row.color)}</code>`;
                 return `<tr>
                     <td><span class="pm-shape-preview" data-shape="${esc(row.shape)}" style="background:${esc(row.color)}"></span></td>
                     <td><strong>${esc(row.name)}</strong>${builtin}</td>

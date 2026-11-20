@@ -55,12 +55,12 @@ $ready = assetLabelsSchemaReady($conn);
                background: var(--surface-2, #f3f6fa); color: var(--text, #222); }
         .bar { background: var(--accent, #546e7a); color: var(--on-accent, #fff); padding: 13px 16px;
                display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .bar h1 { font-size: 16px; margin: 0; font-weight: 600; }
-        .bar a { color: var(--on-accent, #fff); font-size: 13px; text-decoration: none; opacity: 0.9; }
+        .bar h1 { font-size: var(--font-size-xl, 16px); margin: 0; font-weight: 600; }
+        .bar a { color: var(--on-accent, #fff); font-size: var(--font-size-md, 13px); text-decoration: none; opacity: 0.9; }
         .wrap { max-width: 620px; margin: 0 auto; padding: 16px; }
         .card { background: var(--surface, #fff); border: 1px solid var(--border, #e2e6ea);
                 border-radius: 12px; padding: 16px; margin-bottom: 14px; }
-        .step-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted, #667); margin: 0 0 8px; }
+        .step-label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #667); margin: 0 0 8px; }
         .hint { font-size: 12.5px; color: var(--text-muted, #778); margin: 8px 0 0; line-height: 1.45; }
 
         /* Mode switch. Two jobs, and which one you're doing changes what a scan
@@ -73,7 +73,7 @@ $ready = assetLabelsSchemaReady($conn);
         .modes button.on { background: var(--accent, #546e7a); color: var(--on-accent, #fff); }
 
         select.big, input.big {
-            width: 100%; min-height: 50px; font-size: 16px; padding: 10px 12px;
+            width: 100%; min-height: 50px; font-size: var(--font-size-xl, 16px); padding: 10px 12px;
             border-radius: 10px; border: 1px solid var(--border, #cfd6dd);
             background: var(--surface, #fff); color: var(--text, #222);
         }
@@ -93,24 +93,24 @@ $ready = assetLabelsSchemaReady($conn);
         }
         .cam .torch {
             position: absolute; right: 10px; bottom: 10px; min-height: 42px; padding: 0 14px;
-            border-radius: 21px; border: 0; font-size: 14px; font-weight: 600; cursor: pointer;
+            border-radius: 21px; border: 0; font-size: var(--font-size-lg, 14px); font-weight: 600; cursor: pointer;
             background: rgba(0,0,0,0.55); color: #fff;
         }
         .cam .camstate {
             position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-            padding: 20px; text-align: center; color: #fff; font-size: 14px; line-height: 1.5;
+            padding: 20px; text-align: center; color: #fff; font-size: var(--font-size-lg, 14px); line-height: 1.5;
         }
 
-        .live { margin-top: 12px; font-size: 14px; font-weight: 600; min-height: 20px; }
+        .live { margin-top: 12px; font-size: var(--font-size-lg, 14px); font-weight: 600; min-height: 20px; }
         .live.ok   { color: var(--success-text, #166534); }
         .live.warn { color: var(--warning-text, #92400e); }
         .live.err  { color: var(--danger-text, #991b1b); }
 
         .found { margin-top: 12px; padding: 12px; border-radius: 10px;
-                 background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); font-size: 14px; }
-        .found strong { display: block; font-size: 16px; margin-bottom: 2px; }
+                 background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); font-size: var(--font-size-lg, 14px); }
+        .found strong { display: block; font-size: var(--font-size-xl, 16px); margin-bottom: 2px; }
         .miss  { margin-top: 12px; padding: 12px; border-radius: 10px;
-                 background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); font-size: 14px; }
+                 background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); font-size: var(--font-size-lg, 14px); }
 
         .btn-row { display: flex; gap: 8px; margin-top: 12px; }
         .btn-row button, .btn-row a {
@@ -121,9 +121,9 @@ $ready = assetLabelsSchemaReady($conn);
         }
         .btn-row button[disabled] { opacity: 0.5; cursor: default; }
 
-        .done-list { font-size: 13px; color: var(--text-muted, #667); margin: 0; padding-left: 18px; }
+        .done-list { font-size: var(--font-size-md, 13px); color: var(--text-muted, #667); margin: 0; padding-left: 18px; }
         .done-list li { margin-bottom: 4px; }
-        .counter { font-size: 13px; opacity: 0.9; }
+        .counter { font-size: var(--font-size-md, 13px); opacity: 0.9; }
         .stocktake-only { display: none; }
         body[data-mode="stocktake"] .stocktake-only { display: block; }
     </style>

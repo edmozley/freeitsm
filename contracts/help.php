@@ -53,7 +53,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .ct-help-tab-demo {
             padding: 10px 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             color: var(--text-dim, #888);
             border-bottom: 2px solid transparent;
@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'contracts'];
             border: 1px solid var(--border-soft, #eee);
             border-top: none;
             border-radius: 0 0 8px 8px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
             line-height: 1.6;
         }

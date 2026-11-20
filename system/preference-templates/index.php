@@ -44,7 +44,7 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
             --on-accent: var(--sys-on-accent, #fff);
             display: flex; flex-direction: column;
         }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
         .btn-secondary { background: var(--surface-2, #eceff1); color: var(--text, #333); }
@@ -53,11 +53,11 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
 
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). Only the scroll box is local. */
         .pt-container { flex: 1; min-height: 0; overflow-y: auto; }
-        .pt-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px;
+        .pt-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: var(--font-size-md, 13px);
             background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .pt-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 6px 20px 10px; }
-        .pt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .pt-table th { text-align: left; font-size: 12px; color: var(--text-muted, #888); font-weight: 600; padding: 10px 10px 8px; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
+        .pt-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        .pt-table th { text-align: left; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); font-weight: 600; padding: 10px 10px 8px; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
         .pt-table td { padding: 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: top; }
         .pt-table tr:last-child td { border-bottom: none; }
         .pt-name { font-weight: 600; color: var(--text, #333); }
@@ -69,26 +69,26 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
         .pt-actions button { background: none; border: 1px solid var(--border, #ddd); border-radius: 5px; padding: 4px 10px; font-size: 12.5px; cursor: pointer; color: var(--text, #333); margin-left: 4px; }
         .pt-actions button:hover { border-color: var(--accent, #546e7a); color: var(--accent, #546e7a); }
         .pt-actions button.danger:hover { border-color: #dc2626; color: #dc2626; }
-        .pt-empty { padding: 28px 10px; text-align: center; color: var(--text-faint, #999); font-size: 13px; }
+        .pt-empty { padding: 28px 10px; text-align: center; color: var(--text-faint, #999); font-size: var(--font-size-md, 13px); }
         .pt-updated { white-space: nowrap; color: var(--text-dim, #888); }
 
         .pt-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 2100; align-items: center; justify-content: center; }
         .pt-overlay.open { display: flex; }
         /* The dialog boxes are the standard System modal (.sys-modal in system-page.css). */
         .pt-field { margin-bottom: 16px; }
-        .pt-field > label, .pt-field .pt-label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
-        .pt-field .hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; line-height: 1.45; }
-        .pt-field input[type=text], .pt-field select { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; font-family: inherit; background: var(--surface, #fff); color: var(--text, #333); }
+        .pt-field > label, .pt-field .pt-label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
+        .pt-field .hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 4px; line-height: 1.45; }
+        .pt-field input[type=text], .pt-field select { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); font-family: inherit; background: var(--surface, #fff); color: var(--text, #333); }
         .pt-field input:focus, .pt-field select:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
         .pt-label-row { display: flex; align-items: baseline; gap: 10px; }
         .pt-label-row .pt-label { margin: 0; }
-        .pt-label-row button { background: none; border: none; padding: 0; font-size: 12px; color: var(--accent, #546e7a); cursor: pointer; }
+        .pt-label-row button { background: none; border: none; padding: 0; font-size: var(--font-size-sm, 12px); color: var(--accent, #546e7a); cursor: pointer; }
         .pt-sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 14px; margin-top: 6px; }
-        .pt-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text, #444); padding: 3px 0; cursor: pointer; }
+        .pt-check { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-md, 13px); color: var(--text, #444); padding: 3px 0; cursor: pointer; }
         .pt-check input:disabled + span { color: var(--text-faint, #aaa); }
         .pt-warn { margin: 0 0 12px; padding: 10px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .pt-people { border: 1px solid var(--border, #ddd); border-radius: 6px; max-height: 300px; overflow-y: auto; padding: 4px 10px; margin-top: 8px; }
-        .pt-count { font-size: 12px; color: var(--text-dim, #888); }
+        .pt-count { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
 
         @media (max-width: 768px) {
             .pt-panel { padding: 4px 10px 8px; overflow-x: auto; }
@@ -167,12 +167,12 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
         <div class="pt-modal sys-modal" role="dialog" aria-modal="true" aria-labelledby="ptApplyTitle">
             <div class="pt-modal-head sys-modal-head" id="ptApplyTitle"></div>
             <div class="pt-modal-body sys-modal-body">
-                <p class="pt-field" id="ptApplyIntro" style="margin:0 0 8px;font-size:13px;color:var(--text,#444)"></p>
+                <p class="pt-field" id="ptApplyIntro" style="margin:0 0 8px;font-size:var(--font-size-md, 13px);color:var(--text,#444)"></p>
                 <div class="pt-chips" id="ptApplySections" style="margin-bottom:14px"></div>
                 <p class="pt-warn"><?php echo htmlspecialchars($ptT('apply_warn')); ?></p>
                 <div class="pt-field">
                     <div class="pt-label-row">
-                        <input type="text" id="ptPeopleSearch" placeholder="<?php echo htmlspecialchars($ptT('apply_search')); ?>" style="flex:1;padding:8px 10px;border:1px solid var(--border,#ddd);border-radius:6px;font-size:13px;background:var(--surface,#fff);color:var(--text,#333)">
+                        <input type="text" id="ptPeopleSearch" placeholder="<?php echo htmlspecialchars($ptT('apply_search')); ?>" style="flex:1;padding:8px 10px;border:1px solid var(--border,#ddd);border-radius:6px;font-size:var(--font-size-md, 13px);background:var(--surface,#fff);color:var(--text,#333)">
                         <button type="button" id="ptPeopleAll"><?php echo htmlspecialchars($ptT('all')); ?></button>
                         <button type="button" id="ptPeopleNone"><?php echo htmlspecialchars($ptT('none')); ?></button>
                     </div>

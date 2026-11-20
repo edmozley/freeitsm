@@ -5,7 +5,7 @@
 .tf-answers { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px 18px; margin: 0; }
 .tf-answer { min-width: 0; }
 .tf-answer dt { font-size: 11.5px; color: var(--text-muted, #666); margin: 0 0 1px; }
-.tf-answer dd { margin: 0; font-size: 13px; color: var(--text, #333); white-space: pre-wrap; overflow-wrap: anywhere; }
+.tf-answer dd { margin: 0; font-size: var(--font-size-md, 13px); color: var(--text, #333); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* The ticket panel: the fields join the panel's own grid as if they were built in. */
 .tf-panel-fields { display: contents; }
@@ -21,7 +21,7 @@ textarea.toolbar-select { resize: vertical; }
 .tf-form-grid .tf-field textarea { width: 100%; box-sizing: border-box; }
 
 .tf-req { color: var(--danger, #c62828); }
-.tf-hint { display: block; font-size: 12px; color: var(--text-muted, #666); margin-top: 4px; }
+.tf-hint { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 4px; }
 .tf-numrow { display: flex; align-items: center; gap: 6px; }
 .tf-numrow input { flex: 1; min-width: 0; }
-.tf-unit { font-size: 12px; color: var(--text-muted, #666); white-space: nowrap; }
+.tf-unit { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); white-space: nowrap; }

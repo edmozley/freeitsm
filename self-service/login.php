@@ -150,7 +150,7 @@ $localAllowed = $localOn || $forceLocal;
         /* Inside .login-header, straight under the h1 - so no negative margin
            here. The -14px copied from the analyst login (where the tagline sits
            OUTSIDE the header) pulled it up into the heading (GH #150). */
-        .login-header .login-tagline { margin: 0 0 6px; color: #555; font-size: 14px; }
+        .login-header .login-tagline { margin: 0 0 6px; color: #555; font-size: var(--font-size-lg, 14px); }
         body[data-logo-pos="hidden"] .login-header img,
         body[data-logo-pos="hidden"] .company-logo { display: none; }
         body[data-form-pos="left"]  .login-container { margin-right: auto; margin-left: 6vw; }
@@ -198,12 +198,12 @@ $localAllowed = $localOn || $forceLocal;
         }
         .login-header h1 {
             color: #333;
-            font-size: 24px;
+            font-size: var(--font-size-4xl, 24px);
             margin-bottom: 6px;
         }
         .login-header p {
             color: #888;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .form-group {
             margin-bottom: 20px;
@@ -229,7 +229,7 @@ $localAllowed = $localOn || $forceLocal;
                rule would miss exactly the case where the field is hardest to
                read. Both fields on this page (email and password) come through
                this one rule. */
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             transition: border-color 0.3s;
         }
         .form-group input:focus {
@@ -242,7 +242,7 @@ $localAllowed = $localOn || $forceLocal;
             padding: 12px;
             border-radius: 5px;
             margin-bottom: 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             border-left: 4px solid #c33;
             display: none;
         }
@@ -253,7 +253,7 @@ $localAllowed = $localOn || $forceLocal;
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
@@ -264,7 +264,7 @@ $localAllowed = $localOn || $forceLocal;
         .login-links {
             text-align: center;
             margin-top: 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .login-links a {
             color: #667eea;
@@ -292,7 +292,7 @@ $localAllowed = $localOn || $forceLocal;
         .mfa-desc {
             text-align: center;
             color: #666;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             margin-bottom: 20px;
         }
         .otp-input {
@@ -308,7 +308,7 @@ $localAllowed = $localOn || $forceLocal;
         .mfa-back a {
             color: #667eea;
             text-decoration: none;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
         }
         .mfa-back a:hover { text-decoration: underline; }
@@ -316,18 +316,18 @@ $localAllowed = $localOn || $forceLocal;
         /* Email-first SSO router */
         .sso-divider {
             display: flex; align-items: center; gap: 10px;
-            margin: 20px 0 14px; color: #9aa; font-size: 12px;
+            margin: 20px 0 14px; color: #9aa; font-size: var(--font-size-sm, 12px);
         }
         .sso-divider span { flex: 1; height: 1px; background: #ddd; }
         .sso-provider-btn {
             display: block; text-align: center; padding: 11px; margin-bottom: 8px;
             border: 1px solid #cfd8dc; border-radius: 6px; color: #37474f;
-            text-decoration: none; font-weight: 600; font-size: 14px; background: #fff;
+            text-decoration: none; font-weight: 600; font-size: var(--font-size-lg, 14px); background: #fff;
         }
         .sso-provider-btn:hover { background: #f7f9fa; }
         .ss-text-link {
             display: block; text-align: center; margin-top: 14px;
-            color: #999; text-decoration: none; font-size: 13px; cursor: pointer;
+            color: #999; text-decoration: none; font-size: var(--font-size-md, 13px); cursor: pointer;
         }
         .ss-text-link:hover { color: #666; }
     </style>

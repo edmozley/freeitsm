@@ -64,7 +64,7 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=97">
     <style>
         /* System module accent (blue-grey), as on Orphaned tickets. */
-        .dmp-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
+        .dmp-back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
         .dmp-back:hover { text-decoration: underline; }
         body {
             --accent: var(--sys-accent, #546e7a);
@@ -76,7 +76,7 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         .dmp-card h3 { font-size: 15px; margin: 0 0 4px; color: var(--text, #333); }
         .dmp-card h4 { font-size: 13.5px; margin: 18px 0 4px; color: var(--text, #333); }
         .dmp-hint { font-size: 12.5px; color: var(--text-dim, #888); margin: 0 0 6px; line-height: 1.5; }
-        .dmp-pick { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 6px 0 4px; font-size: 13px; }
+        .dmp-pick { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 6px 0 4px; font-size: var(--font-size-md, 13px); }
         .dmp-pick select { padding: 6px 10px; }
         .dmp-split { border-top: 1px solid var(--border-soft, #f0f0f0); margin-top: 16px; }
     </style>

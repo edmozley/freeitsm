@@ -29,13 +29,13 @@
 .nb-head {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 14px; border-bottom: 1px solid var(--border, #eee);
-    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    font-size: var(--font-size-sm, 12px); font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.4px; color: var(--text-muted, #666);
     position: sticky; top: 0; background: var(--surface, #fff);
 }
 .nb-markall {
     border: none; background: none; cursor: pointer;
-    font-size: 11px; text-transform: none; letter-spacing: 0;
+    font-size: var(--font-size-xs, 11px); text-transform: none; letter-spacing: 0;
     color: var(--accent, #0078d4); font-weight: 600;
 }
 .nb-markall:hover { text-decoration: underline; }
@@ -55,14 +55,14 @@
    mostly unread, so colouring them all just makes a solid block. */
 .nb-item.unread { border-left: 3px solid var(--accent, #0078d4); padding-left: 11px; }
 .nb-item-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
-.nb-item-ref { font-size: 12px; font-weight: 600; color: var(--accent, #0078d4); }
+.nb-item-ref { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--accent, #0078d4); }
 /* The age sits on the BOTTOM row, hard right, rather than up beside the
    reference. Against a variable-length ticket number it never landed in
    the same place twice, so a column of rows had timestamps scattered
    across the panel. Pinned to the right edge they line up into a column
    you can read down. */
 .nb-item-bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
-.nb-item-meta { flex: none; font-size: 11px; color: var(--text-dim, #999); white-space: nowrap; }
+.nb-item-meta { flex: none; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); white-space: nowrap; }
 /* Not a <button>: the whole row is an <a>, and a button inside an anchor
    is invalid HTML that browsers re-parent, which breaks the row. */
 /* ⚠️ ALWAYS VISIBLE, and drawn as a real button — a bordered circle, not a
@@ -77,7 +77,7 @@
     width: 20px; height: 20px; margin: -1px -2px -1px 0;
     border: 1px solid var(--border, #e0e0e0); border-radius: 50%;
     background: var(--surface-2, #fafafa); color: var(--text-muted, #666);
-    font-size: 13px; font-weight: 600; line-height: 1; cursor: pointer;
+    font-size: var(--font-size-md, 13px); font-weight: 600; line-height: 1; cursor: pointer;
     transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
 }
 /* Filling it red on hover is the confirmation that it destroys something —
@@ -102,8 +102,8 @@
 .nb-info:focus-visible { outline: 2px solid var(--accent, #0078d4); outline-offset: 1px; }
 .nb-info + .nb-clear { margin-left: 0; }
 /* The explanation opens under its row, outside the row's link. */
-.nb-explain { padding: 10px 14px 12px; border-bottom: 1px solid var(--border, #e0e0e0); background: var(--surface-2, #fafafa); font-size: 12px; color: var(--text, #333); }
-.nb-ex-title { font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+.nb-explain { padding: 10px 14px 12px; border-bottom: 1px solid var(--border, #e0e0e0); background: var(--surface-2, #fafafa); font-size: var(--font-size-sm, 12px); color: var(--text, #333); }
+.nb-ex-title { font-weight: 700; font-size: var(--font-size-sm, 12px); margin-bottom: 6px; }
 .nb-ex-row { display: grid; grid-template-columns: 92px 1fr; gap: 8px; padding: 2px 0; }
 .nb-ex-label { color: var(--text-dim, #888); }
 .nb-ex-value { overflow-wrap: anywhere; }
@@ -111,21 +111,21 @@
 .nb-ex-ok { color: var(--success-text, #2e7d32); }
 .nb-ex-warn { color: var(--warning-text, #92400e); }
 .nb-ex-note { margin-top: 6px; color: var(--text-dim, #888); font-style: italic; }
-.nb-item-title { font-size: 13px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
-.nb-item-body { flex: 1; min-width: 0; font-size: 12px; line-height: 1.4; color: var(--text-muted, #555); overflow-wrap: anywhere; }
+.nb-item-title { font-size: var(--font-size-md, 13px); font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.nb-item-body { flex: 1; min-width: 0; font-size: var(--font-size-sm, 12px); line-height: 1.4; color: var(--text-muted, #555); overflow-wrap: anywhere; }
 .nb-badge-count {
     display: inline-block; margin-left: 6px; padding: 0 5px;
     border-radius: 7px; background: var(--surface-hover, #eef1f4);
     color: var(--text-muted, #666); font-size: 10px; font-weight: 700; line-height: 15px;
 }
-.nb-empty { padding: 26px 14px; text-align: center; color: var(--text-muted, #666); font-size: 13px; }
+.nb-empty { padding: 26px 14px; text-align: center; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); }
 @media (max-width: 768px) {
     /* Same reasoning as the war-room panel: anything wider than the
        viewport makes iOS reflow the whole page to desktop. */
     .nb-panel { position: fixed; top: 48px; right: 4px; left: 4px; width: auto; max-height: 70vh; }
     .nb-btn { padding: 8px; }
     /* Same button, sized as a real tap target. */
-    .nb-clear { width: 28px; height: 28px; margin: -4px -4px -4px 0; font-size: 16px; }
+    .nb-clear { width: 28px; height: 28px; margin: -4px -4px -4px 0; font-size: var(--font-size-xl, 16px); }
     .nb-clear svg { width: 10px; height: 10px; }
     .nb-info { width: 28px; height: 28px; margin: -4px 8px -4px auto; font-size: 15px; }
     .nb-ex-row { grid-template-columns: 84px 1fr; }

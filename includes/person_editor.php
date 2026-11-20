@@ -93,7 +93,7 @@ function personEditorRender(): void
             border-radius: 4px;
             padding: 10px 12px;
             margin-bottom: 16px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
         }
         #personEditor .pe-help { color: var(--text-muted, #666); display: block; margin-top: 4px; }
@@ -104,16 +104,16 @@ function personEditorRender(): void
         #personEditor .pe-mgr-row { display: flex; gap: 6px; }
         #personEditor .pe-mgr-row input { flex: 1; min-width: 0; }
         #personEditor .pe-mgr-clear { border: 1px solid var(--border, #ccc); background: var(--surface, #fff); color: var(--text-muted, #666);
-            border-radius: 4px; padding: 0 10px; cursor: pointer; font-size: 16px; line-height: 1; }
+            border-radius: 4px; padding: 0 10px; cursor: pointer; font-size: var(--font-size-xl, 16px); line-height: 1; }
         #personEditor .pe-mgr-clear[hidden] { display: none; }
         #personEditor .pe-mgr-list { position: absolute; left: 0; right: 0; top: 100%; z-index: 5; margin: 2px 0 0; padding: 0; list-style: none;
             background: var(--surface, #fff); border: 1px solid var(--border, #ccc); border-radius: 4px; box-shadow: 0 4px 12px var(--shadow, rgba(0,0,0,.15));
             max-height: 220px; overflow: auto; }
         #personEditor .pe-mgr-list[hidden] { display: none; }
-        #personEditor .pe-mgr-list li { padding: 7px 10px; cursor: pointer; font-size: 13px; color: var(--text, #333); }
+        #personEditor .pe-mgr-list li { padding: 7px 10px; cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         #personEditor .pe-mgr-list li small { display: block; color: var(--text-muted, #666); }
         #personEditor .pe-mgr-list li.active, #personEditor .pe-mgr-list li:hover { background: var(--surface-hover, #f3f3f3); }
-        #personEditor .pe-err { color: var(--danger-text, #b3261e); font-size: 13px; min-height: 1em; margin: 4px 0 0; }
+        #personEditor .pe-err { color: var(--danger-text, #b3261e); font-size: var(--font-size-md, 13px); min-height: 1em; margin: 4px 0 0; }
         /* inbox.css has NO :disabled rule for form controls, so a disabled input
            inherits the browser default - which in the dark theme is very nearly
            indistinguishable from an editable one. The managed note explains WHY

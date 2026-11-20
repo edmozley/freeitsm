@@ -100,7 +100,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .summary-label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin-top: 2px;
         }
@@ -120,7 +120,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 10px 14px;
             border: 1px solid var(--border, #ddd);
             border-radius: 6px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             background: var(--surface, #fff);
         }
 
@@ -137,7 +137,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .sync-info {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
         }
 
@@ -146,7 +146,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -196,7 +196,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .servers-table thead th {
             padding: 12px 16px;
             text-align: left;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -225,7 +225,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .servers-table tbody td {
             padding: 10px 16px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             border-bottom: 1px solid var(--surface-hover, #f0f0f0);
         }
@@ -237,23 +237,23 @@ $translationNamespaces = ['common', 'asset-management'];
         .server-name {
             font-weight: 600;
             font-family: monospace;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         /* GH #199: Hyper-V reports and the hosts-and-clusters view. */
-        .hv-panel { margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--border, #e0e0e0); border-radius: 8px; background: var(--surface, #fff); font-size: 13px; }
+        .hv-panel { margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--border, #e0e0e0); border-radius: 8px; background: var(--surface, #fff); font-size: var(--font-size-md, 13px); }
         .hv-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .hv-conn { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 4px 0; }
-        .hv-pill { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+        .hv-pill { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: var(--font-size-sm, 12px); font-weight: 600; }
         .hv-ok { background: var(--success-bg, #dcfce7); color: var(--success-text, #15803d); }
         .hv-warn { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #a16207); }
         .hv-bad { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #b91c1c); }
         .hv-muted { background: var(--surface-hover, #f3f4f6); color: var(--text-muted, #666); }
-        .hv-sub { color: var(--text-muted, #666); font-size: 12px; }
+        .hv-sub { color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
         .hv-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
         .hv-table th, .hv-table td { text-align: left; padding: 5px 8px; border-top: 1px solid var(--border, #eee); font-size: 12.5px; }
-        .hv-flag { margin-left: 6px; font-size: 11px; }
-        .storage-heading { margin: 14px 0 6px; font-size: 13px; }
+        .hv-flag { margin-left: 6px; font-size: var(--font-size-xs, 11px); }
+        .storage-heading { margin: 14px 0 6px; font-size: var(--font-size-md, 13px); }
         /* #296 review: a collector that has gone quiet, or storage that keeps failing - the words, not only a pill. */
         .hv-silent { flex-basis: 100%; margin-top: 4px; font-size: 12.5px; font-weight: 600; color: var(--danger-text, #b42318); }
         .storage-cluster { margin-top: 10px; color: var(--text, #333); }
@@ -277,9 +277,9 @@ $translationNamespaces = ['common', 'asset-management'];
         .estate-host { display: inline-flex; flex-direction: column; gap: 2px; min-width: 140px; padding: 6px 10px; border: 1px solid var(--border, #e0e0e0); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font: inherit; text-align: left; cursor: pointer; }
         .estate-host:hover, .estate-host.active { border-color: var(--accent, #0078d4); }
         .estate-host.gone { opacity: 0.6; }
-        .estate-host strong { font-size: 13px; }
+        .estate-host strong { font-size: var(--font-size-md, 13px); }
         .estate-host .hv-pill { align-self: flex-start; }
-        .estate-src { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; background: var(--accent-soft, #e8f1fb); color: var(--accent, #0078d4); }
+        .estate-src { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: var(--font-size-xs, 11px); font-weight: 600; background: var(--accent-soft, #e8f1fb); color: var(--accent, #0078d4); }
         .filter-chip.host-chip { display: inline-flex; gap: 6px; align-items: center; }
         .status-badge {
             display: inline-flex;
@@ -287,7 +287,7 @@ $translationNamespaces = ['common', 'asset-management'];
             gap: 5px;
             padding: 3px 10px;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
         }
 
@@ -317,7 +317,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .mono {
             font-family: monospace;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .text-muted {
@@ -337,17 +337,17 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .empty-state h3 {
             margin: 0 0 8px 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text-muted, #666);
         }
 
         .empty-state p {
             margin: 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .server-count {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
@@ -355,7 +355,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .sync-message {
             padding: 10px 16px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             margin-bottom: 15px;
             display: none;
@@ -385,7 +385,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .filter-chip {
             padding: 6px 14px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
             cursor: pointer;
             border: 1px solid var(--border, #ddd);
@@ -452,7 +452,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .detail-header h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             font-family: monospace;
             color: var(--text, #333);
         }
@@ -487,7 +487,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .detail-section h3 {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -510,12 +510,12 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .detail-item .label {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
         }
 
         .detail-item .value {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             font-weight: 500;
             text-align: right;
@@ -530,7 +530,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border: 1px solid var(--border, #ddd);
             border-radius: 5px;
             padding: 8px 14px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             cursor: pointer;
             color: var(--text-muted, #666);
         }
@@ -548,7 +548,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-radius: 6px;
             padding: 16px;
             font-family: monospace;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             line-height: 1.5;
             overflow-x: auto;
             max-height: 400px;
@@ -570,12 +570,12 @@ $translationNamespaces = ['common', 'asset-management'];
         .detail-disks-table, .detail-nics-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .detail-disks-table th, .detail-nics-table th {
             text-align: left;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-dim, #888);
             font-weight: 600;
             padding: 6px 10px;

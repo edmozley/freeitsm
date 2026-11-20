@@ -234,7 +234,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         .rd-field-label {
             display: block;
             font-weight: 600;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             margin-bottom: 8px;
             color: var(--text, #333);
         }
@@ -246,7 +246,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             padding: 6px 12px;
             border: 1px solid var(--border, #d5dbe1);
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
             background: var(--surface, #fff);
             transition: border-color .15s, background .15s;
@@ -261,13 +261,13 @@ function renderOversizeFields(string $px, bool $withLimits): void
             display: block;
             margin-top: 7px;
             color: var(--text-muted, #666);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             line-height: 1.45;
         }
 
         .rd-preview-wrap { position: sticky; top: 12px; }
         .rd-preview-label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #666);
             margin-bottom: 8px;
@@ -320,19 +320,19 @@ function renderOversizeFields(string $px, bool $withLimits): void
             color: var(--text, #333);
         }
         /* GH #396: the editable prompt and its history. */
-        .rc-prompt-state { font-size: 12px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px; }
-        .rc-prompt-text, .rc-prompt-view { width: 100%; box-sizing: border-box; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; background: var(--surface, white); padding: 14px; border: 1px solid var(--border, #e0e0e0); border-radius: 4px; color: var(--text, #333); margin: 0; }
+        .rc-prompt-state { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text, #333); margin: 0 0 6px; }
+        .rc-prompt-text, .rc-prompt-view { width: 100%; box-sizing: border-box; font-family: 'Consolas', 'Monaco', monospace; font-size: var(--font-size-sm, 12px); line-height: 1.5; background: var(--surface, white); padding: 14px; border: 1px solid var(--border, #e0e0e0); border-radius: 4px; color: var(--text, #333); margin: 0; }
         .rc-prompt-text { height: calc(100vh - 420px); min-height: 260px; resize: vertical; }
         .rc-prompt-view { white-space: pre-wrap; word-wrap: break-word; max-height: 320px; overflow-y: auto; margin-top: 8px; }
         .rc-prompt-hint { display: block; margin: 6px 0 0; color: var(--text-muted, #666); }
         .rc-prompt-actions { display: flex; gap: 10px; margin: 12px 0 0; }
         .rc-prompt-history { margin-top: 14px; border: none !important; background: none !important; }
         .rc-prompt-history summary { padding: 6px 0 !important; }
-        .rc-version { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--border-soft, #eee); font-size: 12px; color: var(--text, #333); }
+        .rc-version { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--border-soft, #eee); font-size: var(--font-size-sm, 12px); color: var(--text, #333); }
         .rc-version .rc-v-main { flex: 1; min-width: 0; }
         .rc-version .rc-v-sub { color: var(--text-muted, #777); }
-        .rc-version .rc-v-use { font-size: 11px; font-weight: 600; color: var(--success-text, #065f46); background: var(--success-bg, #ecfdf5); border-radius: 10px; padding: 1px 8px; }
-        .rc-version .btn { padding: 3px 10px; font-size: 12px; }
+        .rc-version .rc-v-use { font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--success-text, #065f46); background: var(--success-bg, #ecfdf5); border-radius: 10px; padding: 1px 8px; }
+        .rc-version .btn { padding: 3px 10px; font-size: var(--font-size-sm, 12px); }
 
         /* Custom fields dialog (#179): the ticket types a field is on. */
         .tf-type-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 4px 12px; margin: 6px 0 0 24px; max-height: 180px; overflow-y: auto; }
@@ -398,7 +398,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         }
 
         .exchange-status .status-icon {
-            font-size: 24px;
+            font-size: var(--font-size-4xl, 24px);
         }
 
         /* Exchange result messages */
@@ -435,7 +435,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             border-radius: 4px;
             overflow-x: auto;
             margin-top: 10px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         /* Modal content override for settings modals */
@@ -445,7 +445,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         }
 
         .modal-header {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             margin-bottom: 20px;
             color: var(--text, #333);
@@ -461,7 +461,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             color: var(--warning-text, #92400e);
             border: 1px solid var(--warning-border, #f0d9a8);
             border-radius: 6px; padding: 10px 12px; margin-bottom: 12px;
-            font-size: 13px; line-height: 1.5;
+            font-size: var(--font-size-md, 13px); line-height: 1.5;
         }
         .tpl-scope-warn button { flex: 0 0 auto; }
         .tpl-sim {
@@ -472,12 +472,12 @@ function renderOversizeFields(string $px, bool $withLimits): void
         .tpl-sim-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .tpl-sim-row select, .tpl-sim-row input {
             padding: 10px; border: 1px solid var(--border, #ddd); border-radius: 4px;
-            font-size: 14px; font-family: inherit;
+            font-size: var(--font-size-lg, 14px); font-family: inherit;
         }
         .tpl-sim-row input { flex: 1; min-width: 220px; }
         .tpl-sim-result {
             margin-top: 10px; padding: 10px 12px; border-radius: 6px;
-            font-size: 13px; line-height: 1.5;
+            font-size: var(--font-size-md, 13px); line-height: 1.5;
             background: var(--surface, #fff); border: 1px solid var(--border, #ddd);
         }
         .tpl-sim-result.none { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); border-color: var(--warning-border, #f0d9a8); }
@@ -486,20 +486,20 @@ function renderOversizeFields(string $px, bool $withLimits): void
         .tpl-rule-chip {
             display: inline-flex; align-items: center; gap: 6px;
             background: var(--surface-2, #f1f1f1); border: 1px solid var(--border, #ddd);
-            border-radius: 14px; padding: 3px 6px 3px 10px; font-size: 12px;
+            border-radius: 14px; padding: 3px 6px 3px 10px; font-size: var(--font-size-sm, 12px);
         }
         .tpl-rule-chip button {
-            border: none; background: none; cursor: pointer; font-size: 14px; line-height: 1;
+            border: none; background: none; cursor: pointer; font-size: var(--font-size-lg, 14px); line-height: 1;
             color: var(--text-muted, #666); padding: 0 4px;
         }
         .tpl-rule-add { display: flex; gap: 8px; align-items: center; max-width: 520px; }
         .tpl-rule-add input {
             flex: 1; min-width: 0; padding: 10px; border: 1px solid var(--border, #ddd);
-            border-radius: 4px; font-size: 14px; font-family: inherit;
+            border-radius: 4px; font-size: var(--font-size-lg, 14px); font-family: inherit;
         }
         .tpl-scope-badge {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 11px; background: var(--surface-2, #f1f1f1);
+            font-size: var(--font-size-xs, 11px); background: var(--surface-2, #f1f1f1);
             border: 1px solid var(--border, #ddd); color: var(--text-muted, #666);
         }
         /* WHO the email goes to, beside WHICH customers it covers. Deliberately
@@ -509,7 +509,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
            notification going out to a customer is the mistake worth seeing. */
         .tpl-audience-badge {
             display: inline-block; padding: 2px 8px; border-radius: 3px;
-            font-size: 11px; font-weight: 600; letter-spacing: 0.2px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; letter-spacing: 0.2px;
             background: var(--surface-2, #f1f1f1);
             border: 1px solid var(--border, #ddd); color: var(--text-muted, #666);
         }
@@ -548,12 +548,12 @@ function renderOversizeFields(string $px, bool $withLimits): void
             padding: 10px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-family: inherit;
         }
         .tpl-baseurl-example {
             margin-top: 8px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-family: Consolas, Monaco, monospace;
             color: var(--text-muted, #666);
             word-break: break-all;
@@ -569,7 +569,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             border-radius: 6px;
             padding: 10px 12px;
             margin-bottom: 12px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.5;
         }
         .tpl-baseurl-warn button { flex: 0 0 auto; }
@@ -581,7 +581,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             background: var(--surface-2, #f5f5f5);
             border-radius: 6px 6px 0 0;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
         .tpl-body-tab.active {
@@ -610,7 +610,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             border: none;
             border-bottom: 2px solid transparent;
             padding: 8px 14px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text-muted, #666);
             cursor: pointer;
@@ -628,7 +628,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             background: #d13438;
             color: #fff;
             border-radius: 9px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 700;
             text-align: center;
         }
@@ -636,7 +636,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             display: inline-block;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             white-space: nowrap;
         }
         .mbx-result.sent   { background: #d4edda; color: #155724; }
@@ -665,7 +665,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             width: 100%;
             table-layout: fixed;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .activity-log-pane th,
         .activity-log-pane td {
@@ -985,20 +985,20 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                     <input type="radio" name="chkClosureMode" value="per_template" style="margin-top: 3px;"<?php echo $checklistClosureMode !== 'block_all' ? ' checked' : ''; ?>>
                     <div>
-                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.per_template_title')); ?></div>
-                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.per_template_desc')); ?></div>
+                        <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.per_template_title')); ?></div>
+                        <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.per_template_desc')); ?></div>
                     </div>
                 </label>
                 <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                     <input type="radio" name="chkClosureMode" value="block_all" style="margin-top: 3px;"<?php echo $checklistClosureMode === 'block_all' ? ' checked' : ''; ?>>
                     <div>
-                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.block_all_title')); ?></div>
-                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.block_all_desc')); ?></div>
+                        <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.block_all_title')); ?></div>
+                        <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.block_all_desc')); ?></div>
                     </div>
                 </label>
             </div>
 
-            <p style="margin-top: 18px; font-size: 12px; color: var(--text-muted, #64748b); max-width: 720px;">
+            <p style="margin-top: 18px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b); max-width: 720px;">
                 <?php echo htmlspecialchars(t('tickets.settings.checklists.always_recorded')); ?>
             </p>
             <div style="margin-top: 32px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 24px;">
@@ -1011,22 +1011,22 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                         <input type="radio" name="chkEmptyClosureMode" value="off" style="margin-top: 3px;"<?php echo $checklistEmptyClosureMode === 'off' ? ' checked' : ''; ?>>
                         <div>
-                            <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_off_title')); ?></div>
-                            <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_off_desc')); ?></div>
+                            <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_off_title')); ?></div>
+                            <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_off_desc')); ?></div>
                         </div>
                     </label>
                     <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                         <input type="radio" name="chkEmptyClosureMode" value="warn" style="margin-top: 3px;"<?php echo $checklistEmptyClosureMode === 'warn' ? ' checked' : ''; ?>>
                         <div>
-                            <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_warn_title')); ?></div>
-                            <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_warn_desc')); ?></div>
+                            <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_warn_title')); ?></div>
+                            <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_warn_desc')); ?></div>
                         </div>
                     </label>
                     <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                         <input type="radio" name="chkEmptyClosureMode" value="block" style="margin-top: 3px;"<?php echo $checklistEmptyClosureMode === 'block' ? ' checked' : ''; ?>>
                         <div>
-                            <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_block_title')); ?></div>
-                            <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_block_desc')); ?></div>
+                            <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_block_title')); ?></div>
+                            <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_block_desc')); ?></div>
                         </div>
                     </label>
                 </div>
@@ -1039,9 +1039,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; max-width: 720px;">
                     <input type="checkbox" id="chkFormsEnabled" style="margin-top: 3px;"<?php echo $ticketFormsEnabled ? ' checked' : ''; ?>>
                     <div>
-                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_enabled_title')); ?></div>
-                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_enabled_desc')); ?></div>
-                        <?php if (!$formsModuleOn): ?><div style="font-size: 12px; color: #b45309; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_module_off')); ?></div><?php endif; ?>
+                        <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_enabled_title')); ?></div>
+                        <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_enabled_desc')); ?></div>
+                        <?php if (!$formsModuleOn): ?><div style="font-size: var(--font-size-sm, 12px); color: #b45309; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_module_off')); ?></div><?php endif; ?>
                     </div>
                 </label>
             </div>
@@ -1063,14 +1063,14 @@ function renderOversizeFields(string $px, bool $withLimits): void
             <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.headings.mandatory_fields')); ?></h3>
             <p style="margin-bottom: 20px; color: var(--text-muted, #666); max-width: 720px;"><?php echo htmlspecialchars(t('tickets.settings.intros.mandatory_fields')); ?></p>
 
-            <h3 style="font-size: 14px; margin: 0 0 10px; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.when_heading')); ?></h3>
+            <h3 style="font-size: var(--font-size-lg, 14px); margin: 0 0 10px; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.when_heading')); ?></h3>
             <div style="display: flex; flex-direction: column; gap: 14px; max-width: 720px;">
                 <?php foreach (['warn', 'notify', 'block'] as $mfMode): ?>
                 <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                     <input type="radio" name="mfMode" value="<?php echo $mfMode; ?>" style="margin-top: 3px;"<?php echo $mandatoryCfg['mode'] === $mfMode ? ' checked' : ''; ?>>
                     <div>
-                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.' . $mfMode . '_title')); ?></div>
-                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.' . $mfMode . '_desc')); ?></div>
+                        <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.' . $mfMode . '_title')); ?></div>
+                        <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.' . $mfMode . '_desc')); ?></div>
                     </div>
                 </label>
                 <?php if ($mfMode === 'notify'): ?>
@@ -1086,16 +1086,16 @@ function renderOversizeFields(string $px, bool $withLimits): void
             <label id="mfRecordRow" style="display: flex; align-items: flex-start; gap: 12px; margin-top: 18px; max-width: 720px; cursor: pointer;">
                 <input type="checkbox" id="mfRecord" style="margin-top: 3px;"<?php echo $mandatoryCfg['record'] ? ' checked' : ''; ?>>
                 <div>
-                    <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.record_title')); ?></div>
-                    <div style="font-size: 12px; color: var(--text-muted, #64748b);" id="mfRecordDesc"><?php echo htmlspecialchars(t('tickets.settings.mandatory.record_desc')); ?></div>
+                    <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.record_title')); ?></div>
+                    <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);" id="mfRecordDesc"><?php echo htmlspecialchars(t('tickets.settings.mandatory.record_desc')); ?></div>
                 </div>
             </label>
 
-            <h3 style="font-size: 14px; margin: 24px 0 6px; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.fields_heading')); ?></h3>
-            <p style="font-size: 12px; color: var(--text-muted, #64748b); margin: 0 0 10px; max-width: 720px;"><?php echo htmlspecialchars(t('tickets.settings.mandatory.fields_hint')); ?></p>
+            <h3 style="font-size: var(--font-size-lg, 14px); margin: 24px 0 6px; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.fields_heading')); ?></h3>
+            <p style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b); margin: 0 0 10px; max-width: 720px;"><?php echo htmlspecialchars(t('tickets.settings.mandatory.fields_hint')); ?></p>
             <div class="mf-field-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 20px; max-width: 720px;">
                 <?php foreach (array_keys(MandatoryFieldsService::FIELDS) as $mfKey): ?>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-lg, 14px);">
                     <input type="checkbox" class="mf-field" value="<?php echo $mfKey; ?>"<?php echo in_array($mfKey, $mandatoryCfg['fields'], true) ? ' checked' : ''; ?>>
                     <span><?php echo htmlspecialchars(t('tickets.settings.mandatory.fields.' . $mfKey)); ?></span>
                 </label>
@@ -1371,7 +1371,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <button class="add-btn" onclick="openSlaNotifModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
                 </div>
 
-                <div style="background:var(--accent-soft, #eff6ff);border-left:4px solid var(--accent, #2563eb);padding:14px 16px;border-radius:4px;margin-bottom:18px;font-size:13px;line-height:1.6;color:var(--accent-hover, #1e3a8a);">
+                <div style="background:var(--accent-soft, #eff6ff);border-left:4px solid var(--accent, #2563eb);padding:14px 16px;border-radius:4px;margin-bottom:18px;font-size:var(--font-size-md, 13px);line-height:1.6;color:var(--accent-hover, #1e3a8a);">
                     <?php echo t('tickets.settings.sla.notifs_info'); ?>
                 </div>
 
@@ -1393,7 +1393,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                     </tbody>
                 </table>
-                <p style="color:var(--text-dim, #888);margin-top:14px;font-size:12px;">
+                <p style="color:var(--text-dim, #888);margin-top:14px;font-size:var(--font-size-sm, 12px);">
                     <?php echo t('tickets.settings.sla.notifs_cron_note'); ?>
                 </p>
             </div>
@@ -1460,7 +1460,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     </div>
 
                     <fieldset style="border:1px solid #ddd;padding:12px 16px;border-radius:4px;margin-bottom:14px;">
-                        <legend style="padding:0 6px;font-weight:600;font-size:13px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipients')); ?></legend>
+                        <legend style="padding:0 6px;font-weight:600;font-size:var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipients')); ?></legend>
                         <div class="form-group" style="margin-bottom:8px;">
                             <label><input type="checkbox" id="slaNotifAssignee"> <?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipient_assignee')); ?></label>
                         </div>
@@ -1784,7 +1784,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     </label>
                 </div>
 
-                <p style="margin-top:22px;color: var(--text-muted, #666);font-size:13px;">
+                <p style="margin-top:22px;color: var(--text-muted, #666);font-size:var(--font-size-md, 13px);">
                     <?php echo t('tickets.settings.indexing.where_service'); ?>
                 </p>
 
@@ -1961,7 +1961,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <label for="numFormat"><?php echo htmlspecialchars(t('tickets.settings.numbering.format')); ?></label>
                         <input type="text" id="numFormat" oninput="numPreview()" autocomplete="off" spellcheck="false">
                         <small style="color: var(--text-muted, #666);"><?php echo t('tickets.settings.numbering.format_help'); ?></small>
-                        <div id="numFormatError" style="display:none;margin-top:6px;color: var(--danger-text, #c0392b);font-size:13px;"></div>
+                        <div id="numFormatError" style="display:none;margin-top:6px;color: var(--danger-text, #c0392b);font-size:var(--font-size-md, 13px);"></div>
                     </div>
 
                     <?php /* The live preview. Somebody should never have to create
@@ -2356,7 +2356,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <form id="replyCleanupForm" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
                         <div class="form-group">
                             <label for="rcTone"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone')); ?></label>
-                            <select id="rcTone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <select id="rcTone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: var(--font-size-lg, 14px);">
                                 <option value="Friendly"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_friendly')); ?></option>
                                 <option value="Formal"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_formal')); ?></option>
                                 <option value="Brief"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_brief')); ?></option>
@@ -2367,7 +2367,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <div class="form-group">
                             <label for="rcCustomInstructions"><?php echo t('tickets.settings.reply_cleanup.custom_label'); ?></label>
                             <textarea id="rcCustomInstructions" rows="6" maxlength="4000"
-                                      style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; resize: vertical;"
+                                      style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: var(--font-size-lg, 14px); font-family: inherit; resize: vertical;"
                                       placeholder="<?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.custom_placeholder')); ?>"></textarea>
                             <small style="color: var(--text-muted, #666);">
                                 <?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.custom_help')); ?>
@@ -2384,7 +2384,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <details open>
                         <summary><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.prompt_summary')); ?></summary>
                         <div style="padding: 0 16px 16px 16px; color: var(--text-muted, #555);">
-                            <p style="margin: 0 0 12px 0; font-size: 13px;">
+                            <p style="margin: 0 0 12px 0; font-size: var(--font-size-md, 13px);">
                                 <?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.prompt_panel_intro')); ?>
                             </p>
                             <!-- GH #396: editable, and every save kept (api/tickets/reply_cleanup_prompt.php) -->
@@ -2480,13 +2480,13 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <div style="display: flex; gap: 20px; margin-top: 6px;">
                         <label style="display: flex; gap: 8px; align-items: center; cursor: pointer;">
                             <input type="radio" name="csatScale" value="stars">
-                            <span style="font-size: 18px;">&starf;&starf;&starf;&starf;&starf;</span>
-                            <span style="color: var(--text-muted, #666); font-size: 13px;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_stars')); ?></span>
+                            <span style="font-size: var(--font-size-2xl, 18px);">&starf;&starf;&starf;&starf;&starf;</span>
+                            <span style="color: var(--text-muted, #666); font-size: var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_stars')); ?></span>
                         </label>
                         <label style="display: flex; gap: 8px; align-items: center; cursor: pointer;">
                             <input type="radio" name="csatScale" value="emojis">
-                            <span style="font-size: 18px;">😡 🙁 😐 🙂 😀</span>
-                            <span style="color: var(--text-muted, #666); font-size: 13px;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_emojis')); ?></span>
+                            <span style="font-size: var(--font-size-2xl, 18px);">😡 🙁 😐 🙂 😀</span>
+                            <span style="color: var(--text-muted, #666); font-size: var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_emojis')); ?></span>
                         </label>
                     </div>
                     <small style="display: block; color: var(--text-muted, #666); margin-top: 4px;"><?php echo t('tickets.settings.csat_tab.scale_help'); ?></small>
@@ -2542,7 +2542,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                      exactly what discussion #72 asked for. */ ?>
             <div class="tt-block" id="ttCompaniesBlock" hidden>
                 <h3 class="tt-sub"><?php echo htmlspecialchars(t('tickets.settings.time_tracking.companies_heading')); ?></h3>
-                <p style="color: var(--text-muted, #555); font-size: 13px;">
+                <p style="color: var(--text-muted, #555); font-size: var(--font-size-md, 13px);">
                     <?php echo htmlspecialchars(t('tickets.settings.time_tracking.companies_intro')); ?>
                 </p>
                 <table class="settings-table" id="ttCompaniesTable">
@@ -2621,7 +2621,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.row_display.set_default_help')); ?></small>
                 <?php endif; ?>
             </div>
-            <p id="rdFollowing" style="color: var(--text-muted, #666); font-size: 12px; margin-top: 12px;">
+            <p id="rdFollowing" style="color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); margin-top: 12px;">
                 <?php echo htmlspecialchars($rdPersonal
                     ? t('tickets.settings.row_display.using_personal')
                     : t('tickets.settings.row_display.using_default')); ?>
@@ -3184,11 +3184,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <small style="color: var(--text-muted, #666); display: block; margin-bottom: 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_help')); ?></small>
 
                     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                        <select id="whitelistType" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                        <select id="whitelistType" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: var(--font-size-md, 13px);">
                             <option value="domain"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_domain')); ?></option>
                             <option value="email"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_email')); ?></option>
                         </select>
-                        <input type="text" id="whitelistValue" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_value_placeholder')); ?>" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addWhitelistEntry();}">
+                        <input type="text" id="whitelistValue" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_value_placeholder')); ?>" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: var(--font-size-md, 13px);" onkeydown="if(event.key==='Enter'){event.preventDefault();addWhitelistEntry();}">
                         <button type="button" class="btn btn-primary" onclick="addWhitelistEntry()" style="padding: 8px 12px;"><?php echo htmlspecialchars(t('common.add')); ?></button>
                     </div>
 
@@ -3348,7 +3348,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     </div>
                     <div class="form-group provider-mattermost" style="grid-column: span 2; background:var(--bg-secondary, #f5f7fa); border:1px solid var(--border-color, #e0e0e0); border-radius:8px; padding:12px 14px;">
                         <label style="font-weight:600; display:block; margin-bottom:6px;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.mm_setup_title')); ?></label>
-                        <ol style="margin:0 0 4px 18px; padding:0; font-size:13px; color:var(--text-muted, #555); line-height:1.6;">
+                        <ol style="margin:0 0 4px 18px; padding:0; font-size:var(--font-size-md, 13px); color:var(--text-muted, #555); line-height:1.6;">
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.mm_step1')); ?></li>
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.mm_step2')); ?></li>
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.mm_step3')); ?></li>
@@ -3359,7 +3359,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <!-- Teams setup steps: the Azure side has to exist before the App ID and secret above do. -->
                     <div class="form-group provider-teams" style="grid-column: span 2; background:var(--bg-secondary, #f5f7fa); border:1px solid var(--border-color, #e0e0e0); border-radius:8px; padding:12px 14px;">
                         <label style="font-weight:600; display:block; margin-bottom:6px;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.teams_setup_title')); ?></label>
-                        <ol style="margin:0 0 4px 18px; padding:0; font-size:13px; color:var(--text-muted, #555); line-height:1.6;">
+                        <ol style="margin:0 0 4px 18px; padding:0; font-size:var(--font-size-md, 13px); color:var(--text-muted, #555); line-height:1.6;">
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.teams_step1')); ?></li>
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.teams_step2')); ?></li>
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.teams_step3')); ?></li>
@@ -3377,7 +3377,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                          exact webhook URL) the channel has been saved at least once. -->
                     <div class="form-group provider-telegram" style="grid-column: span 2; background:var(--app-bg, #f5f7fa); border:1px solid var(--border, #e0e0e0); border-radius:8px; padding:12px 14px;">
                         <label style="font-weight:600; display:block; margin-bottom:6px;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.setup_title')); ?></label>
-                        <ol style="margin:0 0 10px 18px; padding:0; font-size:13px; color:var(--text-muted, #555); line-height:1.6;">
+                        <ol style="margin:0 0 10px 18px; padding:0; font-size:var(--font-size-md, 13px); color:var(--text-muted, #555); line-height:1.6;">
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.setup_step1')); ?></li>
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.setup_step2')); ?></li>
                             <li><?php echo htmlspecialchars(t('tickets.settings.modals.channel.setup_step3')); ?></li>
@@ -3388,7 +3388,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                                  that put the bot token in the browser and the clipboard. */ ?>
                         <div id="telegramConnectWrap" style="display:none; align-items:center; gap:10px; flex-wrap:wrap;">
                             <button type="button" class="btn btn-secondary" id="telegramConnectBtn" onclick="connectTelegram()"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.connect')); ?></button>
-                            <span id="telegramConnectResult" style="font-size:13px;"></span>
+                            <span id="telegramConnectResult" style="font-size:var(--font-size-md, 13px);"></span>
                         </div>
                         <small id="telegramSetupHint" style="color:var(--text-muted, #666); display:block;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.setup_save_first_connect')); ?></small>
                     </div>
@@ -3522,7 +3522,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <!-- Embed snippet: populated by JS after the widget is saved (or on edit). -->
                     <div class="form-group" id="widgetEmbedGroup" style="grid-column: span 2;">
                         <label for="widgetEmbed"><?php echo htmlspecialchars(t('tickets.settings.webchat.embed_label')); ?></label>
-                        <textarea id="widgetEmbed" rows="7" readonly onclick="this.select()" style="font-family: monospace; font-size: 12px;"></textarea>
+                        <textarea id="widgetEmbed" rows="7" readonly onclick="this.select()" style="font-family: monospace; font-size: var(--font-size-sm, 12px);"></textarea>
                         <small style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.webchat.embed_help')); ?></small>
                     </div>
                 </div>
@@ -3612,8 +3612,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
             </div>
 
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="activitySearch" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.activity.search_placeholder')); ?>" style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" oninput="debounceActivitySearch()">
-                <select id="outboundStatus" onchange="loadMailboxLog(1)" style="display:none; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                <input type="text" id="activitySearch" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.activity.search_placeholder')); ?>" style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: var(--font-size-md, 13px);" oninput="debounceActivitySearch()">
+                <select id="outboundStatus" onchange="loadMailboxLog(1)" style="display:none; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: var(--font-size-md, 13px);">
                     <option value=""><?php echo htmlspecialchars(t('tickets.settings.modals.activity.status_all')); ?></option>
                     <option value="failed"><?php echo htmlspecialchars(t('tickets.settings.modals.activity.status_failed')); ?></option>
                     <option value="sent"><?php echo htmlspecialchars(t('tickets.settings.modals.activity.status_sent')); ?></option>
@@ -3655,14 +3655,14 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 </table>
             </div>
 
-            <div id="activityPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 13px; color: var(--text-muted, #666);"></div>
+            <div id="activityPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666);"></div>
 
             <div id="processingLogPanel" style="display: none; margin-top: 15px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <strong style="font-size: 14px;"><?php echo htmlspecialchars(t('tickets.settings.modals.activity.processing_log')); ?></strong>
-                    <button type="button" class="btn btn-secondary" style="padding: 3px 10px; font-size: 12px;" onclick="closeProcessingLog()"><?php echo htmlspecialchars(t('common.close')); ?></button>
+                    <strong style="font-size: var(--font-size-lg, 14px);"><?php echo htmlspecialchars(t('tickets.settings.modals.activity.processing_log')); ?></strong>
+                    <button type="button" class="btn btn-secondary" style="padding: 3px 10px; font-size: var(--font-size-sm, 12px);" onclick="closeProcessingLog()"><?php echo htmlspecialchars(t('common.close')); ?></button>
                 </div>
-                <pre id="processingLogContent" style="background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 12px; font-size: 12px; max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; margin: 0;"></pre>
+                <pre id="processingLogContent" style="background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 12px; font-size: var(--font-size-sm, 12px); max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; margin: 0;"></pre>
             </div>
 
             <div class="modal-actions">
@@ -3816,7 +3816,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
                 <div class="form-group">
                     <label style="margin-bottom: 6px;"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.merge_codes')); ?></label>
-                    <p style="margin: 0 0 8px; color: var(--text-muted, #666); font-size: 12px;"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.merge_help')); ?></p>
+                    <p style="margin: 0 0 8px; color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px);"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.merge_help')); ?></p>
                     <div id="replyTemplateMergeCodes" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
                 </div>
 
@@ -3929,13 +3929,13 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     </div>
 
                     <h4 style="margin:24px 0 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.hours_heading')); ?></h4>
-                    <p style="color:var(--text-muted, #666);font-size:13px;margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.hours_help')); ?></p>
+                    <p style="color:var(--text-muted, #666);font-size:var(--font-size-md, 13px);margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.hours_help')); ?></p>
                     <div id="slaCalendarHoursGrid" style="display:grid;grid-template-columns:90px 80px 1fr 1fr;gap:8px 12px;align-items:center;">
                         <!-- rows injected by JS: 7 weekdays -->
                     </div>
 
                     <h4 style="margin:24px 0 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_heading')); ?></h4>
-                    <p style="color:var(--text-muted, #666);font-size:13px;margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_help')); ?></p>
+                    <p style="color:var(--text-muted, #666);font-size:var(--font-size-md, 13px);margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_help')); ?></p>
                     <div id="slaCalendarHolidaysList" style="margin-bottom:10px;"></div>
                     <div style="display:flex;gap:8px;">
                         <input type="date" id="slaCalendarHolidayDate" style="padding:6px 10px;border:1px solid #ddd;border-radius:4px;">
@@ -4397,7 +4397,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             tbody.innerHTML = statuses.map(s => {
                 const safeName = escapeHtml(s.name).replace(/'/g, "\\'");
                 const swatch = s.colour
-                    ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(s.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(s.colour)}</code>`
+                    ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(s.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(s.colour)}</code>`
                     : '<span style="color:var(--text-faint, #999);">—</span>';
                 const closed  = s.is_closed  ? '<span class="status-badge status-active">' + escapeHtml(t('common.yes')) + '</span>' : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>';
                 const def     = s.is_default ? '<span class="status-badge status-active">' + escapeHtml(t('common.yes')) + '</span>' : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>';
@@ -4451,7 +4451,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
         function priorityColourSwatch(colour) {
             return colour
-                ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(colour)}</code>`
+                ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(colour)}</code>`
                 : '<span style="color:var(--text-faint, #999);">—</span>';
         }
 
@@ -4501,7 +4501,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         }
 
         function priorityGroupRow(label, hint = '') {
-            return `<tr class="tt-group-row"><td colspan="6" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:12px;font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
+            return `<tr class="tt-group-row"><td colspan="6" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:var(--font-size-sm, 12px);font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
         }
 
         // A client company's view: its own priorities, then the shared ones with a hide/show toggle.
@@ -4582,7 +4582,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             tbody.innerHTML = locations.map(l => {
                 const safeName = escapeHtml(l.name).replace(/'/g, "\\'");
                 const swatch = l.colour
-                    ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(l.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(l.colour)}</code>`
+                    ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(l.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(l.colour)}</code>`
                     : '<span style="color:var(--text-faint, #999);">—</span>';
                 const def = l.is_default ? '<span class="status-badge status-active">' + escapeHtml(t('common.yes')) + '</span>' : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>';
                 return `
@@ -4765,7 +4765,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         // shared defaults it inherits, each with a Hide/Show toggle.
         function renderTicketTypesScoped(tbody, scoped) {
             const groupRow = (label, hint) =>
-                `<tr class="tt-group-row"><td colspan="5" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:12px;font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
+                `<tr class="tt-group-row"><td colspan="5" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:var(--font-size-sm, 12px);font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
 
             let html = '';
 
@@ -4854,7 +4854,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
         function renderTicketOriginsScoped(tbody, scoped) {
             const groupRow = (label, hint) =>
-                `<tr class="tt-group-row"><td colspan="5" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:12px;font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
+                `<tr class="tt-group-row"><td colspan="5" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:var(--font-size-sm, 12px);font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
 
             let html = '';
             html += groupRow(`${scoped.company.name}’s own origins`);
@@ -5155,7 +5155,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                                style="margin-right: 12px; width: 18px; height: 18px;">
                         <div>
                             <strong>${escapeHtml(team.name)}</strong>
-                            ${team.description ? `<div style="font-size: 12px; color: var(--text-muted, #666); margin-top: 2px;">${escapeHtml(team.description)}</div>` : ''}
+                            ${team.description ? `<div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 2px;">${escapeHtml(team.description)}</div>` : ''}
                         </div>
                     </label>
                 `).join('');
@@ -5408,7 +5408,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <tr>
                         <td><strong>${escapeHtml(c.name)}</strong>${providerBadge}${activeBadge}${companyBadge}</td>
                         <td>${escapeHtml(c.phone_number || '')}</td>
-                        <td><code style="font-size:11px;cursor:pointer;" title="Click to select" onclick="const r=document.createRange();r.selectNodeContents(this);const s=getSelection();s.removeAllRanges();s.addRange(r);">${escapeHtml(c.webhook_url)}</code></td>
+                        <td><code style="font-size:var(--font-size-xs, 11px);cursor:pointer;" title="Click to select" onclick="const r=document.createRange();r.selectNodeContents(this);const s=getSelection();s.removeAllRanges();s.addRange(r);">${escapeHtml(c.webhook_url)}</code></td>
                         <td>${credBadge}</td>
                         <td>${actions}</td>
                     </tr>`;
@@ -5754,7 +5754,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <tr>
                         <td><strong>${escapeHtml(w.name)}</strong>${activeBadge}${companyBadge}</td>
                         <td>${originsCell}</td>
-                        <td><code style="font-size:11px;cursor:pointer;" title="Click to select" onclick="const r=document.createRange();r.selectNodeContents(this);const s=getSelection();s.removeAllRanges();s.addRange(r);">${escapeHtml(w.widget_key)}</code></td>
+                        <td><code style="font-size:var(--font-size-xs, 11px);cursor:pointer;" title="Click to select" onclick="const r=document.createRange();r.selectNodeContents(this);const s=getSelection();s.removeAllRanges();s.addRange(r);">${escapeHtml(w.widget_key)}</code></td>
                         <td>${statusBadge}</td>
                         <td>${actions}</td>
                     </tr>`;
@@ -5940,7 +5940,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 return `<tr>
                     <td><strong>${escapeHtml(tpl.name)}</strong>${active}${vars}</td>
                     <td>${prov}</td>
-                    <td><code style="font-size:11px;">${escapeHtml(tpl.provider_ref)}</code></td>
+                    <td><code style="font-size:var(--font-size-xs, 11px);">${escapeHtml(tpl.provider_ref)}</code></td>
                     <td>${tpl.is_active ? '<span class="status-badge status-active">Active</span>' : '<span class="status-badge status-inactive">Inactive</span>'}</td>
                     <td>${actions}</td>
                 </tr>`;
@@ -6192,15 +6192,15 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 // which inbox is actually being pulled — and flags a wrong/unverified account.
                 let authLine = '';
                 if (mb.auth_status === 'ok') {
-                    authLine = `<div style="font-size:12px;color:#2e7d32;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.reading_from', {addr: mb.target_mailbox}))}</div>`;
+                    authLine = `<div style="font-size:var(--font-size-sm, 12px);color:#2e7d32;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.reading_from', {addr: mb.target_mailbox}))}</div>`;
                 } else if (mb.auth_status === 'imap') {
-                    authLine = `<div style="font-size:12px;color:#5e35b1;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.status_imap', {addr: mb.target_mailbox}))}</div>`;
+                    authLine = `<div style="font-size:var(--font-size-sm, 12px);color:#5e35b1;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.status_imap', {addr: mb.target_mailbox}))}</div>`;
                 } else if (mb.auth_status === 'app_only') {
-                    authLine = `<div style="font-size:12px;color:#1565c0;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.status_app_only', {addr: mb.target_mailbox}))}</div>`;
+                    authLine = `<div style="font-size:var(--font-size-sm, 12px);color:#1565c0;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.status_app_only', {addr: mb.target_mailbox}))}</div>`;
                 } else if (mb.auth_status === 'unverified') {
-                    authLine = `<div style="font-size:12px;color:#ef6c00;margin-top:3px;">${escapeHtml(t('tickets.settings.modals.mailbox.status_unverified'))}</div>`;
+                    authLine = `<div style="font-size:var(--font-size-sm, 12px);color:#ef6c00;margin-top:3px;">${escapeHtml(t('tickets.settings.modals.mailbox.status_unverified'))}</div>`;
                 } else if (mb.auth_status === 'mismatch') {
-                    authLine = `<div style="font-size:12px;color:#c62828;margin-top:3px;font-weight:600;">⚠ ${escapeHtml(t('tickets.settings.modals.mailbox.status_mismatch', {authed: mb.authenticated_as || '?', target: mb.target_mailbox}))}</div>`;
+                    authLine = `<div style="font-size:var(--font-size-sm, 12px);color:#c62828;margin-top:3px;font-weight:600;">⚠ ${escapeHtml(t('tickets.settings.modals.mailbox.status_mismatch', {authed: mb.authenticated_as || '?', target: mb.target_mailbox}))}</div>`;
                 }
 
                 // Everything that could quietly be wrong with this mailbox, behind one
@@ -6779,7 +6779,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             if (s.used_for_knowledge) lines.push(t(md('knowledge')));
             const warn = lines.map(l => `<p style="color: var(--danger-text, #991b1b); background: var(--danger-bg, #fee2e2); padding: 8px 10px; border-radius: 4px; margin: 10px 0 0;">${escapeHtml(l)}</p>`).join('');
             document.getElementById('mailboxDeleteWarnings').innerHTML = warn
-                + `<p style="color: var(--text-muted, #666); margin: 12px 0 0; font-size: 13px;">${escapeHtml(t(md('deactivate')))}</p>`;
+                + `<p style="color: var(--text-muted, #666); margin: 12px 0 0; font-size: var(--font-size-md, 13px);">${escapeHtml(t(md('deactivate')))}</p>`;
         }
 
         function closeMailboxDeleteModal() {
@@ -7119,15 +7119,15 @@ function renderOversizeFields(string $px, bool $withLimits): void
         function renderWhitelistEntries() {
             const container = document.getElementById('whitelistEntries');
             if (whitelistEntries.length === 0) {
-                container.innerHTML = '<span style="color: var(--text-faint, #999); font-size: 12px;">No whitelist entries — all senders allowed</span>';
+                container.innerHTML = '<span style="color: var(--text-faint, #999); font-size: var(--font-size-sm, 12px);">No whitelist entries — all senders allowed</span>';
                 return;
             }
 
             container.innerHTML = whitelistEntries.map((e, i) => {
                 const color = e.entry_type === 'domain' ? '#0078d4' : '#6c757d';
-                return `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: ${color}15; border: 1px solid ${color}40; border-radius: 20px; font-size: 12px; color: ${color};">
+                return `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: ${color}15; border: 1px solid ${color}40; border-radius: 20px; font-size: var(--font-size-sm, 12px); color: ${color};">
                     <strong>${e.entry_type === 'domain' ? '@' : ''}${escapeHtml(e.entry_value)}</strong>
-                    <button type="button" onclick="removeWhitelistEntry(${i})" style="background: none; border: none; cursor: pointer; color: ${color}; font-size: 14px; padding: 0 2px; line-height: 1;">&times;</button>
+                    <button type="button" onclick="removeWhitelistEntry(${i})" style="background: none; border: none; cursor: pointer; color: ${color}; font-size: var(--font-size-lg, 14px); padding: 0 2px; line-height: 1;">&times;</button>
                 </span>`;
             }).join('');
         }
@@ -7161,12 +7161,12 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 // not a preference, and silencing it is the one thing this modal
                 // must never help anybody do.
                 const btn = p.dismissible
-                    ? `<button type="button" class="btn btn-secondary" style="margin-top:8px;padding:3px 10px;font-size:12px;"
+                    ? `<button type="button" class="btn btn-secondary" style="margin-top:8px;padding:3px 10px;font-size:var(--font-size-sm, 12px);"
                          onclick="setMailboxProblemDismissed(${mailboxId}, ${jsArg(p.key)}, true)">${escapeHtml(t('tickets.settings.modals.mailbox.problems_dismiss'))}</button>`
                     : '';
                 return `<div style="border-left:3px solid ${colour}; background:${bg}; padding:10px 12px; margin-bottom:10px; border-radius:0 4px 4px 0;">
                     <div style="font-weight:600; color:${colour}; margin-bottom:3px;">${escapeHtml(p.title)}</div>
-                    <div style="font-size:13px; color:var(--text-color,#333);">${escapeHtml(p.detail)}</div>
+                    <div style="font-size:var(--font-size-md, 13px); color:var(--text-color,#333);">${escapeHtml(p.detail)}</div>
                     ${btn}
                 </div>`;
             };
@@ -7183,12 +7183,12 @@ function renderOversizeFields(string $px, bool $withLimits): void
             // say "I know", not to delete the fact.
             if (acked.length) {
                 html += `<div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border, #e0e0e0);">
-                    <div style="font-size:12px; font-weight:600; color:var(--text-muted,#666); margin-bottom:8px;">
+                    <div style="font-size:var(--font-size-sm, 12px); font-weight:600; color:var(--text-muted,#666); margin-bottom:8px;">
                         ${escapeHtml(t('tickets.settings.modals.mailbox.problems_dismissed_heading'))}
                     </div>
                     ${acked.map(p => `<div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                        <span style="flex:1; font-size:13px; color:var(--text-muted,#666);">${escapeHtml(p.title)}</span>
-                        <button type="button" class="btn btn-secondary" style="padding:3px 10px;font-size:12px;"
+                        <span style="flex:1; font-size:var(--font-size-md, 13px); color:var(--text-muted,#666);">${escapeHtml(p.title)}</span>
+                        <button type="button" class="btn btn-secondary" style="padding:3px 10px;font-size:var(--font-size-sm, 12px);"
                             onclick="setMailboxProblemDismissed(${mailboxId}, ${jsArg(p.key)}, false)">${escapeHtml(t('tickets.settings.modals.mailbox.problems_restore'))}</button>
                     </div>`).join('')}
                 </div>`;
@@ -7294,9 +7294,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         // The error, or the reason nothing was sent, is why anybody
                         // opens this tab — shown in the row rather than behind a click.
                         const note = (failed || skipped) && e.error_message
-                            ? `<div style="margin-top:4px; font-size:11px; color:${failed ? '#a4262c' : 'var(--text-muted,#666)'}; white-space:normal;">${escapeHtml(e.error_message)}</div>` : '';
+                            ? `<div style="margin-top:4px; font-size:var(--font-size-xs, 11px); color:${failed ? '#a4262c' : 'var(--text-muted,#666)'}; white-space:normal;">${escapeHtml(e.error_message)}</div>` : '';
                         const ticket = e.ticket_id
-                            ? ` <a href="../?ticket_id=${e.ticket_id}" style="font-size:11px;">#${e.ticket_id}</a>` : '';
+                            ? ` <a href="../?ticket_id=${e.ticket_id}" style="font-size:var(--font-size-xs, 11px);">#${e.ticket_id}</a>` : '';
                         const cls   = failed ? 'failed' : (skipped ? 'skipped' : 'sent');
                         const label = failed ? 'Failed' : (skipped ? 'Not sent' : 'Sent');
                         return `<tr>
@@ -7321,8 +7321,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
             const to = Math.min(page * data.per_page, data.total);
             pag.innerHTML = `<span>${from}-${to} of ${data.total}</span>
                 <span>
-                    <button type="button" class="btn btn-secondary" style="padding:3px 10px; font-size:12px;" ${page <= 1 ? 'disabled' : ''} onclick="loadMailboxLog(${page - 1})">Previous</button>
-                    <button type="button" class="btn btn-secondary" style="padding:3px 10px; font-size:12px;" ${page >= totalPages ? 'disabled' : ''} onclick="loadMailboxLog(${page + 1})">Next</button>
+                    <button type="button" class="btn btn-secondary" style="padding:3px 10px; font-size:var(--font-size-sm, 12px);" ${page <= 1 ? 'disabled' : ''} onclick="loadMailboxLog(${page - 1})">Previous</button>
+                    <button type="button" class="btn btn-secondary" style="padding:3px 10px; font-size:var(--font-size-sm, 12px);" ${page >= totalPages ? 'disabled' : ''} onclick="loadMailboxLog(${page + 1})">Next</button>
                 </span>`;
         }
 
@@ -7386,10 +7386,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 tbody.innerHTML = data.entries.map((e, idx) => {
                     const dt = fmtDateTime(e.created_datetime);
                     const badge = e.action === 'imported'
-                        ? '<span style="display: inline-block; padding: 2px 8px; background: #d4edda; color: #155724; border-radius: 10px; font-size: 11px;">Imported</span>'
+                        ? '<span style="display: inline-block; padding: 2px 8px; background: #d4edda; color: #155724; border-radius: 10px; font-size: var(--font-size-xs, 11px);">Imported</span>'
                         : e.action === 'already_imported'
-                        ? '<span style="display: inline-block; padding: 2px 8px; background: #e2e3e5; color: #383d41; border-radius: 10px; font-size: 11px;">Already imported</span>'
-                        : '<span style="display: inline-block; padding: 2px 8px; background: #f8d7da; color: #721c24; border-radius: 10px; font-size: 11px;">Rejected</span>';
+                        ? '<span style="display: inline-block; padding: 2px 8px; background: #e2e3e5; color: #383d41; border-radius: 10px; font-size: var(--font-size-xs, 11px);">Already imported</span>'
+                        : '<span style="display: inline-block; padding: 2px 8px; background: #f8d7da; color: #721c24; border-radius: 10px; font-size: var(--font-size-xs, 11px);">Rejected</span>';
                     const fromAddr = (e.from_address || '').trim();
                     const fromNm   = (e.from_name || '').trim();
                     // A portal requester with no mailbox has a name and no address.
@@ -7415,11 +7415,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 if (totalPages > 1) {
                     paginationHtml += '<div>';
                     if (page > 1) {
-                        paginationHtml += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-right: 4px;" onclick="loadActivity(${mailboxId}, '${currentSearch.replace(/'/g, "\\'")}', ${page - 1})">${t('common.calendar.previous')}</button>`;
+                        paginationHtml += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: var(--font-size-sm, 12px); margin-right: 4px;" onclick="loadActivity(${mailboxId}, '${currentSearch.replace(/'/g, "\\'")}', ${page - 1})">${t('common.calendar.previous')}</button>`;
                     }
                     paginationHtml += `<span style="margin: 0 8px;">Page ${page} of ${totalPages}</span>`;
                     if (page < totalPages) {
-                        paginationHtml += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-left: 4px;" onclick="loadActivity(${mailboxId}, '${currentSearch.replace(/'/g, "\\'")}', ${page + 1})">${t('common.calendar.next')}</button>`;
+                        paginationHtml += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: var(--font-size-sm, 12px); margin-left: 4px;" onclick="loadActivity(${mailboxId}, '${currentSearch.replace(/'/g, "\\'")}', ${page + 1})">${t('common.calendar.next')}</button>`;
                     }
                     paginationHtml += '</div>';
                 }
@@ -8028,10 +8028,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error);
 
-                const row = p => `<div style="font-family: ui-monospace, Consolas, monospace; font-size:12px;">
+                const row = p => `<div style="font-family: ui-monospace, Consolas, monospace; font-size:var(--font-size-sm, 12px);">
                         ${escapeHtml(p.from)} &rarr; <strong>${escapeHtml(p.to)}</strong></div>`;
                 const gap = data.changing > 10
-                    ? `<div style="color: var(--text-dim, #888); font-size:12px; margin:6px 0;">…</div>` : '';
+                    ? `<div style="color: var(--text-dim, #888); font-size:var(--font-size-sm, 12px); margin:6px 0;">…</div>` : '';
 
                 out.innerHTML = `
                     <div class="info-box" style="padding:12px 14px;border-radius:6px;background: var(--surface-2, #fafafa);border:1px solid var(--border-soft, #eee);">
@@ -8041,7 +8041,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         ${(data.first || []).map(row).join('')}
                         ${gap}
                         ${data.changing > 5 ? (data.last || []).map(row).join('') : ''}
-                        ${data.next_after ? `<div style="margin-top:10px;color: var(--text-muted, #666);font-size:12px;">${numT("renumber_next_after", { number: escapeHtml(data.next_after) })}</div>` : ""}
+                        ${data.next_after ? `<div style="margin-top:10px;color: var(--text-muted, #666);font-size:var(--font-size-sm, 12px);">${numT("renumber_next_after", { number: escapeHtml(data.next_after) })}</div>` : ""}
                     </div>`;
 
                 if (mode === 'preview') {
@@ -8291,7 +8291,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             const box = document.getElementById('tplRulesList');
             if (!box) return;
             if (!templateRules.length) {
-                box.innerHTML = '<span style="font-size:12px;color:var(--text-muted,#666);">'
+                box.innerHTML = '<span style="font-size:var(--font-size-sm, 12px);color:var(--text-muted,#666);">'
                               + escapeHtml(t('tickets.settings.scope.rule_placeholder')) + '</span>';
                 return;
             }
@@ -8713,7 +8713,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             const wrap = document.getElementById('replyTemplateMergeCodes');
             if (!wrap) return;
             wrap.innerHTML = Object.keys(codes).map(code => `
-                <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;"
+                <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: var(--font-size-sm, 12px);"
                         onclick="insertReplyTemplateMergeCode(${jsArg(code)})"
                         title="[${escapeHtml(code)}]">${escapeHtml(codes[code])}</button>
             `).join('');
@@ -9214,7 +9214,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <tr>
                         <td><strong>${escapeHtml(c.name)}</strong></td>
                         ${multi ? `<td>${escapeHtml(c.company ?? t('tickets.settings.priorities.shared'))}</td>` : ''}
-                        <td><code style="font-size:12px;">${escapeHtml(c.timezone)}</code></td>
+                        <td><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(c.timezone)}</code></td>
                         <td>${hoursLabel}</td>
                         <td>${c.holiday_count || 0}</td>
                         <td>${defaultCell}</td>
@@ -9369,12 +9369,12 @@ function renderOversizeFields(string $px, bool $withLimits): void
         function renderSlaModalHolidays() {
             const container = document.getElementById('slaCalendarHolidaysList');
             if (slaModalHolidays.length === 0) {
-                container.innerHTML = '<div style="color:var(--text-faint, #999);font-size:13px;font-style:italic;">No holidays added yet.</div>';
+                container.innerHTML = '<div style="color:var(--text-faint, #999);font-size:var(--font-size-md, 13px);font-style:italic;">No holidays added yet.</div>';
                 return;
             }
             container.innerHTML = slaModalHolidays.map((h, i) => `
                 <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:6px 10px;background:#f5f5f5;border-radius:4px;">
-                    <code style="font-size:12px;">${escapeHtml(h.holiday_date)}</code>
+                    <code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(h.holiday_date)}</code>
                     ${h.name ? `<span style="color:var(--text-muted, #555);flex:1;">${escapeHtml(h.name)}</span>` : '<span style="flex:1;color:var(--text-faint, #999);font-style:italic;">(no name)</span>'}
                     <button type="button" class="action-btn delete" onclick="removeSlaHoliday(${i})" title="${escapeHtml(t('common.delete'))}" style="padding:2px 8px;">&times;</button>
                 </div>
@@ -9518,7 +9518,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 return `
                     <tr>
                         <td>${scope}</td>
-                        <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${triggerColour[r.trigger_type]}1A;color:${triggerColour[r.trigger_type]};font-size:11px;font-weight:600;">${triggerLabel[r.trigger_type]}</span></td>
+                        <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${triggerColour[r.trigger_type]}1A;color:${triggerColour[r.trigger_type]};font-size:var(--font-size-xs, 11px);font-weight:600;">${triggerLabel[r.trigger_type]}</span></td>
                         <td>${targetLabel[r.target_type] || r.target_type}</td>
                         <td>${recipients.join(', ') || '<span style="color:#c00;">none</span>'}</td>
                         <td>${r.is_active ? 'Yes' : '<span style="color:var(--text-dim, #888);">No</span>'}</td>
@@ -9682,7 +9682,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <td>${r.sent_count ?? 0}</td>
                         <td>${r.skipped_count ?? 0}</td>
                         <td>${r.error_count ?? 0}</td>
-                        <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${c.bg};color:${c.fg};font-size:11px;font-weight:600;">${label}</span></td>
+                        <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${c.bg};color:${c.fg};font-size:var(--font-size-xs, 11px);font-weight:600;">${label}</span></td>
                     </tr>
                 `;
             }).join('');

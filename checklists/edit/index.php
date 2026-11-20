@@ -69,9 +69,9 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
             border-bottom: 1px solid var(--border-soft, #e2e8f0);
             position: sticky; top: 0; z-index: 20;
         }
-        .ed-bar h1 { margin: 0; font-size: 18px; font-weight: 700; color: var(--text, #0f172a); }
+        .ed-bar h1 { margin: 0; font-size: var(--font-size-2xl, 18px); font-weight: 700; color: var(--text, #0f172a); }
         .ed-bar .spacer { flex: 1; }
-        .ed-unsaved { font-size: 12px; color: var(--text-muted, #64748b); opacity: 0; transition: opacity 0.15s; }
+        .ed-unsaved { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b); opacity: 0; transition: opacity 0.15s; }
         .ed-unsaved.visible { opacity: 1; }
 
         .ed-body { flex: 1 1 auto; width: 100%; box-sizing: border-box; padding: 24px 32px 60px; }
@@ -80,20 +80,20 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
 
         .ed-card { background: var(--surface, #fff); border: 1px solid var(--border-soft, #e2e8f0); border-radius: 8px; padding: 20px 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .ed-card h2 { margin: 0 0 4px 0; font-size: 15px; font-weight: 700; color: var(--text, #0f172a); }
-        .ed-card .ed-sub { margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted, #64748b); }
+        .ed-card .ed-sub { margin: 0 0 16px 0; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b); }
 
         .ed-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-        .ed-field label { font-size: 12px; font-weight: 600; color: var(--text-muted, #64748b); }
+        .ed-field label { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #64748b); }
         .ed-input, .ed-select, .ed-textarea {
             width: 100%; box-sizing: border-box;
-            padding: 8px 12px; font-size: 13px;
+            padding: 8px 12px; font-size: var(--font-size-md, 13px);
             border: 1px solid var(--border-soft, #cbd5e1); border-radius: 6px;
             background: var(--surface, #fff); color: var(--text, #1e293b);
             font-family: inherit;
         }
         .ed-textarea { min-height: 78px; resize: vertical; }
 
-        .btn-teal { background: #0d9488; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .btn-teal { background: #0d9488; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; cursor: pointer; }
         .btn-teal:hover { background: #0f766e; }
         /* Also used on an <a>, which inherits the global link underline and
          * colour unless both are reset here. */
@@ -101,7 +101,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
             background: var(--surface, #fff); color: var(--text, #334155);
             border: 1px solid var(--border-soft, #cbd5e1);
             padding: 8px 16px; border-radius: 6px;
-            font-size: 13px; font-weight: 500; cursor: pointer;
+            font-size: var(--font-size-md, 13px); font-weight: 500; cursor: pointer;
             text-decoration: none; display: inline-flex; align-items: center;
         }
         .btn-plain:hover { background: var(--surface-hover, #f1f5f9); text-decoration: none; }
@@ -124,20 +124,20 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
         .step-head { display: flex; align-items: center; gap: 8px; }
         .step-drag { cursor: grab; color: var(--text-faint, #bbb); padding: 2px; touch-action: none; display: inline-flex; }
         .step-drag:active { cursor: grabbing; }
-        .step-num { font-size: 11px; font-weight: 700; color: var(--text-muted, #64748b); min-width: 18px; text-align: right; }
+        .step-num { font-size: var(--font-size-xs, 11px); font-weight: 700; color: var(--text-muted, #64748b); min-width: 18px; text-align: right; }
         .step-title { flex: 2; }
         .step-role  { flex: 1.1; }
         .step-del { background: none; border: none; color: var(--danger-accent, #d13438); cursor: pointer; padding: 4px; border-radius: 4px; display: inline-flex; }
         .step-del:hover { background: var(--danger-bg, #fdf3f3); }
 
         .step-opts { display: flex; align-items: center; gap: 18px; margin-top: 8px; padding-left: 28px; flex-wrap: wrap; }
-        .step-opt { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text, #334155); }
+        .step-opt { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm, 12px); color: var(--text, #334155); }
         .step-ph-wrap { flex: 1 1 220px; min-width: 180px; }
         /* The step's own description (#190 / #271): a full-width line in the options row, so it takes the row's phone layout. */
         .step-desc-wrap { flex: 1 1 100%; }
-        .step-desc { min-height: 38px; font-size: 12px; }
+        .step-desc { min-height: 38px; font-size: var(--font-size-sm, 12px); }
 
-        .ed-empty { text-align: center; padding: 26px; font-size: 13px; color: var(--text-muted, #64748b); border: 1px dashed var(--border-soft, #cbd5e1); border-radius: 6px; }
+        .ed-empty { text-align: center; padding: 26px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #64748b); border: 1px dashed var(--border-soft, #cbd5e1); border-radius: 6px; }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>
@@ -183,7 +183,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                     // choice is made, rather than let it look like it worked.
                     require_once '../../includes/services/checklists.php';
                     if (!ChecklistsService::tasksEnabled($conn)): ?>
-                    <div class="ed-hint" style="margin-top:4px;font-size:12px;color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('checklists.editor.tasks_off_hint')); ?></div>
+                    <div class="ed-hint" style="margin-top:4px;font-size:var(--font-size-sm, 12px);color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('checklists.editor.tasks_off_hint')); ?></div>
                     <?php endif; ?>
                 </div>
                 <div class="ed-field">
@@ -192,7 +192,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                         <option value="warn"><?php echo htmlspecialchars(t('checklists.editor.closure_warn')); ?></option>
                         <option value="block"><?php echo htmlspecialchars(t('checklists.editor.closure_block')); ?></option>
                     </select>
-                    <span style="font-size: 11px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.editor.closure_mode_desc')); ?></span>
+                    <span style="font-size: var(--font-size-xs, 11px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.editor.closure_mode_desc')); ?></span>
                 </div>
                 <div class="ed-field">
                     <label for="edDesc"><?php echo htmlspecialchars(t('checklists.editor.description')); ?></label>
@@ -201,7 +201,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                 <div class="ed-field" style="margin-bottom: 0;">
                     <label for="edKeywords"><?php echo htmlspecialchars(t('checklists.editor.keywords')); ?></label>
                     <input type="text" id="edKeywords" class="ed-input" placeholder="<?php echo htmlspecialchars(t('checklists.editor.keywords_ph')); ?>">
-                    <span style="font-size: 11px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.editor.keywords_help')); ?></span>
+                    <span style="font-size: var(--font-size-xs, 11px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.editor.keywords_help')); ?></span>
                 </div>
             </div>
 

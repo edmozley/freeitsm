@@ -49,8 +49,8 @@ $tokenLooksValid = (bool)preg_match('/^[a-f0-9]{64}$/', $token);
         }
         .login-header { text-align: center; margin-bottom: 30px; }
         .login-header img { width: 250px; max-width: 100%; height: auto; margin-bottom: 25px; }
-        .login-header h1 { color: #333; font-size: 24px; margin-bottom: 6px; }
-        .login-header p { color: #888; font-size: 14px; }
+        .login-header h1 { color: #333; font-size: var(--font-size-4xl, 24px); margin-bottom: 6px; }
+        .login-header p { color: #888; font-size: var(--font-size-lg, 14px); }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
         .form-group input {
@@ -59,29 +59,29 @@ $tokenLooksValid = (bool)preg_match('/^[a-f0-9]{64}$/', $token);
             border: 1px solid #ddd;
             border-radius: 5px;
             /* 16px, ungated — see forgot-password.php. */
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             transition: border-color 0.3s;
         }
         .form-group input:focus { outline: none; border-color: #667eea; }
-        .form-hint { font-size: 12px; color: #999; margin-top: 4px; }
+        .form-hint { font-size: var(--font-size-sm, 12px); color: #999; margin-top: 4px; }
         .error-message {
             background: #fee; color: #c33; padding: 12px; border-radius: 5px;
-            margin-bottom: 20px; font-size: 14px; border-left: 4px solid #c33; display: none;
+            margin-bottom: 20px; font-size: var(--font-size-lg, 14px); border-left: 4px solid #c33; display: none;
         }
         .success-message {
             background: #d4edda; color: #155724; padding: 12px; border-radius: 5px;
-            margin-bottom: 20px; font-size: 14px; border-left: 4px solid #155724; display: none;
+            margin-bottom: 20px; font-size: var(--font-size-lg, 14px); border-left: 4px solid #155724; display: none;
         }
         .login-button {
             width: 100%; padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white; border: none; border-radius: 5px;
-            font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s;
+            font-size: var(--font-size-xl, 16px); font-weight: 600; cursor: pointer; transition: transform 0.2s;
         }
         .login-button:hover { transform: translateY(-2px); }
         .login-button:active { transform: translateY(0); }
         .login-button:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
-        .login-links { text-align: center; margin-top: 20px; font-size: 14px; }
+        .login-links { text-align: center; margin-top: 20px; font-size: var(--font-size-lg, 14px); }
         .login-links a { color: #667eea; text-decoration: none; }
         .login-links a:hover { text-decoration: underline; }
     </style>

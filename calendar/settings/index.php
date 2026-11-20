@@ -74,7 +74,7 @@ $translationNamespaces = ['common', 'calendar'];
 
         .section-header h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text, #333);
         }
 
@@ -84,7 +84,7 @@ $translationNamespaces = ['common', 'calendar'];
             padding: 8px 16px;
             border: none;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
             flex-shrink: 0;
         }
@@ -97,7 +97,7 @@ $translationNamespaces = ['common', 'calendar'];
             padding: 10px 8px;
             text-align: left;
             border-bottom: 1px solid var(--border-soft, #f0f0f0);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .lookup-table th {
             font-weight: 600;
@@ -159,7 +159,7 @@ $translationNamespaces = ['common', 'calendar'];
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             cursor: pointer;
         }
@@ -240,14 +240,14 @@ $translationNamespaces = ['common', 'calendar'];
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="calendarSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('calendar.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="calendarSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('calendar.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>

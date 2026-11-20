@@ -328,7 +328,7 @@ function pmRenderDetail(data) {
             <div class="pm-note-head"><span class="pm-note-who">${pmEsc(n.analyst_name || pmT('detail.someone', 'Someone'))}</span><span class="pm-note-when">${when}</span></div>
             <div class="pm-note-body">${pmEsc(n.note)}</div>
         </div>`;
-    }).join('') || '<div style="color:#9ca3af;font-size:13px;">' + pmEsc(pmT('detail.no_notes', 'No notes yet.')) + '</div>';
+    }).join('') || '<div style="color:#9ca3af;font-size:var(--font-size-md, 13px);">' + pmEsc(pmT('detail.no_notes', 'No notes yet.')) + '</div>';
 
     document.getElementById('pmDetailView').innerHTML = `
         <div class="pm-detail">
@@ -677,8 +677,8 @@ async function pmSuggest() {
         body.innerHTML = pmSuggestions.map((s, i) => `
             <div class="pm-section" style="margin:0 0 12px;">
                 <div style="font-weight:600;">${pmEsc(s.title || pmT('ai.untitled', 'Untitled'))}</div>
-                <div style="color:#6b7280;font-size:13px;margin:4px 0;">${pmEsc(s.rationale || '')}</div>
-                <div style="font-size:12px;margin-bottom:8px;">${(s.ticket_numbers || []).map(t => `<span class="pm-num">${pmEsc(t)}</span>`).join(', ')}</div>
+                <div style="color:#6b7280;font-size:var(--font-size-md, 13px);margin:4px 0;">${pmEsc(s.rationale || '')}</div>
+                <div style="font-size:var(--font-size-sm, 12px);margin-bottom:8px;">${(s.ticket_numbers || []).map(t => `<span class="pm-num">${pmEsc(t)}</span>`).join(', ')}</div>
                 <button class="pm-btn pm-btn-primary" onclick="pmCreateFromSuggestion(${i})">${pmT('ai.create_and_link', 'Create problem &amp; link these')}</button>
             </div>`).join('');
     } catch (e) { body.innerHTML = '<div style="color:#c62828;">' + pmEsc(pmT('ai.request_error', 'Request failed')) + '</div>'; }

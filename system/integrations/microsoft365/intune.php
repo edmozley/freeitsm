@@ -63,7 +63,7 @@ $assetsOn = moduleIsEnabled(connectToDatabase(), 'assets');
         }
         /* Gutter, width and title come from .sys-page (assets/css/system-page.css). */
         .ms-wrap { height: calc(100vh - 48px); overflow-y: auto; }
-        .ms-crumb { font-size: 13px; margin: 0 0 6px; }
+        .ms-crumb { font-size: var(--font-size-md, 13px); margin: 0 0 6px; }
         .ms-crumb a { color: var(--sys-accent, #546e7a); text-decoration: none; }
         .ms-crumb a:hover { text-decoration: underline; }
 
@@ -71,31 +71,31 @@ $assetsOn = moduleIsEnabled(connectToDatabase(), 'assets');
         .settings-section { background: var(--surface, #fff); border-radius: 8px; box-shadow: var(--shadow, 0 1px 4px rgba(0, 0, 0, 0.08)); margin-bottom: 25px; overflow: hidden; border: 1px solid var(--border, #e0e0e0); }
         .settings-section-header { padding: 18px 22px; border-bottom: 1px solid var(--border, #e0e0e0); background-color: var(--surface-3, #f8f9fa); display: flex; align-items: center; gap: 12px; }
         .settings-section-header svg { color: var(--sys-accent, #546e7a); flex-shrink: 0; }
-        .settings-section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
+        .settings-section-header h2 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
         .settings-section-body { padding: 22px; }
-        .settings-description { font-size: 13px; color: var(--text-muted, #666); margin: 0 0 20px 0; line-height: 1.5; }
+        .settings-description { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin: 0 0 20px 0; line-height: 1.5; }
         .form-group { margin-bottom: 18px; }
-        .ms-off { margin: 0 0 18px; padding: 12px 16px; border-radius: 8px; font-size: 13px;
+        .ms-off { margin: 0 0 18px; padding: 12px 16px; border-radius: 8px; font-size: var(--font-size-md, 13px);
                   background: var(--warning-bg, #fff8e1); color: var(--warning-text, #8a5a00); border: 1px solid var(--warning-border, #f3d27a); }
         .form-group:last-child { margin-bottom: 0; }
-        .form-label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
-        .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 14px; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); transition: border-color 0.15s, box-shadow 0.15s; }
+        .form-label { display: block; margin-bottom: 6px; font-weight: 500; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
+        .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: var(--font-size-lg, 14px); box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); transition: border-color 0.15s, box-shadow 0.15s; }
         .form-input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
-        .form-hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; }
+        .form-hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 4px; }
         .form-actions { display: flex; align-items: center; gap: 12px; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border-soft, #eee); flex-wrap: wrap; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background-color 0.15s; }
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: var(--font-size-md, 13px); font-weight: 600; transition: background-color 0.15s; }
+        .btn-sm { padding: 6px 12px; font-size: var(--font-size-sm, 12px); }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover:not(:disabled) { background: var(--sys-accent-hover, #455a64); }
         .btn-secondary { background: var(--sys-accent-soft, #eceff1); color: var(--sys-accent-hover, #455a64); }
         .btn:disabled { opacity: .55; cursor: not-allowed; }
         .password-wrapper { position: relative; }
         .password-wrapper .form-input { padding-right: 60px; }
-        .password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-dim, #888); font-size: 13px; padding: 4px; }
+        .password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); padding: 4px; }
         .password-toggle:hover { color: var(--text, #333); }
         /* Connection | Import - the two pages, as a segmented switch. */
         .ms-switch { display: inline-flex; border: 1px solid var(--border, #d6dde3); border-radius: 8px; overflow: hidden; margin: 0 0 18px; }
-        .ms-switch a { padding: 8px 16px; font-size: 13px; color: var(--text-muted, #666); text-decoration: none; background: var(--surface, #fff); }
+        .ms-switch a { padding: 8px 16px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); text-decoration: none; background: var(--surface, #fff); }
         .ms-switch a + a { border-left: 1px solid var(--border, #d6dde3); }
         .ms-switch a.on { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .tab-pane { display: none; }
@@ -104,21 +104,21 @@ $assetsOn = moduleIsEnabled(connectToDatabase(), 'assets');
         .intune-progress { margin-top: 18px; }
         .intune-progress-bar { background: var(--border, #e0e0e0); border-radius: 4px; height: 10px; overflow: hidden; }
         .intune-progress-fill { background: #107c10; height: 100%; width: 0; transition: width 0.3s ease-out; }
-        .intune-progress-meta { font-size: 12px; color: var(--text-muted, #666); margin-top: 6px; }
+        .intune-progress-meta { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 6px; }
         .intune-progress.intune-error .intune-progress-fill { background: #d13438; }
 
 
         .intune-software-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border-soft, #eee); }
         .intune-subsection-title { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 8px 0; }
         .intune-freshness-wrap { margin-top: 22px; padding: 14px 16px; background: var(--surface-3, #fafbfc); border: 1px solid var(--border-soft, #eee); border-radius: 6px; }
-        .intune-freshness-title { font-size: 12px; color: var(--text-muted, #666); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+        .intune-freshness-title { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
         .intune-freshness-canvas-wrap { position: relative; height: 180px; }
         .intune-jobs-list { margin-top: 18px; }
-        .intune-jobs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .intune-jobs-table th { text-align: left; padding: 8px 10px; background: var(--surface-3, #f8f9fa); color: var(--text-muted, #666); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid var(--border, #e0e0e0); }
+        .intune-jobs-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        .intune-jobs-table th { text-align: left; padding: 8px 10px; background: var(--surface-3, #f8f9fa); color: var(--text-muted, #666); font-weight: 600; font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid var(--border, #e0e0e0); }
         .intune-jobs-table td { padding: 8px 10px; border-bottom: 1px solid var(--surface-hover, #f0f0f0); color: var(--text, #333); }
         .intune-jobs-table tbody tr:hover { background: var(--surface-2, #fafafa); }
-        .intune-job-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .intune-job-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; }
         .intune-job-status.pending { background: #fff3e0; color: #e65100; }
         .intune-job-status.running { background: #e3f2fd; color: #1565c0; }
         .intune-job-status.done    { background: #e8f5e9; color: #2e7d32; }

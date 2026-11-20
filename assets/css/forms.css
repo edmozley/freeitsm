@@ -29,7 +29,7 @@
 }
 
 .sidebar-section h3 {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 12px;
@@ -42,7 +42,7 @@
     padding: 10px 12px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     box-sizing: border-box;
 }
 
@@ -86,7 +86,7 @@
 }
 
 .form-list-item-title {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 4px;
@@ -96,7 +96,7 @@
 }
 
 .form-list-item-meta {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-dim, #888);
     display: flex;
     gap: 10px;
@@ -125,7 +125,7 @@
     text-align: center;
     padding: 30px 10px;
     color: var(--text-faint, #999);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 /* Main content area */
@@ -164,13 +164,13 @@
 }
 
 .forms-welcome h3 {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     color: var(--text-muted, #666);
     margin: 0 0 8px;
 }
 
 .forms-welcome p {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     margin: 0;
 }
 
@@ -184,7 +184,7 @@
 
 .editor-toolbar h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     color: var(--text, #333);
 }
 
@@ -199,7 +199,7 @@
     display: none;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: #e65100;
     font-weight: 500;
 }
@@ -244,7 +244,7 @@
 
 .form-settings-card label {
     display: block;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #666);
     margin-bottom: 4px;
@@ -258,7 +258,7 @@
     padding: 10px 12px;
     border: 1px solid var(--border, #ddd);
     border-radius: 5px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-family: inherit;
     box-sizing: border-box;
     background: var(--surface, #fff);
@@ -286,7 +286,7 @@
 
 .form-tab {
     padding: 12px 24px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 500;
     color: var(--text-muted, #666);
     cursor: pointer;
@@ -331,7 +331,7 @@
 
 .fields-header h3 {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
 }
@@ -369,7 +369,7 @@
     padding: 8px 14px;
     border: none;
     background: none;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     cursor: pointer;
     color: var(--text, #333);
     white-space: nowrap;
@@ -486,7 +486,7 @@
     padding: 6px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-family: inherit;
     background: var(--surface, #fff);
     color: var(--text, #333);
@@ -507,7 +507,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-dim, #888);
     cursor: pointer;
 }
@@ -534,7 +534,7 @@
 }
 
 .field-options-label {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-dim, #888);
     margin-bottom: 6px;
     font-weight: 600;
@@ -566,7 +566,7 @@
 .option-drag {
     cursor: grab;
     color: var(--text-faint, #ccc);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     padding: 0 2px;
     user-select: none;
     line-height: 1;
@@ -583,7 +583,7 @@
     padding: 5px 8px;
     border: 1px solid var(--border, #ddd);
     border-radius: 3px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-family: inherit;
     background: var(--surface, #fff);
     color: var(--text, #333);
@@ -600,12 +600,12 @@
     cursor: pointer;
     color: var(--text-faint, #ccc);
     padding: 2px;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
 }
 
 .option-remove:hover { color: var(--danger-text, #d32f2f); }
 /* GH #190 phase 4: "counts as an exception" on a choice option. */
-.option-exc { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--text-muted, #666); white-space: nowrap; cursor: pointer; margin: 0 4px; }
+.option-exc { display: flex; align-items: center; gap: 3px; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); white-space: nowrap; cursor: pointer; margin: 0 4px; }
 .option-exc input { margin: 0; }
 
 .add-option-btn {
@@ -613,7 +613,7 @@
     border: 1px dashed var(--border, #ccc);
     border-radius: 3px;
     padding: 4px 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     cursor: pointer;
     color: var(--text-dim, #888);
     width: 100%;
@@ -648,7 +648,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text, #333);
     cursor: pointer;
 }
@@ -676,7 +676,7 @@
 }
 
 .cond-match {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     padding: 1px 4px;
     border: 1px solid var(--border, #ddd);
     border-radius: 3px;
@@ -700,7 +700,7 @@
     flex: 1 1 0;
     min-width: 0;               /* let the three controls share the row evenly */
     padding: 5px 8px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-family: inherit;
     border: 1px solid var(--border, #ddd);
     border-radius: 3px;
@@ -767,7 +767,7 @@
     text-align: center;
     padding: 30px;
     color: var(--text-faint, #999);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 /* Preview panel (in tab) */
@@ -779,14 +779,14 @@
 }
 
 .preview-title {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     font-weight: 600;
     color: var(--text, #333);
     margin: 0 0 4px;
 }
 
 .preview-desc {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-dim, #888);
     margin: 0 0 16px;
 }
@@ -828,7 +828,7 @@
 
 .preview-field label {
     display: block;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     color: var(--text, #333);
     margin-bottom: 4px;
@@ -846,7 +846,7 @@
     padding: 8px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-family: inherit;
     box-sizing: border-box;
     background: var(--surface-2, #f9f9f9);
@@ -859,14 +859,14 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .preview-empty {
     text-align: center;
     padding: 30px;
     color: var(--text-faint, #999);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 /* Sidebar form actions */
@@ -878,7 +878,7 @@
 
 .form-list-item-actions .btn {
     padding: 4px 10px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     border-radius: 3px;
 }
 
@@ -904,8 +904,8 @@
     box-shadow: 0 8px 30px var(--shadow, rgba(0,0,0,0.2));
 }
 
-.confirm-box h3 { margin: 0 0 8px; font-size: 16px; }
-.confirm-box p { margin: 0 0 20px; font-size: 14px; color: var(--text-muted, #666); }
+.confirm-box h3 { margin: 0 0 8px; font-size: var(--font-size-xl, 16px); }
+.confirm-box p { margin: 0 0 20px; font-size: var(--font-size-lg, 14px); color: var(--text-muted, #666); }
 
 .confirm-actions {
     display: flex;
@@ -975,7 +975,7 @@
 
 .fa-note {
     margin: 0 0 10px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #666);
 }
 
@@ -992,7 +992,7 @@
     padding: 10px 0;
     color: var(--text-muted, #666);
     font-style: italic;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .fa-action {
@@ -1019,7 +1019,7 @@
     border-radius: 50%;
     background: var(--forms-accent, #00897b);
     color: #fff;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1064,7 +1064,7 @@
 
 .fa-action-desc {
     margin: 8px 0 0;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
 }
 
@@ -1076,7 +1076,7 @@
 
 .fa-arg label {
     display: block;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 3px;
@@ -1095,7 +1095,7 @@
     color: var(--text, #333);
     /* 16px on a phone: anything smaller makes iOS Safari zoom in and abandon
        the page layout. */
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .fa-arg textarea {
@@ -1106,7 +1106,7 @@
 .fa-arg-hint {
     display: block;
     margin-top: 3px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-muted, #666);
 }
 
@@ -1125,7 +1125,7 @@
     .fa-arg input[type="number"],
     .fa-arg textarea,
     .fa-arg select {
-        font-size: 16px;
+        font-size: var(--font-size-xl, 16px);
     }
 }
 
@@ -1142,7 +1142,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
 }
 
@@ -1150,7 +1150,7 @@
     padding: 4px 8px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-family: inherit;
     background: var(--surface, #fff);
     color: var(--text, #333);
@@ -1161,7 +1161,7 @@
     padding: 8px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-family: inherit;
     box-sizing: border-box;
     resize: vertical;
@@ -1192,7 +1192,7 @@
 }
 
 .field-image-row input[type="file"] {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-family: inherit;
     color: var(--text-muted, #666);
     max-width: 100%;
@@ -1202,14 +1202,14 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     white-space: nowrap;
 }
 
 .field-imagemax-picker select {
     padding: 3px 6px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-family: inherit;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
@@ -1218,7 +1218,7 @@
 }
 
 .field-image-name {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-faint, #999);
 }
 
@@ -1237,7 +1237,7 @@
 }
 
 .grid-col-head {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1298,7 +1298,7 @@
 .grid-col-row input[type="text"],
 .grid-col-row select {
     padding: 4px 8px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-family: inherit;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
@@ -1311,7 +1311,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     white-space: nowrap;
 }
@@ -1321,17 +1321,17 @@
     background: var(--surface, #fff);
     color: var(--text-muted, #666);
     border-radius: 4px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     padding: 4px 8px;
     cursor: pointer;
 }
 .grid-col-retire:hover { border-color: var(--danger-border, #f0c2c2); color: var(--danger-text, #991b1b); }
 
 .grid-col-empty,
-.grid-col-count { font-size: 12px; color: var(--text-faint, #999); }
+.grid-col-count { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); }
 
 .grid-col-actions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-sm { padding: 4px 10px; font-size: var(--font-size-sm, 12px); }
 
 /* ── Who may request a form (GH #145) ──────────────────────────────────────
    The group picker inside the audience modal. */
@@ -1348,7 +1348,7 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     cursor: pointer;
     border-bottom: 1px solid var(--border-soft, #f0f0f0);
@@ -1360,9 +1360,9 @@
 
 /* How many CUSTOMERS are in the group. A group of analysts only would restrict
    the form to nobody, and this is the cheapest way to see that before saving. */
-.aud-count { font-size: 11px; color: var(--text-faint, #999); white-space: nowrap; }
+.aud-count { font-size: var(--font-size-xs, 11px); color: var(--text-faint, #999); white-space: nowrap; }
 
-.aud-loading { padding: 12px; font-size: 13px; color: var(--text-faint, #999); }
+.aud-loading { padding: 12px; font-size: var(--font-size-md, 13px); color: var(--text-faint, #999); }
 
 /* A row icon that is currently "on" — the same treatment the portal toggle
    uses, so the two read as the same kind of state. */

@@ -50,7 +50,7 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
         }
         .pa-container { flex: 1; overflow-y: auto; }
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
-        .pa-verify { background: #fff8e1; border: 1px solid #ffe082; color: #7a5b00; border-radius: 8px; padding: 12px 16px; font-size: 13px; margin-bottom: 16px; }
+        .pa-verify { background: #fff8e1; border: 1px solid #ffe082; color: #7a5b00; border-radius: 8px; padding: 12px 16px; font-size: var(--font-size-md, 13px); margin-bottom: 16px; }
 
         .pa-studio { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
         .pa-panel { background: var(--surface, #fff); border: 1px solid var(--border-soft, #e5e5e5); border-radius: 10px; padding: 16px; }
@@ -58,8 +58,8 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
         /* The stage: always a "screen" in the chosen palette's own colours. */
         .pa-stage { position: relative; border-radius: 8px; background: #020a02; min-height: 360px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .pa-stage canvas { display: block; max-width: 100%; height: auto; }
-        .pa-empty { color: #5f7f66; font-family: ui-monospace, Consolas, monospace; font-size: 13px; text-align: center; padding: 24px; line-height: 1.6; }
-        .pa-badge { position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 9px; border-radius: 10px; background: rgba(0,0,0,.55); color: #fff; }
+        .pa-empty { color: #5f7f66; font-family: ui-monospace, Consolas, monospace; font-size: var(--font-size-md, 13px); text-align: center; padding: 24px; line-height: 1.6; }
+        .pa-badge { position: absolute; top: 10px; left: 10px; font-size: var(--font-size-xs, 11px); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 9px; border-radius: 10px; background: rgba(0,0,0,.55); color: #fff; }
         .pa-badge.live::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff3b30; margin-right: 6px; vertical-align: 1px; animation: paPulse 1.2s infinite; }
         @keyframes paPulse { 50% { opacity: .3; } }
         @media (prefers-reduced-motion: reduce) { .pa-badge.live::before { animation: none; } }
@@ -71,47 +71,47 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
         .pa-actions .spacer { flex: 1; }
         .pa-menu-wrap { position: relative; }
         .pa-menu { position: absolute; right: 0; bottom: calc(100% + 4px); z-index: 30; min-width: 170px; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.15); padding: 4px; }
-        .pa-menu button { display: block; width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 5px; font-size: 13px; color: var(--text, #333); cursor: pointer; }
+        .pa-menu button { display: block; width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; border-radius: 5px; font-size: var(--font-size-md, 13px); color: var(--text, #333); cursor: pointer; }
         .pa-menu button:hover { background: var(--surface-2, #eceff1); }
 
         /* Controls */
         .pa-group { margin-bottom: 16px; }
         .pa-group:last-child { margin-bottom: 0; }
-        .pa-group > label, .pa-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 6px; }
+        .pa-group > label, .pa-label { display: flex; justify-content: space-between; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); margin-bottom: 6px; }
         .pa-label span { font-weight: 400; color: var(--text-dim, #888); font-variant-numeric: tabular-nums; }
         .pa-seg { display: flex; border: 1px solid var(--border, #ddd); border-radius: 7px; overflow: hidden; }
-        .pa-seg button { flex: 1; border: none; background: var(--surface, #fff); color: var(--text, #444); padding: 7px 4px; font-size: 13px; cursor: pointer; }
+        .pa-seg button { flex: 1; border: none; background: var(--surface, #fff); color: var(--text, #444); padding: 7px 4px; font-size: var(--font-size-md, 13px); cursor: pointer; }
         .pa-seg button + button { border-left: 1px solid var(--border, #ddd); }
         .pa-seg button.on { background: var(--accent); color: var(--on-accent); }
-        .pa-group select { width: 100%; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .pa-group select { width: 100%; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .pa-group input[type=range] { width: 100%; accent-color: var(--accent); }
-        .pa-switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: 13px; color: var(--text, #444); }
+        .pa-switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: var(--font-size-md, 13px); color: var(--text, #444); }
         .pa-switch strong { display: block; font-weight: 600; }
-        .pa-switch small { display: block; color: var(--text-dim, #888); font-size: 12px; margin-top: 1px; }
+        .pa-switch small { display: block; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); margin-top: 1px; }
 
         /* Album */
         .pa-album { margin-top: 24px; }
         .pa-album-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
-        .pa-album-head h3 { margin: 0; font-size: 16px; color: var(--text, #333); }
-        .pa-album-head span { font-size: 13px; color: var(--text-dim, #888); }
+        .pa-album-head h3 { margin: 0; font-size: var(--font-size-xl, 16px); color: var(--text, #333); }
+        .pa-album-head span { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); }
         .pa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
         .pa-card { background: var(--surface, #fff); border: 1px solid var(--border-soft, #e5e5e5); border-radius: 10px; overflow: hidden; cursor: pointer; text-align: left; padding: 0; font: inherit; color: inherit; transition: box-shadow .15s, transform .15s; }
         .pa-card:hover, .pa-card:focus-visible { box-shadow: 0 4px 14px rgba(0,0,0,.12); transform: translateY(-1px); }
         .pa-card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #020a02; }
         .pa-card div { padding: 9px 11px; }
-        .pa-card strong { display: block; font-size: 13px; color: var(--text, #333); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pa-card small { font-size: 12px; color: var(--text-dim, #888); }
-        .pa-album-empty { font-size: 13px; color: var(--text-faint, #999); padding: 18px 0; }
+        .pa-card strong { display: block; font-size: var(--font-size-md, 13px); color: var(--text, #333); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pa-card small { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
+        .pa-album-empty { font-size: var(--font-size-md, 13px); color: var(--text-faint, #999); padding: 18px 0; }
 
         /* Modals - namespaced so inbox.css's global .modal rules stay out of it. */
         .pa-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 2100; align-items: center; justify-content: center; }
         .pa-overlay.open { display: flex; }
         /* The dialog boxes are the standard System modal (.sys-modal in system-page.css);
            only what sits inside them is styled here. */
-        .pa-modal-head small { display: block; font-size: 12px; font-weight: 400; color: var(--text-dim, #888); margin-top: 2px; }
+        .pa-modal-head small { display: block; font-size: var(--font-size-sm, 12px); font-weight: 400; color: var(--text-dim, #888); margin-top: 2px; }
         .pa-modal-foot .spacer { flex: 1; }
-        .pa-modal-body label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
-        .pa-modal-body input[type=text] { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .pa-modal-body label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
+        .pa-modal-body input[type=text] { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .pa-viewer { border-radius: 8px; display: flex; justify-content: center; }
         .pa-viewer canvas { display: block; max-width: 100%; height: auto; }
         .pa-modal-foot .pa-menu { bottom: calc(100% + 4px); }

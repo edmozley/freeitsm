@@ -79,7 +79,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         }
         .tab {
             padding: 10px 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 500;
             color: var(--text-dim, #888);
             cursor: pointer;
@@ -93,7 +93,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             background: var(--surface-hover, #f0f0f0);
             padding: 1px 7px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             margin-left: 6px;
             color: var(--text-dim, #888);
         }
@@ -109,16 +109,16 @@ $translationNamespaces = ['common', 'system-wiki'];
             color: var(--wiki-accent, #c62828);
             text-decoration: none;
             font-weight: 500;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .result-item a:hover { text-decoration: underline; }
         .result-meta {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin-top: 4px;
         }
         .result-desc {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
             margin-top: 4px;
         }
@@ -132,7 +132,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         /* type-badge colours are DATA (language-coded), left hardcoded */
         .type-badge.php { background: #e8eaf6; color: #3f51b5; }
         .type-badge.js { background: #fff8e1; color: #f57f17; }
-        .no-results { text-align: center; padding: 40px; color: var(--text-faint, #aaa); font-size: 14px; }
+        .no-results { text-align: center; padding: 40px; color: var(--text-faint, #aaa); font-size: var(--font-size-lg, 14px); }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
 

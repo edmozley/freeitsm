@@ -31,31 +31,31 @@
 
     const CSS = `
 .cop-modal .modal-content { width: 820px; max-width: 95vw; }
-.cop-intro { margin: 0 0 14px; color: var(--text-muted,#666); font-size: 13px; }
-.cop-banner { margin: 0 0 14px; padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+.cop-intro { margin: 0 0 14px; color: var(--text-muted,#666); font-size: var(--font-size-md, 13px); }
+.cop-banner { margin: 0 0 14px; padding: 10px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600;
   background: var(--info-bg,#e0f2fe); color: var(--info-text,#075985); border: 1px solid var(--info-border,#b9def5); }
-.cop-h { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--text-muted,#666); margin: 0 0 8px; }
+.cop-h { font-size: var(--font-size-md, 13px); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--text-muted,#666); margin: 0 0 8px; }
 .cop-class { border: 1px solid var(--border,#e0e0e0); border-radius: 6px; padding: 6px 12px; margin-bottom: 10px; background: var(--surface,#fff); }
-.cop-class-h { font-weight: 600; font-size: 14px; padding: 4px 0; color: var(--text,#333); }
-.cop-line { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 14px; color: var(--text,#333); }
+.cop-class-h { font-weight: 600; font-size: var(--font-size-lg, 14px); padding: 4px 0; color: var(--text,#333); }
+.cop-line { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: var(--font-size-lg, 14px); color: var(--text,#333); }
 .cop-line input[type=checkbox] { margin-top: 3px; flex: none; width: auto; }
 .cop-line .cop-nobox { width: 13px; flex: none; }
 .cop-line.cop-off .cop-main { text-decoration: line-through; color: var(--text-dim,#888); }
 .cop-main { font-weight: 500; }
-.cop-reason { display: block; font-size: 12px; color: var(--text-muted,#666); font-weight: 400; }
-.cop-why { display: block; font-size: 12px; color: var(--text-dim,#888); }
+.cop-reason { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted,#666); font-weight: 400; }
+.cop-why { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim,#888); }
 .cop-obj { margin-left: 12px; }
 .cop-sub { margin-left: 23px; border-left: 2px solid var(--border-soft,#eee); padding-left: 12px; margin-bottom: 4px; }
-.cop-prop { font-size: 13px; padding: 2px 0; color: var(--text,#333); }
+.cop-prop { font-size: var(--font-size-md, 13px); padding: 2px 0; color: var(--text,#333); }
 .cop-prop b { font-weight: 500; color: var(--text-muted,#666); }
 .cop-prop .cop-reason { display: inline; margin-left: 6px; }
-.cop-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; margin-left: 6px; vertical-align: 1px; }
+.cop-badge { display: inline-block; font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 1px 8px; border-radius: 10px; margin-left: 6px; vertical-align: 1px; }
 .cop-badge.new { background: var(--success-bg,#dcfce7); color: var(--success-text,#166534); }
 .cop-badge.existing { background: var(--info-bg,#e0f2fe); color: var(--info-text,#075985); }
 .cop-badge.skipped { background: var(--warning-bg,#fef3c7); color: var(--warning-text,#92400e); }
-.cop-chip { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; margin-left: 6px;
+.cop-chip { display: inline-block; font-size: var(--font-size-sm, 12px); padding: 1px 8px; border-radius: 10px; margin-left: 6px;
   background: var(--surface-2,#fafafa); border: 1px solid var(--border,#e0e0e0); color: var(--text-muted,#666); }
-.cop-summary { margin-right: auto; align-self: center; font-size: 13px; color: var(--text-muted,#666); }
+.cop-summary { margin-right: auto; align-self: center; font-size: var(--font-size-md, 13px); color: var(--text-muted,#666); }
 `;
 
     /** Adds the dialog's styles once. */

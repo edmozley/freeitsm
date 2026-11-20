@@ -62,26 +62,26 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         }
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page on .liu-wrap). */
         .liu-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f7fa); }
-        .liu-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
+        .liu-back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
         .liu-back:hover { text-decoration: underline; }
         .liu-pick { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 18px; }
-        .liu-pick label { font-size: 13px; font-weight: 600; color: var(--text, #444); }
-        .liu-pick select { min-width: 280px; max-width: 100%; padding: 7px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; }
+        .liu-pick label { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); }
+        .liu-pick select { min-width: 280px; max-width: 100%; padding: 7px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); }
         .liu-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; padding: 16px; margin: 0 0 16px; }
         .liu-counts { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
-        .liu-count { background: var(--surface-3, #f9fafb); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px 12px; font-size: 13px; color: var(--text, #444); }
-        .liu-count strong { font-size: 16px; margin-right: 4px; }
+        .liu-count { background: var(--surface-3, #f9fafb); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px 12px; font-size: var(--font-size-md, 13px); color: var(--text, #444); }
+        .liu-count strong { font-size: var(--font-size-xl, 16px); margin-right: 4px; }
         .liu-kind { margin: 10px 0 0; }
-        .liu-kind h3 { font-size: 13px; margin: 0 0 6px; color: var(--text, #444); }
-        .liu-kind ul { margin: 0; padding-left: 18px; font-size: 13px; }
+        .liu-kind h3 { font-size: var(--font-size-md, 13px); margin: 0 0 6px; color: var(--text, #444); }
+        .liu-kind ul { margin: 0; padding-left: 18px; font-size: var(--font-size-md, 13px); }
         .liu-kind a { color: var(--sys-accent, #546e7a); }
-        .liu-more { font-size: 12px; color: var(--text-dim, #888); }
+        .liu-more { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .liu-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .liu-actions select { min-width: 240px; max-width: 100%; padding: 7px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; }
-        .liu-empty { background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #b7e1c4); color: var(--success-text, #065f46); border-radius: 10px; padding: 16px; font-size: 14px; }
-        .liu-error { color: var(--danger-text, #c0392b); font-size: 13px; }
-        .liu-note { font-size: 12px; color: var(--text-faint, #999); margin-top: 10px; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .liu-actions select { min-width: 240px; max-width: 100%; padding: 7px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); }
+        .liu-empty { background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #b7e1c4); color: var(--success-text, #065f46); border-radius: 10px; padding: 16px; font-size: var(--font-size-lg, 14px); }
+        .liu-error { color: var(--danger-text, #c0392b); font-size: var(--font-size-md, 13px); }
+        .liu-note { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); margin-top: 10px; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
         .btn-secondary { background: var(--surface-2, #eceff1); color: var(--text, #333); }

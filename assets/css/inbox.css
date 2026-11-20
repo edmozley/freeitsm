@@ -35,7 +35,7 @@ body {
 }
 
 .header h1 {
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     font-weight: 600;
 }
 
@@ -55,7 +55,7 @@ body {
     padding: 8px 14px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.12s ease-out;
     text-decoration: none;
 }
@@ -273,7 +273,7 @@ body {
 }
 
 .user-info {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 /* Main container */
@@ -319,7 +319,7 @@ body {
 }
 
 .folder-header h2 {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     color: var(--text, #333);
 }
 
@@ -336,7 +336,7 @@ body {
     background: transparent;
     border: none;
     padding: 6px 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 500;
     color: var(--text-muted, #555);
     cursor: pointer;
@@ -366,7 +366,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text, #333);
     transition: background 0.2s;
 }
@@ -404,7 +404,7 @@ body {
 }
 
 .folder-icon {
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
 }
 
 .folder-count {
@@ -412,7 +412,7 @@ body {
     color: var(--on-accent, #fff);
     padding: 2px 8px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     min-width: 24px;
     text-align: center;
@@ -443,7 +443,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #666);
     transition: background 0.2s;
 }
@@ -504,7 +504,7 @@ body {
 }
 
 .email-list-header h3 {
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     color: var(--text, #333);
 }
 
@@ -556,7 +556,7 @@ body {
 }
 .view-filter-chips { display: inline-flex; gap: 4px; flex-wrap: wrap; }
 .view-filter-chip {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
@@ -593,7 +593,7 @@ body {
 }
 .view-filter-menu.open { display: block; }
 .view-filter-label {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -609,7 +609,7 @@ body {
     justify-content: space-between;
     gap: 12px;
     margin-top: 12px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     cursor: pointer;
 }
@@ -691,7 +691,7 @@ body {
     padding: 1px 8px 1px 6px;
     border: 1px solid var(--border, #d5dbe1);
     border-radius: 10px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     line-height: 16px;
     color: var(--text-muted, #5b6770);
     background: var(--surface, #fff);
@@ -713,7 +713,7 @@ body {
     flex: 0 0 auto;
     padding: 1px 8px;
     border-radius: 10px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     line-height: 16px;
     background: var(--surface-hover, #eef1f4);
     color: var(--text-muted, #5b6770);
@@ -746,13 +746,13 @@ body {
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .email-subject {
     color: var(--text-muted, #666);
     margin-bottom: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -760,7 +760,7 @@ body {
 
 .email-preview {
     color: var(--text-faint, #999);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -768,7 +768,7 @@ body {
 
 .email-time {
     color: var(--text-faint, #999);
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
 }
 
 .email-footer-row {
@@ -795,7 +795,7 @@ body {
     display: inline-block;
     padding: 1px 7px;
     border-radius: 10px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     line-height: 1.6;
     max-width: 150px;
     overflow: hidden;
@@ -820,7 +820,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
@@ -854,7 +854,7 @@ body {
     align-items: center;
     gap: 4px;
     flex: 0 0 auto;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
@@ -899,7 +899,7 @@ body {
     align-items: center;
     height: 100%;
     color: var(--text-faint, #999);
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
 }
 
 .email-header {
@@ -908,7 +908,7 @@ body {
 }
 
 .email-subject-line {
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 16px;
@@ -1001,7 +1001,7 @@ body.ticket-popout .ticket-toolbar {
 
 .email-meta-row {
     display: flex;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .email-meta-label {
@@ -1078,7 +1078,7 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .thread-meta {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-dim, #888);
     margin-bottom: 6px;
 }
@@ -1089,7 +1089,7 @@ body.ticket-popout .ticket-toolbar {
     display: inline-block;
     padding: 1px 6px;
     border-radius: 3px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     margin-right: 6px;
 }
@@ -1179,7 +1179,7 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .ticket-properties-title {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #555);
     text-transform: uppercase;
@@ -1200,7 +1200,7 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .ticket-properties-summary {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-dim, #888);
     display: flex;
     gap: 12px;
@@ -1255,7 +1255,7 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .toolbar-label {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     color: var(--text-muted, #666);
     text-transform: uppercase;
@@ -1266,7 +1266,7 @@ body.ticket-popout .ticket-toolbar {
     padding: 6px 12px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     background: var(--surface, #fff);
     cursor: pointer;
     min-width: 120px;
@@ -1299,7 +1299,7 @@ body.ticket-popout .ticket-toolbar {
     align-items: center;
     padding: 1px 8px;
     border-radius: 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     background: var(--danger-bg, #fdecea);
     color: var(--danger-text, #b71c1c);
@@ -1342,7 +1342,7 @@ body.ticket-popout .ticket-toolbar {
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     transition: all 0.2s;
 }
@@ -1393,7 +1393,7 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .channel-composer-title {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #555);
 }
 
@@ -1403,7 +1403,7 @@ body.ticket-popout .ticket-toolbar {
     color: var(--warning-text, #8a6d3b);
     border-radius: 6px;
     padding: 8px 10px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     margin-bottom: 8px;
 }
 
@@ -1430,7 +1430,7 @@ body.ticket-popout .ticket-toolbar {
 
 .channel-tpl-label {
     display: block;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #555);
     margin: 4px 0;
     font-weight: 600;
@@ -1442,7 +1442,7 @@ body.ticket-popout .ticket-toolbar {
     background: var(--surface, #fff);
     border: 1px dashed var(--border, #cfd8dc);
     border-radius: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     white-space: pre-wrap;
     min-height: 1.4em;
@@ -1461,7 +1461,7 @@ body.ticket-popout .ticket-toolbar {
 .link-add-menu.open { display: block; }
 .link-add-menu button {
     display: block; width: 100%; text-align: left; padding: 8px 14px;
-    background: none; border: none; cursor: pointer; font-size: 13px; color: var(--text, #333);
+    background: none; border: none; cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--text, #333);
 }
 .link-add-menu button:hover { background: var(--surface-3, #f5f5f5); }
 
@@ -1476,7 +1476,7 @@ body.ticket-popout .ticket-toolbar {
     background: var(--problem-bg, #faf7fd);
     border-bottom: 1px solid var(--problem-border, #e6d8f2);
     border-left: 3px solid var(--problem-text, #6a1b9a);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .problem-strip-label { font-weight: 600; color: var(--problem-text, #6a1b9a); }
 .pm-ticket-badge {
@@ -1489,7 +1489,7 @@ body.ticket-popout .ticket-toolbar {
     border-radius: 12px;
     font-weight: 600;
     text-decoration: none;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 .pm-ticket-badge:hover { background: var(--problem-badge-bg, #e1d4f0); }
 
@@ -1521,7 +1521,7 @@ body.ticket-popout .ticket-toolbar {
     padding: 4px 12px;
     font-weight: 600;
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 .problem-link-btn:hover { background: var(--problem-bg, #f3ecfa); }
 
@@ -1530,12 +1530,12 @@ body.ticket-popout .ticket-toolbar {
 .lp-row { display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--surface-hover, #f0f0f0); cursor: pointer; }
 .lp-row:last-child { border-bottom: none; }
 .lp-row:hover { background: var(--problem-bg, #faf7fd); }
-.lp-row .lp-num { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--text-dim, #6b7280); white-space: nowrap; }
+.lp-row .lp-num { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); white-space: nowrap; }
 .lp-row .lp-title { flex: 1; min-width: 0; font-weight: 600; color: var(--text, #1a1a1a); }
-.lp-row .lp-status { font-size: 12px; color: var(--text-dim, #6b7280); white-space: nowrap; }
+.lp-row .lp-status { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); white-space: nowrap; }
 .lp-row.lp-create { color: var(--problem-text, #6a1b9a); font-weight: 600; }
-.lp-row.lp-create .lp-plus { font-size: 16px; line-height: 1; }
-.lp-empty { color: var(--text-faint, #9ca3af); text-align: center; padding: 24px; font-size: 13px; }
+.lp-row.lp-create .lp-plus { font-size: var(--font-size-xl, 16px); line-height: 1; }
+.lp-empty { color: var(--text-faint, #9ca3af); text-align: center; padding: 24px; font-size: var(--font-size-md, 13px); }
 
 /* Soft wrong-company warning banner (multi-tenancy) */
 .wrong-company-banner {
@@ -1550,7 +1550,7 @@ body.ticket-popout .ticket-toolbar {
     border: 1px solid #ffe082;
     border-left: 4px solid #ffb300;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: #6d4c00;
 }
 .wrong-company-actions {
@@ -1589,13 +1589,13 @@ body.ticket-popout .ticket-toolbar {
 }
 .att-preview-card figcaption {
     margin-top: 6px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     word-break: break-all;
 }
 
 .action-btn-icon {
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
 }
 
 /* Notes Section */
@@ -1608,7 +1608,7 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .notes-header {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 16px;
@@ -1655,7 +1655,7 @@ body.ticket-popout .ticket-toolbar {
     margin-left: 8px;
     padding: 1px 8px;
     border-radius: 10px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     line-height: 1.6;
     vertical-align: middle;
@@ -1683,7 +1683,7 @@ body.ticket-popout .ticket-toolbar {
     display: flex;
     justify-content: space-between;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
 }
 
@@ -1753,7 +1753,7 @@ body.ticket-popout .ticket-toolbar {
     color: var(--text-muted, #888);
     pointer-events: none;
 }
-.note-editor-hint { font-size: 12px; color: var(--text-muted, #666); margin-top: 4px; }
+.note-editor-hint { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 4px; }
 
 /* --- Files on a note (discussion #69) ---------------------------------------
    Two lists that look the same on purpose: the one in the modal shows files
@@ -1780,7 +1780,7 @@ body.ticket-popout .ticket-toolbar {
     border-radius: 12px;
     background: var(--surface-2, #f9f9f9);
     color: var(--text, #333);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     text-decoration: none;
 }
 a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
@@ -1822,7 +1822,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
 }
 
 .time-entries-header {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 12px;
@@ -1840,7 +1840,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     padding: 6px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .time-entry-input-notes {
@@ -1848,7 +1848,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     padding: 6px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .time-entry-input-minutes:focus,
@@ -1864,14 +1864,14 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
 }
 
 .time-entry-add-btn:hover { background: #106ebe; }
 
 .time-entry-empty {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-faint, #999);
     font-style: italic;
     padding: 8px 0;
@@ -1889,7 +1889,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #555);
 }
 
@@ -1906,7 +1906,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
 
 .time-entry-date {
     color: var(--text-dim, #888);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     margin-left: auto;
     padding-right: 8px;
 }
@@ -1916,7 +1916,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     border: none;
     color: var(--text-faint, #999);
     cursor: pointer;
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     line-height: 1;
     padding: 0 4px;
 }
@@ -1925,7 +1925,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
 
 .time-entry-notes {
     margin-top: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #444);
     line-height: 1.5;
     white-space: pre-wrap;
@@ -1945,7 +1945,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
 }
 
 .sla-section-header {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 12px;
@@ -1976,11 +1976,11 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
 .sla-row-label {
     font-weight: 600;
     color: var(--text, #333);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .sla-row-badge {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
@@ -2011,7 +2011,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
 .sla-row.sla-breached .sla-bar-fill { background: #dc2626; }
 
 .sla-row-meta {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     line-height: 1.4;
 }
@@ -2034,7 +2034,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
 
 .ticket-context-menu-header {
     padding: 8px 14px 6px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     color: var(--text-dim, #888);
     text-transform: uppercase;
@@ -2052,7 +2052,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     background: none;
     border: none;
     text-align: left;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     cursor: pointer;
 }
@@ -2098,7 +2098,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     align-items: center;
     gap: 10px;
     padding: 7px 14px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     cursor: pointer;
 }
@@ -2138,7 +2138,7 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     content: 'Type at least one character to search';
     display: block;
     padding: 16px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-faint, #999);
     font-style: italic;
 }
@@ -2150,13 +2150,13 @@ a.note-file:hover { background: var(--surface-hover, #f0f0f0); }
     padding: 8px 12px;
     cursor: pointer;
     border-bottom: 1px solid var(--surface-hover, #f0f0f0);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .ctx-cmdb-result:hover { background: var(--surface, #fff); }
 .ctx-cmdb-result:last-child { border-bottom: none; }
 .ctx-cmdb-result-name { color: var(--text, #333); }
-.ctx-cmdb-result-class { color: var(--text-dim, #888); font-size: 11px; }
+.ctx-cmdb-result-class { color: var(--text-dim, #888); font-size: var(--font-size-xs, 11px); }
 
 /* TinyMCE dialogs must clear our modals (issue #101).
  *
@@ -2243,7 +2243,7 @@ body .tox-tinymce-aux {
 .modal-header {
     padding: 15px 24px;
     border-bottom: 1px solid var(--border, #e0e0e0);
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     font-weight: 600;
     color: var(--text, #333);
 }
@@ -2293,7 +2293,7 @@ body .tox-tinymce-aux {
 }
 
 .edit-form label {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #555);
 }
@@ -2304,7 +2304,7 @@ body .tox-tinymce-aux {
     padding: 8px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-family: inherit;
 }
 
@@ -2348,7 +2348,7 @@ body .tox-tinymce-aux {
     margin-bottom: 8px;
     font-weight: 500;
     color: var(--text, #333);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .form-textarea {
@@ -2358,7 +2358,7 @@ body .tox-tinymce-aux {
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-family: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     resize: vertical;
     background: var(--surface, #fff);
     color: var(--text, #333);
@@ -2376,7 +2376,7 @@ body .tox-tinymce-aux {
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-family: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     resize: vertical;
 }
 
@@ -2390,7 +2390,7 @@ body .tox-tinymce-aux {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 500;
     transition: all 0.2s;
     /* When .btn is on an <a> the user-agent underline bleeds through — strip
@@ -2466,7 +2466,7 @@ body .tox-tinymce-aux {
     padding: 10px 12px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     background: var(--surface, #fff);
     color: var(--text, #333);
 }
@@ -2503,11 +2503,11 @@ body .tox-tinymce-aux {
     justify-content: center;
     gap: 8px;
     color: var(--text-muted, #666);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .dropzone-icon {
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
 }
 
 .dropzone-content a {
@@ -2531,7 +2531,7 @@ body .tox-tinymce-aux {
     background: var(--surface-2, #f5f5f5);
     border-radius: 4px;
     margin-bottom: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .attachment-info {
@@ -2542,7 +2542,7 @@ body .tox-tinymce-aux {
 }
 
 .attachment-icon {
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
 }
 
 .attachment-name {
@@ -2554,7 +2554,7 @@ body .tox-tinymce-aux {
 
 .attachment-size {
     color: var(--text-dim, #888);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     margin-left: 8px;
 }
 
@@ -2563,7 +2563,7 @@ body .tox-tinymce-aux {
     border: none;
     color: var(--danger-accent, #d13438);
     cursor: pointer;
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     padding: 0 4px;
     line-height: 1;
 }
@@ -2637,14 +2637,14 @@ body .tox-tinymce-aux {
 
 .audit-modal .modal-header h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     color: var(--text, #333);
 }
 
 .audit-modal .modal-close {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     cursor: pointer;
     color: var(--text-muted, #666);
     line-height: 1;
@@ -2663,7 +2663,7 @@ body .tox-tinymce-aux {
 .audit-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .audit-table th {
@@ -2694,7 +2694,7 @@ body .tox-tinymce-aux {
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--warning-text, #856404);
     transition: background 0.2s;
 }
@@ -2704,7 +2704,7 @@ body .tox-tinymce-aux {
 }
 
 .attachment-info-icon {
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
 }
 
 /* Recordings strip — shown above the action toolbar when a ticket has any
@@ -2716,7 +2716,7 @@ body .tox-tinymce-aux {
     padding: 12px 30px;
 }
 .recordings-strip-header {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #555);
     text-transform: uppercase;
@@ -2742,7 +2742,7 @@ body .tox-tinymce-aux {
     display: block;
 }
 .recordings-strip .recording-meta {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: #777;
     margin-top: 6px;
     line-height: 1.4;
@@ -2760,7 +2760,7 @@ body .tox-tinymce-aux {
     right: 10px;
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     cursor: pointer;
     color: var(--text-muted, #666);
     line-height: 1;
@@ -2810,7 +2810,7 @@ body .tox-tinymce-aux {
     display: inline-block;
     background: var(--border, #e0e0e0);
     color: var(--text-muted, #666);
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     padding: 2px 6px;
     border-radius: 3px;
 }
@@ -2841,7 +2841,7 @@ body .tox-tinymce-aux {
     background: var(--surface, #fff);
     border: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 500;
     color: var(--text-muted, #666);
     border-bottom: 3px solid transparent;
@@ -2916,7 +2916,7 @@ body .tox-tinymce-aux {
     padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 500;
     transition: transform 0.12s ease-out;
     /* When .add-btn is on an <a> (e.g. workflow's New button links to
@@ -3022,7 +3022,7 @@ body .tox-tinymce-aux {
     display: inline-block;
     padding: 4px 8px;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 500;
 }
 
@@ -3060,7 +3060,7 @@ body .tox-tinymce-aux {
     padding: 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     /* Textareas default to monospace in most browsers — force inherit so
        a Description field doesn't look like a code editor (#454). */
     font-family: inherit;
@@ -3132,7 +3132,7 @@ body .tox-tinymce-aux {
     padding: 15px 24px;
     margin: 0;
     border-bottom: 1px solid var(--border, #e0e0e0);
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     font-weight: 600;
     color: var(--text, #333);
 }
@@ -3220,7 +3220,7 @@ body .tox-tinymce-aux {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     color: var(--text, #333);
     cursor: pointer;
@@ -3247,7 +3247,7 @@ body .tox-tinymce-aux {
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     font-family: inherit;
 }
@@ -3267,7 +3267,7 @@ body .tox-tinymce-aux {
     padding: 8px 12px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     /* Textareas default to monospace in most browsers — force inherit so
        a Description field looks the same as a Name field above it. */
     font-family: inherit;
@@ -3292,7 +3292,7 @@ body .tox-tinymce-aux {
 .modal .form-group .help {
     display: block;
     margin-top: 4px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-dim, #888);
 }
 .modal .form-row {
@@ -3327,7 +3327,7 @@ body .tox-tinymce-aux {
 }
 
 .status-box .status-icon {
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
 }
 
 /* Info Box */
@@ -3383,13 +3383,13 @@ body .tox-tinymce-aux {
     border-radius: 4px;
     overflow-x: auto;
     margin-top: 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 
 /* Large Button */
 .btn-large {
     padding: 15px 30px;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
 }
 
 /* Grid Form Layout */
@@ -3411,7 +3411,7 @@ body .tox-tinymce-aux {
 /* Small helper text */
 .form-group small {
     color: var(--text-muted, #666);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     margin-top: 4px;
     display: block;
 }
@@ -3501,7 +3501,7 @@ body .tox-tinymce-aux {
     background: none;
     border: none;
     color: var(--on-accent, #fff);
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     cursor: pointer;
     line-height: 1;
     padding: 0;
@@ -3534,7 +3534,7 @@ body .tox-tinymce-aux {
 }
 
 .search-field label {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #666);
     text-transform: uppercase;
@@ -3544,7 +3544,7 @@ body .tox-tinymce-aux {
     padding: 8px 12px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .search-field input:focus {
@@ -3560,7 +3560,7 @@ body .tox-tinymce-aux {
 
 .search-actions .btn {
     padding: 8px 16px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .search-results {
@@ -3572,11 +3572,11 @@ body .tox-tinymce-aux {
     text-align: center;
     color: var(--text-faint, #999);
     padding: 20px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .search-results-count {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     margin-bottom: 10px;
     padding-bottom: 8px;
@@ -3600,13 +3600,13 @@ body .tox-tinymce-aux {
 .search-result-ticket {
     font-weight: 600;
     color: var(--accent, #0078d4);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     margin-bottom: 4px;
 }
 
 .search-result-subject {
     color: var(--text, #333);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     margin-bottom: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3616,20 +3616,20 @@ body .tox-tinymce-aux {
 /* Content search (#996) — the extra field, and the snippet each result carries.
    Tokens mirror the rules above so light and dark both follow the theme. */
 .search-field-hint {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-dim, #888);
     margin-top: 4px;
 }
 
 .search-results-note {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-dim, #888);
     margin-bottom: 8px;
     font-style: italic;
 }
 
 .search-result-snippet {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     line-height: 1.45;
     margin: 4px 0 6px;
@@ -3641,7 +3641,7 @@ body .tox-tinymce-aux {
     overflow: hidden;
 }
 .search-result-meta {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-dim, #888);
     display: flex;
     gap: 12px;
@@ -3668,7 +3668,7 @@ body .tox-tinymce-aux {
     color: var(--on-accent, #fff);
     padding: 12px 24px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     z-index: 10000;
     opacity: 0;
     transition: all 0.3s ease;
@@ -3731,7 +3731,7 @@ body .tox-tinymce-aux {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     font-weight: 600;
 }
 
@@ -3739,7 +3739,7 @@ body .tox-tinymce-aux {
     background: none;
     border: none;
     color: var(--on-accent, #fff);
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     cursor: pointer;
     padding: 0 4px;
     opacity: 0.8;
@@ -3762,7 +3762,7 @@ body .tox-tinymce-aux {
     text-align: center;
     padding: 40px 20px;
     color: var(--text-muted, #666);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.6;
 }
 
@@ -3784,7 +3784,7 @@ body .tox-tinymce-aux {
     max-width: 85%;
     padding: 12px 16px;
     border-radius: 12px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.6;
     word-wrap: break-word;
 }
@@ -3804,11 +3804,11 @@ body .tox-tinymce-aux {
 .ai-chat-bubble p { margin: 0 0 8px 0; }
 .ai-chat-bubble p:last-child { margin-bottom: 0; }
 .ai-chat-bubble ul, .ai-chat-bubble ol { margin: 4px 0; padding-left: 20px; }
-.ai-chat-bubble code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+.ai-chat-bubble code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: var(--font-size-md, 13px); }
 .ai-chat-bubble strong { font-weight: 600; }
 
 .ai-chat-meta {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-faint, #999);
     padding: 0 4px;
 }
@@ -3822,7 +3822,7 @@ body .tox-tinymce-aux {
     border-radius: 12px;
     border-bottom-left-radius: 4px;
     max-width: 85%;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text-dim, #888);
 }
 
@@ -3852,7 +3852,7 @@ body .tox-tinymce-aux {
     background: #fce4ec;
     color: var(--danger-text, #c62828);
     border-radius: 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .ai-chat-input-area {
@@ -3868,7 +3868,7 @@ body .tox-tinymce-aux {
     border: 1px solid var(--border, #ddd);
     border-radius: 8px;
     padding: 10px 12px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-family: inherit;
     resize: none;
     outline: none;
@@ -3929,7 +3929,7 @@ body .tox-tinymce-aux {
     margin-bottom: 10px;
 }
 .cmdb-section-head h3 {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     text-transform: uppercase;
     color: #be185d;
     letter-spacing: 0.5px;
@@ -3941,12 +3941,12 @@ body .tox-tinymce-aux {
     border: none;
     color: #be185d;
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     padding: 0;
 }
 .cmdb-section-head .btn-link:hover { text-decoration: underline; }
-.cmdb-empty { color: var(--text-faint, #9ca3af); font-style: italic; font-size: 13px; padding: 4px 0; }
+.cmdb-empty { color: var(--text-faint, #9ca3af); font-style: italic; font-size: var(--font-size-md, 13px); padding: 4px 0; }
 
 .cmdb-link-list { display: flex; flex-direction: column; gap: 6px; }
 .cmdb-link-card {
@@ -3966,7 +3966,7 @@ body .tox-tinymce-aux {
 .cmdb-link-card-name {
     color: var(--text, #111827);
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     margin-bottom: 4px;
 }
 .cmdb-link-card-meta {
@@ -3975,24 +3975,24 @@ body .tox-tinymce-aux {
     align-items: center;
     flex-wrap: wrap;
     color: var(--text-dim, #6b7280);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 .cmdb-class-badge {
     background: var(--surface, #fff);
     color: #be185d;
     padding: 1px 8px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     border: 1px solid #fbcfe8;
     font-weight: 500;
 }
-.cmdb-parent { color: var(--text-dim, #6b7280); font-size: 12px; }
+.cmdb-parent { color: var(--text-dim, #6b7280); font-size: var(--font-size-sm, 12px); }
 .cmdb-link-x {
     background: none;
     border: none;
     color: #d1d5db;
     cursor: pointer;
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     line-height: 1;
     padding: 0 4px;
     flex-shrink: 0;
@@ -4013,7 +4013,7 @@ body .tox-tinymce-aux {
     padding: 8px 12px;
     border: 1px solid #d1d5db;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .cmdb-picker input:focus { outline: none; border-color: #be185d; }
 .cmdb-picker-results {
@@ -4031,11 +4031,11 @@ body .tox-tinymce-aux {
     cursor: pointer;
     display: flex;
     justify-content: space-between;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .cmdb-picker-result:hover, .cmdb-picker-result.highlighted { background: #fdf2f8; color: #be185d; }
-.cmdb-picker-result .cmdb-picker-class { color: var(--text-faint, #9ca3af); font-size: 11px; }
-.cmdb-picker-empty { padding: 10px; color: var(--text-faint, #9ca3af); font-size: 12px; text-align: center; }
+.cmdb-picker-result .cmdb-picker-class { color: var(--text-faint, #9ca3af); font-size: var(--font-size-xs, 11px); }
+.cmdb-picker-empty { padding: 10px; color: var(--text-faint, #9ca3af); font-size: var(--font-size-sm, 12px); text-align: center; }
 
 /* =========================================================
    Equipment and CMDB objects in the Links strip (discussion #57).
@@ -4056,12 +4056,12 @@ body .tox-tinymce-aux {
 .links-strip-pills { display: contents; }
 /* The reading pane's "+N" / "Less" chip (fitLinksStrip in inbox.js). */
 .links-strip-more {
-    flex: none; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    flex: none; padding: 2px 10px; border-radius: 12px; font-size: var(--font-size-sm, 12px); font-weight: 600; cursor: pointer;
     background: var(--surface, #fff); color: var(--problem-text, #6a1b9a); border: 1px solid var(--problem-border, #cbb6e0);
 }
 .links-strip-more:hover { background: var(--problem-badge-bg, #ede7f6); }
 .links-strip-more[hidden] { display: none; }
-.links-strip-empty { color: var(--text-faint, #9ca3af); font-size: 13px; }
+.links-strip-empty { color: var(--text-faint, #9ca3af); font-size: var(--font-size-md, 13px); }
 .links-strip-empty[hidden] { display: none; }
 
 /* Lives inside .problem-strip and takes a full row of its own, so the strip
@@ -4075,7 +4075,7 @@ body .tox-tinymce-aux {
     padding: 7px 11px;
     border: 1px solid var(--border, #d1d5db);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     background: var(--surface, #fff);
     color: var(--text, #111827);
 }
@@ -4110,7 +4110,7 @@ body .tox-tinymce-aux {
     display: flex;
     justify-content: space-between;
     gap: 10px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .asset-picker-result:hover, .asset-picker-result.highlighted {
     background: var(--accent-soft, #e8f4fc);
@@ -4118,7 +4118,7 @@ body .tox-tinymce-aux {
 }
 .asset-picker-result .asset-picker-detail {
     color: var(--text-faint, #9ca3af);
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     text-align: right;
     flex-shrink: 1;
     min-width: 0;
@@ -4126,7 +4126,7 @@ body .tox-tinymce-aux {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.asset-picker-empty { padding: 10px; color: var(--text-faint, #9ca3af); font-size: 12px; text-align: center; }
+.asset-picker-empty { padding: 10px; color: var(--text-faint, #9ca3af); font-size: var(--font-size-sm, 12px); text-align: center; }
 
 /* =========================================================
    Webhook transport-failure diagnosis — shown in the workflow editor's
@@ -4183,14 +4183,14 @@ body .tox-tinymce-aux {
 #emailModal .reply-footer-tools { display: flex; gap: 8px; margin-right: auto; align-items: center; }
 /* Same size as Cancel / Cleanup / Send beside them (.btn's padding and font),
    rather than the compact size they had sitting on the editor's label row. */
-#emailModal .reply-footer-tools .reply-tpl-btn { padding: 10px 16px; font-size: 14px; line-height: normal; }
+#emailModal .reply-footer-tools .reply-tpl-btn { padding: 10px 16px; font-size: var(--font-size-lg, 14px); line-height: normal; }
 #emailModal .reply-footer-tools .reply-tpl-menu {
     top: auto; bottom: calc(100% + 6px); left: 0; right: auto;
 }
 .reply-tpl-wrap { position: relative; }
 .reply-tpl-btn {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 10px; font-size: 12px; line-height: 1.2;
+    padding: 5px 10px; font-size: var(--font-size-sm, 12px); line-height: 1.2;
 }
 .reply-tpl-caret { font-size: 10px; opacity: 0.7; }
 .reply-tpl-menu {
@@ -4201,12 +4201,12 @@ body .tox-tinymce-aux {
     padding: 4px 0;
 }
 .reply-tpl-menu-heading {
-    padding: 6px 12px 4px; font-size: 11px; font-weight: 600;
+    padding: 6px 12px 4px; font-size: var(--font-size-xs, 11px); font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.4px;
     color: var(--text-muted, #666);
 }
 .reply-tpl-menu-empty {
-    padding: 8px 12px; font-size: 12px; color: var(--text-faint, #999);
+    padding: 8px 12px; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999);
 }
 .reply-tpl-menu-row {
     display: flex; align-items: center; gap: 4px; padding: 0 6px 0 0;
@@ -4215,7 +4215,7 @@ body .tox-tinymce-aux {
 .reply-tpl-menu-row > button.reply-tpl-insert {
     flex: 1; display: block; text-align: left; padding: 7px 12px;
     background: none; border: none; cursor: pointer;
-    font-size: 13px; color: var(--text, #333); overflow: hidden;
+    font-size: var(--font-size-md, 13px); color: var(--text, #333); overflow: hidden;
     text-overflow: ellipsis; white-space: nowrap;
 }
 .reply-tpl-menu-row .reply-tpl-mini {
@@ -4234,7 +4234,7 @@ body .tox-tinymce-aux {
 .reply-tpl-menu-action {
     display: flex; align-items: center; gap: 7px; width: 100%;
     text-align: left; padding: 8px 12px; background: none; border: none;
-    cursor: pointer; font-size: 13px; color: var(--accent, #0078d4);
+    cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--accent, #0078d4);
 }
 .reply-tpl-menu-action:hover { background: var(--surface-3, #f5f5f5); }
 
@@ -4293,7 +4293,7 @@ body .tox-tinymce-aux {
     background: var(--accent, #0078d4); color: var(--on-accent, #fff);
     border: 2px solid var(--surface, #fff);
     border-radius: 12px;
-    font-size: 12px; font-weight: 700; line-height: 1;
+    font-size: var(--font-size-sm, 12px); font-weight: 700; line-height: 1;
     box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 
@@ -4304,7 +4304,7 @@ body .tox-tinymce-aux {
     text-align: center; height: 100%;
 }
 .sel-summary-count {
-    font-size: 20px; font-weight: 600; color: var(--text, #333);
+    font-size: var(--font-size-3xl, 20px); font-weight: 600; color: var(--text, #333);
     margin-bottom: 16px;
 }
 .sel-summary-list {
@@ -4314,7 +4314,7 @@ body .tox-tinymce-aux {
 }
 .sel-summary-row {
     display: flex; gap: 12px; align-items: baseline;
-    padding: 7px 12px; font-size: 13px;
+    padding: 7px 12px; font-size: var(--font-size-md, 13px);
     border-bottom: 1px solid var(--border, #ececec);
 }
 .sel-summary-row:last-child { border-bottom: none; }
@@ -4326,10 +4326,10 @@ body .tox-tinymce-aux {
 }
 .sel-summary-clear {
     background: none; border: none; cursor: pointer;
-    color: var(--accent, #0078d4); font-size: 13px; text-decoration: underline;
+    color: var(--accent, #0078d4); font-size: var(--font-size-md, 13px); text-decoration: underline;
 }
 .sel-summary-hint {
-    margin-top: 10px; font-size: 12px; color: var(--text-faint, #999);
+    margin-top: 10px; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999);
 }
 
 /* ---- Mode 2: the thin bar above the list ---- */
@@ -4345,7 +4345,7 @@ body .tox-tinymce-aux {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     flex: 1 1 auto; min-width: 0;
 }
-.sel-bar-count { font-size: 13px; font-weight: 600; color: var(--text, #333); white-space: nowrap; }
+.sel-bar-count { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); white-space: nowrap; }
 .sel-bar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .sel-bar-close {
     margin-left: auto; background: none; border: none; cursor: pointer;
@@ -4362,22 +4362,22 @@ body .tox-tinymce-aux {
     background: var(--warning-bg, #fff4e5);
     border-bottom: 1px solid var(--warning-border, #ffd9a8);
     color: var(--warning-text, #8a5300);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .sel-keep-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .sel-keep-clear {
     margin-left: auto; background: none; border: none; cursor: pointer;
-    color: inherit; font-size: 12px; text-decoration: underline;
+    color: inherit; font-size: var(--font-size-sm, 12px); text-decoration: underline;
 }
 
 /* Compact action buttons shared by the bar and the warning strip. */
-.sel-act-btn { padding: 4px 9px; font-size: 12px; }
+.sel-act-btn { padding: 4px 9px; font-size: var(--font-size-sm, 12px); }
 .sel-act-danger { color: var(--danger-text, #c42b1c); }
 
 /* Progress line, shown inside whichever surface is active mid-run. */
 .sel-progress {
     display: flex; align-items: center; gap: 8px;
-    font-size: 12px; color: var(--text-muted, #666);
+    font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666);
     margin-bottom: 10px;
 }
 
@@ -4392,7 +4392,7 @@ body .tox-tinymce-aux {
 .sel-dropdown-item {
     display: flex; align-items: center; gap: 8px; width: 100%;
     padding: 7px 12px; background: none; border: none; cursor: pointer;
-    font-size: 13px; color: var(--text, #333); text-align: left;
+    font-size: var(--font-size-md, 13px); color: var(--text, #333); text-align: left;
 }
 .sel-dropdown-item:hover { background: var(--surface-3, #f5f5f5); }
 
@@ -4403,7 +4403,7 @@ body .tox-tinymce-aux {
 .merge-banner {
     display: flex; align-items: center; gap: 12px;
     padding: 11px 16px; margin: 0 0 2px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .merge-banner-away {
     background: var(--warning-bg, #fff4e5);
@@ -4420,7 +4420,7 @@ body .tox-tinymce-aux {
 .merge-banner-icon { font-size: 17px; line-height: 1; flex: 0 0 auto; }
 .merge-banner-text { flex: 1 1 auto; min-width: 0; }
 .merge-banner-refs { font-weight: 600; color: var(--text, #333); }
-.merge-banner-btn { flex: 0 0 auto; padding: 5px 11px; font-size: 12px; }
+.merge-banner-btn { flex: 0 0 auto; padding: 5px 11px; font-size: var(--font-size-sm, 12px); }
 
 /* --- Collision detection (#934) --- */
 
@@ -4541,7 +4541,7 @@ body .tox-tinymce-aux {
     display: inline-flex; align-items: center; gap: 4px;
     margin-left: 10px; padding: 2px 7px;
     background: none; border: 1px solid var(--border, #ddd); border-radius: 4px;
-    color: var(--text-muted, #666); font-size: 11px; cursor: pointer;
+    color: var(--text-muted, #666); font-size: var(--font-size-xs, 11px); cursor: pointer;
     opacity: 0.72; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
 .thread-meta:hover .thread-split-btn { opacity: 1; }
@@ -4555,7 +4555,7 @@ body .tox-tinymce-aux {
 /* Reply / Forward / Split side by side on a message (GH #306). */
 .thread-split-btn + .thread-split-btn { margin-left: 4px; }
 /* Each message's own subject, under its sender line - a provider's number (#TCK89633) shows here. */
-.thread-subject { font-size: 12px; color: var(--text-muted, #666); margin: -2px 0 8px; overflow-wrap: anywhere; }
+.thread-subject { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: -2px 0 8px; overflow-wrap: anywhere; }
 
 /* The dialog's list of what will move. */
 .split-preview {
@@ -4578,7 +4578,7 @@ body .tox-tinymce-aux {
 .split-preview-who  { font-weight: 600; color: var(--text, #333); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; }
 .split-preview-subj { color: var(--text-muted, #666); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; }
 .split-preview-when { margin-left: auto; color: var(--text-muted, #666); white-space: nowrap; flex: 0 0 auto; }
-.split-preview-empty { padding: 10px 12px; font-size: 12px; color: var(--text-faint, #999); }
+.split-preview-empty { padding: 10px 12px; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); }
 
 /* Individual-message picker: the list becomes tickable rows with a count + quick
    actions above it, so an analyst can move any set of messages, not just a run. */
@@ -4586,10 +4586,10 @@ body .tox-tinymce-aux {
     display: flex; align-items: center; justify-content: space-between;
     gap: 12px; margin-bottom: 6px;
 }
-.split-sel-count { font-size: 12px; font-weight: 600; color: var(--text-muted, #666); }
+.split-sel-count { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #666); }
 .split-pick-actions { display: flex; gap: 12px; }
 .split-pick-actions a {
-    font-size: 12px; color: var(--accent, #0078d4); cursor: pointer; text-decoration: none;
+    font-size: var(--font-size-sm, 12px); color: var(--accent, #0078d4); cursor: pointer; text-decoration: none;
 }
 .split-pick-actions a:hover { text-decoration: underline; }
 .split-pick-row { cursor: pointer; align-items: center; }
@@ -4601,7 +4601,7 @@ body .tox-tinymce-aux {
    company should look deliberate rather than like the primary action. */
 .att-send-btn {
     background: none; border: 1px solid var(--border, #ddd); border-radius: 4px;
-    color: var(--text-muted, #666); font-size: 12px; padding: 3px 10px; cursor: pointer;
+    color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); padding: 3px 10px; cursor: pointer;
     white-space: nowrap; transition: all .15s;
 }
 .att-send-btn:hover:not(:disabled) { border-color: var(--accent, #0078d4); color: var(--accent, #0078d4); }
@@ -4683,19 +4683,19 @@ body .tox-tinymce-aux {
     border-radius: 50%;
     background: var(--surface-hover, #eef1f4);
     color: var(--text-muted, #5b6770);
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     letter-spacing: 0.3px;
 }
-.req-opt-avatar-add { background: var(--accent-soft, #e8f4fd); color: var(--accent, #0078d4); font-size: 16px; font-weight: 400; }
+.req-opt-avatar-add { background: var(--accent-soft, #e8f4fd); color: var(--accent, #0078d4); font-size: var(--font-size-xl, 16px); font-weight: 400; }
 
 .req-opt-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-.req-opt-name  { font-size: 13px; color: var(--text, #222); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.req-opt-email { font-size: 11px; color: var(--text-muted, #78868f); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.req-opt-name  { font-size: var(--font-size-md, 13px); color: var(--text, #222); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.req-opt-email { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #78868f); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .req-opt-company {
     flex: 0 0 auto;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     padding: 2px 8px;
     border-radius: 10px;
     background: var(--surface-hover, #eef1f4);
@@ -4707,7 +4707,7 @@ body .tox-tinymce-aux {
    not the least-good match. */
 .req-opt-add { border-top: 1px solid var(--border, #d5dbe1); }
 
-.req-empty { padding: 10px; font-size: 12px; color: var(--text-muted, #78868f); }
+.req-empty { padding: 10px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #78868f); }
 
 /* ⚠️ `hidden` has to be re-asserted for anything given a display value here.
    The HTML attribute only works through the user-agent rule `[hidden]{display:none}`,
@@ -4737,13 +4737,13 @@ body .tox-tinymce-aux {
     width: 28px; height: 28px; border-radius: 50%;
     background: var(--surface, #fff);
     color: var(--text-muted, #5b6770);
-    font-size: 11px; font-weight: 600;
+    font-size: var(--font-size-xs, 11px); font-weight: 600;
 }
 .req-chosen-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-.req-chosen-name  { font-size: 13px; font-weight: 600; color: var(--text, #222); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.req-chosen-email { font-size: 11px; color: var(--text-muted, #5b6770); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.req-chosen-name  { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #222); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.req-chosen-email { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #5b6770); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .req-chosen-company {
-    flex: 0 0 auto; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    flex: 0 0 auto; font-size: var(--font-size-xs, 11px); padding: 2px 8px; border-radius: 10px;
     background: var(--surface, #fff); color: var(--text-muted, #5b6770); white-space: nowrap;
 }
 .req-chosen-clear {
@@ -4752,7 +4752,7 @@ body .tox-tinymce-aux {
     border: none; border-radius: 5px;
     background: transparent;
     color: var(--text-muted, #5b6770);
-    font-size: 18px; line-height: 1; cursor: pointer;
+    font-size: var(--font-size-2xl, 18px); line-height: 1; cursor: pointer;
     transition: background 150ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .req-chosen-clear:hover { background: rgba(0, 0, 0, 0.06); }
@@ -4766,12 +4766,12 @@ body .tox-tinymce-aux {
     border-radius: 8px;
     background: var(--surface-hover, #fafbfc);
 }
-.req-new-head { font-size: 12px; font-weight: 600; color: var(--text-muted, #5b6770); margin-bottom: 10px; }
+.req-new-head { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #5b6770); margin-bottom: 10px; }
 .req-new-cancel {
     margin-top: 10px;
     border: none; background: transparent;
     color: var(--text-muted, #6b7680);
-    font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline;
+    font-size: var(--font-size-sm, 12px); cursor: pointer; padding: 0; text-decoration: underline;
 }
 
 /* Browse modal list. */
@@ -4784,13 +4784,13 @@ body .tox-tinymce-aux {
     padding: 8px 10px;
     cursor: pointer;
     border-bottom: 1px solid var(--border-soft, #f2f4f6);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .req-browse-row:last-child { border-bottom: none; }
 .req-browse-row:hover { background: var(--accent-soft, #e8f4fd); }
 .req-browse-name  { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .req-browse-email { color: var(--text-muted, #78868f); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.req-browse-company { color: var(--text-muted, #78868f); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.req-browse-company { color: var(--text-muted, #78868f); font-size: var(--font-size-xs, 11px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 @media (prefers-reduced-motion: reduce) {
     .req-results { animation: none; }
@@ -4800,12 +4800,12 @@ body .tox-tinymce-aux {
 /* Time tracking settings tab (discussion #72). The error banner uses the real
    danger tokens — var(--danger) alone does not exist in theme.css. */
 .tt-block { margin-bottom: 26px; }
-.tt-sub { font-size: 13px; font-weight: 600; margin: 0 0 10px; color: var(--text, #333); }
-.tt-note { font-size: 12px; color: var(--text-muted, #666); margin: 14px 0 0; }
+.tt-sub { font-size: var(--font-size-md, 13px); font-weight: 600; margin: 0 0 10px; color: var(--text, #333); }
+.tt-note { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 14px 0 0; }
 .tt-load-error {
     display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
     margin: 0 0 18px; padding: 11px 14px; border-radius: 6px;
-    font-size: 13px; line-height: 1.5;
+    font-size: var(--font-size-md, 13px); line-height: 1.5;
     background: var(--danger-bg, #fee2e2);
     color: var(--danger-text, #991b1b);
     border: 1px solid var(--danger-border, #f0c2c2);
@@ -4816,13 +4816,13 @@ body .tox-tinymce-aux {
 /* Ticket categories settings tab (#1540). Same error banner treatment as time
    tracking above — a tab that could not read its switches must say so loudly,
    because an unticked box and an unread one look identical. */
-.tc-sub  { font-size: 13px; font-weight: 600; margin: 22px 0 8px; color: var(--text, #333); }
-.tc-sub4 { font-size: 12px; font-weight: 600; margin: 16px 0 8px; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .04em; }
-.tc-note { font-size: 12px; color: var(--text-muted, #666); margin: 8px 0 14px; line-height: 1.55; }
+.tc-sub  { font-size: var(--font-size-md, 13px); font-weight: 600; margin: 22px 0 8px; color: var(--text, #333); }
+.tc-sub4 { font-size: var(--font-size-sm, 12px); font-weight: 600; margin: 16px 0 8px; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .04em; }
+.tc-note { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 8px 0 14px; line-height: 1.55; }
 .tc-alert {
     display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
     margin: 0 0 18px; padding: 11px 14px; border-radius: 6px;
-    font-size: 13px; line-height: 1.5;
+    font-size: var(--font-size-md, 13px); line-height: 1.5;
     background: var(--danger-bg, #fee2e2);
     color: var(--danger-text, #991b1b);
     border: 1px solid var(--danger-border, #f0c2c2);
@@ -4838,8 +4838,8 @@ body .tox-tinymce-aux {
 }
 .tc-switch-row:last-child { border-bottom: 0; }
 .tc-switch-label { flex: 1; min-width: 0; }
-.tc-switch-label strong { display: block; font-size: 13px; color: var(--text, #333); margin-bottom: 3px; }
-.tc-switch-label span   { display: block; font-size: 12px; color: var(--text-muted, #666); line-height: 1.5; }
+.tc-switch-label strong { display: block; font-size: var(--font-size-md, 13px); color: var(--text, #333); margin-bottom: 3px; }
+.tc-switch-label span   { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); line-height: 1.5; }
 
 /* The tree. Depth is shown by indent plus a guide, not by nesting the table —
    a nested table cannot be sorted, filtered or read by a screen reader as one
@@ -4850,14 +4850,14 @@ body .tox-tinymce-aux {
 .tc-depth-3 { padding-left: 44px; }
 .tc-guide { color: var(--text-muted, #9aa5ad); user-select: none; }
 .tc-catname { font-weight: 500; }
-.tc-desc { display: block; font-size: 11px; color: var(--text-muted, #78868f); margin-top: 2px; }
+.tc-desc { display: block; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #78868f); margin-top: 2px; }
 /* Secondary values in a settings table — "Any type", a retired status.
    ⚠️ SAME FONT SIZE as the rest of the row, only a quieter colour. These were
    pills at 11px, which read as a different KIND of value sitting next to the
    category name rather than the same kind said more quietly. */
 .tc-muted { color: var(--text-muted, #78868f); }
 /* The "3 in use" count, which genuinely IS an aside rather than a column value. */
-.tc-count { font-size: 11px; color: var(--text-muted, #9aa5ad); margin-left: 6px; }
+.tc-count { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #9aa5ad); margin-left: 6px; }
 
 /* Selects inside a settings TABLE — shared by the Categories and Time tracking
    tabs, hence the neutral name. `.form-group select` in inbox.css carries the
@@ -4869,7 +4869,7 @@ body .tox-tinymce-aux {
     padding: 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-family: inherit;
     min-width: 170px;
     background: var(--surface, #fff);
@@ -4948,7 +4948,7 @@ body .tox-tinymce-aux {
     border-left: 3px solid var(--warning-border, #f0d9a8);
     background: var(--warning-bg, #fef3c7);
     color: var(--warning-text, #92400e);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     border-radius: 0 6px 6px 0;
 }
 
@@ -4978,13 +4978,13 @@ body .tox-tinymce-aux {
     border-radius: 10px;
     background: var(--accent, #2b88d8);
     color: #fff;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 700;
     letter-spacing: .3px;
 }
 .ai-badge-block { display: inline-block; margin-bottom: 10px; }
 .ai-summary-meta,
-.ai-summary-note { flex: 1 1 auto; color: var(--text-muted, #666); font-size: 12px; }
+.ai-summary-note { flex: 1 1 auto; color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
 .ai-summary-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
 .ai-summary-btn,
 .ai-summary-link {
@@ -4992,7 +4992,7 @@ body .tox-tinymce-aux {
     background: none;
     padding: 2px 4px;
     font: inherit;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--accent, #2b88d8);
     cursor: pointer;
 }
@@ -5007,7 +5007,7 @@ body .tox-tinymce-aux {
     border-left: 3px solid var(--warning-border, #f0d9a8);
     background: var(--warning-bg, #fef3c7);
     color: var(--warning-text, #92400e);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     border-radius: 0 6px 6px 0;
 }
 /* pre-wrap, because the model is told to write plain text with '- ' bullets and
@@ -5061,26 +5061,26 @@ body .tox-tinymce-aux {
     cursor: pointer;
 }
 .ai-panel-body { padding: 16px; overflow-y: auto; color: var(--text, #333); }
-.ai-read-body { white-space: pre-wrap; line-height: 1.6; font-size: 14px; }
+.ai-read-body { white-space: pre-wrap; line-height: 1.6; font-size: var(--font-size-lg, 14px); }
 .ai-read-foot,
-.ai-read-working { margin-top: 12px; color: var(--text-muted, #666); font-size: 12px; }
+.ai-read-working { margin-top: 12px; color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
 .ai-read-working { margin-top: 0; }
 .ai-history-item { padding: 12px 0; border-bottom: 1px solid var(--border, #eee); }
 .ai-history-item:last-child { border-bottom: none; }
-.ai-history-meta { color: var(--text-muted, #666); font-size: 12px; margin-bottom: 6px; }
-.ai-history-body { white-space: pre-wrap; line-height: 1.55; font-size: 13px; }
+.ai-history-meta { color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); margin-bottom: 6px; }
+.ai-history-body { white-space: pre-wrap; line-height: 1.55; font-size: var(--font-size-md, 13px); }
 
 /* From Files in the note window (GH #303) */
 .note-from-files { margin-top: 8px; }
 .note-from-files-results { margin-top: 6px; max-height: 200px; overflow-y: auto; }
 .note-from-files-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 5px 2px; border-bottom: 1px solid var(--border, #eee); }
 .note-from-files-name { font-weight: 600; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
-.note-from-files-path { flex: 1 1 100%; order: 3; font-size: 11px; color: var(--text-muted, #666); }
-.note-from-files-none { padding: 6px 2px; font-size: 12px; color: var(--text-muted, #666); }
+.note-from-files-path { flex: 1 1 100%; order: 3; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); }
+.note-from-files-none { padding: 6px 2px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 .note-file-wrap { display: inline-flex; align-items: center; gap: 4px; }
 .note-file-noaccess { color: var(--text-muted, #666); font-style: italic; }
 /* GH #308 */
-.req-change-link { margin-left: 8px; font-size: 12px; color: var(--accent); text-decoration: none; }
+.req-change-link { margin-left: 8px; font-size: var(--font-size-sm, 12px); color: var(--accent); text-decoration: none; }
 .req-change-link:hover { text-decoration: underline; }
 
 /* ── Modal polish (Ed, 16 Nov 2026: "Modern compact") ─────────────────────
@@ -5153,7 +5153,7 @@ body .tox-tinymce-aux {
         position: absolute; top: 14px; right: 12px;
         width: 26px; height: 26px; border-radius: 6px;
         border: 1px solid transparent; background: transparent;
-        color: var(--text-dim, #888); font-size: 16px; line-height: 1; cursor: pointer;
+        color: var(--text-dim, #888); font-size: var(--font-size-xl, 16px); line-height: 1; cursor: pointer;
     }
     .folder-collapse-btn:hover, .folder-collapse-btn:focus-visible {
         background: var(--surface-2, #f3f3f3); border-color: var(--border, #ddd); color: var(--text, #333);
@@ -5187,7 +5187,7 @@ body .tox-tinymce-aux {
         display: flex; align-items: flex-start; justify-content: center;
         position: absolute; inset: 0; width: 100%;
         padding-top: 16px; border: 0; background: transparent;
-        color: var(--text-dim, #888); font-size: 16px; cursor: pointer;
+        color: var(--text-dim, #888); font-size: var(--font-size-xl, 16px); cursor: pointer;
     }
     .main-container.folders-collapsed .folder-strip-btn:hover,
     .main-container.folders-collapsed .folder-strip-btn:focus-visible { background: var(--surface-2, #f3f3f3); color: var(--text, #333); }

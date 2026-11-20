@@ -97,7 +97,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .assets-list-header h3 {
             margin: 0 0 10px 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
@@ -106,7 +106,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 10px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             box-sizing: border-box;
         }
 
@@ -177,7 +177,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-radius: 4px;
             background: var(--surface-3, #eef1f4);
             color: var(--text-muted, #556);
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             letter-spacing: 0.3px;
         }
@@ -190,7 +190,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-radius: 4px;
             border: 1px solid var(--border, #ddd);
             color: var(--text-muted, #556);
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         .asset-retired-banner {
@@ -203,7 +203,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-radius: 6px;
             border: 1px dashed var(--border, #ccc);
             color: var(--text, #333);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .asset-retired-reason {
             flex: 1 1 220px;
@@ -231,7 +231,7 @@ $translationNamespaces = ['common', 'asset-management'];
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #556);
             cursor: pointer;
             white-space: nowrap;
@@ -242,7 +242,7 @@ $translationNamespaces = ['common', 'asset-management'];
             margin: 0 12px 8px;
             padding: 8px 10px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             background: var(--info-bg);
             border: 1px solid var(--info-border);
             color: var(--info-text);
@@ -270,11 +270,11 @@ $translationNamespaces = ['common', 'asset-management'];
             color: var(--text, #333);
             margin-bottom: 4px;
             font-family: monospace;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .asset-meta {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             display: flex;
             gap: 15px;
@@ -324,7 +324,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .asset-detail-subtitle {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-muted, #666);
             margin: 0;
         }
@@ -362,7 +362,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .asset-assigned-info .user-name {
             font-weight: 600;
             color: var(--text, #333);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         /* The holder's name links to their record. It inherits the weight and
            size above and only takes the accent colour, so the panel does not
@@ -375,17 +375,17 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .asset-assigned-info .user-email {
             color: var(--text-muted, #666);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .asset-assigned-info .user-assigned-date {
             color: var(--text-faint, #999);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .asset-assigned-info .unassigned-text {
             color: var(--text-faint, #999);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-style: italic;
         }
 
@@ -409,21 +409,21 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .info-label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin-bottom: 4px;
             text-transform: uppercase;
         }
 
         .info-value {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
 
         /* First/last seen (discussion #97). The date is the fact and keeps the
            normal weight; the relative phrase is a hint and steps back. */
         .seen-ago {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
         }
         /* Amber, matching the Watchtower card that counts these machines — not
@@ -439,7 +439,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .info-value-select {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             padding: 4px 8px;
             border: 1px solid var(--border, #ddd);
@@ -456,7 +456,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .info-value-input {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             padding: 4px 8px;
             border: 1px solid var(--border, #ddd);
@@ -498,7 +498,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             transition: background-color 0.15s;
         }
 
@@ -522,7 +522,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .btn-sm {
             padding: 4px 10px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .assigned-users-list {
@@ -553,12 +553,12 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .user-email {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
         .user-assigned-date {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin-top: 2px;
         }
@@ -569,7 +569,7 @@ $translationNamespaces = ['common', 'asset-management'];
             justify-content: center;
             flex: 1;
             color: var(--text-dim, #888);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             padding: 40px;
             text-align: center;
         }
@@ -643,7 +643,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 16px 20px;
             border-bottom: 1px solid var(--border, #e0e0e0);
             font-weight: 600;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -652,7 +652,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .modal-close {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: var(--font-size-4xl, 24px);
             cursor: pointer;
             color: var(--text-muted, #666);
             line-height: 1;
@@ -692,7 +692,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 10px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .form-select:focus {
@@ -731,7 +731,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .user-search-email {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
@@ -768,7 +768,7 @@ $translationNamespaces = ['common', 'asset-management'];
             background-color: var(--surface-3, #f8f9fa);
             padding: 10px 14px;
             text-align: left;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -778,7 +778,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .history-table tbody td {
             padding: 9px 14px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             border-bottom: 1px solid var(--surface-hover, #f0f0f0);
             vertical-align: top;
@@ -794,7 +794,7 @@ $translationNamespaces = ['common', 'asset-management'];
             color: #3f51b5;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
 
@@ -814,13 +814,13 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .history-meta {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
         }
 
         /* Add-an-asset modal (#1132) */
         .new-asset-intro {
-            margin: 0 0 16px 0; font-size: 13px; line-height: 1.5;
+            margin: 0 0 16px 0; font-size: var(--font-size-md, 13px); line-height: 1.5;
             color: var(--text-muted, #666);
         }
         /* .modal-content is a flex column capped at 80vh, so a <form> wrapping
@@ -835,7 +835,7 @@ $translationNamespaces = ['common', 'asset-management'];
         /* Same values as the settings page's copy — --text-dim, not
            --text-muted — so a hint reads identically in both places. */
         .form-hint {
-            margin-top: 4px; font-size: 12px; line-height: 1.4;
+            margin-top: 4px; font-size: var(--font-size-sm, 12px); line-height: 1.4;
             color: var(--text-dim, #888);
         }
         .new-asset-next { margin: 4px 0 0 0; }
@@ -844,7 +844,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .na-group-title {
             margin: 18px 0 10px 0; padding-top: 14px;
             border-top: 1px solid var(--border-soft, #eee);
-            font-size: 11px; font-weight: 600; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; letter-spacing: 0.4px;
             text-transform: uppercase; color: var(--text-muted, #666);
         }
         /* In the dialog a custom field is a .form-group like any other, so it
@@ -862,10 +862,10 @@ $translationNamespaces = ['common', 'asset-management'];
             border-top: 1px solid var(--border, #e0e0e0);
         }
         .custom-fields-section .section-header { display: flex; align-items: baseline; gap: 10px; }
-        .cf-count { font-size: 12px; color: var(--text-muted, #666); }
+        .cf-count { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .cf-set { padding-bottom: 4px; }
         .cf-set-head { padding: 10px 20px 0 20px; }
-        .cf-setname { font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+        .cf-setname { font-size: var(--font-size-sm, 12px); font-weight: 600; letter-spacing: 0.3px;
                       text-transform: uppercase; color: var(--text-muted, #666); }
         /* A set attached to THIS asset alone. Visible and removable, so the
            extra fields are never magic. */
@@ -874,7 +874,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 3px 6px 3px 10px; border-radius: 999px;
             background: var(--surface-3, #f8f9fa);
             border: 1px solid var(--border, #e0e0e0);
-            font-size: 12px; color: var(--text, #333);
+            font-size: var(--font-size-sm, 12px); color: var(--text, #333);
         }
         .cf-chip-x {
             border: 0; background: none; cursor: pointer; line-height: 1;
@@ -887,19 +887,19 @@ $translationNamespaces = ['common', 'asset-management'];
         /* GH #403: the amount, with its net / gross basis right under it. Stacked, not side
            by side: the grid column is narrow and "Brutto (inkl. Steuer)" would be cut off. */
         .cost-basis-row { display: flex; flex-direction: column; gap: 4px; }
-        .cost-basis-row .cost-basis-select { font-size: 12px; }
-        .cf-unit { font-size: 12px; color: var(--text-muted, #666); flex-shrink: 0; }
-        .cf-hint { display: block; font-size: 11px; color: var(--text-muted, #666); margin-top: 3px; }
-        .cf-empty { padding: 14px 20px; font-size: 13px; color: var(--text-faint, #999); }
+        .cost-basis-row .cost-basis-select { font-size: var(--font-size-sm, 12px); }
+        .cf-unit { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); flex-shrink: 0; }
+        .cf-hint { display: block; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); margin-top: 3px; }
+        .cf-empty { padding: 14px 20px; font-size: var(--font-size-md, 13px); color: var(--text-faint, #999); }
         .cf-toggle {
             margin: 4px 20px 12px 20px; padding: 0; border: 0; background: none;
             /* ⚠️ --link does NOT exist. This module's link colour is --accent,
                which is what every other control on this page already uses. */
-            cursor: pointer; font-size: 12px; color: var(--accent, #0066cc);
+            cursor: pointer; font-size: var(--font-size-sm, 12px); color: var(--accent, #0066cc);
         }
         .cf-toggle:hover { text-decoration: underline; }
         .cf-addset { padding: 0 20px 16px 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .cf-addset-hint { flex-basis: 100%; font-size: 11px; color: var(--text-muted, #666); }
+        .cf-addset-hint { flex-basis: 100%; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); }
 
         /* Disk Usage Section */
         .disks-section {
@@ -929,13 +929,13 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .disk-drive {
             font-weight: 600;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             font-family: monospace;
         }
 
         .disk-label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             max-width: 120px;
             overflow: hidden;
@@ -966,7 +966,7 @@ $translationNamespaces = ['common', 'asset-management'];
            drive letter, so it wraps instead of being clipped like .disk-label. */
         .pdisk-model {
             font-weight: 600;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             word-break: break-word;
         }
@@ -974,7 +974,7 @@ $translationNamespaces = ['common', 'asset-management'];
            it character by character against a sticker or a supplier's portal. */
         .pdisk-serial {
             font-family: monospace;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text, #333);
             word-break: break-all;
         }
@@ -991,7 +991,7 @@ $translationNamespaces = ['common', 'asset-management'];
             color: var(--text-muted, #666);
             border-radius: 4px;
             padding: 1px 8px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             cursor: pointer;
             opacity: 0;
             transition: opacity 0.12s;
@@ -1025,7 +1025,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .disk-details {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
         }
 
@@ -1057,7 +1057,7 @@ $translationNamespaces = ['common', 'asset-management'];
             background-color: var(--surface-hover, #f0f0f0);
             padding: 8px 20px;
             text-align: left;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -1067,7 +1067,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .software-table tbody td {
             padding: 7px 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             border-bottom: 1px solid var(--surface-hover, #f0f0f0);
         }
@@ -1082,7 +1082,7 @@ $translationNamespaces = ['common', 'asset-management'];
             color: #3f51b5;
             padding: 1px 8px;
             border-radius: 10px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             margin-left: 8px;
         }
@@ -1098,7 +1098,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .sw-filter-tab {
             padding: 8px 16px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
             color: var(--text-muted, #666);
             cursor: pointer;
@@ -1145,7 +1145,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 24px 16px;
             color: var(--text-faint, #9ca3af);
             font-style: italic;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             text-align: center;
         }
         .asset-tickets-group {
@@ -1169,7 +1169,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-bottom: 1px solid var(--border-soft, #f0f0f0);
             text-decoration: none;
             color: inherit;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .asset-ticket-row:hover { background-color: var(--surface-hover, #f8f9fa); }
 
@@ -1197,29 +1197,29 @@ $translationNamespaces = ['common', 'asset-management'];
             border-bottom: 1px solid var(--border-soft, #f0f0f0);
             text-decoration: none;
             color: inherit;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .asset-contract-row:hover { background-color: var(--surface-hover, #f8f9fa); }
         .asset-contract-ref {
-            color: var(--text-dim, #6b7280); font-family: monospace; font-size: 12px;
+            color: var(--text-dim, #6b7280); font-family: monospace; font-size: var(--font-size-sm, 12px);
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .asset-contract-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         /* The link's own note - a phone number, a line ID - reads as a detail of
            the title rather than a field of its own. */
-        .asset-contract-title em { color: var(--text-muted, #6b7280); font-style: normal; font-size: 12px; }
+        .asset-contract-title em { color: var(--text-muted, #6b7280); font-style: normal; font-size: var(--font-size-sm, 12px); }
         /* Now that it has a fixed width, a long supplier name has to be told
            what to do rather than pushing the dates out of line. */
         .asset-contract-meta {
-            color: var(--text-muted, #6b7280); font-size: 12px;
+            color: var(--text-muted, #6b7280); font-size: var(--font-size-sm, 12px);
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
-        .asset-contract-when { color: var(--text-muted, #6b7280); font-size: 12px; text-align: right; }
+        .asset-contract-when { color: var(--text-muted, #6b7280); font-size: var(--font-size-sm, 12px); text-align: right; }
         /* The notice date is the one people miss, so it keeps the warning colour
            even now that it has a column of its own. */
         .asset-contract-notice {
             color: var(--warning-text, #92400e);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             text-align: right;
             white-space: nowrap;
         }
@@ -1232,7 +1232,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .asset-contract-remove {
             flex-shrink: 0; width: 26px; height: 26px; margin-right: 10px; line-height: 1;
             border: none; background: none; cursor: pointer;
-            font-size: 18px; color: var(--text-faint, #bbb); border-radius: 4px;
+            font-size: var(--font-size-2xl, 18px); color: var(--text-faint, #bbb); border-radius: 4px;
         }
         .asset-contract-remove:hover { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); }
         /* Stands in for the remove button on the heading row, so the columns
@@ -1253,7 +1253,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .asset-contract-head span {
             font-family: inherit;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: .04em;
@@ -1268,7 +1268,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .asset-contract-add {
             border: 1px solid var(--border, #ddd); background: var(--surface, #fff);
             color: var(--accent, #0078d4); border-radius: 6px;
-            padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+            padding: 5px 12px; font: inherit; font-size: var(--font-size-sm, 12px); font-weight: 600; cursor: pointer;
         }
         .asset-contract-add:hover { background: var(--surface-hover, #f5f5f5); }
 
@@ -1276,7 +1276,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .ctr-pick-search {
             width: 100%; box-sizing: border-box; padding: 8px 10px;
             border: 1px solid var(--border, #ddd); border-radius: 6px;
-            font: inherit; font-size: 13px;
+            font: inherit; font-size: var(--font-size-md, 13px);
             background: var(--surface, #fff); color: var(--text, #333);
         }
         .ctr-pick-search:focus { outline: none; border-color: var(--accent, #0078d4); }
@@ -1286,8 +1286,8 @@ $translationNamespaces = ['common', 'asset-management'];
             background: none; font: inherit; color: var(--text, #333);
         }
         .contract-pick:hover { background: var(--surface-hover, #f5f5f5); }
-        .contract-pick-name { display: block; font-size: 13px; font-weight: 500; }
-        .contract-pick-meta { display: block; font-size: 12px; color: var(--text-muted, #6b7280); }
+        .contract-pick-name { display: block; font-size: var(--font-size-md, 13px); font-weight: 500; }
+        .contract-pick-meta { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); }
 
         /* Right-click menu. The menu itself, its items and its flyouts come from
            .ticket-context-menu in inbox.css, which this page already loads; only
@@ -1298,7 +1298,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .asset-ctx-tick { display: inline-block; width: 14px; color: var(--accent, #0078d4); }
         .asset-ctx-empty { color: var(--text-dim, #999); cursor: default; }
         .asset-ctx-empty:hover { background: none; }
-        .asset-ticket-ref { color: var(--text-dim, #6b7280); font-family: monospace; font-size: 12px; }
+        .asset-ticket-ref { color: var(--text-dim, #6b7280); font-family: monospace; font-size: var(--font-size-sm, 12px); }
         .asset-ticket-subject {
             color: var(--text, #111827);
             overflow: hidden;
@@ -1309,11 +1309,11 @@ $translationNamespaces = ['common', 'asset-management'];
             color: #fff;
             padding: 2px 9px;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 500;
             white-space: nowrap;
         }
-        .asset-ticket-when { color: var(--text-faint, #9ca3af); font-size: 12px; white-space: nowrap; }
+        .asset-ticket-when { color: var(--text-faint, #9ca3af); font-size: var(--font-size-sm, 12px); white-space: nowrap; }
 
         @media (max-width: 700px) {
             /* Ref and date drop away first — the subject and its status are what
@@ -1350,7 +1350,7 @@ $translationNamespaces = ['common', 'asset-management'];
             white-space: nowrap;
             flex: 0 0 auto;
             padding: 10px 16px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             color: var(--text-muted, #666);
             cursor: pointer;
@@ -1422,7 +1422,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 7px 10px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             outline: none;
             box-sizing: border-box;
         }
@@ -1449,7 +1449,7 @@ $translationNamespaces = ['common', 'asset-management'];
             background-color: var(--surface-hover, #f0f0f0);
             padding: 8px 20px;
             text-align: left;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -1459,7 +1459,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .devices-table tbody td {
             padding: 7px 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             border-bottom: 1px solid var(--surface-hover, #f0f0f0);
         }
@@ -1471,7 +1471,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .device-class-row td {
             background-color: var(--surface-3, #f8f9fa);
             font-weight: 600;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #555);
             padding: 6px 20px !important;
             border-bottom: 1px solid var(--border, #e0e0e0);
@@ -1485,7 +1485,7 @@ $translationNamespaces = ['common', 'asset-management'];
             display: inline-block;
             padding: 1px 8px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
 
@@ -1514,7 +1514,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .assign-kind-btn {
             padding: 6px 16px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-family: inherit;
             border: none;
             background: var(--bg-secondary, #f5f5f5);
@@ -1533,7 +1533,7 @@ $translationNamespaces = ['common', 'asset-management'];
             margin-left: 6px;
             padding: 1px 7px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             background: var(--bg-secondary, #eee);
             color: var(--text-muted, #666);
         }
@@ -1545,7 +1545,7 @@ $translationNamespaces = ['common', 'asset-management'];
             margin-left: 6px;
             padding: 1px 7px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             vertical-align: middle;
         }
@@ -1571,7 +1571,7 @@ $translationNamespaces = ['common', 'asset-management'];
         .detail-tab.atl-revealed { opacity: .75; }
         .atl-notice {
             display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
-            margin: 0 0 12px; padding: 8px 12px; border-radius: 6px; font-size: 13px;
+            margin: 0 0 12px; padding: 8px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px);
             background: var(--info-bg, #eef4fb); color: var(--info-text, #31506b); border: 1px solid var(--info-border, #cfe0f1);
         }
         .atl-link {
@@ -1582,7 +1582,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         /* Inventory freshness (GH #200 Part B). Amber for stale, as Last seen; red only for a
            failed import, which is the one state somebody may need to act on. */
-        .inv-lines { padding: 10px 20px 0; font-size: 12px; color: var(--text-dim, #888); }
+        .inv-lines { padding: 10px 20px 0; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .inv-lines:empty { display: none; }
         .inv-line + .inv-line { margin-top: 2px; }
         .inv-line.stale { color: #b45309; font-weight: 600; }
@@ -1592,39 +1592,39 @@ $translationNamespaces = ['common', 'asset-management'];
         [data-theme-mode="dark"] .inv-error { color: #fca5a5; }
         .inv-panel { margin-top: 20px; }
         .inv-source { margin: 0 20px 16px; }
-        .inv-source-name { font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 4px; }
+        .inv-source-name { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); margin-bottom: 4px; }
         .inv-source-ref { font-weight: normal; color: var(--text-dim, #888); margin-left: 6px; }
-        .inv-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .inv-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm, 12px); }
         .inv-table th { text-align: left; font-weight: 600; color: var(--text-muted, #666); padding: 4px 8px 4px 0; border-bottom: 1px solid var(--border, #ddd); }
         .inv-table td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--border-soft, #eee); vertical-align: top; color: var(--text, #333); }
         .inv-table td.num { text-align: right; }
         .inv-state.stale { color: #b45309; font-weight: 600; }
         .inv-state.failed { color: #b91c1c; font-weight: 600; }
         .inv-state.quiet { color: var(--text-dim, #888); }
-        .inv-error { display: block; color: #b91c1c; font-size: 11px; margin-top: 2px; }
+        .inv-error { display: block; color: #b91c1c; font-size: var(--font-size-xs, 11px); margin-top: 2px; }
 
         /* A mapped manufacturer or model (GH #200 part D). */
-        .nm-shown { font-size: 11px; color: var(--text-dim, #888); margin-top: 3px; }
+        .nm-shown { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); margin-top: 3px; }
         /* Protected values (GH #200 part D). */
         .prot-btn { border: none; background: none; padding: 0 0 0 6px; cursor: pointer; color: var(--text-dim, #999); vertical-align: -1px; }
         .prot-btn:hover { color: var(--text, #333); }
         .prot-btn.on { color: var(--accent, #0078d4); }
-        .prot-conflict { font-size: 11px; color: #b45309; margin-top: 3px; display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
+        .prot-conflict { font-size: var(--font-size-xs, 11px); color: #b45309; margin-top: 3px; display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
         [data-theme-mode="dark"] .prot-conflict { color: #fcd34d; }
 
         /* Connected assets (GH #200 part C). */
         .conn-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; flex-wrap: wrap; }
-        .conn-intro { font-size: 12px; color: var(--text-dim, #888); flex: 1 1 260px; }
+        .conn-intro { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); flex: 1 1 260px; }
         .conn-list { padding: 0 20px; }
         .conn-item { border: 1px solid var(--border, #ddd); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; background: var(--surface, #fff); }
         .conn-item-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
         .conn-name { font-weight: 600; }
         .conn-name a { color: var(--accent, #0078d4); text-decoration: none; }
         .conn-name svg, .conn-history svg, .contract-pick-name svg { vertical-align: -2px; margin-right: 5px; }
-        .conn-desc { font-size: 12px; color: var(--text-dim, #888); flex: 1; }
-        .conn-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted, #666); padding: 3px 0; flex-wrap: wrap; }
+        .conn-desc { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); flex: 1; }
+        .conn-row { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); padding: 3px 0; flex-wrap: wrap; }
         .conn-row .btn { margin-left: auto; }
-        .conn-chip { font-size: 11px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); white-space: nowrap; }
+        .conn-chip { font-size: var(--font-size-xs, 11px); padding: 1px 7px; border-radius: 10px; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); white-space: nowrap; }
         .conn-chip.manual { border-color: var(--accent, #0078d4); color: var(--accent, #0078d4); }
         .conn-history-head { margin-top: 10px; }
         .conn-history { margin: 0 20px 16px; width: calc(100% - 40px); }
@@ -1857,10 +1857,10 @@ $translationNamespaces = ['common', 'asset-management'];
             </div>
             <div class="modal-body">
                 <div id="diskHideWhat" style="font-weight:600; margin-bottom:6px;"></div>
-                <div id="diskHideIntro" style="color: var(--text-muted, #666); font-size: 13px;"></div>
+                <div id="diskHideIntro" style="color: var(--text-muted, #666); font-size: var(--font-size-md, 13px);"></div>
                 <label id="diskHideOthersRow" style="display:none; align-items:flex-start; gap:8px; margin-top:14px; cursor:pointer;">
                     <input type="checkbox" id="diskHideOthers" style="margin-top:3px;">
-                    <span id="diskHideOthersLabel" style="font-size:13px;"></span>
+                    <span id="diskHideOthersLabel" style="font-size:var(--font-size-md, 13px);"></span>
                 </label>
             </div>
             <div class="modal-footer">
@@ -2711,7 +2711,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                          asset actually has something hidden —
                                          a permanent "Show hidden (0)" would be
                                          a control that never does anything. */ ?>
-                                <a href="#" id="diskHiddenToggle" style="display:none; font-size:12px;" onclick="toggleHiddenDrives(event)"></a>
+                                <a href="#" id="diskHiddenToggle" style="display:none; font-size:var(--font-size-sm, 12px);" onclick="toggleHiddenDrives(event)"></a>
                             </div>
                             <div class="disks-grid" id="physicalDisksGrid"></div>
                         </div>
@@ -2772,7 +2772,7 @@ $translationNamespaces = ['common', 'asset-management'];
                             <input type="date" class="info-value-input" value="${selectedAsset.lease_expiry || ''}" onchange="updateAssetField('lease_expiry', this.value)">
                         </div>
                         <?php /* Assets -> Leases (3.5.0): which lease it is on. Filled by loadAssetLease(). */ ?>
-                        <div class="info-item" id="assetLeaseLine" style="grid-column:1/-1;display:none;font-size:13px;color:var(--text-muted);"></div>
+                        <div class="info-item" id="assetLeaseLine" style="grid-column:1/-1;display:none;font-size:var(--font-size-md, 13px);color:var(--text-muted);"></div>
                     </div>
                     </div>
                     <div class="detail-tab-panel" id="devicesPanel" data-dtab-panel="devices">
@@ -5006,7 +5006,7 @@ $translationNamespaces = ['common', 'asset-management'];
             const text = users.intune_person
                 ? window.t('asset-management.intune.differs', { intune: users.intune_person.name })
                 : window.t('asset-management.intune.differs_unknown', { upn: d.user_principal_name || d.user_display_name || '-' });
-            return `<div class="intune-user-differs" style="margin:0 0 12px;padding:10px 12px;border-radius:6px;font-size:13px;background:var(--warning-bg,#fff7e6);color:var(--warning-text,#92400e);">${escapeHtml(text)}</div>`;
+            return `<div class="intune-user-differs" style="margin:0 0 12px;padding:10px 12px;border-radius:6px;font-size:var(--font-size-md, 13px);background:var(--warning-bg,#fff7e6);color:var(--warning-text,#92400e);">${escapeHtml(text)}</div>`;
         }
 
         // GH #335: every primary user the device has had, and what FreeITSM did.
@@ -5026,7 +5026,7 @@ $translationNamespaces = ['common', 'asset-management'];
                         <td class="history-meta">${h.outcome ? escapeHtml(window.t('asset-management.intune.outcome_' + h.outcome)) : '-'}</td>
                     </tr>`).join('')}</tbody></table>`
                 : `<div class="empty-state" style="padding: 12px;">${escapeHtml(window.t('asset-management.intune.history_none'))}</div>`;
-            return `<h4 style="margin:18px 0 4px;font-size:14px;">${escapeHtml(window.t('asset-management.intune.history_heading'))}</h4>
+            return `<h4 style="margin:18px 0 4px;font-size:var(--font-size-lg, 14px);">${escapeHtml(window.t('asset-management.intune.history_heading'))}</h4>
                 <div class="form-hint" style="margin-bottom:8px;">${escapeHtml(window.t('asset-management.intune.history_hint'))}</div>${body}`;
         }
 

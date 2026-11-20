@@ -52,12 +52,12 @@ if (!isset($_SESSION['analyst_id'])) {
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .topo-totals { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-        .topo-stat { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-muted, #555); }
-        .topo-stat strong { color: var(--text, #1f2330); font-size: 16px; margin-right: 5px; }
+        .topo-stat { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px 14px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); }
+        .topo-stat strong { color: var(--text, #1f2330); font-size: var(--font-size-xl, 16px); margin-right: 5px; }
 
         .topo-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
         .topo-search { position: relative; flex: 1; max-width: 320px; }
-        .topo-search input { width: 100%; padding: 8px 12px; border: 1px solid var(--border, #d6dde3); border-radius: 7px; font-size: 13px; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
+        .topo-search input { width: 100%; padding: 8px 12px; border: 1px solid var(--border, #d6dde3); border-radius: 7px; font-size: var(--font-size-md, 13px); box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
         .topo-search input::placeholder { color: var(--text-faint, #999); }
         .topo-search input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
         .topo-btn { background: var(--surface, #fff); border: 1px solid var(--border, #d6dde3); border-radius: 7px; padding: 8px 12px; font-size: 12.5px; color: var(--text-muted, #555); cursor: pointer; }
@@ -67,13 +67,13 @@ if (!isset($_SESSION['analyst_id'])) {
         .tree-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; cursor: default; font-size: 13.5px; color: var(--text, #333); }
         .tree-row.expandable { cursor: pointer; }
         .tree-row.expandable:hover { background: var(--surface-hover, #f5f7fa); }
-        .tree-caret { width: 14px; flex-shrink: 0; color: var(--text-faint, #98a2b3); font-size: 11px; transition: transform 0.12s; display: inline-block; text-align: center; }
+        .tree-caret { width: 14px; flex-shrink: 0; color: var(--text-faint, #98a2b3); font-size: var(--font-size-xs, 11px); transition: transform 0.12s; display: inline-block; text-align: center; }
         .tree-row.open > .tree-caret { transform: rotate(90deg); }
         .tree-caret.empty { visibility: hidden; }
         .tree-ico { width: 16px; height: 16px; flex-shrink: 0; color: var(--text-muted, #6b7280); }
         .tree-label { color: var(--text, #1f2330); }
         .tree-label.muted { color: var(--text-faint, #98a2b3); font-style: italic; }
-        .tree-count { background: #eef2ff; color: #4338ca; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 1px 8px; }
+        .tree-count { background: #eef2ff; color: #4338ca; font-size: var(--font-size-xs, 11px); font-weight: 600; border-radius: 10px; padding: 1px 8px; }
         .tree-link { margin-left: 6px; font-size: 11.5px; color: #6366f1; text-decoration: none; }
         .tree-link:hover { text-decoration: underline; }
         .tree-children { display: none; margin-left: 20px; border-left: 1px solid var(--border-soft, #eef0f4); padding-left: 4px; }
@@ -87,7 +87,7 @@ if (!isset($_SESSION['analyst_id'])) {
         .tag.blue  { background: #e3f2fd; color: #1565c0; }
         .tag.default { background: #ede7f6; color: #5e35b1; }
 
-        .topo-loading, .topo-error { color: var(--text-dim, #888); font-size: 13px; padding: 20px; }
+        .topo-loading, .topo-error { color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); padding: 20px; }
         .topo-error { color: #c0392b; }
 
         /* ---- Dark overrides: pale washes / indigo accents that would glow ---- */

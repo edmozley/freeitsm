@@ -52,7 +52,7 @@ $translationNamespaces = ['common', 'software'];
 
         .dashboard-toolbar h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text, #333);
         }
 
@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'software'];
             border-radius: 6px;
             background: var(--surface, #fff);
             color: var(--text, #333);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -139,14 +139,14 @@ $translationNamespaces = ['common', 'software'];
 
         .widget-header h3 {
             margin: 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text, #333);
         }
 
         .widget-header p {
             margin: 4px 0 0 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
         }
 
@@ -193,7 +193,7 @@ $translationNamespaces = ['common', 'software'];
 
         .widget-no-data {
             color: var(--text-faint, #aaa);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         /* Empty state */
@@ -212,13 +212,13 @@ $translationNamespaces = ['common', 'software'];
 
         .dashboard-empty h3 {
             margin: 0 0 8px 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text-muted, #555);
         }
 
         .dashboard-empty p {
             margin: 0 0 20px 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         /* Edit modal form */
@@ -234,7 +234,7 @@ $translationNamespaces = ['common', 'software'];
 
         .edit-form-grid label {
             display: block;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #555);
             margin-bottom: 4px;
@@ -247,7 +247,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 8px 10px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             box-sizing: border-box;
         }
 
@@ -281,14 +281,14 @@ $translationNamespaces = ['common', 'software'];
         }
 
         .drilldown-count {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
         .drilldown-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .drilldown-table th {

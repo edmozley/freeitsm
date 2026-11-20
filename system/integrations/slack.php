@@ -68,7 +68,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
            a 50px top margin and an `h3` margin/size that would push the title
            and buttons 1px off the 24px grid - cancelled here for these boxes. */
         .modal-box.sys-modal { border: 0; margin: auto 0; }
-        .modal-box .sys-modal-head { margin: 0; font-size: 18px; }
+        .modal-box .sys-modal-head { margin: 0; font-size: var(--font-size-2xl, 18px); }
 
         /* The setup steps. Numbered because the order genuinely matters: the
            manifest cannot exist before the connection does. */
@@ -77,7 +77,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
             counter-increment: step;
             position: relative;
             padding: 0 0 16px 40px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-muted);
             line-height: 1.6;
         }
@@ -87,7 +87,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
             width: 26px; height: 26px;
             border-radius: 50%;
             background: var(--sys-accent-soft); color: var(--sys-accent);
-            font-size: 13px; font-weight: 700;
+            font-size: var(--font-size-md, 13px); font-weight: 700;
             display: flex; align-items: center; justify-content: center;
         }
         .setup-steps li strong { color: var(--text); }
@@ -110,19 +110,19 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
             border: 1px solid var(--border); border-radius: 6px;
             padding: 9px 11px; width: 100%; box-sizing: border-box;
         }
-        .scope-list { margin: 10px 0 0; padding: 0; list-style: none; font-size: 13px; }
+        .scope-list { margin: 10px 0 0; padding: 0; list-style: none; font-size: var(--font-size-md, 13px); }
         .scope-list li { padding: 5px 0; border-bottom: 1px solid var(--border-soft); color: var(--text-muted); }
         .scope-list li:last-child { border-bottom: none; }
         .scope-list code {
             background: var(--surface-2); border-radius: 3px; padding: 1px 5px;
-            font-size: 12px; color: var(--text);
+            font-size: var(--font-size-sm, 12px); color: var(--text);
         }
         /* The health check. One row per thing that can silently be wrong, each
            with the sentence that fixes it — every one of these corresponds to a
            real failure hit while getting the first workspace working. */
         .diag-summary {
             padding: 12px 15px; border-radius: 8px; margin-bottom: 16px;
-            font-size: 14px; line-height: 1.5;
+            font-size: var(--font-size-lg, 14px); line-height: 1.5;
         }
         .diag-summary.ok   { background: var(--success-bg); color: var(--success-text); }
         .diag-summary.warn { background: var(--warning-bg); color: var(--warning-text); }
@@ -136,23 +136,23 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
         .diag-icon {
             width: 20px; height: 20px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: 700; margin-top: 1px;
+            font-size: var(--font-size-sm, 12px); font-weight: 700; margin-top: 1px;
         }
         .diag-icon.ok   { background: var(--success-bg); color: var(--success-text); }
         .diag-icon.warn { background: var(--warning-bg); color: var(--warning-text); }
         .diag-icon.fail { background: var(--danger-bg);  color: var(--danger-text); }
         .diag-icon.skip { background: var(--surface-2);  color: var(--text-faint); }
-        .diag-label  { font-size: 14px; font-weight: 600; color: var(--text); }
-        .diag-detail { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin-top: 2px; word-break: break-word; }
+        .diag-label  { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text); }
+        .diag-detail { font-size: var(--font-size-md, 13px); color: var(--text-muted); line-height: 1.55; margin-top: 2px; word-break: break-word; }
         /* The fix is the point of the whole panel, so it is styled to be read —
            a diagnostic that names a fault and stops has moved the problem. */
         .diag-fix {
-            font-size: 13px; line-height: 1.55; margin-top: 6px;
+            font-size: var(--font-size-md, 13px); line-height: 1.55; margin-top: 6px;
             padding: 8px 11px; border-radius: 6px;
             background: var(--surface-2); color: var(--text);
             border-left: 3px solid var(--sys-accent);
         }
-        .diag-running { font-size: 14px; color: var(--text-muted); padding: 20px 0; }
+        .diag-running { font-size: var(--font-size-lg, 14px); color: var(--text-muted); padding: 20px 0; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">

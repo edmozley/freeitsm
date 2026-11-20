@@ -59,7 +59,7 @@ $translationNamespaces = ['common', 'reporting'];
 
         .coming-soon-card p {
             margin: 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-dim, #888);
             max-width: 360px;
             line-height: 1.6;

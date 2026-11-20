@@ -51,18 +51,18 @@ $canAnalyse = analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_
     <style>
         .ka-page { padding:16px 30px 24px; height:calc(100vh - 48px); display:flex; flex-direction:column; overflow:hidden; }
         .ka-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:14px; flex-shrink:0; }
-        .ka-head h1 { font-size:24px; font-weight:600; margin:0 0 4px; color:var(--text); }
-        .ka-sub { font-size:13px; color:var(--text-muted); max-width:640px; line-height:1.5; }
+        .ka-head h1 { font-size:var(--font-size-4xl, 24px); font-weight:600; margin:0 0 4px; color:var(--text); }
+        .ka-sub { font-size:var(--font-size-md, 13px); color:var(--text-muted); max-width:640px; line-height:1.5; }
 
         /* The assistant's own voice — one short statement, not a stat tile. */
         .ka-say { background:var(--surface-hover); border:1px solid var(--border); border-radius:10px;
                   padding:14px 16px; margin-bottom:14px; flex-shrink:0; }
-        .ka-say p { margin:0; font-size:14px; line-height:1.55; color:var(--text); }
-        .ka-say .ka-meta { margin-top:6px; font-size:12px; color:var(--text-muted); }
+        .ka-say p { margin:0; font-size:var(--font-size-lg, 14px); line-height:1.55; color:var(--text); }
+        .ka-say .ka-meta { margin-top:6px; font-size:var(--font-size-sm, 12px); color:var(--text-muted); }
 
         .ka-tabs { display:flex; gap:4px; margin-bottom:12px; flex-shrink:0; }
         .ka-tab { padding:6px 12px; border-radius:6px; border:1px solid transparent; background:none;
-                  cursor:pointer; font-size:13px; color:var(--text-muted); }
+                  cursor:pointer; font-size:var(--font-size-md, 13px); color:var(--text-muted); }
         .ka-tab.active { background:var(--surface); border-color:var(--border); color:var(--text); font-weight:600; }
 
         .ka-list { flex:1; min-height:0; overflow-y:auto; }
@@ -70,24 +70,24 @@ $canAnalyse = analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_
                    padding:14px 16px; margin-bottom:10px; }
         .ka-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
         .ka-card h3 { margin:0 0 4px; font-size:15px; font-weight:600; color:var(--text); }
-        .ka-count { font-size:13px; color:var(--text-muted); }
+        .ka-count { font-size:var(--font-size-md, 13px); color:var(--text-muted); }
         .ka-count strong { color:var(--text); }
         .ka-actions { display:flex; gap:8px; flex-shrink:0; }
         .ka-btn { padding:6px 14px; border-radius:6px; border:1px solid var(--border); background:var(--surface);
-                  color:var(--text); cursor:pointer; font-size:13px; }
+                  color:var(--text); cursor:pointer; font-size:var(--font-size-md, 13px); }
         .ka-btn:hover { background:var(--surface-hover); }
         .ka-btn-primary { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
         .ka-btn-primary:hover { filter:brightness(1.08); }
         .ka-btn:disabled { opacity:.55; cursor:default; }
 
-        .ka-evidence { margin-top:10px; font-size:12px; }
+        .ka-evidence { margin-top:10px; font-size:var(--font-size-sm, 12px); }
         .ka-evidence summary { cursor:pointer; color:var(--text-muted); }
         .ka-evidence ul { margin:8px 0 0; padding-left:18px; }
         .ka-evidence li { margin-bottom:3px; color:var(--text-muted); }
         .ka-evidence a { color:var(--accent); text-decoration:none; }
         .ka-evidence a:hover { text-decoration:underline; }
 
-        .ka-empty { text-align:center; padding:56px 20px; color:var(--text-muted); font-size:14px; }
+        .ka-empty { text-align:center; padding:56px 20px; color:var(--text-muted); font-size:var(--font-size-lg, 14px); }
 
         .ka-progress { height:6px; background:var(--surface-hover); border-radius:3px; overflow:hidden; margin-top:10px; }
         .ka-progress i { display:block; height:100%; background:var(--accent); width:0; transition:width .25s; }
@@ -100,30 +100,30 @@ $canAnalyse = analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_
                         display:flex; flex-direction:column; overflow:hidden; }
         .ka-modal-head { padding:16px 20px; border-bottom:1px solid var(--border); display:flex;
                          justify-content:space-between; align-items:center; }
-        .ka-modal-head h2 { margin:0; font-size:16px; font-weight:600; color:var(--text); }
+        .ka-modal-head h2 { margin:0; font-size:var(--font-size-xl, 16px); font-weight:600; color:var(--text); }
         .ka-modal-body { padding:18px 20px; overflow-y:auto; flex:1; min-height:0; }
         .ka-modal-foot { padding:14px 20px; border-top:1px solid var(--border); display:flex;
                          justify-content:flex-end; gap:8px; }
-        .ka-status { font-size:13px; color:var(--text-muted); margin-bottom:12px; }
+        .ka-status { font-size:var(--font-size-md, 13px); color:var(--text-muted); margin-bottom:12px; }
 
         /* The refusal is a first-class outcome, not an error state. */
         .ka-refusal { border-left:3px solid var(--accent); padding:2px 0 2px 14px; margin-bottom:16px; }
-        .ka-refusal p { margin:0 0 10px; font-size:14px; line-height:1.55; color:var(--text); }
+        .ka-refusal p { margin:0 0 10px; font-size:var(--font-size-lg, 14px); line-height:1.55; color:var(--text); }
         .ka-q { margin-bottom:14px; }
-        .ka-q label { display:block; font-size:13px; color:var(--text); margin-bottom:5px; line-height:1.45; }
-        .ka-q textarea { width:100%; box-sizing:border-box; min-height:58px; padding:8px 10px; font-size:14px;
+        .ka-q label { display:block; font-size:var(--font-size-md, 13px); color:var(--text); margin-bottom:5px; line-height:1.45; }
+        .ka-q textarea { width:100%; box-sizing:border-box; min-height:58px; padding:8px 10px; font-size:var(--font-size-lg, 14px);
                          font-family:inherit; border:1px solid var(--border); border-radius:6px;
                          background:var(--surface); color:var(--text); resize:vertical; }
 
         .ka-preview { border:1px solid var(--border); border-radius:8px; padding:16px 18px; background:var(--surface);
-                      font-size:14px; line-height:1.6; color:var(--text); }
+                      font-size:var(--font-size-lg, 14px); line-height:1.6; color:var(--text); }
         .ka-preview h1 { font-size:19px; margin:0 0 12px; }
-        .ka-preview h2 { font-size:16px; margin:18px 0 8px; }
-        .ka-preview h3 { font-size:14px; margin:14px 0 6px; }
+        .ka-preview h2 { font-size:var(--font-size-xl, 16px); margin:18px 0 8px; }
+        .ka-preview h3 { font-size:var(--font-size-lg, 14px); margin:14px 0 6px; }
         .ka-preview p, .ka-preview li { line-height:1.6; }
-        .ka-preview code { background:var(--surface-hover); padding:1px 5px; border-radius:4px; font-size:13px; }
+        .ka-preview code { background:var(--surface-hover); padding:1px 5px; border-radius:4px; font-size:var(--font-size-md, 13px); }
         .ka-preview pre { background:var(--surface-hover); padding:10px 12px; border-radius:6px; overflow-x:auto; }
-        .ka-draft-note { font-size:12px; color:var(--text-muted); margin-top:12px; }
+        .ka-draft-note { font-size:var(--font-size-sm, 12px); color:var(--text-muted); margin-top:12px; }
     </style>
     <!-- Mobile: LAYER 17g. -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -496,7 +496,7 @@ function kaFinish(data) {
     }
     if ((data.questions || []).length) {
         contentEl.insertAdjacentHTML('beforeend',
-            '<p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;">' +
+            '<p style="font-size:var(--font-size-md, 13px);color:var(--text-muted);margin:0 0 14px;">' +
             esc(ka('refused_ask')) + '</p>' +
             data.questions.map(q =>
                 '<div class="ka-q"><label>' + esc(q) + '</label><textarea></textarea></div>').join(''));

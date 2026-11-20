@@ -51,12 +51,12 @@ $ready = assetLabelsSchemaReady($conn);
                background: var(--surface-2, #f3f6fa); color: var(--text, #222); }
         .bar { background: var(--accent, #546e7a); color: var(--on-accent, #fff); padding: 13px 16px;
                display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .bar h1 { font-size: 16px; margin: 0; font-weight: 600; }
-        .bar a { color: var(--on-accent, #fff); font-size: 13px; text-decoration: none; opacity: 0.9; }
+        .bar h1 { font-size: var(--font-size-xl, 16px); margin: 0; font-weight: 600; }
+        .bar a { color: var(--on-accent, #fff); font-size: var(--font-size-md, 13px); text-decoration: none; opacity: 0.9; }
         .wrap { max-width: 620px; margin: 0 auto; padding: 16px; }
         .card { background: var(--surface, #fff); border: 1px solid var(--border, #e2e6ea);
                 border-radius: 12px; padding: 16px; margin-bottom: 14px; }
-        .step-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted, #667); margin: 0 0 8px; }
+        .step-label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #667); margin: 0 0 8px; }
         .step-hint { font-size: 12.5px; color: var(--text-muted, #778); margin: 6px 0 0; line-height: 1.45; }
         input.big {
             width: 100%; min-height: 50px; font-size: 17px; padding: 10px 12px;
@@ -66,13 +66,13 @@ $ready = assetLabelsSchemaReady($conn);
         }
         input.big:disabled { background: var(--surface-3, #f2f4f6); color: var(--text-dim, #999); }
         .found { margin-top: 12px; padding: 12px; border-radius: 10px;
-                 background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); font-size: 14px; }
-        .found strong { display: block; font-size: 16px; margin-bottom: 2px; }
+                 background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); font-size: var(--font-size-lg, 14px); }
+        .found strong { display: block; font-size: var(--font-size-xl, 16px); margin-bottom: 2px; }
         .miss  { margin-top: 12px; padding: 12px; border-radius: 10px;
-                 background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); font-size: 14px; }
-        .done-list { font-size: 13px; color: var(--text-muted, #667); }
+                 background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); font-size: var(--font-size-lg, 14px); }
+        .done-list { font-size: var(--font-size-md, 13px); color: var(--text-muted, #667); }
         .done-list li { margin-bottom: 4px; }
-        .counter { font-size: 13px; opacity: 0.9; }
+        .counter { font-size: var(--font-size-md, 13px); opacity: 0.9; }
         .btn-row { display: flex; gap: 8px; margin-top: 12px; }
         .btn-row button {
             flex: 1; min-height: 46px; font-size: 15px; font-weight: 600; border-radius: 10px;
@@ -81,7 +81,7 @@ $ready = assetLabelsSchemaReady($conn);
         }
         .btn-row button.primary { background: var(--accent, #546e7a); color: var(--on-accent, #fff); border-color: transparent; }
         .notready { padding: 16px; background: var(--warning-bg, #fff4e5); color: var(--warning-text, #8a5300);
-                    border-radius: 10px; font-size: 14px; }
+                    border-radius: 10px; font-size: var(--font-size-lg, 14px); }
     </style>
 </head>
 <body>

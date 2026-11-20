@@ -59,21 +59,21 @@ $contract_id = $_GET['id'] ?? null;
 
         .sidebar-section { margin-bottom: 24px; }
         .sidebar-section h3 {
-            font-size: 14px; font-weight: 600; color: var(--text, #333);
+            font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333);
             margin: 0 0 12px 0;
         }
         .sidebar-stat {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: var(--text, #333); cursor: default; margin-bottom: 4px;
+            font-size: var(--font-size-lg, 14px); color: var(--text, #333); cursor: default; margin-bottom: 4px;
         }
-        .sidebar-stat .stat-value { font-weight: 700; font-size: 16px; }
+        .sidebar-stat .stat-value { font-weight: 700; font-size: var(--font-size-xl, 16px); }
         .sidebar-stat.warning .stat-value { color: var(--con-accent, #f59e0b); }
         .sidebar-links { display: flex; flex-direction: column; gap: 4px; }
         .sidebar-link {
             display: flex; align-items: center; gap: 10px;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: var(--text, #333);
+            font-size: var(--font-size-lg, 14px); color: var(--text, #333);
             text-decoration: none; transition: all 0.15s;
         }
         .sidebar-link:hover { background: #fff7ed; color: var(--con-accent, #f59e0b); }
@@ -83,7 +83,7 @@ $contract_id = $_GET['id'] ?? null;
             padding: 10px 16px;
             background: #f59e0b; color: white;
             border: none; border-radius: 6px;
-            font-size: 14px; font-weight: 500;
+            font-size: var(--font-size-lg, 14px); font-weight: 500;
             cursor: pointer; transition: background 0.2s;
             text-align: center; text-decoration: none;
             box-sizing: border-box;
@@ -102,7 +102,7 @@ $contract_id = $_GET['id'] ?? null;
             border-bottom: 1px solid var(--border-soft, #eee);
         }
 
-        .form-card-header h2 { margin: 0; font-size: 20px; color: var(--text, #333); }
+        .form-card-header h2 { margin: 0; font-size: var(--font-size-3xl, 20px); color: var(--text, #333); }
 
         .form-card-body { padding: 30px; }
 
@@ -114,11 +114,11 @@ $contract_id = $_GET['id'] ?? null;
         }
 
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
 
         .form-group input, .form-group select, .form-group textarea {
             width: 100%; padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px;
-            font-size: 14px; box-sizing: border-box; font-family: inherit;
+            font-size: var(--font-size-lg, 14px); box-sizing: border-box; font-family: inherit;
             transition: border-color 0.15s, box-shadow 0.15s;
         }
 
@@ -129,7 +129,7 @@ $contract_id = $_GET['id'] ?? null;
         }
 
         .form-section {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text-dim, #888);
             text-transform: uppercase;
@@ -139,7 +139,7 @@ $contract_id = $_GET['id'] ?? null;
             border-top: 1px solid var(--border-soft, #eee);
         }
 
-        .form-hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; }
+        .form-hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 4px; }
 
         .form-actions {
             position: sticky;
@@ -155,7 +155,7 @@ $contract_id = $_GET['id'] ?? null;
             z-index: 10;
         }
 
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; text-decoration: none; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: var(--font-size-lg, 14px); font-weight: 500; transition: all 0.2s; text-decoration: none; }
         .btn-primary { background-color: #f59e0b; color: white; }
         .btn-primary:hover { background-color: #d97706; }
         .btn-secondary { background: var(--surface-3, #e0e0e0); color: var(--text, #333); }
@@ -199,36 +199,36 @@ $contract_id = $_GET['id'] ?? null;
         }
         .toggle-switch input:checked + .toggle-slider { background: var(--con-accent, #f59e0b); }
         .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
-        .toggle-row { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; margin-bottom: 15px; }
+        .toggle-row { display: flex; align-items: center; gap: 10px; font-size: var(--font-size-lg, 14px); cursor: pointer; margin-bottom: 15px; }
 
         .terms-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border, #e0e0e0); margin-bottom: 0; }
         .terms-tab {
-            padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted, #666); cursor: pointer;
+            padding: 10px 20px; font-size: var(--font-size-md, 13px); font-weight: 500; color: var(--text-muted, #666); cursor: pointer;
             background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
         }
         .terms-tab:hover { color: var(--text, #333); background: var(--surface-hover, #f5f5f5); }
         .terms-tab.active { color: var(--con-accent, #f59e0b); border-bottom-color: var(--con-accent, #f59e0b); font-weight: 600; }
         .terms-panel { display: none; padding-top: 16px; }
         .terms-panel.active { display: block; }
-        .terms-empty { color: var(--text-dim, #999); font-size: 13px; padding: 12px 0; }
+        .terms-empty { color: var(--text-dim, #999); font-size: var(--font-size-md, 13px); padding: 12px 0; }
         .terms-empty a { color: var(--con-accent, #f59e0b); }
 
         [data-theme-mode="dark"] .sidebar-link:hover { background: #3a2e12; }
         /* Supplier / Customer (#153) */
-        .party-label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--text, #333); font-size: 14px; }
+        .party-label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--text, #333); font-size: var(--font-size-lg, 14px); }
         .party-switch { display: inline-flex; border: 1px solid var(--border, #ddd); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
-        .party-switch label { display: flex; align-items: center; gap: 6px; padding: 6px 14px; cursor: pointer; font-size: 13px; color: var(--text, #333); margin: 0; }
+        .party-switch label { display: flex; align-items: center; gap: 6px; padding: 6px 14px; cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--text, #333); margin: 0; }
         .party-switch label:first-child { border-right: 1px solid var(--border, #ddd); }
         .party-switch label:has(input:checked) { background: var(--con-accent-soft, #fef3c7); color: var(--text, #222); font-weight: 600; }
         #partyCustomer > select { margin-bottom: 8px; }
         .person-picker { position: relative; }
         .person-picker input[type=text] { width: 100%; box-sizing: border-box; padding-right: 30px; }
-        .person-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: 18px; color: var(--text-muted, #777); cursor: pointer; line-height: 1; }
+        .person-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: var(--font-size-2xl, 18px); color: var(--text-muted, #777); cursor: pointer; line-height: 1; }
         .person-results { position: absolute; z-index: 20; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 4px; list-style: none; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.12); max-height: 240px; overflow-y: auto; }
-        .person-results li { padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text, #333); }
+        .person-results li { padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .person-results li small { display: block; color: var(--text-muted, #777); font-size: 11.5px; }
         .person-results li[aria-selected="true"], .person-results li:hover { background: var(--surface-hover, #f3f4f6); }
-        .party-hint { display: block; margin-top: 6px; color: var(--text-muted, #777); font-size: 12px; }
+        .party-hint { display: block; margin-top: 6px; color: var(--text-muted, #777); font-size: var(--font-size-sm, 12px); }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">

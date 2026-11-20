@@ -119,7 +119,7 @@ html[data-theme-mode="dark"] .ew-app {
 .ew-rescan {
     display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; flex-shrink: 0;
     border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); color: var(--text-muted);
-    font-size: 13px; cursor: pointer; white-space: nowrap;
+    font-size: var(--font-size-md, 13px); cursor: pointer; white-space: nowrap;
 }
 .ew-rescan:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
 .ew-rescan:disabled { cursor: progress; }
@@ -135,7 +135,7 @@ html[data-theme-mode="dark"] .ew-app {
     border-radius: 6px;
     background: var(--surface-2);
     color: var(--text);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .ew-search:focus { outline: none; border-color: var(--accent); }
 
@@ -154,13 +154,13 @@ html[data-theme-mode="dark"] .ew-app {
     background: var(--surface);
     overflow-y: auto;
     padding: 8px 0 24px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .ew-app.ew-no-sidebar .ew-sidebar { display: none; }
 
 .ew-tree-section {
     padding: 10px 14px 4px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -196,14 +196,14 @@ html[data-theme-mode="dark"] .ew-app {
     align-items: center;
     padding: 6px 14px 8px;
     color: var(--text-dim);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
-.ew-results-head button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; }
+.ew-results-head button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: var(--font-size-sm, 12px); }
 .ew-result { display: block; padding: 8px 14px; border-bottom: 1px solid var(--border-soft); color: var(--text); text-decoration: none; cursor: pointer; }
 .ew-result:hover { background: var(--surface-hover); }
-.ew-result strong { display: block; font-size: 13px; }
+.ew-result strong { display: block; font-size: var(--font-size-md, 13px); }
 .ew-result span { display: block; color: var(--text-dim); font-size: 11.5px; margin-top: 2px; }
-.ew-result em { display: block; color: var(--text-faint); font-size: 11px; font-style: normal; margin-top: 2px; font-family: ui-monospace, Consolas, monospace; }
+.ew-result em { display: block; color: var(--text-faint); font-size: var(--font-size-xs, 11px); font-style: normal; margin-top: 2px; font-family: ui-monospace, Consolas, monospace; }
 
 /* ---------------------------------------------------------------- panes and tabs */
 
@@ -296,7 +296,7 @@ html[data-theme-mode="dark"] .ew-app {
     background: var(--gh-subtle);
     border-bottom: 1px solid var(--gh-border);
     border-radius: 6px 6px 0 0;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--gh-muted);
 }
 .ew-crumbs { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
@@ -304,12 +304,12 @@ html[data-theme-mode="dark"] .ew-app {
 .ew-crumbs a:hover { text-decoration: underline; }
 .ew-badge {
     display: inline-block; padding: 1px 8px; border: 1px solid var(--gh-border); border-radius: 2em;
-    font-size: 11px; font-weight: 500; color: var(--gh-muted); white-space: nowrap;
+    font-size: var(--font-size-xs, 11px); font-weight: 500; color: var(--gh-muted); white-space: nowrap;
 }
 .ew-outline-btn {
     display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px;
     border: 1px solid var(--gh-border); border-radius: 6px; background: var(--gh-canvas);
-    color: var(--gh-fg); font-size: 12px; cursor: pointer; position: relative;
+    color: var(--gh-fg); font-size: var(--font-size-sm, 12px); cursor: pointer; position: relative;
 }
 .ew-outline-btn svg { width: 14px; height: 14px; }
 .ew-outline {
@@ -317,11 +317,11 @@ html[data-theme-mode="dark"] .ew-app {
     background: var(--gh-canvas); border: 1px solid var(--gh-border); border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.18); padding: 6px 0; text-align: left; z-index: 5;
 }
-.ew-outline a { display: block; padding: 5px 14px; color: var(--gh-fg); text-decoration: none; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ew-outline a { display: block; padding: 5px 14px; color: var(--gh-fg); text-decoration: none; font-size: var(--font-size-md, 13px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ew-outline a:hover { background: var(--gh-subtle); }
 .ew-outline a.ew-ol-3 { padding-left: 28px; color: var(--gh-muted); }
 
-.ew-state { margin: 60px auto; text-align: center; color: var(--gh-muted); font-size: 14px; }
+.ew-state { margin: 60px auto; text-align: center; color: var(--gh-muted); font-size: var(--font-size-lg, 14px); }
 
 /* ---------------------------------------------------------------- .ew-markdown (GitHub-style page) */
 
@@ -329,7 +329,7 @@ html[data-theme-mode="dark"] .ew-app {
     padding: 32px;
     color: var(--gh-fg);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     line-height: 1.5;
     word-wrap: break-word;
 }
@@ -383,7 +383,7 @@ html[data-theme-mode="dark"] .ew-app {
 }
 .ew-markdown .ew-code { position: relative; }
 .ew-markdown .ew-code-lang {
-    position: absolute; top: 6px; right: 10px; font-size: 11px; color: var(--gh-muted);
+    position: absolute; top: 6px; right: 10px; font-size: var(--font-size-xs, 11px); color: var(--gh-muted);
     font-family: ui-monospace, Consolas, monospace; text-transform: lowercase; pointer-events: none;
 }
 .ew-markdown pre {
@@ -425,11 +425,11 @@ html[data-theme-mode="dark"] .ew-app {
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: 0 8px 24px var(--shadow);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .ew-menu button {
     display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 14px;
-    border: none; background: none; color: var(--text); text-align: left; cursor: pointer; font-size: 13px;
+    border: none; background: none; color: var(--text); text-align: left; cursor: pointer; font-size: var(--font-size-md, 13px);
 }
 .ew-menu button:hover { background: var(--surface-hover); }
 .ew-menu button svg { width: 15px; height: 15px; color: var(--text-dim); }
@@ -437,7 +437,7 @@ html[data-theme-mode="dark"] .ew-app {
 
 .ew-toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 3000;
-    padding: 8px 16px; border-radius: 6px; background: var(--text); color: var(--surface); font-size: 13px;
+    padding: 8px 16px; border-radius: 6px; background: var(--text); color: var(--surface); font-size: var(--font-size-md, 13px);
     opacity: 0; transition: opacity 0.2s; pointer-events: none;
 }
 .ew-toast.ew-show { opacity: 1; }

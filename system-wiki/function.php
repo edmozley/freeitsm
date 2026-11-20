@@ -46,7 +46,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             padding: 24px 20px;
         }
         .breadcrumb {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin-bottom: 16px;
         }
@@ -73,7 +73,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             gap: 20px;
             flex-wrap: wrap;
             margin-bottom: 12px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
         .func-meta a { color: var(--wiki-accent, #c62828); text-decoration: none; }
@@ -83,14 +83,14 @@ $translationNamespaces = ['common', 'system-wiki'];
             background: var(--surface-3, #f5f7fa);
             border-radius: 4px;
             font-family: monospace;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #555);
         }
         .func-desc {
             margin-top: 12px;
             padding-top: 12px;
             border-top: 1px solid var(--border-soft, #eee);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-muted, #555);
             line-height: 1.5;
         }
@@ -103,7 +103,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         }
         .section-header {
             padding: 14px 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text, #333);
             border-bottom: 1px solid var(--border-soft, #eee);
@@ -115,13 +115,13 @@ $translationNamespaces = ['common', 'system-wiki'];
             background: var(--surface-hover, #f0f0f0);
             padding: 1px 8px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-dim, #888);
         }
         .caller-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .caller-table th {
             text-align: left;
@@ -136,8 +136,8 @@ $translationNamespaces = ['common', 'system-wiki'];
         }
         .caller-table a { color: var(--wiki-accent, #c62828); text-decoration: none; }
         .caller-table a:hover { text-decoration: underline; }
-        .line-ref { color: var(--text-faint, #aaa); font-family: monospace; font-size: 12px; }
-        .empty-section { padding: 20px; color: var(--text-faint, #aaa); font-size: 13px; font-style: italic; }
+        .line-ref { color: var(--text-faint, #aaa); font-family: monospace; font-size: var(--font-size-sm, 12px); }
+        .empty-section { padding: 20px; color: var(--text-faint, #aaa); font-size: var(--font-size-md, 13px); font-style: italic; }
         /* Visibility / static badge — a type-coded chip (data): same colours in both modes */
         .visibility-badge {
             display: inline-block;

@@ -27,30 +27,30 @@
  */
 if (($RUNNER_PART ?? '') === 'html'): ?>
 <style>
-    .ph-last { font-size: 13px; color: var(--text-muted, #555); margin: 16px 0 0; padding: 10px 14px; border-radius: 6px; background: var(--surface-2, #f7f8fa); border: 1px solid var(--border-soft, #eee); }
+    .ph-last { font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); margin: 16px 0 0; padding: 10px 14px; border-radius: 6px; background: var(--surface-2, #f7f8fa); border: 1px solid var(--border-soft, #eee); }
     .ph-last.is-ok { border-left: 4px solid #2e7d32; }
     .ph-last.is-bad { border-left: 4px solid #c62828; }
     .ph-actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
     .ph-actions .ph-grow { flex: 1; }
-    .ph-only { font-size: 13px; color: var(--text-muted, #555); display: none; align-items: center; gap: 6px; cursor: pointer; }
+    .ph-only { font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); display: none; align-items: center; gap: 6px; cursor: pointer; }
     .ph-progress { margin-top: 16px; }
     .ph-bar { height: 8px; border-radius: 4px; background: var(--surface-3, #eceff1); overflow: hidden; }
     .ph-bar > span { display: block; height: 100%; width: 0; background: var(--sys-accent, #546e7a); transition: width .15s ease; }
     .ph-bar.has-bad > span { background: #c62828; }
-    .ph-now { font-size: 12px; color: var(--text-dim, #888); margin-top: 6px; font-family: Consolas, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ph-now { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 6px; font-family: Consolas, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ph-summary { margin-top: 16px; padding: 14px 16px; border-radius: 8px; display: flex; align-items: center; gap: 14px; }
     .ph-summary.is-ok { background: #e8f5e9; color: #1b5e20; }
     .ph-summary.is-bad { background: #fdecea; color: #8e1b1b; }
     .ph-summary-icon { font-size: 26px; line-height: 1; }
-    .ph-summary-title { font-size: 16px; font-weight: 600; }
+    .ph-summary-title { font-size: var(--font-size-xl, 16px); font-weight: 600; }
     .ph-summary-sub { font-size: 12.5px; opacity: .85; margin-top: 2px; }
     .ph-groups { margin-top: 16px; display: grid; gap: 8px; }
     .ph-group { border: 1px solid var(--border-soft, #eee); border-radius: 8px; background: var(--surface, #fff); overflow: hidden; }
     .ph-ghead { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; user-select: none; font-size: 13.5px; }
     .ph-ghead:hover { background: var(--surface-hover, #f5f5f5); }
     .ph-gname { flex: 1; font-weight: 600; color: var(--text, #333); }
-    .ph-gcount { font-size: 12px; color: var(--text-dim, #888); }
-    .ph-chev { color: var(--text-dim, #888); transition: transform .15s; font-size: 11px; }
+    .ph-gcount { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
+    .ph-chev { color: var(--text-dim, #888); transition: transform .15s; font-size: var(--font-size-xs, 11px); }
     .ph-group.is-open .ph-chev { transform: rotate(90deg); }
     .ph-gbody { display: none; border-top: 1px solid var(--border-soft, #eee); }
     .ph-group.is-open .ph-gbody { display: block; }
@@ -65,8 +65,8 @@ if (($RUNNER_PART ?? '') === 'html'): ?>
     .ph-page .ph-dot { margin-top: 4px; width: 8px; height: 8px; }
     .ph-pmain { flex: 1; min-width: 0; }
     .ph-path { font-family: Consolas, monospace; color: var(--text, #333); word-break: break-all; }
-    .ph-note { color: var(--text-dim, #888); font-size: 12px; margin-top: 2px; }
-    .ph-open { font-size: 12px; color: var(--sys-accent, #546e7a); text-decoration: none; white-space: nowrap; }
+    .ph-note { color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); margin-top: 2px; }
+    .ph-open { font-size: var(--font-size-sm, 12px); color: var(--sys-accent, #546e7a); text-decoration: none; white-space: nowrap; }
     .ph-open:hover { text-decoration: underline; }
     .ph-err { margin-top: 6px; }
     .ph-err-msg { color: #c62828; font-weight: 500; }

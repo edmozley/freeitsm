@@ -2160,7 +2160,7 @@ function renderCabMemberChips() {
     if (!container) return;
 
     if (!cabEditorMembers.length) {
-        container.innerHTML = `<div style="color: #999; font-size: 13px; padding: 8px 0;">${window.t('change-management.cab.no_members')}</div>`;
+        container.innerHTML = `<div style="color: #999; font-size: var(--font-size-md, 13px); padding: 8px 0;">${window.t('change-management.cab.no_members')}</div>`;
         return;
     }
 
@@ -2898,7 +2898,7 @@ function buildPdfContent() {
 
     html += `
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
-            <p style="font-size: 11px; color: #888;">
+            <p style="font-size: var(--font-size-xs, 11px); color: #888;">
                 ${c.created_by_name ? window.t('change-management.pdf.created_by', { datetime: formatDateTime(c.created_datetime), name: c.created_by_name }) : window.t('change-management.pdf.created', { datetime: formatDateTime(c.created_datetime) })}<br>
                 ${window.t('change-management.pdf.last_modified', { datetime: formatDateTime(c.modified_datetime) })}
             </p>

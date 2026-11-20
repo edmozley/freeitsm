@@ -49,35 +49,35 @@ if (!isset($_SESSION['analyst_id'])) {
 
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page on .orph-wrap). */
         .orph-wrap { height: calc(100vh - 48px); overflow-y: auto; background: #f5f7fa; }
-        .orph-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
+        .orph-back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
         .orph-back:hover { text-decoration: underline; }
 
         .orph-bulkbar { display: none; align-items: center; gap: 10px; background: var(--surface, #fff); border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; flex-wrap: wrap; }
         .orph-bulkbar.show { display: flex; }
-        .orph-bulkbar .sel { font-size: 13px; color: var(--text-muted, #555); }
-        select.orph-select { padding: 7px 10px; border: 1px solid #d6dde3; border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .orph-bulkbar .sel { font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); }
+        select.orph-select { padding: 7px 10px; border: 1px solid #d6dde3; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         /* The dark accent is a LIGHT blue-grey, so the button label flips dark. */
-        .orph-btn { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+        .orph-btn { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); cursor: pointer; }
         .orph-btn:hover { background: var(--sys-accent-hover, #37474f); }
         .orph-btn:disabled { background: #bbb; cursor: not-allowed; }
-        .orph-btn.small { padding: 6px 12px; font-size: 12px; }
+        .orph-btn.small { padding: 6px 12px; font-size: var(--font-size-sm, 12px); }
 
         table.orph { width: 100%; border-collapse: collapse; background: var(--surface, #fff); border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
-        table.orph th, table.orph td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #f2f2f2; font-size: 13px; color: #444; vertical-align: middle; }
-        table.orph th { background: #f9fafb; color: #1f2330; font-weight: 600; font-size: 12px; }
+        table.orph th, table.orph td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #f2f2f2; font-size: var(--font-size-md, 13px); color: #444; vertical-align: middle; }
+        table.orph th { background: #f9fafb; color: #1f2330; font-weight: 600; font-size: var(--font-size-sm, 12px); }
         table.orph tr:last-child td { border-bottom: none; }
-        .orph-ref { font-family: 'Consolas', monospace; font-size: 12px; color: var(--text-muted, #555); }
+        .orph-ref { font-family: 'Consolas', monospace; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555); }
         .orph-subject { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         /* Bad-department pill + the "no orphans" panel are STATE colours (red / green) —
            they keep their meaning in both modes, but the pale washes are re-based below
            so they don't glow on a dark surface. */
-        .orph-badwd { font-family: 'Consolas', monospace; font-size: 11px; background: #fdecea; color: #b71c1c; padding: 2px 7px; border-radius: 4px; }
+        .orph-badwd { font-family: 'Consolas', monospace; font-size: var(--font-size-xs, 11px); background: #fdecea; color: #b71c1c; padding: 2px 7px; border-radius: 4px; }
         .orph-row-action { display: flex; gap: 6px; align-items: center; }
 
-        .orph-empty { background: #ecfdf5; border: 1px solid #6ee7b7; color: #065f46; border-radius: 10px; padding: 20px; font-size: 14px; }
-        .orph-loading, .orph-error { color: var(--text-dim, #888); font-size: 13px; padding: 18px; }
+        .orph-empty { background: #ecfdf5; border: 1px solid #6ee7b7; color: #065f46; border-radius: 10px; padding: 20px; font-size: var(--font-size-lg, 14px); }
+        .orph-loading, .orph-error { color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); padding: 18px; }
         .orph-error { color: #c0392b; }
-        .orph-note { font-size: 12px; color: var(--text-faint, #999); margin-top: 10px; }
+        .orph-note { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); margin-top: 10px; }
 
         /* ---- Dark mode: pale washes + off-token greys ---- */
         [data-theme-mode="dark"] .orph-wrap { background: var(--app-bg, #14171c); }

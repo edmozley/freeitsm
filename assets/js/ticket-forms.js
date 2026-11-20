@@ -70,34 +70,34 @@
 .tf-card{border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:14px 16px;margin-bottom:12px;}
 .tf-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
 .tf-title{font-weight:600;font-size:15px;color:var(--text,#1e293b);line-height:1.3;}
-.tf-badge{flex-shrink:0;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+.tf-badge{flex-shrink:0;font-size:var(--font-size-xs, 11px);font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;}
 .tf-badge.block{background:rgba(220,38,38,.14);color:#dc2626;}
 .tf-badge.warn{background:rgba(217,119,6,.16);color:#b45309;}
 [data-theme="dark"] .tf-badge.block{color:#f87171;}
 [data-theme="dark"] .tf-badge.warn{color:#fbbf24;}
 .tf-badge.optional{background:rgba(100,116,139,.15);color:var(--text-muted,#64748b);}
-.tf-state{font-size:13px;color:var(--text-muted,#64748b);margin:4px 0 14px;}
+.tf-state{font-size:var(--font-size-md, 13px);color:var(--text-muted,#64748b);margin:4px 0 14px;}
 .tf-state.done{color:#16a34a;}
 .tf-gone{color:#b45309;margin-left:6px;}
 .tf-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.tf-row .btn,.tf-add .btn{padding:7px 16px;font-size:13px;line-height:1.2;}
+.tf-row .btn,.tf-add .btn{padding:7px 16px;font-size:var(--font-size-md, 13px);line-height:1.2;}
 .tf-right{margin-left:auto;display:flex;align-items:center;gap:6px;}
-.tf-row select.form-input{width:auto;padding:6px 8px;font-size:13px;}
-.tf-remove{background:none;border:0;padding:7px 6px;font-size:13px;color:var(--text-muted,#64748b);cursor:pointer;border-radius:4px;}
+.tf-row select.form-input{width:auto;padding:6px 8px;font-size:var(--font-size-md, 13px);}
+.tf-remove{background:none;border:0;padding:7px 6px;font-size:var(--font-size-md, 13px);color:var(--text-muted,#64748b);cursor:pointer;border-radius:4px;}
 .tf-remove:hover{color:#dc2626;background:rgba(220,38,38,.08);}
 .tf-add{display:flex;gap:8px;margin-top:4px;}
 .tf-add .btn:disabled{opacity:.5;cursor:default;}
-.tf-add select.form-input{flex:1;min-width:0;padding:7px 10px;font-size:13px;}
+.tf-add select.form-input{flex:1;min-width:0;padding:7px 10px;font-size:var(--font-size-md, 13px);}
 .tf-empty{color:var(--text-muted,#64748b);margin:0 0 14px;}
-.tf-answers{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--border,#e2e8f0);font-size:13px;}
+.tf-answers{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--border,#e2e8f0);font-size:var(--font-size-md, 13px);}
 .tf-answers dt{font-weight:600;margin-top:8px;color:var(--text,#1e293b);}
 .tf-answers dt:first-child{margin-top:0;}
 .tf-answers dd{margin:2px 0 0;white-space:pre-wrap;color:var(--text,#1e293b);}
 .tf-exception{color:#dc2626;font-weight:400;}
-.tf-inline-title{font-size:14px;font-weight:600;color:var(--text,#1e293b);margin:18px 0 10px;}
+.tf-inline-title{font-size:var(--font-size-lg, 14px);font-weight:600;color:var(--text,#1e293b);margin:18px 0 10px;}
 #twTicketForms .tf-inline-title:first-child{margin-top:4px;}
 #ticketFormsModal .modal-footer{justify-content:space-between;align-items:center;}
-.tf-explain{font-size:12px;line-height:1.45;color:var(--text-muted,#64748b);margin:0;flex:1;}
+.tf-explain{font-size:var(--font-size-sm, 12px);line-height:1.45;color:var(--text-muted,#64748b);margin:0;flex:1;}
 @media (max-width:560px){.tf-right{margin-left:0;width:100%;}.tf-row select.form-input{flex:1;}}
 `;
         document.head.appendChild(st);

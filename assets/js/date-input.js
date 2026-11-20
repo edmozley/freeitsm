@@ -162,12 +162,12 @@
         '.di-wrap{display:contents}' +
         '.di-native{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important;min-width:0!important;padding:0!important;border:0!important;margin:0!important}' +
         '.di-text.di-invalid{border-color:var(--danger-border,#e57373)!important;outline-color:var(--danger-border,#e57373)}' +
-        '.di-pop{position:fixed;z-index:10050;width:268px;box-sizing:border-box;background:var(--surface,#fff);color:var(--text,#222);border:1px solid var(--border,#d1d5db);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.2);padding:10px;font-size:13px;font-family:inherit;line-height:1.3}' +
+        '.di-pop{position:fixed;z-index:10050;width:268px;box-sizing:border-box;background:var(--surface,#fff);color:var(--text,#222);border:1px solid var(--border,#d1d5db);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.2);padding:10px;font-size:var(--font-size-md, 13px);font-family:inherit;line-height:1.3}' +
         '.di-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-weight:600}' +
-        '.di-nav{background:none;border:1px solid transparent;border-radius:5px;cursor:pointer;color:inherit;font-size:16px;width:28px;height:28px;line-height:1}' +
+        '.di-nav{background:none;border:1px solid transparent;border-radius:5px;cursor:pointer;color:inherit;font-size:var(--font-size-xl, 16px);width:28px;height:28px;line-height:1}' +
         '.di-nav:hover{background:var(--surface-hover,#f3f4f6)}' +
         '.di-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}' +
-        '.di-dow{font-size:11px;color:var(--text-dim,#888);padding:3px 0;font-weight:600}' +
+        '.di-dow{font-size:var(--font-size-xs, 11px);color:var(--text-dim,#888);padding:3px 0;font-weight:600}' +
         '.di-day{background:none;border:1px solid transparent;border-radius:5px;padding:5px 0;cursor:pointer;color:inherit;font:inherit}' +
         '.di-day:hover{background:var(--surface-hover,#f3f4f6)}' +
         '.di-day.di-out{color:var(--text-faint,#bbb)}' +

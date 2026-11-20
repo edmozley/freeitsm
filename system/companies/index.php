@@ -52,7 +52,7 @@ $translationNamespaces = ['common', 'system'];
 
         .settings-card { background: var(--surface, #fff); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 24px; }
 
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: #455a64; }
         .btn-secondary { background: var(--sys-accent-soft, #eceff1); color: #455a64; }
@@ -61,33 +61,33 @@ $translationNamespaces = ['common', 'system'];
 
         /* Companies table */
         .companies-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-        .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; cursor: pointer; }
         .add-btn:hover { background: #455a64; }
-        table.companies { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table.companies th { text-align: left; color: var(--text-dim, #888); font-weight: 600; font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
+        table.companies { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        table.companies th { text-align: left; color: var(--text-dim, #888); font-weight: 600; font-size: var(--font-size-sm, 12px); padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
         table.companies td { padding: 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: middle; }
         table.companies tr:last-child td { border-bottom: none; }
-        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: var(--font-size-xs, 11px); font-weight: 600; }
         .status-badge.on { background: #e8f5e9; color: #2e7d32; }
         .status-badge.off { background: #f0f0f0; color: #999; }
-        .badge-default { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #e3f2fd; color: #1565c0; margin-left: 8px; }
-        .domain-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #ede7f6; color: #5e35b1; margin: 2px 4px 2px 0; }
+        .badge-default { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); background: #e3f2fd; color: #1565c0; margin-left: 8px; }
+        .domain-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); background: #ede7f6; color: #5e35b1; margin: 2px 4px 2px 0; }
 
         /* Public email domains card */
-        .card-title { font-size: 16px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .card-hint { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 16px 0; line-height: 1.5; }
-        .freemail-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border-radius: 14px; font-size: 12px; background: var(--sys-accent-soft, #eceff1); color: #37474f; margin: 2px 6px 2px 0; }
-        .freemail-chip button { background: none; border: none; cursor: pointer; color: #90a4ae; font-size: 14px; line-height: 1; padding: 0 2px; border-radius: 50%; }
+        .card-title { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
+        .card-hint { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 16px 0; line-height: 1.5; }
+        .freemail-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border-radius: 14px; font-size: var(--font-size-sm, 12px); background: var(--sys-accent-soft, #eceff1); color: #37474f; margin: 2px 6px 2px 0; }
+        .freemail-chip button { background: none; border: none; cursor: pointer; color: #90a4ae; font-size: var(--font-size-lg, 14px); line-height: 1; padding: 0 2px; border-radius: 50%; }
         .freemail-chip button:hover { color: #c62828; }
-        .freemail-none { color: var(--text-faint, #aaa); font-size: 12px; font-style: italic; }
+        .freemail-none { color: var(--text-faint, #aaa); font-size: var(--font-size-sm, 12px); font-style: italic; }
         .builtin-freemail { margin-top: 16px; }
-        .builtin-toggle { background: none; border: none; padding: 0; cursor: pointer; color: #607d8b; font-size: 12px; font-weight: 600; }
+        .builtin-toggle { background: none; border: none; padding: 0; cursor: pointer; color: #607d8b; font-size: var(--font-size-sm, 12px); font-weight: 600; }
         .builtin-toggle:hover { text-decoration: underline; }
         #builtinFreemailList { margin-top: 8px; }
-        .builtin-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: var(--surface-3, #f5f5f5); color: var(--text-faint, #999); margin: 2px 4px 2px 0; }
+        .builtin-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); background: var(--surface-3, #f5f5f5); color: var(--text-faint, #999); margin: 2px 4px 2px 0; }
         .domains-none { color: var(--text-faint, #bbb); }
         #freemailInput { background: var(--surface, #fff); color: var(--text, #333); }
-        .table-action-btn { background: none; border: none; cursor: pointer; color: #607d8b; padding: 4px 8px; font-size: 13px; border-radius: 4px; }
+        .table-action-btn { background: none; border: none; cursor: pointer; color: #607d8b; padding: 4px 8px; font-size: var(--font-size-md, 13px); border-radius: 4px; }
         .table-action-btn:hover { background: var(--sys-accent-soft, #eceff1); }
         .empty-row td { text-align: center; color: var(--text-faint, #aaa); padding: 24px; font-style: italic; }
 
@@ -97,17 +97,17 @@ $translationNamespaces = ['common', 'system'];
         .co-modal-overlay.open { display: flex; }
         /* The dialog box, head, body and foot are the shared .sys-modal (system-page.css). */
         .form-field { margin-bottom: 16px; }
-        .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
-        .form-field .hint { font-size: 12px; color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
-        .form-field input[type=text] { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
+        .form-field label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
+        .form-field .hint { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
+        .form-field input[type=text] { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
         .form-field input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
         /* GH #279: custom fields - the same look for every kind of control. */
-        #coCustomFields input, #coCustomFields select, #coCustomFields textarea { width: 100%; max-width: 420px; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); } #coCustomFields .tf-hint { display: block; font-size: 12px; color: var(--text-faint, #999); margin-top: 4px; }
+        #coCustomFields input, #coCustomFields select, #coCustomFields textarea { width: 100%; max-width: 420px; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); } #coCustomFields .tf-hint { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); margin-top: 4px; }
         .checkbox-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
         .checkbox-field input { margin-top: 3px; }
-        .checkbox-field .cb-label { font-size: 13px; color: var(--text, #444); }
+        .checkbox-field .cb-label { font-size: var(--font-size-md, 13px); color: var(--text, #444); }
         .checkbox-field .cb-label strong { display: block; }
-        .checkbox-field .cb-label span { color: var(--text-faint, #999); font-size: 12px; }
+        .checkbox-field .cb-label span { color: var(--text-faint, #999); font-size: var(--font-size-sm, 12px); }
 
         /* "How email reaches this company" — derived routing summary panel */
         .routing-panel { background: #f7f9fa; border: 1px solid var(--border, #e3e8ea); border-radius: 6px; padding: 12px 14px; }
@@ -115,33 +115,33 @@ $translationNamespaces = ['common', 'system'];
         .routing-path:last-child { border-bottom: none; }
         .routing-path .rp-icon { flex: 0 0 auto; font-size: 15px; line-height: 1.3; }
         .routing-path .rp-body { flex: 1; min-width: 0; }
-        .routing-path .rp-kind { font-size: 12px; font-weight: 600; color: var(--text, #455a64); }
-        .routing-path .rp-kind .rp-flag { font-weight: 600; color: #c62828; font-size: 11px; margin-left: 6px; }
-        .routing-path .rp-desc { font-size: 12px; color: var(--text-muted, #666); margin-top: 2px; }
+        .routing-path .rp-kind { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text, #455a64); }
+        .routing-path .rp-kind .rp-flag { font-weight: 600; color: #c62828; font-size: var(--font-size-xs, 11px); margin-left: 6px; }
+        .routing-path .rp-desc { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 2px; }
         .routing-path .rp-desc strong { color: var(--text, #444); font-weight: 600; }
-        .routing-note { font-size: 12px; color: var(--text-dim, #777); margin-top: 10px; font-style: italic; }
-        .routing-warn { display: flex; gap: 8px; font-size: 12px; color: #8a5a00; background: #fff8e1; border: 1px solid #ffe0a3; border-radius: 5px; padding: 8px 10px; margin-top: 8px; }
-        .routing-empty { font-size: 12px; color: var(--text-faint, #aaa); font-style: italic; }
+        .routing-note { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 10px; font-style: italic; }
+        .routing-warn { display: flex; gap: 8px; font-size: var(--font-size-sm, 12px); color: #8a5a00; background: #fff8e1; border: 1px solid #ffe0a3; border-radius: 5px; padding: 8px 10px; margin-top: 8px; }
+        .routing-empty { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #aaa); font-style: italic; }
 
         /* Inline-rendered rows (domains / senders lists, JS-built) */
-        .domain-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border: 1px solid var(--border, #eee); border-radius: 5px; margin-bottom: 6px; font-size: 13px; color: var(--text, #333); }
-        .list-none { color: var(--text-faint, #aaa); font-size: 12px; font-style: italic; padding: 6px 0; }
+        .domain-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border: 1px solid var(--border, #eee); border-radius: 5px; margin-bottom: 6px; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
+        .list-none { color: var(--text-faint, #aaa); font-size: var(--font-size-sm, 12px); font-style: italic; padding: 6px 0; }
 
         /* Supports other companies (GH #228) */
-        table.support-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table.support-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-dim, #888); padding: 6px 8px; border-bottom: 1px solid var(--border-soft, #eee); }
+        table.support-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        table.support-table th { text-align: left; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-dim, #888); padding: 6px 8px; border-bottom: 1px solid var(--border-soft, #eee); }
         table.support-table th.tick, table.support-table td.tick { text-align: center; width: 90px; }
         table.support-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); }
         table.support-table tr:last-child td { border-bottom: none; }
-        table.support-table .support-inactive { color: var(--text-faint, #999); font-size: 11px; margin-left: 6px; }
+        table.support-table .support-inactive { color: var(--text-faint, #999); font-size: var(--font-size-xs, 11px); margin-left: 6px; }
         table.support-table th abbr { text-decoration: underline dotted; cursor: help; }
 
         /* SSO help banner */
         .sso-banner { display: flex; align-items: center; gap: 12px; text-decoration: none; background: linear-gradient(135deg, #eef2ff, #e0e7ff); border: 1px solid #c7d2fe; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; }
         .sso-banner svg { flex-shrink: 0; }
         .sso-banner .sso-text { flex: 1; color: #3730a3; font-size: 13.5px; line-height: 1.45; }
-        .sso-banner .sso-text strong { display: block; font-size: 14px; margin-bottom: 1px; }
-        .sso-banner .sso-arrow { color: #6366f1; font-weight: 700; font-size: 18px; }
+        .sso-banner .sso-text strong { display: block; font-size: var(--font-size-lg, 14px); margin-bottom: 1px; }
+        .sso-banner .sso-arrow { color: #6366f1; font-weight: 700; font-size: var(--font-size-2xl, 18px); }
 
         /* ---- Dark mode overrides: pale washes / tinted pills that would glow ---- */
         [data-theme-mode="dark"] .btn-primary:hover,
@@ -160,8 +160,8 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .routing-path .rp-kind .rp-flag,
         [data-theme-mode="dark"] .freemail-chip button:hover { color: #fca5a5; }
         [data-theme-mode="dark"] .sso-banner { filter: brightness(0.82); }
-        .co-search { width: 400px; max-width: 100%; padding: 8px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
-        .co-ref { display: block; font-size: 12px; color: var(--text-dim, #888); font-weight: 400; margin-top: 2px; }
+        .co-search { width: 400px; max-width: 100%; padding: 8px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
+        .co-ref { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-weight: 400; margin-top: 2px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -282,7 +282,7 @@ $translationNamespaces = ['common', 'system'];
                     <label><?php echo htmlspecialchars(t('system.companies.logo_label')); ?></label>
                     <div class="hint"><?php echo htmlspecialchars(t('system.companies.logo_hint')); ?></div>
                     <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
-                        <div id="coLogoPreview" style="width:120px;height:48px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);overflow:hidden;"></div>
+                        <div id="coLogoPreview" style="width:120px;height:48px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:var(--font-size-sm, 12px);color:var(--text-dim);overflow:hidden;"></div>
                         <input type="file" id="coLogoFile" accept=".png,.jpg,.jpeg,.gif,.webp,image/png,image/jpeg,image/gif,image/webp" style="display:none;">
                         <button type="button" class="btn btn-secondary" id="coLogoPick"><?php echo htmlspecialchars(t('system.companies.logo_choose')); ?></button>
                         <button type="button" class="btn btn-secondary" id="coLogoRemove" style="display:none;"><?php echo htmlspecialchars(t('system.companies.logo_remove')); ?></button>
@@ -438,7 +438,7 @@ $translationNamespaces = ['common', 'system'];
             // not presented as the same fact.
             const derived = !c.ticket_code;
             const cell = !showCode ? '' : `<td>${code
-                ? `<code style="font-size:12px;${derived ? 'opacity:.65;' : ''}">${esc(code)}</code>`
+                ? `<code style="font-size:var(--font-size-sm, 12px);${derived ? 'opacity:.65;' : ''}">${esc(code)}</code>`
                   + (clash[code] ? ` <span title="${esc(window.t('system.companies.code_clash'))}" style="color: var(--danger-text, #c0392b);">&#9888;</span>` : '')
                 : '<span style="opacity:.5;">&mdash;</span>'}</td>`;
             return `

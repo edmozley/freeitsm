@@ -61,7 +61,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .settings-card .card-desc {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin: 0 0 20px 0;
             line-height: 1.5;
@@ -78,7 +78,7 @@ $translationNamespaces = ['common', 'system'];
 
         .setting-label {
             flex: 1;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #555);
         }
 
@@ -93,7 +93,7 @@ $translationNamespaces = ['common', 'system'];
             padding: 8px 10px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             text-align: center;
             font-family: inherit;
             background: var(--surface, #fff);
@@ -103,7 +103,7 @@ $translationNamespaces = ['common', 'system'];
         .setting-input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
 
         .setting-unit {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-faint, #999);
             min-width: 50px;
         }
@@ -118,7 +118,7 @@ $translationNamespaces = ['common', 'system'];
             gap: 8px;
             padding: 10px 20px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             border: none;
             cursor: pointer;
@@ -141,7 +141,7 @@ $translationNamespaces = ['common', 'system'];
             border: 1px solid var(--border, #e0e0e0);
             border-radius: 6px;
             padding: 14px 16px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
             line-height: 1.6;
             margin-top: 6px;

@@ -380,7 +380,7 @@ $translationNamespaces = ['common', 'setup'];
         .summary-badge {
             padding: 6px 16px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
         }
 
@@ -410,7 +410,7 @@ $translationNamespaces = ['common', 'setup'];
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: bold;
             margin-top: 1px;
         }
@@ -424,12 +424,12 @@ $translationNamespaces = ['common', 'setup'];
         .check-name {
             font-weight: 600;
             color: #333;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .check-detail {
             color: #666;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             margin-top: 2px;
             word-break: break-word;
         }
@@ -446,14 +446,14 @@ $translationNamespaces = ['common', 'setup'];
         }
 
         .admin-section h2 {
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: #333;
             margin-bottom: 10px;
         }
 
         .admin-section p {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #666;
             margin-bottom: 15px;
         }
@@ -465,7 +465,7 @@ $translationNamespaces = ['common', 'setup'];
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             cursor: pointer;
         }
@@ -480,7 +480,7 @@ $translationNamespaces = ['common', 'setup'];
             background: white;
             border-radius: 4px;
             font-family: monospace;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #333;
         }
 
@@ -493,7 +493,7 @@ $translationNamespaces = ['common', 'setup'];
             background: #e7f1ff;
             border: 1px solid #b6d4fe;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #084298;
             text-align: center;
         }
@@ -504,7 +504,7 @@ $translationNamespaces = ['common', 'setup'];
             background: #fff3cd;
             border: 1px solid #ffc107;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #856404;
             text-align: center;
         }
@@ -512,14 +512,14 @@ $translationNamespaces = ['common', 'setup'];
         .php-version {
             text-align: center;
             color: #999;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             margin-top: 15px;
         }
 
         .check-help {
             display: inline-block;
             margin-top: 4px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: #667eea;
             text-decoration: none;
         }
@@ -536,7 +536,7 @@ $translationNamespaces = ['common', 'setup'];
             border-left: 4px solid #c0392b;
             border-radius: 6px;
             color: #7d1f16;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.55;
         }
         .storage-danger__title { font-weight: 700; font-size: 15px; margin-bottom: 8px; }
@@ -550,7 +550,7 @@ $translationNamespaces = ['common', 'setup'];
             border: 1px solid #f0cdcb;
             border-radius: 4px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             line-height: 1.5;
             color: #333;
             overflow-x: auto;
@@ -713,7 +713,7 @@ $translationNamespaces = ['common', 'setup'];
             const data = await resp.json();
 
             if (data.success) {
-                let html = '<div style="font-size:13px;">';
+                let html = '<div style="font-size:var(--font-size-md, 13px);">';
                 let created = 0, updated = 0, ok = 0, errors = 0;
                 data.results.forEach(r => {
                     if (r.status === 'created') created++;
@@ -741,11 +741,11 @@ $translationNamespaces = ['common', 'setup'];
                 result.innerHTML = html;
                 result.style.display = 'block';
             } else {
-                result.innerHTML = '<div style="color:#dc3545;font-size:13px;">' + (data.error || window.t('setup.js.unknown_error')) + '</div>';
+                result.innerHTML = '<div style="color:#dc3545;font-size:var(--font-size-md, 13px);">' + (data.error || window.t('setup.js.unknown_error')) + '</div>';
                 result.style.display = 'block';
             }
         } catch (e) {
-            result.innerHTML = '<div style="color:#dc3545;font-size:13px;">' + window.t('setup.js.verify_failed', { error: e.message }) + '</div>';
+            result.innerHTML = '<div style="color:#dc3545;font-size:var(--font-size-md, 13px);">' + window.t('setup.js.verify_failed', { error: e.message }) + '</div>';
             result.style.display = 'block';
         }
 

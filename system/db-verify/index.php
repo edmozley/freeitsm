@@ -78,7 +78,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             border: none;
             padding: 12px 24px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s;
@@ -100,7 +100,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             border: 1px solid var(--border, #d5dbe1);
             padding: 12px 20px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s, border-color 0.2s;
@@ -121,7 +121,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             background: var(--warn-bg, #fff8e1);
             border: 1px solid var(--warn-border, #ffe0a3);
             color: var(--warn-text, #6d4c00);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.5;
         }
         .backup-notice svg { flex: 0 0 auto; margin-top: 1px; }
@@ -132,7 +132,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             display: flex; align-items: center; gap: 10px;
             margin: -8px 0 20px; padding: 10px 16px; border-radius: 6px;
             background: var(--surface-2, #f7f8fa); border: 1px solid var(--border-soft, #e6e9ed);
-            font-size: 13px; color: var(--text-muted, #555);
+            font-size: var(--font-size-md, 13px); color: var(--text-muted, #555);
         }
         .ph-note__dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; background: var(--sys-accent, #546e7a); }
         .ph-note--clear .ph-note__dot { background: #2e7d32; }
@@ -151,8 +151,8 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             background: var(--card-bg, #fff);
         }
         .preview-panel h3 { margin: 0 0 4px; font-size: 15px; }
-        .preview-readonly { font-size: 12px; color: var(--text-faint, #78868f); margin-bottom: 14px; }
-        .preview-line { font-size: 13px; padding: 4px 0; }
+        .preview-readonly { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #78868f); margin-bottom: 14px; }
+        .preview-line { font-size: var(--font-size-md, 13px); padding: 4px 0; }
         .preview-drops {
             margin-top: 14px;
             border: 1px solid var(--danger-border, #f3c2c2);
@@ -160,11 +160,11 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             color: var(--danger-text, #8a2b2b);
             border-radius: 6px;
             padding: 12px 14px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .preview-drops ul { margin: 8px 0 0; padding-left: 18px; }
         .preview-drops li { margin-bottom: 6px; line-height: 1.45; }
-        .preview-safe { margin-top: 12px; font-size: 13px; color: var(--ok-text, #2e7d32); }
+        .preview-safe { margin-top: 12px; font-size: var(--font-size-md, 13px); color: var(--ok-text, #2e7d32); }
 
         .results-summary {
             display: flex;
@@ -186,7 +186,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         }
 
         .summary-card .label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             text-transform: uppercase;
             margin-top: 4px;
             display: block;
@@ -219,7 +219,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             background: var(--surface-3, #f8f9fa);
             padding: 12px 16px;
             text-align: left;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             text-transform: uppercase;
             color: var(--text-muted, #666);
             border-bottom: 2px solid var(--border, #e0e0e0);
@@ -228,7 +228,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         .results-table td {
             padding: 10px 16px;
             border-bottom: 1px solid var(--border-soft, #f0f0f0);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .results-table tr:last-child td { border-bottom: none; }
@@ -237,7 +237,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             display: inline-block;
             padding: 3px 12px;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
         }
 
@@ -251,7 +251,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
            neighbours and read as unfinished. */
         .status-pill.warning { background: #fff3cd; color: #7a5b00; }
 
-        .detail-text { font-size: 12px; color: var(--text-muted, #666); }
+        .detail-text { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 
         .fix-btn {
             margin-left: 10px;
@@ -260,7 +260,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             border: none;
             padding: 5px 14px;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
@@ -278,7 +278,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         }
 
         .placeholder-msg svg { color: #ccc; margin-bottom: 15px; }
-        .placeholder-msg p { margin: 0; font-size: 14px; }
+        .placeholder-msg p { margin: 0; font-size: var(--font-size-lg, 14px); }
 
         /* The error variant of the placeholder (set inline from JS). */
         .placeholder-msg.is-error { color: #d13438; }
@@ -334,12 +334,12 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             border-radius: 6px;
             background: var(--surface, #fff);
             color: var(--text, #333);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .verify-toolbar input[type="search"] { min-width: 220px; flex: 0 1 260px; }
         .verify-toolbar select { min-width: 160px; }
         .verify-toolbar .toolbar-count {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin-left: auto;
         }
@@ -369,7 +369,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         .tcard.is-hidden { display: none; }
         .tcard-name {
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             line-height: 1.35;
             color: var(--text, #333);
             word-break: break-word;
@@ -437,7 +437,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             text-align: center;
             padding: 40px 20px;
             color: var(--text-dim, #888);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         /* ---- Detail modal ----------------------------------------------- */
@@ -463,7 +463,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         .detail-section:last-child { margin-bottom: 0; }
         .detail-section h4 {
             margin: 0 0 10px 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             text-transform: uppercase;
             letter-spacing: 0.04em;
             color: var(--text-muted, #666);
@@ -482,7 +482,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         .detail-tbl tr:last-child td { border-bottom: none; }
         .detail-tbl code {
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
         .kbadge {
             display: inline-block;
@@ -493,13 +493,13 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
         }
         .kbadge.pri { background: #fff3cd; color: #856404; }
         .kbadge.uni { background: #cce5ff; color: #004085; }
-        .detail-empty { font-size: 13px; color: var(--text-dim, #999); font-style: italic; }
+        .detail-empty { font-size: var(--font-size-md, 13px); color: var(--text-dim, #999); font-style: italic; }
         .detail-loading { text-align: center; padding: 30px; color: var(--text-dim, #888); }
         .detail-fixbar {
             margin-top: 4px; padding: 12px 16px;
             background: #fff8ef; border: 1px solid #ffd9a8; border-radius: 7px;
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            font-size: 13px; color: #8a4b00;
+            font-size: var(--font-size-md, 13px); color: #8a4b00;
         }
         [data-theme-mode="dark"] .detail-fixbar { background: #2e2410; border-color: #4a3a18; color: #ffcc80; }
         [data-theme-mode="dark"] .kbadge.pri { background: #3a2e12; color: #fcd34d; }

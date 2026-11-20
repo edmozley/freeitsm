@@ -37,7 +37,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -50,7 +50,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'contracts'];
         .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
         .btn-link {
             background: none; color: #2563eb; border: none; padding: 0;
-            font-size: 13px; cursor: pointer; font-family: inherit;
+            font-size: var(--font-size-md, 13px); cursor: pointer; font-family: inherit;
         }
         .btn-link:hover { text-decoration: underline; }
 
@@ -80,14 +80,14 @@ $translationNamespaces = ['common', 'contracts'];
         .stat-card.conf     { border-left-color: #ef4444; }
         .stat-card.linked   { border-left-color: #10b981; }
         .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
-        .stat-card .stat-label { font-size: 12px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+        .stat-card .stat-label { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
 
         .empty-card {
             background: var(--surface, white); border-radius: 10px; padding: 40px 24px;
             text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .empty-card p { color: var(--text-muted, #666); margin: 6px 0; }
-        .empty-card .hint { font-size: 13px; color: var(--text-dim, #999); margin-top: 14px; }
+        .empty-card .hint { font-size: var(--font-size-md, 13px); color: var(--text-dim, #999); margin-top: 14px; }
 
         .category-card {
             background: var(--surface, white); border-radius: 10px; margin-bottom: 16px;
@@ -98,14 +98,14 @@ $translationNamespaces = ['common', 'contracts'];
             background: var(--surface-2, #fafbfc);
         }
         .category-header h2 {
-            margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222);
+            margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222);
             display: flex; align-items: center; gap: 10px;
         }
         .category-header h2 .req-count {
-            font-size: 12px; color: var(--text-dim, #888); font-weight: 500;
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-weight: 500;
             background: var(--surface-3, #eef0f2); padding: 2px 8px; border-radius: 10px;
         }
-        .category-desc { font-size: 13px; color: var(--text-muted, #666); margin-top: 4px; }
+        .category-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-top: 4px; }
 
         .req-row {
             padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f5f5f5);
@@ -117,9 +117,9 @@ $translationNamespaces = ['common', 'contracts'];
         .req-select {
             margin-top: 4px; cursor: pointer; flex-shrink: 0;
         }
-        .req-row-text { flex: 1; font-size: 14px; color: var(--text, #222); line-height: 1.5; }
+        .req-row-text { flex: 1; font-size: var(--font-size-lg, 14px); color: var(--text, #222); line-height: 1.5; }
         .req-row-rationale {
-            font-size: 12px; color: var(--text-dim, #888); font-style: italic;
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-style: italic;
             margin-top: 6px; line-height: 1.5;
         }
         .req-row-actions {
@@ -129,7 +129,7 @@ $translationNamespaces = ['common', 'contracts'];
         .req-row:hover .req-row-actions { opacity: 1; }
         .req-row-actions .icon-btn {
             background: var(--surface, white); border: 1px solid var(--border, #ddd); border-radius: 5px;
-            padding: 3px 8px; font-size: 12px; color: var(--text-muted, #555); cursor: pointer;
+            padding: 3px 8px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555); cursor: pointer;
             font-family: inherit;
         }
         .req-row-actions .icon-btn:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #222); }
@@ -137,7 +137,7 @@ $translationNamespaces = ['common', 'contracts'];
 
         .pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
             white-space: nowrap;
         }
         .pill.type-requirement { background: #dbeafe; color: #1e40af; }
@@ -155,18 +155,18 @@ $translationNamespaces = ['common', 'contracts'];
             display: none;
         }
         .source-list.open { display: block; }
-        .source-item { padding: 6px 0; border-bottom: 1px dashed var(--border, #e5e7eb); font-size: 13px; }
+        .source-item { padding: 6px 0; border-bottom: 1px dashed var(--border, #e5e7eb); font-size: var(--font-size-md, 13px); }
         .source-item:last-child { border-bottom: none; }
         .source-dept {
             display: inline-block; padding: 1px 7px; border-radius: 9px;
-            font-size: 11px; font-weight: 600; margin-right: 6px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; margin-right: 6px;
             background: var(--surface-3, #e5e7eb); color: var(--text-muted, #374151);
         }
         .source-quote {
             color: var(--text-muted, #555); font-style: italic; margin-top: 3px;
             border-left: 2px solid var(--border, #ddd); padding-left: 8px;
         }
-        .source-doc { font-size: 11px; color: var(--text-dim, #999); margin-top: 2px; }
+        .source-doc { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); margin-top: 2px; }
 
         .conflicts-card {
             background: var(--surface, white); border-radius: 10px; margin-top: 24px;
@@ -177,7 +177,7 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 14px 22px; background: var(--danger-bg, #fef2f2); border-bottom: 1px solid #fee2e2;
         }
         .conflicts-card h2 {
-            margin: 0; font-size: 16px; font-weight: 600; color: var(--danger-text, #991b1b);
+            margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--danger-text, #991b1b);
         }
         .conflict-row { padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f5f5f5); }
         .conflict-row:last-child { border-bottom: none; }
@@ -187,17 +187,17 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 10px 12px;
         }
         .conflict-side .side-label {
-            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
-        .conflict-side .side-text { font-size: 13px; color: var(--text, #222); line-height: 1.5; }
+        .conflict-side .side-text { font-size: var(--font-size-md, 13px); color: var(--text, #222); line-height: 1.5; }
         .conflict-explanation {
             margin-top: 10px; padding: 10px 12px;
             background: #fff7ed; border-left: 3px solid var(--con-accent, #f59e0b); border-radius: 4px;
-            font-size: 13px; color: var(--text-muted, #555); line-height: 1.5;
+            font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); line-height: 1.5;
         }
         .conflict-resolution {
-            margin-top: 8px; font-size: 12px; color: var(--text-dim, #888);
+            margin-top: 8px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888);
         }
         .conflict-resolution.resolved { color: #047857; }
         .conflict-actions {
@@ -205,7 +205,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .conflict-actions .btn-resolve {
             background: var(--surface, white); border: 1px solid var(--border, #d1d5db); border-radius: 6px;
-            padding: 5px 10px; font-size: 12px; color: var(--text-muted, #374151); cursor: pointer;
+            padding: 5px 10px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #374151); cursor: pointer;
             font-family: inherit;
         }
         .conflict-actions .btn-resolve:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #111827); }
@@ -222,14 +222,14 @@ $translationNamespaces = ['common', 'contracts'];
             margin-top: 18px; border-top: 1px dashed var(--border, #e5e7eb); padding-top: 12px;
         }
         .resolved-section-label {
-            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             padding: 0 22px; margin-bottom: 6px;
         }
         .conflict-row.resolved-row { opacity: 0.65; }
         .conflict-row.resolved-row .conflict-pair { background: var(--surface-2, #fafbfc); }
         .resolution-badge {
             display: inline-block; padding: 1px 8px; border-radius: 9px;
-            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
             margin-right: 6px;
         }
         .resolution-badge.chose_a   { background: #dbeafe; color: #1e40af; }
@@ -241,7 +241,7 @@ $translationNamespaces = ['common', 'contracts'];
         .conflict-resolution-notes {
             margin-top: 6px; padding: 6px 10px; background: var(--surface-2, #f9fafb);
             border-left: 3px solid #6b7280; border-radius: 4px;
-            font-size: 12px; color: var(--text-muted, #555);
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555);
         }
 
         .loading, .error-state { text-align: center; padding: 40px; color: var(--text-dim, #999); }
@@ -265,7 +265,7 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 16px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; gap: 12px;
         }
-        .stream-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222); flex: 1; }
+        .stream-modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222); flex: 1; }
         .stream-modal-header .spinner {
             width: 16px; height: 16px; border: 2px solid #fed7aa;
             border-top-color: #9a3412; border-radius: 50%;
@@ -276,7 +276,7 @@ $translationNamespaces = ['common', 'contracts'];
 
         .stream-phase {
             padding: 10px 22px; background: #fff7ed; color: #9a3412;
-            font-size: 13px; border-bottom: 1px solid #fed7aa;
+            font-size: var(--font-size-md, 13px); border-bottom: 1px solid #fed7aa;
         }
         .stream-phase.done    { background: #ecfdf5; color: #047857; border-bottom-color: #a7f3d0; }
         .stream-phase.error   { background: #fef2f2; color: #991b1b; border-bottom-color: #fecaca; }
@@ -288,12 +288,12 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .ptask {
             display: flex; align-items: center; gap: 12px;
-            font-size: 13px; color: var(--text-muted, #555);
+            font-size: var(--font-size-md, 13px); color: var(--text-muted, #555);
         }
         .ptask .pico {
             width: 18px; height: 18px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700; flex-shrink: 0;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; flex-shrink: 0;
             background: var(--surface-hover, #f3f4f6); color: var(--text-faint, #aaa); border: 1px solid var(--border, #e5e7eb);
         }
         .ptask.active .pico {
@@ -307,7 +307,7 @@ $translationNamespaces = ['common', 'contracts'];
         .ptask.done   .plabel { color: #047857; }
         .ptask .pcount {
             margin-left: auto; font-variant-numeric: tabular-nums;
-            color: var(--text-dim, #888); font-size: 12px;
+            color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px);
         }
         .ptask.active .pcount, .ptask.done .pcount { color: var(--text-muted, #444); }
         @keyframes pulse {
@@ -318,14 +318,14 @@ $translationNamespaces = ['common', 'contracts'];
         .stream-body {
             flex: 1; overflow-y: auto; padding: 14px 22px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 12px; line-height: 1.55; color: var(--text, #333);
+            font-size: var(--font-size-sm, 12px); line-height: 1.55; color: var(--text, #333);
             white-space: pre-wrap; word-break: break-word;
             background: var(--surface-2, #fafbfc); min-height: 200px;
         }
 
         .stream-meta {
             padding: 10px 22px; border-top: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafbfc);
-            display: flex; gap: 18px; font-size: 12px; color: var(--text-muted, #666);
+            display: flex; gap: 18px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666);
             justify-content: space-between; flex-wrap: wrap;
         }
         .stream-meta .meta-item strong { color: var(--text, #222); font-variant-numeric: tabular-nums; }
@@ -345,7 +345,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .merge-bar.active { display: flex; }
         .merge-bar .merge-count {
-            font-weight: 600; font-size: 14px;
+            font-weight: 600; font-size: var(--font-size-lg, 14px);
         }
         .merge-bar .spacer { flex: 1; }
         .merge-bar .btn-primary { background: var(--con-accent, #f59e0b); }
@@ -361,7 +361,7 @@ $translationNamespaces = ['common', 'contracts'];
         .edit-modal.wide { width: 820px; }
         .edit-modal-header {
             padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
-            font-size: 16px; font-weight: 600; color: var(--text, #222);
+            font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222);
             display: flex; align-items: center; justify-content: space-between;
         }
         .edit-modal-header .close-x {
@@ -380,17 +380,17 @@ $translationNamespaces = ['common', 'contracts'];
             margin-bottom: 14px;
         }
         .form-row label {
-            font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
         }
         .form-row input, .form-row select, .form-row textarea {
-            padding: 8px 10px; font-size: 14px; font-family: inherit;
+            padding: 8px 10px; font-size: var(--font-size-lg, 14px); font-family: inherit;
             border: 1px solid var(--border, #d1d5db); border-radius: 6px;
             color: var(--text, #222); background: var(--surface, white);
         }
         .form-row textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
         .form-row .form-help {
-            font-size: 12px; color: var(--text-dim, #888);
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888);
         }
         .form-row-grid {
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
@@ -406,7 +406,7 @@ $translationNamespaces = ['common', 'contracts'];
         .source-pick-row {
             padding: 9px 12px; border-bottom: 1px solid var(--border-soft, #eef0f2);
             display: flex; align-items: flex-start; gap: 10px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .source-pick-row:last-child { border-bottom: none; }
         .source-pick-row .source-pick-info { flex: 1; min-width: 0; }
@@ -414,10 +414,10 @@ $translationNamespaces = ['common', 'contracts'];
             color: var(--text, #333); line-height: 1.45;
         }
         .source-pick-row .source-pick-info .source-meta {
-            font-size: 11px; color: var(--text-dim, #888); margin-top: 2px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); margin-top: 2px;
         }
         .source-pick-row select {
-            flex-shrink: 0; padding: 4px 8px; font-size: 12px;
+            flex-shrink: 0; padding: 4px 8px; font-size: var(--font-size-sm, 12px);
             border: 1px solid var(--border, #d1d5db); border-radius: 5px;
             font-family: inherit; background: var(--surface, white);
         }
@@ -429,20 +429,20 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .split-row-card .split-row-num {
             display: inline-block; background: #6b7280; color: white;
-            border-radius: 10px; padding: 1px 9px; font-size: 11px; font-weight: 600;
+            border-radius: 10px; padding: 1px 9px; font-size: var(--font-size-xs, 11px); font-weight: 600;
             margin-bottom: 8px;
         }
         .split-row-card .split-row-remove {
             position: absolute; top: 8px; right: 10px;
             background: none; border: none; color: var(--text-dim, #999); cursor: pointer;
-            font-size: 18px; line-height: 1;
+            font-size: var(--font-size-2xl, 18px); line-height: 1;
         }
         .split-row-card .split-row-remove:hover { color: #b91c1c; }
 
         .merge-summary {
             margin-bottom: 14px; padding: 10px 12px;
             background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;
-            font-size: 13px; color: var(--con-accent-hover, #92400e);
+            font-size: var(--font-size-md, 13px); color: var(--con-accent-hover, #92400e);
         }
         .merge-summary ul { margin: 6px 0 0 18px; padding: 0; }
         .merge-summary li { margin-bottom: 3px; }
@@ -478,7 +478,7 @@ $translationNamespaces = ['common', 'contracts'];
             </div>
         </div>
 
-        <div id="lockedBanner" style="display:none;background:var(--success-bg,#ecfdf5);border:1px solid #a7f3d0;color:var(--success-text,#065f46);padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+        <div id="lockedBanner" style="display:none;background:var(--success-bg,#ecfdf5);border:1px solid #a7f3d0;color:var(--success-text,#065f46);padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:var(--font-size-md, 13px);">
             <?php echo t('contracts.rfp.consolidate.locked_banner'); ?>
         </div>
 
@@ -606,7 +606,7 @@ $translationNamespaces = ['common', 'contracts'];
             <div class="edit-modal-body">
                 <div class="form-row">
                     <label><?php echo htmlspecialchars(t('contracts.rfp.consolidate.split_original')); ?></label>
-                    <div id="splitOriginalText" style="padding:10px 12px;background:var(--surface-hover,#f3f4f6);border-radius:6px;font-size:13px;color:var(--text-muted,#555);line-height:1.5;"></div>
+                    <div id="splitOriginalText" style="padding:10px 12px;background:var(--surface-hover,#f3f4f6);border-radius:6px;font-size:var(--font-size-md, 13px);color:var(--text-muted,#555);line-height:1.5;"></div>
                 </div>
 
                 <div class="form-row">
@@ -635,7 +635,7 @@ $translationNamespaces = ['common', 'contracts'];
                 <span id="resolveModalTitle"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_conflict')); ?></span>
             </div>
             <div class="edit-modal-body">
-                <div id="resolveContext" style="margin-bottom:14px;font-size:13px;color:var(--text-muted,#555);"></div>
+                <div id="resolveContext" style="margin-bottom:14px;font-size:var(--font-size-md, 13px);color:var(--text-muted,#555);"></div>
                 <div class="form-row">
                     <label for="resolveNotes"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_notes')); ?></label>
                     <textarea id="resolveNotes" rows="3" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_notes_ph')); ?>"></textarea>

@@ -42,11 +42,11 @@ $translationNamespaces = ['common', 'system'];
 
         .mode-opt { display: block; margin: 8px 0; cursor: pointer; color: var(--text, #333); }
         .mode-opt input { margin-right: 8px; }
-        .strict-explainer { margin-top: 12px; padding: 12px 14px; border-radius: 8px; background: #fff3e0; border: 1px solid #ffcc80; color: #7c2d12; font-size: 13px; line-height: 1.55; }
+        .strict-explainer { margin-top: 12px; padding: 12px 14px; border-radius: 8px; background: #fff3e0; border: 1px solid #ffcc80; color: #7c2d12; font-size: var(--font-size-md, 13px); line-height: 1.55; }
 
-        .eff-tool select { padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 14px; min-width: 260px; margin-left: 8px; background: var(--surface, #fff); color: var(--text, #333); }
-        .eff-head { margin: 12px 0 6px; font-size: 13px; color: var(--text-muted, #666); }
-        .eff-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .eff-tool select { padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-lg, 14px); min-width: 260px; margin-left: 8px; background: var(--surface, #fff); color: var(--text, #333); }
+        .eff-head { margin: 12px 0 6px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
+        .eff-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
         .eff-table td { padding: 6px 10px; border-bottom: 1px solid var(--border, #eee); vertical-align: top; color: var(--text, #333); }
         .eff-table td:first-child { font-weight: 600; width: 22%; }
         .eff-table .yes { color: #2e7d32; font-weight: 600; white-space: nowrap; }
@@ -54,46 +54,46 @@ $translationNamespaces = ['common', 'system'];
         .eff-table .reason { color: var(--text-muted, #666); }
 
         table.access-table { width: 100%; border-collapse: collapse; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px var(--shadow, rgba(0,0,0,0.05)); }
-        .access-table th { text-align: left; padding: 12px 16px; background: var(--surface-3, #f8fafc); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted, #667); border-bottom: 1px solid var(--border, #e5e7eb); }
+        .access-table th { text-align: left; padding: 12px 16px; background: var(--surface-3, #f8fafc); font-size: var(--font-size-sm, 12px); text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted, #667); border-bottom: 1px solid var(--border, #e5e7eb); }
         .access-table td { padding: 12px 16px; border-bottom: 1px solid var(--border, #f0f0f0); vertical-align: middle; color: var(--text, #333); }
         .mod-row { cursor: pointer; transition: background 0.12s; }
         .mod-row:hover { background: var(--surface-hover, #f5f8ff); }
 
-        .pill { display: inline-block; padding: 3px 10px; margin: 2px; border-radius: 14px; font-size: 12px; background: #e8f0fe; color: #1565c0; }
+        .pill { display: inline-block; padding: 3px 10px; margin: 2px; border-radius: 14px; font-size: var(--font-size-sm, 12px); background: #e8f0fe; color: #1565c0; }
         .pill-all { background: #ede7f6; color: #5e35b1; }
         .pill-more { background: var(--sys-accent-soft, #eceff1); color: var(--sys-accent, #546e7a); cursor: pointer; }
-        .pill-none { color: var(--text-faint, #999); font-size: 12px; }
+        .pill-none { color: var(--text-faint, #999); font-size: var(--font-size-sm, 12px); }
         .all-note { color: #5e35b1; }
 
         .chk-row { display: block; padding: 6px 4px; cursor: pointer; border-bottom: 1px solid var(--border, #f2f2f2); color: var(--text, #333); }
         .chk-line { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border, #f2f2f2); }
         .chk-line .chk-row { flex: 1; border-bottom: none; }
-        .lvl-select { font-size: 12px; padding: 2px 6px; }
+        .lvl-select { font-size: var(--font-size-sm, 12px); padding: 2px 6px; }
         .chk-row input { margin-right: 8px; }
-        #moduleModalBody h4 { margin: 14px 0 4px; font-size: 13px; color: var(--text-muted, #667); text-transform: uppercase; letter-spacing: 0.4px; }
+        #moduleModalBody h4 { margin: 14px 0 4px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #667); text-transform: uppercase; letter-spacing: 0.4px; }
 
-        .lvl-filter { width: 100%; max-width: 320px; padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; margin: 4px 0 14px; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
+        .lvl-filter { width: 100%; max-width: 320px; padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); margin: 4px 0 14px; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
         .lvl-cols { display: flex; gap: 20px; flex-wrap: wrap; }
         .lvl-col { flex: 1; min-width: 260px; }
-        .lvl-col h4 { margin: 0 0 6px; font-size: 12px; color: var(--text-muted, #667); text-transform: uppercase; letter-spacing: 0.4px; }
+        .lvl-col h4 { margin: 0 0 6px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #667); text-transform: uppercase; letter-spacing: 0.4px; }
         .lvl-list { max-height: 260px; overflow-y: auto; border: 1px solid var(--border, #eee); border-radius: 8px; }
         .lvl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border, #f2f2f2); }
         .lvl-row:last-child { border-bottom: none; }
-        .lvl-name { font-size: 13px; color: var(--text, #333); }
-        .lvl-tag { font-size: 11px; color: #c62828; margin-left: 6px; }
-        .lvl-empty { padding: 14px; text-align: center; color: var(--text-faint, #999); font-size: 13px; }
+        .lvl-name { font-size: var(--font-size-md, 13px); color: var(--text, #333); }
+        .lvl-tag { font-size: var(--font-size-xs, 11px); color: #c62828; margin-left: 6px; }
+        .lvl-empty { padding: 14px; text-align: center; color: var(--text-faint, #999); font-size: var(--font-size-md, 13px); }
 
         .loading-spinner { text-align: center; color: var(--text-muted, #666); padding: 30px; }
 
         /* Availability (GH #217). */
-        .avail-intro { color: var(--text-muted, #666); font-size: 13px; margin: 0 0 12px; line-height: 1.5; }
+        .avail-intro { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); margin: 0 0 12px; line-height: 1.5; }
         .avail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 18px; }
         .avail-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 2px; border-bottom: 1px solid var(--border, #f2f2f2); }
-        .avail-name { font-size: 13px; color: var(--text, #333); }
+        .avail-name { font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .avail-row.is-off .avail-name { color: var(--text-faint, #999); text-decoration: line-through; }
-        .avail-lock { font-size: 11px; color: var(--text-muted, #666); }
-        .avail-sub { font-size: 13px; margin: 18px 0 4px; color: var(--text, #333); }
-        .off-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; background: var(--surface-3, #f1f5f9); color: var(--text-muted, #666); }
+        .avail-lock { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); }
+        .avail-sub { font-size: var(--font-size-md, 13px); margin: 18px 0 4px; color: var(--text, #333); }
+        .off-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; background: var(--surface-3, #f1f5f9); color: var(--text-muted, #666); }
         .mod-row.is-off td { opacity: 0.6; }
 
         /* ---- Dark mode: pale washes and light-on-light text that can't be tokenised ---- */
@@ -150,7 +150,7 @@ $translationNamespaces = ['common', 'system'];
             <!-- Access level: grant / revoke all-module access without leaving this screen -->
             <div class="panel">
                 <h2 id="access-level">Access level</h2>
-                <p style="color:var(--text-muted,#666);font-size:13px;margin:0 0 8px;">Turn <strong>all modules</strong> on or off for a team or analyst right here. <strong>Off</strong> = restrict them to specific modules, which you then grant in the table below.</p>
+                <p style="color:var(--text-muted,#666);font-size:var(--font-size-md, 13px);margin:0 0 8px;">Turn <strong>all modules</strong> on or off for a team or analyst right here. <strong>Off</strong> = restrict them to specific modules, which you then grant in the table below.</p>
                 <input type="text" id="lvlFilter" class="lvl-filter" placeholder="Filter by name&hellip;" onkeyup="renderAccessLevels()">
                 <div class="lvl-cols">
                     <div class="lvl-col">
@@ -365,8 +365,8 @@ $translationNamespaces = ['common', 'system'];
             return `<div class="chk-line"><label class="chk-row"><input type="checkbox" data-kind="${kind}" data-id="${e.id}" ${has ? 'checked' : ''} ${e.all_modules ? 'disabled' : ''}> ${escapeHtml(e.name)}${note}</label>${levelSel}</div>`;
         }).join('') : '<p class="pill-none">None</p>');
         document.getElementById('moduleModalBody').innerHTML =
-            `<p style="color:var(--text-muted,#666);font-size:13px;margin:0 0 6px;">Tick the teams and analysts that can use <strong>${escapeHtml(m.name)}</strong>. Anyone with <em>all modules</em> always has access &mdash; flip that with the <strong>Access level</strong> toggles above.</p>
-             ${offersRead ? '<p style="color:var(--text-muted,#666);font-size:13px;margin:0 0 6px;"><strong>Read only</strong> lets them see everything here - records, history, exports - and change nothing. A named approver can still approve.</p>' : ''}
+            `<p style="color:var(--text-muted,#666);font-size:var(--font-size-md, 13px);margin:0 0 6px;">Tick the teams and analysts that can use <strong>${escapeHtml(m.name)}</strong>. Anyone with <em>all modules</em> always has access &mdash; flip that with the <strong>Access level</strong> toggles above.</p>
+             ${offersRead ? '<p style="color:var(--text-muted,#666);font-size:var(--font-size-md, 13px);margin:0 0 6px;"><strong>Read only</strong> lets them see everything here - records, history, exports - and change nothing. A named approver can still approve.</p>' : ''}
              <h4>Teams</h4>${rows(DATA.teams, 'team')}
              <h4>Analysts</h4>${rows(DATA.analysts, 'analyst')}`;
         document.getElementById('moduleModal').classList.add('active');

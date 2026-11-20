@@ -102,8 +102,8 @@ $translationNamespaces = ['common', 'lms'];
         <div class="lms-player-toolbar">
             <span class="course-title"><?php echo htmlspecialchars($course['title']); ?></span>
             <div style="display: flex; gap: 8px; align-items: center;">
-                <span style="font-size: 12px; color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('lms.player.scorm_version', ['version' => $course['scorm_version'] ?? '?'])); ?></span>
-                <a href="<?php echo htmlspecialchars($backHref); ?>" class="btn btn-secondary" style="font-size: 12px; padding: 5px 12px;"><?php echo htmlspecialchars($backLabel); ?></a>
+                <span style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('lms.player.scorm_version', ['version' => $course['scorm_version'] ?? '?'])); ?></span>
+                <a href="<?php echo htmlspecialchars($backHref); ?>" class="btn btn-secondary" style="font-size: var(--font-size-sm, 12px); padding: 5px 12px;"><?php echo htmlspecialchars($backLabel); ?></a>
             </div>
         </div>
         <iframe id="scormFrame" class="lms-player-frame" src="<?php echo htmlspecialchars($launchUrl); ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>

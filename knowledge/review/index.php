@@ -57,7 +57,7 @@ $translationNamespaces = ['common', 'knowledge'];
         }
 
         .review-header h1 {
-            font-size: 24px;
+            font-size: var(--font-size-4xl, 24px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0;
@@ -68,7 +68,7 @@ $translationNamespaces = ['common', 'knowledge'];
             padding: 8px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 6px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .review-search:focus {
             outline: none;
@@ -91,7 +91,7 @@ $translationNamespaces = ['common', 'knowledge'];
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-muted, #666);
             transition: all 0.15s;
             display: flex;
@@ -112,7 +112,7 @@ $translationNamespaces = ['common', 'knowledge'];
             background: rgba(0, 0, 0, 0.15);
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .filter-tab.active .badge {
@@ -159,7 +159,7 @@ $translationNamespaces = ['common', 'knowledge'];
             background: var(--surface-3, #f9f9f9);
             font-weight: 600;
             color: var(--text-muted, #666);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             text-transform: uppercase;
             border-bottom: 2px solid var(--border, #e0e0e0);
         }
@@ -202,7 +202,7 @@ $translationNamespaces = ['common', 'knowledge'];
         }
 
         .review-date .days-badge {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             padding: 2px 6px;
             border-radius: 4px;
             background: var(--surface-hover, #f0f0f0);

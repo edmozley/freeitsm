@@ -64,18 +64,18 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('asset-management.label
     <style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f6fa; color: #222; }
         .bar { background: #546e7a; color: #fff; padding: 12px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-        .bar h1 { font-size: 16px; margin: 0; font-weight: 600; }
-        .bar label { font-size: 13px; display: flex; align-items: center; gap: 6px; }
-        .bar select, .bar button, .bar a.btn { font-size: 13px; padding: 7px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4);
+        .bar h1 { font-size: var(--font-size-xl, 16px); margin: 0; font-weight: 600; }
+        .bar label { font-size: var(--font-size-md, 13px); display: flex; align-items: center; gap: 6px; }
+        .bar select, .bar button, .bar a.btn { font-size: var(--font-size-md, 13px); padding: 7px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4);
             background: rgba(255,255,255,0.18); color: #fff; cursor: pointer; text-decoration: none; }
         .bar select option { background: #fff; color: #222; }
         .bar button.primary { background: #fff; color: #37474f; font-weight: 600; border-color: #fff; }
         .bar button:disabled { opacity: .6; cursor: progress; }
-        .hint { padding: 12px 18px; font-size: 13px; color: #555; background: #fff8e1; border-bottom: 1px solid #ffe0a3; }
+        .hint { padding: 12px 18px; font-size: var(--font-size-md, 13px); color: #555; background: #fff8e1; border-bottom: 1px solid #ffe0a3; }
         .hint.bad { background: #fdeceb; border-bottom-color: #f5c6cb; color: #8a1f1a; }
         .previews { padding: 18px; display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
         .previews canvas { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.15); border-radius: 2px; }
-        .meta { font-size: 12px; opacity: .85; margin-left: auto; }
+        .meta { font-size: var(--font-size-sm, 12px); opacity: .85; margin-left: auto; }
     </style>
 </head>
 <body>

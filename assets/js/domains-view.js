@@ -188,7 +188,7 @@
             + row('field.cost_centre', D.cost_centre_label ? esc(D.cost_centre_label) : (D.cost_centre ? esc(D.cost_centre) + ' <span class="dom-sub">' + esc(T('field.cost_centre_old')) + '</span>' : ''))
             + row('field.contract', D.contract_id ? '<a href="' + esc(window.DOM_API.replace('api/domains/', '') + 'contracts/view.php?id=' + D.contract_id) + '">' + esc(D.contract_label || ('#' + D.contract_id)) + '</a>' : '')
             + row('field.tags', tags(D.tags))
-            + '</div>' + (D.notes ? '<div style="margin-top:14px;white-space:pre-wrap;font-size:13px">' + esc(D.notes) + '</div>' : '') + '</div></div>';
+            + '</div>' + (D.notes ? '<div style="margin-top:14px;white-space:pre-wrap;font-size:var(--font-size-md, 13px)">' + esc(D.notes) + '</div>' : '') + '</div></div>';
 
         // The three things most worth fixing, on the first tab, so nobody has to go looking.
         const top = (D.findings || []).filter(f => f.level === 'fail' || f.level === 'warn').sort((a, b) => b.weight - a.weight).slice(0, 3);

@@ -116,14 +116,14 @@ $fieldLabel = fn($k) => ChangeRevisions::FIELDS[$k][1] ?? ($k === 'comment' ? 'D
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo $e($ref); ?> - evidence</title>
 <style>
-    body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #111; background: #fff; margin: 24px; font-size: 13px; line-height: 1.5; }
-    h1 { font-size: 20px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 28px 0 8px; border-bottom: 2px solid #333; padding-bottom: 4px; }
-    h3 { font-size: 14px; margin: 16px 0 6px; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #111; background: #fff; margin: 24px; font-size: var(--font-size-md, 13px); line-height: 1.5; }
+    h1 { font-size: var(--font-size-3xl, 20px); margin: 0 0 4px; } h2 { font-size: var(--font-size-xl, 16px); margin: 28px 0 8px; border-bottom: 2px solid #333; padding-bottom: 4px; }
+    h3 { font-size: var(--font-size-lg, 14px); margin: 16px 0 6px; }
     table { border-collapse: collapse; width: 100%; margin: 6px 0 12px; } th, td { border: 1px solid #ccc; padding: 5px 7px; text-align: left; vertical-align: top; }
     th { background: #f3f3f3; width: 22%; }
     .meta { color: #555; } .box { border: 1px solid #ccc; padding: 8px 10px; margin: 4px 0 12px; }
     .baseline { background: #fff8e1; border-color: #e0c06a; }
-    .flag { display: inline-block; padding: 0 6px; border: 1px solid #999; border-radius: 8px; font-size: 11px; margin-left: 4px; }
+    .flag { display: inline-block; padding: 0 6px; border: 1px solid #999; border-radius: 8px; font-size: var(--font-size-xs, 11px); margin-left: 4px; }
     .noprint { margin-bottom: 16px; } @media print { .noprint { display: none; } h2 { page-break-after: avoid; } .box, tr { page-break-inside: avoid; } }
 </style>
 </head>

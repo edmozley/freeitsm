@@ -787,7 +787,7 @@ const WFE = (() => {
         const op = n.op;
 
         if (op === 'is_empty' || op === 'is_not_empty') {
-            host.innerHTML = '<div style="font-size:12px; color:var(--text-dim, #888); padding: 6px 0;"><em>No value needed — this operator just checks presence.</em></div>';
+            host.innerHTML = '<div style="font-size:var(--font-size-sm, 12px); color:var(--text-dim, #888); padding: 6px 0;"><em>No value needed — this operator just checks presence.</em></div>';
             return;
         }
 
@@ -803,9 +803,9 @@ const WFE = (() => {
                 '<div style="border:1px solid var(--border, #ddd); border-radius:4px; padding:8px 10px; max-height:200px; overflow-y:auto; background:var(--surface-2, #fafafa);">' +
                 lookup.map(v => {
                     const isOn = selected.includes(String(v.id));
-                    return `<label style="display:flex; align-items:center; gap:8px; padding:4px 0; cursor:pointer; font-size: 13px; color: var(--text, #333);">
+                    return `<label style="display:flex; align-items:center; gap:8px; padding:4px 0; cursor:pointer; font-size: var(--font-size-md, 13px); color: var(--text, #333);">
                         <input type="checkbox" value="${escAttr(v.id)}" ${isOn ? 'checked' : ''} onchange="WFE.onConditionMultiToggle()">
-                        ${escAttr(v.label)} <span style="color:var(--text-faint, #999); font-size:11px;">(id ${escAttr(v.id)})</span>
+                        ${escAttr(v.label)} <span style="color:var(--text-faint, #999); font-size:var(--font-size-xs, 11px);">(id ${escAttr(v.id)})</span>
                     </label>`;
                 }).join('') +
                 '</div>' +
@@ -837,7 +837,7 @@ const WFE = (() => {
      */
     function categoryMatchTip() {
         const t = k => window.t('workflow.editor.' + k);
-        return '<div style="margin-top:8px; padding:7px 10px; border-radius:5px; font-size:12px; line-height:1.5; background:var(--info-bg, #eef6ff); color:var(--text, #333);">' +
+        return '<div style="margin-top:8px; padding:7px 10px; border-radius:5px; font-size:var(--font-size-sm, 12px); line-height:1.5; background:var(--info-bg, #eef6ff); color:var(--text, #333);">' +
             escAttr(t(window.WF_CATEGORY_TREE ? 'category_tip_tree' : 'category_tip_exact')) + ' ' +
             '<a href="../tickets/settings/#categories" target="_blank" rel="noopener">' + escAttr(t('category_tip_link')) + '</a></div>';
     }
@@ -968,7 +968,7 @@ const WFE = (() => {
                     });
 
                     if (scored.length === 0) {
-                        listHost.innerHTML = '<div style="font-size:12px; color:var(--text-dim, #888); padding:4px;">No matching checklists</div>';
+                        listHost.innerHTML = '<div style="font-size:var(--font-size-sm, 12px); color:var(--text-dim, #888); padding:4px;">No matching checklists</div>';
                         return;
                     }
 
@@ -1408,22 +1408,22 @@ const WFE = (() => {
         const req = d.request || {};
         const barColor = ok ? '#1e7e34' : '#b26a00';
         const pill = ok
-            ? '<span style="background:var(--success-bg, #e6f4ea); color:var(--success-text, #1e7e34); padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600;">Delivered</span>'
-            : '<span style="background:var(--warning-bg, #fdf0e2); color:var(--warning-text, #b26a00); padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600;">Not delivered</span>';
+            ? '<span style="background:var(--success-bg, #e6f4ea); color:var(--success-text, #1e7e34); padding:2px 9px; border-radius:10px; font-size:var(--font-size-xs, 11px); font-weight:600;">Delivered</span>'
+            : '<span style="background:var(--warning-bg, #fdf0e2); color:var(--warning-text, #b26a00); padding:2px 9px; border-radius:10px; font-size:var(--font-size-xs, 11px); font-weight:600;">Not delivered</span>';
         const statusLine = resp.error
             ? 'Transport error: ' + esc(resp.error)
             : 'HTTP ' + esc(resp.status) + ' · ' + esc(resp.ms) + ' ms' + (req.signed ? ' · signed' : '');
         let html = '<div style="border-left:3px solid ' + barColor + '; background:var(--wf-test-surface, #f8fafb); padding:10px 12px; border-radius:4px;">';
         html += '<div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">' + pill
-            + '<span style="font-size:12px; color:var(--text-muted, #55606a);">' + statusLine + '</span></div>';
+            + '<span style="font-size:var(--font-size-sm, 12px); color:var(--text-muted, #55606a);">' + statusLine + '</span></div>';
         // A raw cURL error tells you what broke, not what to do. Where the server
         // recognised the cause, show the plain-English version and a link to the fix.
         if (d.diagnosis) html += renderDiagnosis(d.diagnosis);
-        html += '<div style="font-size:11px; color:var(--text-dim, #78909c); text-transform:uppercase; letter-spacing:.4px; margin:8px 0 3px;">Sent (sample data)</div>';
-        html += '<pre style="background:#263238; color:#eceff1; border-radius:5px; padding:10px; font-size:11px; overflow:auto; max-height:160px; white-space:pre-wrap; word-break:break-word; margin:0;">' + esc(req.body || '') + '</pre>';
+        html += '<div style="font-size:var(--font-size-xs, 11px); color:var(--text-dim, #78909c); text-transform:uppercase; letter-spacing:.4px; margin:8px 0 3px;">Sent (sample data)</div>';
+        html += '<pre style="background:#263238; color:#eceff1; border-radius:5px; padding:10px; font-size:var(--font-size-xs, 11px); overflow:auto; max-height:160px; white-space:pre-wrap; word-break:break-word; margin:0;">' + esc(req.body || '') + '</pre>';
         if (resp.body) {
-            html += '<div style="font-size:11px; color:var(--text-dim, #78909c); text-transform:uppercase; letter-spacing:.4px; margin:10px 0 3px;">Response</div>';
-            html += '<pre style="background:#263238; color:#eceff1; border-radius:5px; padding:10px; font-size:11px; overflow:auto; max-height:160px; white-space:pre-wrap; word-break:break-word; margin:0;">' + esc(resp.body) + '</pre>';
+            html += '<div style="font-size:var(--font-size-xs, 11px); color:var(--text-dim, #78909c); text-transform:uppercase; letter-spacing:.4px; margin:10px 0 3px;">Response</div>';
+            html += '<pre style="background:#263238; color:#eceff1; border-radius:5px; padding:10px; font-size:var(--font-size-xs, 11px); overflow:auto; max-height:160px; white-space:pre-wrap; word-break:break-word; margin:0;">' + esc(resp.body) + '</pre>';
         }
         html += '</div>';
         return html;
@@ -1828,8 +1828,8 @@ const WFE = (() => {
                 : '';
             return `<div style="padding: 8px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0);">
                 ${pill}${dryPill}
-                <div style="font-size: 12px; color: var(--text-dim, #888); margin-top: 4px;">${escHtml(fmtDate(e.started_datetime))}</div>
-                ${e.error_message ? '<div style="font-size: 12px; color: var(--danger-text, #c33); margin-top: 4px;">' + escHtml(e.error_message) + '</div>' : ''}
+                <div style="font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 4px;">${escHtml(fmtDate(e.started_datetime))}</div>
+                ${e.error_message ? '<div style="font-size: var(--font-size-sm, 12px); color: var(--danger-text, #c33); margin-top: 4px;">' + escHtml(e.error_message) + '</div>' : ''}
                 ${dryStepsHtml(e)}
             </div>`;
         }).join('');

@@ -197,13 +197,13 @@
                 const c = tg.colour || '#6b7280';
                 return `<span class="tag-chip" style="background:${esc(c)}1f;color:${esc(c)};border-color:${esc(c)}55">${esc(tg.name)}</span>`;
             }).join('')
-            : `<span style="color:#999;font-size:13px;">—</span>`;
+            : `<span style="color:#999;font-size:var(--font-size-md, 13px);">—</span>`;
 
         const descBlock = task.description
             // TRAP: rich text - cleaned, never inserted raw (an onerror handler runs on insertion).
             // Fails closed to plain text if safe-html.js is missing.
             ? `<div class="cal-detail-desc-preview">${typeof safeHtmlFragment === 'function' ? safeHtmlFragment(task.description) : esc(task.description)}</div>`
-            : `<div style="color:#999;font-size:13px;">${esc(T('no_description'))}</div>`;
+            : `<div style="color:#999;font-size:var(--font-size-md, 13px);">${esc(T('no_description'))}</div>`;
         // Not a hint to go elsewhere: a button that swaps this panel for the full
         // task editor, in place (GH #219). With read-only access it opens it to read.
         const readOnly = document.body.classList.contains('module-read-only');

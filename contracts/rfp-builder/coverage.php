@@ -43,7 +43,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -56,7 +56,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
@@ -79,7 +79,7 @@ $translationNamespaces = ['common', 'contracts'];
         .stat-card.unsupported { border-left-color: #ef4444; }
         .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
         .stat-card .stat-label {
-            font-size: 12px; color: var(--text-dim, #888);
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888);
             text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px;
         }
 
@@ -92,7 +92,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
 
         .heatmap {
-            width: 100%; border-collapse: collapse; font-size: 13px;
+            width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px);
         }
         .heatmap th, .heatmap td {
             padding: 8px 10px; text-align: center; vertical-align: middle;
@@ -101,7 +101,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .heatmap thead th {
             background: var(--surface-2, #fafbfc); border-bottom: 1px solid var(--border-soft, #eef0f2);
-            font-size: 11px; font-weight: 700; color: var(--text-muted, #555);
+            font-size: var(--font-size-xs, 11px); font-weight: 700; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
             position: sticky; top: 0; z-index: 2;
         }
@@ -117,7 +117,7 @@ $translationNamespaces = ['common', 'contracts'];
             padding-left: 16px; max-width: 280px;
         }
         .heatmap tbody td.col-cat .cat-meta {
-            font-size: 11px; font-weight: 400; color: var(--text-dim, #888); margin-top: 2px;
+            font-size: var(--font-size-xs, 11px); font-weight: 400; color: var(--text-dim, #888); margin-top: 2px;
         }
 
         .heat-cell {
@@ -138,7 +138,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
 
         .coverage-help {
-            font-size: 12px; color: var(--text-muted, #666);
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666);
             padding: 12px 22px; border-top: 1px solid var(--border-soft, #f0f0f0);
             background: var(--surface-2, #fafbfc);
             display: flex; gap: 18px; align-items: center; flex-wrap: wrap;

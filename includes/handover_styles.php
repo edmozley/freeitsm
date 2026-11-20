@@ -30,21 +30,21 @@ function handoverDocumentCss(): string
     .hb-doc {
         color: #1a1a1a;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         line-height: 1.5;
     }
     .hb-doc .hb-logo { text-align: right; margin-bottom: 8px; }
     .hb-doc .hb-logo img { max-height: 56px; max-width: 200px; }
     .hb-doc .hb-title-wrap { padding-bottom: 18px; border-bottom: 2px solid #1a1a1a; }
-    .hb-doc .doc-title { font-size: 24px; font-weight: 700; margin: 0 0 4px; }
-    .hb-doc .doc-sub { color: #555; font-size: 13px; }
+    .hb-doc .doc-title { font-size: var(--font-size-4xl, 24px); font-weight: 700; margin: 0 0 4px; }
+    .hb-doc .doc-sub { color: #555; font-size: var(--font-size-md, 13px); }
     .hb-doc .hb-intro { margin: 18px 0 0; color: #333; }
     .hb-doc .section-title {
-        font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+        font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.6px;
         color: #666; font-weight: 700; margin: 26px 0 8px;
     }
     .hb-doc .who { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 28px; }
-    .hb-doc .field-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.4px; }
+    .hb-doc .field-label { font-size: var(--font-size-xs, 11px); color: #666; text-transform: uppercase; letter-spacing: 0.4px; }
     .hb-doc .field-value { font-size: 15px; font-weight: 600; }
     .hb-doc table { width: 100%; border-collapse: collapse; margin-top: 6px; }
     .hb-doc th {
@@ -52,20 +52,20 @@ function handoverDocumentCss(): string
         color: #555; padding: 8px 6px; border-bottom: 2px solid #1a1a1a; white-space: nowrap;
     }
     .hb-doc td { padding: 9px 6px; border-bottom: 1px solid #e2e2e2; vertical-align: top; }
-    .hb-doc td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .hb-doc td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--font-size-sm, 12px); }
     .hb-doc .none-row { text-align: center; padding: 26px; color: #666; }
     .hb-doc .declaration {
         margin-top: 26px; padding: 14px 16px;
         background: #f7f8fa; border-left: 3px solid #1a1a1a;
-        font-size: 13px; color: #333;
+        font-size: var(--font-size-md, 13px); color: #333;
     }
     .hb-doc .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 34px; }
     .hb-doc .sig-line { border-bottom: 1px solid #1a1a1a; height: 46px; }
-    .hb-doc .sig-label { font-size: 11px; color: #555; margin-top: 6px; }
-    .hb-doc .sig-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .hb-doc .sig-label { font-size: var(--font-size-xs, 11px); color: #555; margin-top: 6px; }
+    .hb-doc .sig-name { font-size: var(--font-size-md, 13px); font-weight: 600; margin-bottom: 2px; }
     .hb-doc .doc-foot {
         margin-top: 34px; padding-top: 12px; border-top: 1px solid #ddd;
-        font-size: 11px; color: #777; display: flex; justify-content: space-between; gap: 12px;
+        font-size: var(--font-size-xs, 11px); color: #777; display: flex; justify-content: space-between; gap: 12px;
     }
 CSS;
 }
@@ -75,7 +75,7 @@ function handoverPrintCss(): string
 {
     return <<<CSS
     @media print {
-        body { background: #fff; padding: 0; font-size: 12px; }
+        body { background: #fff; padding: 0; font-size: var(--font-size-sm, 12px); }
         .toolbar { display: none !important; }
         .sheet { box-shadow: none; border-radius: 0; max-width: none; padding: 0; }
         /* Never split a signature block or a table row across two pages — a

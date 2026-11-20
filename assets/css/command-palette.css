@@ -58,7 +58,7 @@
     outline: none;
     background: transparent;
     color: var(--text);
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     line-height: 1.4;
     padding: 0;
 }
@@ -82,7 +82,7 @@
     padding: 6px 0;
 }
 .cmdp-group-label {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -122,14 +122,14 @@
     min-width: 0;                  /* let text truncate instead of overflowing */
 }
 .cmdp-item-title {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .cmdp-item-sub {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -137,7 +137,7 @@
 }
 .cmdp-item-tag {
     flex: 0 0 auto;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-faint, var(--text-muted));
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -148,7 +148,7 @@
     padding: 26px 16px;
     text-align: center;
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 /* Footer hint bar */
@@ -158,7 +158,7 @@
     align-items: center;
     padding: 8px 16px;
     border-top: 1px solid var(--border-soft, var(--border));
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-faint, var(--text-muted));
 }
 .cmdp-footer .cmdp-hint { display: inline-flex; align-items: center; gap: 5px; }
@@ -171,7 +171,7 @@
     border-radius: 4px;
     background: var(--surface-2, var(--surface-hover));
     font-family: inherit;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     line-height: 1.5;
 }
 

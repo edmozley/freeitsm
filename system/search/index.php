@@ -63,7 +63,7 @@ if (!isset($_SESSION['analyst_id'])) {
         /* The System button pair, same as the other System screens. inbox.css's
            .btn-primary sets only background and colour, so on its own it renders
            a coloured rectangle with no padding or radius. */
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover:not(:disabled) { background: #455a64; }
         .btn:disabled { opacity: .55; cursor: progress; }
@@ -76,17 +76,17 @@ if (!isset($_SESSION['analyst_id'])) {
             margin-bottom: 18px;
         }
         .srch-panel h3 {
-            margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase;
+            margin: 0 0 4px 0; font-size: var(--font-size-md, 13px); text-transform: uppercase;
             letter-spacing: .5px; color: var(--text-dim, #888);
         }
 
         .srch-figures { display: flex; gap: 32px; flex-wrap: wrap; margin: 14px 0 4px; }
         .srch-figure .n { font-size: 26px; font-weight: 700; color: var(--text, #222); line-height: 1.1; }
-        .srch-figure .l { font-size: 12px; color: var(--text-dim, #888); }
+        .srch-figure .l { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
 
-        .srch-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .srch-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: var(--font-size-md, 13px); }
         .srch-table th {
-            text-align: left; padding: 7px 10px; font-size: 11px; text-transform: uppercase;
+            text-align: left; padding: 7px 10px; font-size: var(--font-size-xs, 11px); text-transform: uppercase;
             letter-spacing: .4px; color: var(--text-dim, #888);
             border-bottom: 1px solid var(--border, #e5e7eb);
         }
@@ -94,7 +94,7 @@ if (!isset($_SESSION['analyst_id'])) {
         .srch-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
         .srch-note {
-            margin-top: 14px; padding: 10px 12px; border-radius: 6px; font-size: 13px;
+            margin-top: 14px; padding: 10px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px);
             background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e);
             border: 1px solid var(--warning-border, #fcd34d);
         }
@@ -103,7 +103,7 @@ if (!isset($_SESSION['analyst_id'])) {
         .srch-progress { height: 8px; background: var(--surface-3, #eceff1); border-radius: 999px; overflow: hidden; margin-top: 12px; display: none; }
         .srch-progress.on { display: block; }
         .srch-progress span { display: block; height: 100%; width: 0; background: var(--accent, #546e7a); transition: width .25s ease; }
-        .srch-status { font-size: 12px; color: var(--text-dim, #888); margin-top: 8px; min-height: 16px; }
+        .srch-status { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 8px; min-height: 16px; }
         .srch-muted { color: var(--text-faint, #9ca3af); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->

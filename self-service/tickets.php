@@ -62,7 +62,7 @@ $pageStyles = <<<'CSS'
     background: var(--surface, #fff);
     color: var(--text, #333);
     font-family: inherit;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     max-width: 170px;
 }
 .tk-filter:focus { outline: none; border-color: var(--ss-accent, #10b981); }
@@ -70,9 +70,9 @@ $pageStyles = <<<'CSS'
 .tk-list-filters { display: flex; gap: 8px; padding: 10px 18px; border-bottom: 1px solid var(--border, #e5e7eb); }
 .tk-list-filters .tk-filter { flex: 1; min-width: 0; max-width: none; }
 .tk-more { display: block; width: calc(100% - 36px); margin: 12px 18px 16px; padding: 8px 12px; border: 1px solid var(--border, #e5e7eb);
-    border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-family: inherit; font-size: 13px; cursor: pointer; }
+    border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-family: inherit; font-size: var(--font-size-md, 13px); cursor: pointer; }
 .tk-more:hover { border-color: var(--ss-accent, #10b981); }
-.tk-more small { display: block; color: var(--text-muted, #666); font-size: 11px; margin-top: 2px; }
+.tk-more small { display: block; color: var(--text-muted, #666); font-size: var(--font-size-xs, 11px); margin-top: 2px; }
 
 /* The line between tickets. Translucent so it takes its weight from the
    surface beneath it, and keyed on the theme MODE so any dark palette is
@@ -103,23 +103,23 @@ $pageStyles = <<<'CSS'
 .tk-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .tk-item-subject {
     font-weight: 600;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     flex: 1;
 }
-.tk-item-date { font-size: 11px; color: var(--text-faint, #999); flex-shrink: 0; }
+.tk-item-date { font-size: var(--font-size-xs, 11px); color: var(--text-faint, #999); flex-shrink: 0; }
 .tk-item-preview {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-left: 16px;
 }
-.tk-item-meta { font-size: 11px; color: var(--text-faint, #999); margin-left: 16px; margin-top: 3px; }
+.tk-item-meta { font-size: var(--font-size-xs, 11px); color: var(--text-faint, #999); margin-left: 16px; margin-top: 3px; }
 
 /* ── Reading pane ─────────────────────────────────────────────────────── */
 .tk-read { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--app-bg, #f5f5f5); }
@@ -129,7 +129,7 @@ $pageStyles = <<<'CSS'
     align-items: center;
     justify-content: center;
     color: var(--text-faint, #999);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 .tk-read-head {
     padding: 16px 24px;
@@ -157,7 +157,7 @@ $pageStyles = <<<'CSS'
        padding alone would have made this one 2px taller than its neighbours. */
     padding: 9px 19px;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 500;
     background: transparent;
     color: var(--text-muted, #666);
@@ -171,17 +171,17 @@ $pageStyles = <<<'CSS'
 }
 .tk-close-btn:disabled { opacity: .55; cursor: progress; }
 /* Managers (discussion #62, step 3): whose ticket this is, and a stub. */
-.tk-mgr-banner { flex-shrink: 0; padding: 10px 24px; font-size: 13px; background: var(--info-bg, #e3f2fd);
+.tk-mgr-banner { flex-shrink: 0; padding: 10px 24px; font-size: var(--font-size-md, 13px); background: var(--info-bg, #e3f2fd);
     color: var(--info-text, #0d47a1); border-bottom: 1px solid var(--info-border, #90caf9); }
 .tk-stub { margin: 40px auto; max-width: 440px; text-align: center; color: var(--text-muted, #666); padding: 0 24px; }
 .tk-stub .tk-lock { width: 28px; height: 28px; color: var(--danger-text, #b3261e); margin: 0 0 8px; }
-.tk-stub h1 { font-size: 18px; margin: 0 0 8px; color: var(--text, #333); }
-.tk-stub-meta { font-size: 12px; color: var(--text-faint, #999); }
+.tk-stub h1 { font-size: var(--font-size-2xl, 18px); margin: 0 0 8px; color: var(--text, #333); }
+.tk-stub-meta { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); }
 .tk-item-subject.is-stub { font-style: italic; color: var(--text-muted, #666); }
 /* Who has seen this ticket (discussion #62, step 2). Quiet when nobody has;
    it is information, not an alarm. */
 .tk-seen { margin: 12px 24px 0; flex-shrink: 0; padding: 8px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px;
-    background: var(--surface-2, #f7f9fa); font-size: 12px; color: var(--text-muted, #666); }
+    background: var(--surface-2, #f7f9fa); font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 .tk-seen-title { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--text, #333); margin-bottom: 2px; }
 .tk-seen-icon { width: 14px; height: 14px; flex-shrink: 0; }
 .tk-seen-list { list-style: none; margin: 4px 0 0; padding: 0; }
@@ -192,18 +192,18 @@ $pageStyles = <<<'CSS'
 .tk-item-subject .tk-lock { color: var(--danger-text, #b3261e); }
 .tk-confidential { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-weight: 600;
     background: var(--danger-bg, #fdecea); color: var(--danger-text, #b3261e); border: 1px solid var(--danger-border, #f5c6c2); }
-.tk-mark-confidential { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-family: inherit;
+.tk-mark-confidential { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-sm, 12px); font-family: inherit;
     background: transparent; color: var(--text-muted, #666); border: 1px dashed var(--border, #e5e7eb); cursor: pointer; }
 .tk-mark-confidential:hover:not(:disabled) { color: var(--danger-text, #b3261e); border-color: var(--danger-border, #f5c6c2); background: var(--danger-bg, #fdecea); }
 .tk-mark-confidential:disabled { opacity: .55; cursor: progress; }
 .tk-read-subject { font-size: 17px; font-weight: 600; color: var(--text, #333); margin: 0 0 8px 0; }
-.tk-read-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 12px; color: var(--text-muted, #666); }
+.tk-read-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 .tk-num {
     font-family: 'Consolas', 'Courier New', monospace;
     background: var(--surface-hover, #f3f4f6);
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-muted, #555);
 }
 
@@ -218,21 +218,21 @@ $pageStyles = <<<'CSS'
     border-radius: 50%;
     flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700;
+    font-size: var(--font-size-sm, 12px); font-weight: 700;
     background: var(--surface-hover, #e5e7eb);
     color: var(--text-muted, #666);
 }
 .tk-msg.is-mine .tk-avatar { background: var(--ss-accent, #10b981); color: #fff; }
 .tk-msg-body { flex: 1; min-width: 0; }
 .tk-msg-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-.tk-msg-who  { font-size: 13px; font-weight: 600; color: var(--text, #333); }
-.tk-msg-when { font-size: 11px; color: var(--text-faint, #999); }
+.tk-msg-who  { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); }
+.tk-msg-when { font-size: var(--font-size-xs, 11px); color: var(--text-faint, #999); }
 .tk-msg-card {
     background: var(--surface, #fff);
     border: 1px solid var(--border, #e5e7eb);
     border-radius: 8px;
     padding: 14px 16px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.6;
     color: var(--text, #333);
     overflow-wrap: break-word;
@@ -253,7 +253,7 @@ $pageStyles = <<<'CSS'
     border-radius: 6px;
     background: var(--surface, #fff);
     color: var(--text, #333);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     text-decoration: none;
     max-width: 260px;
 }
@@ -278,7 +278,7 @@ $pageStyles = <<<'CSS'
     background: var(--surface, #fff);
     color: var(--text, #333);
     font-family: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.5;
     resize: vertical;
 }
@@ -291,7 +291,7 @@ $pageStyles = <<<'CSS'
     border: 1px solid var(--border, #e5e7eb);
     border-radius: 6px;
     background: var(--surface-hover, #fafafa);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text, #333);
 }
 .tk-chip button { border: none; background: none; cursor: pointer; color: var(--text-muted, #777); font-size: 15px; line-height: 1; padding: 0; }
@@ -359,7 +359,7 @@ $pageStyles = <<<'CSS'
 /* The answers the requester gave (discussion #193). Under the title, or in a
    panel beside the conversation - Tickets -> Settings -> Custom fields. */
 .tk-answers-head { padding: 12px 24px; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e5e7eb); flex-shrink: 0; }
-.tk-answers-title { font-size: 12px; font-weight: 600; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .4px; margin: 0 0 8px; }
+.tk-answers-title { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .4px; margin: 0 0 8px; }
 .tk-read-body { flex: 1; display: flex; min-height: 0; }
 .tk-read-main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .tk-answers-side { width: 260px; flex-shrink: 0; overflow-y: auto; padding: 16px 18px; background: var(--surface, #fff); border-left: 1px solid var(--border, #e5e7eb); }

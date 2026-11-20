@@ -52,7 +52,7 @@ body:has(> .lms-container) {
     padding: 10px 24px;
     border: none;
     background: none;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 500;
     color: var(--text-muted, #666);
     cursor: pointer;
@@ -77,7 +77,7 @@ body:has(> .lms-container) {
 }
 
 .lms-panel-header h2 {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     font-weight: 600;
     color: var(--text, #333);
     margin: 0;
@@ -92,7 +92,7 @@ body:has(> .lms-container) {
     padding: 7px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     background: var(--surface, #fff);
     color: var(--text, #333);
 }
@@ -110,7 +110,7 @@ body:has(> .lms-container) {
 .lms-table thead th {
     background: var(--surface-3, #f8f9fa);
     padding: 10px 14px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #555);
     text-align: left;
@@ -121,7 +121,7 @@ body:has(> .lms-container) {
 
 .lms-table tbody td {
     padding: 10px 14px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     border-bottom: 1px solid var(--border-soft, #f0f0f0);
     vertical-align: middle;
@@ -157,7 +157,7 @@ body:has(> .lms-container) {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     text-transform: capitalize;
 }
@@ -181,7 +181,7 @@ body:has(> .lms-container) {
     gap: 6px;
     padding: 8px 16px;
     border-radius: 5px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
     border: none;
     cursor: pointer;
@@ -201,7 +201,7 @@ body:has(> .lms-container) {
 
 .form-group label {
     display: block;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #555);
     margin-bottom: 4px;
@@ -214,7 +214,7 @@ body:has(> .lms-container) {
     padding: 8px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-family: inherit;
     background: var(--surface, #fff);
     color: var(--text, #333);
@@ -258,7 +258,7 @@ body:has(> .lms-container) {
 
 .modal-header {
     padding: 16px 24px;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     font-weight: 600;
     border-bottom: 1px solid var(--border, #e0e0e0);
 }
@@ -276,7 +276,7 @@ body:has(> .lms-container) {
     align-items: center;
     gap: 8px;
     padding: 6px 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .member-item:hover { background: var(--surface-hover, #f8f9fa); }
@@ -294,7 +294,7 @@ body:has(> .lms-container) {
     right: 20px;
     padding: 12px 20px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: #fff;
     background: #333;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -332,7 +332,7 @@ body:has(> .lms-container) {
 }
 
 .ld-stat .ld-stat-label {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-dim, #888);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -343,7 +343,7 @@ body:has(> .lms-container) {
 }
 
 .ld-section-title {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 10px;
@@ -357,7 +357,7 @@ body:has(> .lms-container) {
 .ld-section-title .ld-count {
     background: var(--lms-accent, #2563eb);
     color: var(--lms-on-accent, #fff);
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     padding: 1px 8px;
     border-radius: 10px;
 }
@@ -383,7 +383,7 @@ body:has(> .lms-container) {
 }
 
 .ld-interaction-id {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #555);
 }
@@ -394,7 +394,7 @@ body:has(> .lms-container) {
     display: inline-block;
     padding: 2px 10px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
 }
 
@@ -406,7 +406,7 @@ body:has(> .lms-container) {
 .ld-field {
     display: flex;
     gap: 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     margin-bottom: 4px;
 }
 
@@ -427,7 +427,7 @@ body:has(> .lms-container) {
     border-radius: 6px;
     padding: 12px 14px;
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     white-space: pre-wrap;
     word-break: break-all;
     max-height: 300px;
@@ -438,7 +438,7 @@ body:has(> .lms-container) {
 
 .ld-suspend-json {
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.6;
 }
 
@@ -457,7 +457,7 @@ body:has(> .lms-container) {
 
 .ld-kv-table td {
     padding: 6px 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     border-bottom: 1px solid var(--border-soft, #f0f0f0);
     vertical-align: top;
 }
@@ -484,7 +484,7 @@ body:has(> .lms-container) {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 3px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     background: #e3f2fd;
     color: #1565c0;
@@ -507,7 +507,7 @@ body:has(> .lms-container) {
 }
 
 .lms-player-toolbar .course-title {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
 }
@@ -579,7 +579,7 @@ body:has(> .lms-container) {
 
 /* ---- Shared ---- */
 .btn-block { display: block; width: 100%; margin-top: 8px; }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-sm { padding: 4px 10px; font-size: var(--font-size-sm, 12px); }
 
 /* The AI buttons read as a distinct, optional affordance — never the primary
    action. Authoring by hand must always look like the default path. */
@@ -591,7 +591,7 @@ body:has(> .lms-container) {
 .lms-editor { display: flex; flex-direction: column; height: calc(100vh - 48px); background: var(--app-bg, #f5f6fa); }
 
 .lms-editor-bar { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e5e7eb); flex-shrink: 0; }
-.lms-editor-back { font-size: 13px; color: var(--text-muted, #6b7280); text-decoration: none; white-space: nowrap; }
+.lms-editor-back { font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); text-decoration: none; white-space: nowrap; }
 .lms-editor-back:hover { color: var(--accent); }
 .lms-editor-bar-title { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .lms-editor-bar-title h1 { margin: 0; font-size: 17px; color: var(--text, #1f2330); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -602,7 +602,7 @@ body:has(> .lms-container) {
 
 .lms-editor-side { width: 270px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--surface, #fff); border-right: 1px solid var(--border, #e5e7eb); }
 .lms-editor-side-head { padding: 16px 16px 8px; }
-.lms-editor-side-head h2 { margin: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim, #9aa); }
+.lms-editor-side-head h2 { margin: 0; font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim, #9aa); }
 .lms-editor-side-actions { padding: 12px 16px; border-top: 1px solid var(--border-soft, #ececf1); }
 
 .lms-lesson-list { flex: 1; overflow-y: auto; padding: 4px 8px; }
@@ -610,7 +610,7 @@ body:has(> .lms-container) {
 .lms-lesson-item:hover { background: var(--surface-hover, #f3f4f6); }
 .lms-lesson-item.active { background: var(--lms-accent-soft, #eff6ff); color: var(--lms-accent, #2563eb); font-weight: 600; }
 .lms-lesson-item.dragging { opacity: 0.4; }
-.lms-lesson-num { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); font-size: 11px; font-weight: 700; }
+.lms-lesson-num { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); font-size: var(--font-size-xs, 11px); font-weight: 700; }
 .lms-lesson-item.active .lms-lesson-num { background: var(--lms-accent, #2563eb); color: var(--lms-on-accent, #fff); }
 .lms-lesson-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lms-lesson-q { font-size: 10.5px; padding: 1px 6px; border-radius: 10px; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); }
@@ -619,12 +619,12 @@ body:has(> .lms-container) {
 
 .lms-editor-main { flex: 1; overflow-y: auto; padding: 24px 28px 60px; min-width: 0; }
 .lms-editor-empty { max-width: 480px; margin: 80px auto; text-align: center; color: var(--text-muted, #6b7280); }
-.lms-editor-empty h3 { margin: 0 0 8px; font-size: 16px; color: var(--text, #1f2330); }
-.lms-editor-empty p { margin: 0; font-size: 14px; line-height: 1.6; }
+.lms-editor-empty h3 { margin: 0 0 8px; font-size: var(--font-size-xl, 16px); color: var(--text, #1f2330); }
+.lms-editor-empty p { margin: 0; font-size: var(--font-size-lg, 14px); line-height: 1.6; }
 
 .lms-form-row { margin-bottom: 12px; }
-.lms-form-row label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; color: var(--text-muted, #6b7280); }
-.lms-input-lg { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 16px; border: 1px solid var(--border, #e5e7eb); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #1f2330); }
+.lms-form-row label { display: block; margin-bottom: 5px; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #6b7280); }
+.lms-input-lg { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: var(--font-size-xl, 16px); border: 1px solid var(--border, #e5e7eb); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #1f2330); }
 .lms-editor-tools { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .lms-editor-hint { font-size: 12.5px; color: var(--text-muted, #6b7280); line-height: 1.5; }
 .lms-editor-save { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
@@ -637,12 +637,12 @@ body:has(> .lms-container) {
 
 .lms-question { padding: 14px 16px; margin-top: 10px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; background: var(--surface, #fff); }
 .lms-question-head { display: flex; align-items: flex-start; gap: 10px; }
-.lms-question-num { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); font-size: 11px; font-weight: 700; }
-.lms-question-text { flex: 1; font-size: 14px; color: var(--text, #1f2330); line-height: 1.5; }
-.lms-question-type { flex-shrink: 0; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); white-space: nowrap; }
+.lms-question-num { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); font-size: var(--font-size-xs, 11px); font-weight: 700; }
+.lms-question-text { flex: 1; font-size: var(--font-size-lg, 14px); color: var(--text, #1f2330); line-height: 1.5; }
+.lms-question-type { flex-shrink: 0; font-size: var(--font-size-xs, 11px); padding: 2px 8px; border-radius: 10px; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); white-space: nowrap; }
 .lms-question-actions { flex-shrink: 0; display: flex; gap: 4px; }
 .lms-question-answers { margin: 10px 0 0 32px; padding: 0; list-style: none; }
-.lms-question-answers li { font-size: 13px; color: var(--text-muted, #6b7280); padding: 3px 0 3px 18px; position: relative; }
+.lms-question-answers li { font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); padding: 3px 0 3px 18px; position: relative; }
 .lms-question-answers li::before { content: "\25CB"; position: absolute; left: 0; }
 /* The tick IS the answer key — it has to be unmissable when scanning a quiz. */
 .lms-question-answers li.correct { color: #15803d; font-weight: 600; }
@@ -678,7 +678,7 @@ body:has(> .lms-container) {
 .lms-native-bar-right { display: flex; align-items: center; gap: 12px; }
 .lms-native-progress { width: 140px; height: 6px; border-radius: 3px; background: var(--surface-3, #eef2f7); overflow: hidden; }
 .lms-native-progress-fill { height: 100%; width: 0; background: var(--lms-accent, #2563eb); transition: width 0.25s; }
-.lms-native-step { font-size: 12px; color: var(--text-muted, #6b7280); white-space: nowrap; }
+.lms-native-step { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); white-space: nowrap; }
 
 .lms-native-body { display: flex; flex: 1; min-height: 0; }
 
@@ -686,7 +686,7 @@ body:has(> .lms-container) {
 .lms-toc-item { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px 10px; border: none; border-radius: 6px; background: none; text-align: left; cursor: pointer; font-size: 13.5px; color: var(--text, #374151); font-family: inherit; }
 .lms-toc-item:hover { background: var(--surface-hover, #f3f4f6); }
 .lms-toc-item.active { background: var(--lms-accent-soft, #eff6ff); color: var(--lms-accent, #2563eb); font-weight: 600; }
-.lms-toc-num { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); font-size: 11px; font-weight: 700; }
+.lms-toc-num { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface-3, #eef2f7); color: var(--text-dim, #888); font-size: var(--font-size-xs, 11px); font-weight: 700; }
 .lms-toc-item.active .lms-toc-num { background: var(--lms-accent, #2563eb); color: var(--lms-on-accent, #fff); }
 .lms-toc-item.done .lms-toc-num { background: #dcfce7; color: #15803d; }
 
@@ -698,7 +698,7 @@ body:has(> .lms-container) {
 /* Full width (Ed): the reading column used to stop at 760px. */
 .lms-lesson-body { color: var(--text, #1f2330); font-size: 15.5px; line-height: 1.75; }
 .lms-lesson-body h1 { margin: 0 0 20px; font-size: 26px; }
-.lms-lesson-body h2 { margin: 28px 0 10px; font-size: 20px; }
+.lms-lesson-body h2 { margin: 28px 0 10px; font-size: var(--font-size-3xl, 20px); }
 .lms-lesson-body h3 { margin: 24px 0 8px; font-size: 17px; }
 .lms-lesson-body p, .lms-lesson-body li { color: var(--text-muted, #4b5563); }
 .lms-lesson-body ul, .lms-lesson-body ol { padding-left: 24px; }
@@ -711,19 +711,19 @@ body:has(> .lms-container) {
 
 /* ---- Quiz (learner side) ---- */
 .lms-quiz { margin: 36px 0 0; padding-top: 24px; border-top: 1px solid var(--border, #e5e7eb); }
-.lms-quiz h2 { margin: 0 0 6px; font-size: 18px; color: var(--text, #1f2330); }
+.lms-quiz h2 { margin: 0 0 6px; font-size: var(--font-size-2xl, 18px); color: var(--text, #1f2330); }
 .lms-quiz-q { margin-top: 22px; }
 .lms-quiz-text { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--text, #1f2330); line-height: 1.5; }
 .lms-quiz-hint { margin: 0 0 8px; font-size: 12.5px; color: var(--text-muted, #6b7280); }
 .lms-quiz-answers { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-.lms-quiz-answer { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; background: var(--surface, #fff); cursor: pointer; font-size: 14px; color: var(--text, #374151); line-height: 1.5; }
+.lms-quiz-answer { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; background: var(--surface, #fff); cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text, #374151); line-height: 1.5; }
 .lms-quiz-answer:hover { border-color: var(--lms-accent, #2563eb); }
 .lms-quiz-answer input { margin-top: 2px; flex-shrink: 0; }
 
 /* ---- Result + review ---- */
 .lms-result { max-width: 760px; margin: 20px auto 0; padding: 28px 32px; border-radius: 12px; text-align: center; }
 .lms-result h1 { margin: 0 0 8px; font-size: 26px; }
-.lms-result-score { margin: 0; font-size: 20px; font-weight: 700; }
+.lms-result-score { margin: 0; font-size: var(--font-size-3xl, 20px); font-weight: 700; }
 .lms-result-sub { margin: 6px 0 0; font-size: 13.5px; opacity: 0.85; }
 .lms-result.pass { background: #ecfdf5; color: #065f46; }
 .lms-result.fail { background: #fef2f2; color: #991b1b; }
@@ -738,10 +738,10 @@ body:has(> .lms-container) {
 .lms-review-a { margin: 0 0 4px; font-size: 13.5px; color: var(--text-muted, #6b7280); }
 .lms-review-a span { color: var(--text, #374151); font-weight: 600; }
 .lms-review-a.correct span { color: #15803d; }
-.lms-review-why { margin: 8px 0 0; font-size: 13px; color: var(--text-muted, #6b7280); line-height: 1.6; font-style: italic; }
+.lms-review-why { margin: 8px 0 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); line-height: 1.6; font-style: italic; }
 
 /* Marks an authored course in the Courses list, alongside .scorm-badge. */
-.native-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #f5f3ff; color: #6d28d9; }
+.native-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; background: #f5f3ff; color: #6d28d9; }
 
 /* ⚠️ 768px, NOT 900px, and the number matters.
  *

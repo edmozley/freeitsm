@@ -48,7 +48,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         cursor: pointer;
         border: 2px solid rgba(255,255,255,0.3);
@@ -89,12 +89,12 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
        dark-on-dark — a worse bug than the one being fixed, and invisible to
        anyone testing in light mode. */
     .ss-menu-name {
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         color: var(--text, #333);
     }
     .ss-menu-email {
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         color: var(--text-dim, #999);
         margin-top: 2px;
     }
@@ -105,7 +105,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
         gap: 10px;
         padding: 11px 16px;
         cursor: pointer;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text, #333);
         transition: background 0.15s;
         border: none;
@@ -152,7 +152,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
     .ss-modal-header {
         padding: 20px 24px;
         border-bottom: 1px solid var(--border, #e0e0e0);
-        font-size: 18px;
+        font-size: var(--font-size-2xl, 18px);
         font-weight: 600;
         color: var(--text, #333);
         display: flex;
@@ -165,7 +165,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
         cursor: pointer;
         padding: 4px;
         color: var(--text-dim, #999);
-        font-size: 20px;
+        font-size: var(--font-size-3xl, 20px);
         line-height: 1;
     }
     .ss-modal-close:hover { color: var(--text, #333); }
@@ -184,7 +184,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
         border-radius: 6px;
         background: var(--surface, #fff);
         color: var(--text, #333);
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 500;
         cursor: pointer;
         transition: border-color .15s, box-shadow .15s;
@@ -215,14 +215,14 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
         margin-bottom: 6px;
         font-weight: 500;
         color: var(--text, #333);
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     .ss-form-input {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid var(--border, #ddd);
         border-radius: 4px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-family: inherit;
         background: var(--surface, #fff);
         color: var(--text, #333);
@@ -239,7 +239,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
         opacity: .75;
     }
     .ss-form-hint {
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         color: var(--text-dim, #999);
         margin-top: 4px;
     }
@@ -249,7 +249,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 500;
         transition: all 0.15s;
     }
@@ -264,7 +264,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
     .ss-msg {
         padding: 10px 14px;
         border-radius: 4px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         margin-bottom: 16px;
         display: none;
     }
@@ -298,8 +298,8 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
        dark-on-dark. These had to be done in the same pass, not left for later. */
     .ss-mfa-status-card.enabled { background: var(--success-bg, #e8f5e9); border: 1px solid var(--success-border, #c8e6c9); }
     .ss-mfa-status-card.not-enabled { background: var(--surface-3, #f5f5f5); border: 1px solid var(--border, #e0e0e0); }
-    .ss-mfa-status-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
-    .ss-mfa-status-desc { font-size: 12px; color: var(--text-muted, #666); }
+    .ss-mfa-status-title { font-size: var(--font-size-lg, 14px); font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
+    .ss-mfa-status-desc { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 
     /* 🔴 The QR code stays on a WHITE plate in both themes, deliberately. A QR
        is read by a phone camera, and inverting it — or floating dark modules on
@@ -320,16 +320,16 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
         color: var(--text, #333);
         padding: 8px 14px;
         border-radius: 4px;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-family: 'Consolas', monospace;
         letter-spacing: 2px;
         user-select: all;
     }
-    .ss-secret-display p { font-size: 11px; color: var(--text-dim, #999); margin-top: 6px; }
+    .ss-secret-display p { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); margin-top: 6px; }
     .ss-verify-row { display: flex; gap: 10px; align-items: flex-end; }
     .ss-verify-row .ss-form-group { flex: 1; margin-bottom: 0; }
     .ss-otp-input {
-        font-size: 18px;
+        font-size: var(--font-size-2xl, 18px);
         letter-spacing: 6px;
         text-align: center;
         font-family: 'Consolas', monospace;
@@ -342,7 +342,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
      * there at equal specificity would lose on document order and do nothing.
      * The component owns its own styles; this keeps that true on a phone. */
     @media (max-width: 768px) {
-        .ss-form-input { font-size: 16px; min-height: 44px; }
+        .ss-form-input { font-size: var(--font-size-xl, 16px); min-height: 44px; }
         .ss-menu-item  { min-height: 44px; }
     }
 </style>
@@ -925,7 +925,7 @@ function ssRenderMfaContent() {
                 '<div class="ss-mfa-status-desc">' + _ssEsc(window.t('self-service.mfa.enabled_desc')) + '</div>' +
             '</div>' +
             '<div>' +
-                '<p style="font-size:13px;color:var(--text-muted,#666);margin:0 0 12px 0;">' + _ssEsc(window.t('self-service.mfa.disable_prompt')) + '</p>' +
+                '<p style="font-size:var(--font-size-md, 13px);color:var(--text-muted,#666);margin:0 0 12px 0;">' + _ssEsc(window.t('self-service.mfa.disable_prompt')) + '</p>' +
                 '<div class="ss-form-group">' +
                     '<input type="password" class="ss-form-input" id="ssMfaDisablePw" placeholder="' + _ssEsc(window.t('self-service.mfa.disable_placeholder')) + '">' +
                 '</div>' +
@@ -969,13 +969,13 @@ async function ssStartMfaSetup() {
         }
 
         container.innerHTML =
-            '<p style="font-size:13px;color:var(--text,#333);margin:0 0 16px 0;">' + window.t('self-service.mfa.step1') + '</p>' +
+            '<p style="font-size:var(--font-size-md, 13px);color:var(--text,#333);margin:0 0 16px 0;">' + window.t('self-service.mfa.step1') + '</p>' +
             '<div class="ss-qr-container">' + qrHtml + '</div>' +
             '<div class="ss-secret-display">' +
                 '<code>' + _ssEsc(data.secret) + '</code>' +
                 '<p>' + _ssEsc(window.t('self-service.mfa.manual_key')) + '</p>' +
             '</div>' +
-            '<p style="font-size:13px;color:var(--text,#333);margin:0 0 12px 0;">' + window.t('self-service.mfa.step2') + '</p>' +
+            '<p style="font-size:var(--font-size-md, 13px);color:var(--text,#333);margin:0 0 12px 0;">' + window.t('self-service.mfa.step2') + '</p>' +
             '<div class="ss-verify-row">' +
                 '<div class="ss-form-group">' +
                     '<input type="text" class="ss-form-input ss-otp-input" id="ssMfaVerifyCode" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">' +

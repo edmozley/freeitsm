@@ -126,9 +126,9 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
         .tab-content { background: none; padding: 0; box-shadow: none; border-radius: 0; }
         .settings-card { background: var(--surface, #fff); border: 1px solid var(--border-soft, #e2e8f0); border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        .table th, .table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border-soft, #e2e8f0); font-size: 13px; color: var(--text, #1e293b); }
+        .table th, .table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border-soft, #e2e8f0); font-size: var(--font-size-md, 13px); color: var(--text, #1e293b); }
         .table th { font-weight: 600; color: var(--text-muted, #64748b); background: var(--app-bg, #f8fafc); }
-        .btn-teal { background: #0d9488; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .btn-teal { background: #0d9488; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; cursor: pointer; }
         .btn-teal:hover { background: #0f766e; }
         .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
         /* Row action buttons — copied from tickets/settings rather than
@@ -164,11 +164,11 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
         .lk-modal-backdrop.open { display: flex; }
         .lk-modal { background: var(--surface, #fff); width: 100%; max-width: 440px; border-radius: 10px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); overflow: hidden; }
         .lk-modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border-soft, #e2e8f0); display: flex; justify-content: space-between; align-items: center; }
-        .lk-modal-header h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text, #0f172a); }
+        .lk-modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 700; color: var(--text, #0f172a); }
         .lk-modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 6px; }
-        .lk-modal-body label { font-size: 12px; font-weight: 600; color: var(--text-muted, #64748b); text-transform: uppercase; }
+        .lk-modal-body label { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #64748b); text-transform: uppercase; }
         .lk-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft, #e2e8f0); display: flex; justify-content: flex-end; gap: 10px; background: var(--app-bg, #f8fafc); }
-        .lk-name-input { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--border-soft, #cbd5e1); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #1e293b); }
+        .lk-name-input { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--border-soft, #cbd5e1); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #1e293b); }
         .lk-modal-x { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-muted, #64748b); }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -179,7 +179,7 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
     <div class="container">
         <div style="margin-bottom: 20px;">
             <h1 style="font-size: 22px; font-weight: 700; color: var(--text, #0f172a); margin: 0 0 6px 0;"><?php echo htmlspecialchars(t('checklists.settings.heading')); ?></h1>
-            <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 0;"><?php echo htmlspecialchars(t('checklists.settings.heading_sub')); ?></p>
+            <p style="font-size: var(--font-size-md, 13px); color: var(--text-muted, #64748b); margin: 0;"><?php echo htmlspecialchars(t('checklists.settings.heading_sub')); ?></p>
         </div>
 
         <?php renderSettingsTabBar($chkTabs, $activeTab); ?>
@@ -189,8 +189,8 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
             <div class="settings-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div>
-                        <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.categories')); ?></h3>
-                        <p style="margin: 0; font-size: 13px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.categories_sub')); ?></p>
+                        <h3 style="margin: 0 0 4px 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.categories')); ?></h3>
+                        <p style="margin: 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.categories_sub')); ?></p>
                     </div>
                     <button type="button" class="btn-teal" onclick="lkOpenAdd('category')"><?php echo htmlspecialchars(t('checklists.settings.add')); ?></button>
                 </div>
@@ -228,8 +228,8 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
             <div class="settings-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div>
-                        <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.roles')); ?></h3>
-                        <p style="margin: 0; font-size: 13px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.roles_sub')); ?></p>
+                        <h3 style="margin: 0 0 4px 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.roles')); ?></h3>
+                        <p style="margin: 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.roles_sub')); ?></p>
                     </div>
                     <button type="button" class="btn-teal" onclick="lkOpenAdd('role')"><?php echo htmlspecialchars(t('checklists.settings.add')); ?></button>
                 </div>
@@ -265,8 +265,8 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
         <!-- Tab 3: Left Panel (Hover Mode) -->
         <div id="layout-tab" class="tab-content<?php echo $activeTab === 'layout' ? ' active' : ''; ?>">
             <div class="settings-card">
-                <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.layout_heading')); ?></h3>
-                <p style="margin: 0 0 20px 0; font-size: 13px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.layout_sub')); ?></p>
+                <h3 style="margin: 0 0 6px 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.layout_heading')); ?></h3>
+                <p style="margin: 0 0 20px 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.layout_sub')); ?></p>
 
                 <form method="POST">
                     <input type="hidden" name="action" value="save_sidebar_mode">
@@ -274,16 +274,16 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
                         <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                             <input type="radio" name="mode" value="always" <?php echo $sidebarMode === 'always' ? 'checked' : ''; ?> style="margin-top: 3px;">
                             <div>
-                                <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.layout_pinned')); ?></div>
-                                <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.layout_pinned_desc')); ?></div>
+                                <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.layout_pinned')); ?></div>
+                                <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.layout_pinned_desc')); ?></div>
                             </div>
                         </label>
 
                         <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
                             <input type="radio" name="mode" value="hover" <?php echo $sidebarMode === 'hover' ? 'checked' : ''; ?> style="margin-top: 3px;">
                             <div>
-                                <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.layout_hover')); ?></div>
-                                <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.layout_hover_desc')); ?></div>
+                                <div style="font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.layout_hover')); ?></div>
+                                <div style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.layout_hover_desc')); ?></div>
                             </div>
                         </label>
                     </div>
@@ -308,7 +308,7 @@ if (!settingsTabVisible($chkTabs, $activeTab)) {
                 <input type="text" id="lkRenameInput" class="lk-name-input" maxlength="100">
             </div>
             <div class="lk-modal-footer">
-                <button type="button" onclick="lkCloseRename()" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-soft, #cbd5e1); background: var(--surface, #fff); color: var(--text, #334155); cursor: pointer; font-weight: 500; font-size: 13px;"><?php echo htmlspecialchars(t('checklists.settings.cancel')); ?></button>
+                <button type="button" onclick="lkCloseRename()" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-soft, #cbd5e1); background: var(--surface, #fff); color: var(--text, #334155); cursor: pointer; font-weight: 500; font-size: var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('checklists.settings.cancel')); ?></button>
                 <button type="button" class="btn-teal" id="lkRenameSave"><?php echo htmlspecialchars(t('checklists.settings.save')); ?></button>
             </div>
         </div>

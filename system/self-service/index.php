@@ -46,20 +46,20 @@ requireModuleAccess('system');
         .ssp-container { height: calc(100vh - 48px); overflow-y: auto; }
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover:not(:disabled) { background: #455a64; }
         .btn:disabled { opacity: .55; cursor: progress; }
 
         .ssp-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px; margin-bottom: 18px; }
-        .ssp-panel h3 { margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
-        .ssp-panel > p { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; }
+        .ssp-panel h3 { margin: 0 0 4px 0; font-size: var(--font-size-md, 13px); text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
+        .ssp-panel > p { margin: 0 0 16px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.55; }
 
         .ssp-field { padding: 14px 0; border-top: 1px solid var(--border-soft, #f1f1f1); }
         .ssp-field:first-of-type { border-top: none; padding-top: 0; }
         .ssp-label { display: block; font-size: 13.5px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
         .ssp-desc  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-bottom: 9px; }
-        .ssp-input { width: 100%; max-width: 420px; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; }
+        .ssp-input { width: 100%; max-width: 420px; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; }
 
         /* A colour needs both a picker and a typed value: an admin handed a
            brand hex should not have to find it on a wheel. */
@@ -84,13 +84,13 @@ requireModuleAccess('system');
         /* The preview is the point of the screen: an admin choosing a colour is
            choosing what a customer sees, and they cannot see it from here. */
         .ssp-preview { border: 1px solid var(--border, #e0e0e0); border-radius: 8px; overflow: hidden; max-width: 560px; }
-        .ssp-preview-bar { height: 46px; display: flex; align-items: center; padding: 0 14px; gap: 10px; background: var(--accent, #546e7a); color: #fff; font-weight: 600; font-size: 13px; }
+        .ssp-preview-bar { height: 46px; display: flex; align-items: center; padding: 0 14px; gap: 10px; background: var(--accent, #546e7a); color: #fff; font-weight: 600; font-size: var(--font-size-md, 13px); }
         .ssp-preview-logo { height: 22px; max-width: 120px; object-fit: contain; }
         .ssp-preview-body { padding: 14px; min-height: 96px; }
-        .ssp-preview-table { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--surface, #fff); }
+        .ssp-preview-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm, 12px); background: var(--surface, #fff); }
         .ssp-preview-table th { background: var(--surface-2, #eceff1); text-align: left; padding: 6px 8px; color: var(--text, #333); }
         .ssp-preview-table td { padding: 6px 8px; border-top: 1px solid var(--border-soft, #eee); color: var(--text-muted, #666); }
-        .ssp-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
+        .ssp-saved { font-size: var(--font-size-md, 13px); color: var(--success-text, #166534); margin-left: 12px; }
         .ssp-logo-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         /* Bounded both ways: a tall logo would otherwise push the rest of the
            form down the page, and a wide one would stretch the row. */

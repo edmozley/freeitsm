@@ -110,7 +110,7 @@ body {
     text-align: center;
 }
 h1 { font-size: 22px; margin-bottom: 8px; }
-p.ticket { font-size: 14px; color: #666; margin-bottom: 28px; }
+p.ticket { font-size: var(--font-size-lg, 14px); color: #666; margin-bottom: 28px; }
 p.intro { font-size: 15px; line-height: 1.5; margin-bottom: 26px; color: #444; }
 
 /* Stars: classic fill-on-hover with trailing effect (hover #3 fills #1+#2+#3).
@@ -162,7 +162,7 @@ p.intro { font-size: 15px; line-height: 1.5; margin-bottom: 26px; color: #444; }
 }
 
 .rating-caption {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: #666;
     min-height: 1.4em;
     margin-bottom: 22px;
@@ -176,7 +176,7 @@ textarea {
     border-radius: 6px;
     padding: 10px 12px;
     font-family: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     min-height: 80px;
     resize: vertical;
     margin-bottom: 20px;
@@ -205,7 +205,7 @@ button.submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     border-radius: 6px;
     margin: 20px 0;
     text-align: left;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">

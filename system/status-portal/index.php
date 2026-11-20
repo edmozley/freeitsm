@@ -60,7 +60,7 @@ requireModuleAccess('system');
 
         /* inbox.css's .btn-primary sets only background and colour, so on its own
            it renders a coloured rectangle with no padding or radius. */
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover:not(:disabled) { background: #455a64; }
         .btn:disabled { opacity: .55; cursor: progress; }
@@ -73,14 +73,14 @@ requireModuleAccess('system');
             margin-bottom: 18px;
         }
         .sp-panel h3 {
-            margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase;
+            margin: 0 0 4px 0; font-size: var(--font-size-md, 13px); text-transform: uppercase;
             letter-spacing: .5px; color: var(--text-dim, #888);
         }
-        .sp-panel > p { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; }
+        .sp-panel > p { margin: 0 0 16px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.55; }
 
         .sp-toggle { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
         .sp-toggle input { margin-top: 3px; }
-        .sp-toggle-label { font-size: 14px; font-weight: 600; color: var(--text, #333); }
+        .sp-toggle-label { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); }
         .sp-toggle-hint  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-top: 3px; }
 
         .sp-choices { margin-top: 18px; }
@@ -88,7 +88,7 @@ requireModuleAccess('system');
         .sp-choice input { margin-top: 3px; }
         .sp-choice-name { font-size: 13.5px; font-weight: 600; color: var(--text, #333); }
         .sp-choice-desc { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; }
-        .sp-days { margin-left: 6px; width: 64px; padding: 4px 6px; font: inherit; font-size: 13px;
+        .sp-days { margin-left: 6px; width: 64px; padding: 4px 6px; font: inherit; font-size: var(--font-size-md, 13px);
                    border: 1px solid var(--border, #ddd); border-radius: 4px;
                    background: var(--surface, #fff); color: var(--text, #333); }
         /* Everything below the master switch is meaningless while it is off, so
@@ -101,9 +101,9 @@ requireModuleAccess('system');
             border: 1px solid var(--warning-border, #f0d9a8);
             color: var(--warning-text, #92400e);
             border-radius: 8px; padding: 14px 16px; margin-bottom: 18px;
-            font-size: 13px; line-height: 1.55;
+            font-size: var(--font-size-md, 13px); line-height: 1.55;
         }
-        .sp-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
+        .sp-saved { font-size: var(--font-size-md, 13px); color: var(--success-text, #166534); margin-left: 12px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">

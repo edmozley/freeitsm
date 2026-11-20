@@ -144,7 +144,7 @@ $translationNamespaces = ['common', 'tickets'];
 
                 <h4><?php echo t('tickets.help_sla.blocks.pause_heading'); ?></h4>
                 <p><?php echo t('tickets.help_sla.blocks.pause_intro'); ?></p>
-                <ul style="font-size:14px;color:var(--text-muted, #555);line-height:1.7;margin:8px 0 8px 24px;">
+                <ul style="font-size:var(--font-size-lg, 14px);color:var(--text-muted, #555);line-height:1.7;margin:8px 0 8px 24px;">
                     <li><?php echo t('tickets.help_sla.blocks.pause_awaiting'); ?></li>
                     <li><?php echo t('tickets.help_sla.blocks.pause_vendor'); ?></li>
                     <li><?php echo t('tickets.help_sla.blocks.pause_change'); ?></li>

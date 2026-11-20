@@ -65,17 +65,17 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         }
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page on .ium-wrap). */
         .ium-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f7fa); }
-        .ium-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
+        .ium-back { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
         .ium-back:hover { text-decoration: underline; }
         table.ium { width: 100%; border-collapse: collapse; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; overflow: hidden; }
-        table.ium th, table.ium td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: 13px; color: var(--text, #444); vertical-align: top; }
-        table.ium th { background: var(--surface-3, #f9fafb); font-weight: 600; font-size: 12px; }
+        table.ium th, table.ium td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: var(--font-size-md, 13px); color: var(--text, #444); vertical-align: top; }
+        table.ium th { background: var(--surface-3, #f9fafb); font-weight: 600; font-size: var(--font-size-sm, 12px); }
         table.ium tr:last-child td { border-bottom: none; }
         table.ium a { color: var(--sys-accent, #546e7a); }
-        .ium-dim { color: var(--text-dim, #888); font-size: 12px; }
-        .ium-empty { background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #b7e1c4); color: var(--success-text, #065f46); border-radius: 10px; padding: 20px; font-size: 14px; }
-        .ium-error { color: var(--danger-text, #c0392b); font-size: 13px; }
-        .ium-note { font-size: 12px; color: var(--text-faint, #999); margin-top: 10px; }
+        .ium-dim { color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
+        .ium-empty { background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #b7e1c4); color: var(--success-text, #065f46); border-radius: 10px; padding: 20px; font-size: var(--font-size-lg, 14px); }
+        .ium-error { color: var(--danger-text, #c0392b); font-size: var(--font-size-md, 13px); }
+        .ium-note { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); margin-top: 10px; }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
     <?php echo Tz::scriptTag(); ?>

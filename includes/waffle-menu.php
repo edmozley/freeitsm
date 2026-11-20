@@ -275,7 +275,7 @@ $modules = [
     }
 
     .waffle-panel-header {
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         color: var(--text);
         margin-bottom: 15px;
@@ -311,7 +311,7 @@ $modules = [
         border-radius: 6px;
         background: transparent;
         color: var(--text-muted);
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         font-family: inherit;
         cursor: pointer;
@@ -366,13 +366,13 @@ $modules = [
     }
     .waffle-trail-head .waffle-trail-icon svg { width: 13px; height: 13px; }
     .waffle-trail-name {
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         color: var(--text);
         white-space: nowrap;
     }
     .waffle-trail-when {
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         color: var(--text-muted);
         margin-left: auto;
         white-space: nowrap;
@@ -403,7 +403,7 @@ $modules = [
         border-radius: 6px;
         text-decoration: none;
         color: var(--text);
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     .waffle-trail-record:hover { background: var(--surface-hover); }
     .waffle-trail-label {
@@ -414,7 +414,7 @@ $modules = [
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    .waffle-trail-record .waffle-trail-when { font-size: 11px; }
+    .waffle-trail-record .waffle-trail-when { font-size: var(--font-size-xs, 11px); }
 
     /* The sticky footer: search across your own trail. NOT a global search —
        the ⌘K palette already searches every record, and a second one here would
@@ -433,7 +433,7 @@ $modules = [
         border-radius: 6px;
         background: var(--surface);
         color: var(--text);
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-family: inherit;
     }
     .waffle-trail-search input:focus {
@@ -442,7 +442,7 @@ $modules = [
     }
     .waffle-trail-empty {
         padding: 18px 6px;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         line-height: 1.5;
         color: var(--text-muted);
         text-align: center;
@@ -511,7 +511,7 @@ $modules = [
     <?php endforeach; ?>
 
     .waffle-module-name {
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         font-weight: 500;
         text-align: center;
     }
@@ -533,7 +533,7 @@ $modules = [
 
     /* Module title in header */
     .module-title {
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         color: rgba(255, 255, 255, 0.9);
         margin-right: 20px;
@@ -595,7 +595,7 @@ $modules = [
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             margin-bottom: 12px;
             padding-bottom: 12px;
         }
@@ -623,7 +623,7 @@ $modules = [
         }
         .waffle-module-link { padding: 12px 6px; border-radius: 12px; }
         .waffle-module-icon { width: 44px; height: 44px; }
-        .waffle-module-name { font-size: 12px; }
+        .waffle-module-name { font-size: var(--font-size-sm, 12px); }
 
         /* Dim backdrop behind the drawer (transparent click-catcher on desktop). */
         .waffle-overlay { z-index: 2999; }
@@ -663,12 +663,12 @@ $modules = [
         /* The height cap is a desktop dropdown's problem; here the drawer is the
            height, and the pane simply fills what is left of it. */
         #waffleTabRecent.active { max-height: none; }
-        .waffle-tab { padding: 10px; font-size: 14px; }
+        .waffle-tab { padding: 10px; font-size: var(--font-size-lg, 14px); }
         .waffle-trail-record { padding: 9px 6px; }
         .waffle-trail-head { padding: 9px 6px; }
         /* 16px, not 13 — anything smaller makes iOS Safari zoom on focus, and
            the zoom does not come back out. That drops the whole phone layout. */
-        .waffle-trail-search input { font-size: 16px; padding: 10px 12px; }
+        .waffle-trail-search input { font-size: var(--font-size-xl, 16px); padding: 10px 12px; }
         .waffle-trail-search {
             padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
         }
@@ -822,12 +822,12 @@ function renderDbBehindNotice(): void {
     </div>
     <style>
         .db-behind-notice{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:10050;max-width:min(760px,calc(100vw - 32px));
-            display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.4;
+            display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;border-radius:10px;font-size:var(--font-size-lg, 14px);line-height:1.4;
             background:var(--warning-bg,#fff7e0);color:var(--warning-text,#7a5200);border:1px solid var(--warning-border,#f0c36d);box-shadow:0 6px 24px rgba(0,0,0,.18)}
         .db-behind-notice[hidden]{display:none}
         .db-behind-text{flex:1 1 280px}
         .db-behind-run{font-weight:600;color:inherit;text-decoration:underline;white-space:nowrap}
-        .db-behind-hide{background:none;border:1px solid currentColor;color:inherit;border-radius:6px;padding:3px 10px;cursor:pointer;font:inherit;font-size:13px}
+        .db-behind-hide{background:none;border:1px solid currentColor;color:inherit;border-radius:6px;padding:3px 10px;cursor:pointer;font:inherit;font-size:var(--font-size-md, 13px)}
     </style>
     <script>
         (function () {
@@ -1462,7 +1462,7 @@ function renderWarRoomAlerts($path_prefix) {
         .wra-head {
             padding: 10px 14px;
             border-bottom: 1px solid var(--border, #eee);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.4px;
@@ -1482,9 +1482,9 @@ function renderWarRoomAlerts($path_prefix) {
         }
         .wra-item:hover { background: var(--surface-hover, #f6f6f6); }
         .wra-item-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
-        .wra-item-chan { font-size: 12px; font-weight: 600; color: #ea580c; }
-        .wra-item-meta { font-size: 11px; color: var(--text-dim, #999); }
-        .wra-item-body { font-size: 13px; line-height: 1.4; color: var(--text-muted, #555); overflow-wrap: anywhere; }
+        .wra-item-chan { font-size: var(--font-size-sm, 12px); font-weight: 600; color: #ea580c; }
+        .wra-item-meta { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); }
+        .wra-item-body { font-size: var(--font-size-md, 13px); line-height: 1.4; color: var(--text-muted, #555); overflow-wrap: anywhere; }
         @media (max-width: 768px) {
             /* A 340px dropdown on a 360px screen would sit against both edges and
                overflow — and anything wider than the screen makes iOS reflow the
@@ -1734,7 +1734,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             cursor: pointer;
             border: 2px solid rgba(255,255,255,0.3);
@@ -1777,13 +1777,13 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         }
 
         .user-menu-name {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text);
         }
 
         .user-menu-username {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-faint);
             margin-top: 2px;
         }
@@ -1794,7 +1794,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             gap: 10px;
             padding: 11px 16px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text);
             transition: background 0.15s;
             border: none;
@@ -1827,7 +1827,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         /* Palette / theme picker in the account menu */
         .user-menu-section-label {
             padding: 8px 16px 2px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.04em;
@@ -1843,7 +1843,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             border: none;
             background: none;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text);
             text-align: left;
             cursor: pointer;
@@ -1899,7 +1899,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         .account-modal-header {
             padding: 20px 24px;
             border-bottom: 1px solid var(--border);
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             font-weight: 600;
             color: var(--text);
             display: flex;
@@ -1913,7 +1913,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             cursor: pointer;
             padding: 4px;
             color: var(--text-faint);
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             line-height: 1;
         }
 
@@ -1936,7 +1936,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             margin-bottom: 6px;
             font-weight: 500;
             color: var(--text);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .acct-form-input {
@@ -1944,7 +1944,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             padding: 10px 12px;
             border: 1px solid var(--border);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-family: inherit;
             background: var(--surface);
             color: var(--text);
@@ -1957,7 +1957,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             transition: all 0.15s;
         }
@@ -1973,7 +1973,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         .acct-msg {
             padding: 10px 14px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             margin-bottom: 16px;
             display: none;
         }
@@ -1999,13 +1999,13 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         }
 
         .mfa-status-title {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             margin-bottom: 4px;
         }
 
         .mfa-status-desc {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted);
         }
 
@@ -2032,14 +2032,14 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             color: var(--text);
             padding: 8px 14px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-family: 'Consolas', monospace;
             letter-spacing: 2px;
             user-select: all;
         }
 
         .secret-display p {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-faint);
             margin-top: 6px;
         }
@@ -2053,7 +2053,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         .verify-row .acct-form-group { flex: 1; margin-bottom: 0; }
 
         .otp-input {
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             letter-spacing: 6px;
             text-align: center;
             font-family: 'Consolas', monospace;
@@ -2374,7 +2374,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
                     <div class="mfa-status-desc">Your account is protected with a time-based one-time password (TOTP). You will be asked for a code from your authenticator app each time you log in.</div>
                 </div>
                 <div class="mfa-disable-area">
-                    <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px 0;">To disable MFA, enter your password below:</p>
+                    <p style="font-size:var(--font-size-md, 13px);color:var(--text-muted);margin:0 0 12px 0;">To disable MFA, enter your password below:</p>
                     <div class="acct-form-group">
                         <input type="password" class="acct-form-input" id="mfaDisablePw" placeholder="Enter your password">
                     </div>
@@ -2421,13 +2421,13 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             }
 
             container.innerHTML = `
-                <p style="font-size:13px;color:var(--text);margin:0 0 16px 0;"><strong>Step 1:</strong> Scan this QR code with your authenticator app</p>
+                <p style="font-size:var(--font-size-md, 13px);color:var(--text);margin:0 0 16px 0;"><strong>Step 1:</strong> Scan this QR code with your authenticator app</p>
                 <div class="qr-container">${qrHtml}</div>
                 <div class="secret-display">
                     <code>${data.secret}</code>
                     <p>Or enter this key manually in your authenticator app</p>
                 </div>
-                <p style="font-size:13px;color:var(--text);margin:0 0 12px 0;"><strong>Step 2:</strong> Enter the 6-digit code from your app to verify</p>
+                <p style="font-size:var(--font-size-md, 13px);color:var(--text);margin:0 0 12px 0;"><strong>Step 2:</strong> Enter the 6-digit code from your app to verify</p>
                 <div class="verify-row">
                     <div class="acct-form-group">
                         <input type="text" class="acct-form-input otp-input" id="mfaVerifyCode" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">

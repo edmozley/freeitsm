@@ -46,20 +46,20 @@ $translationNamespaces = ['common', 'system'];
 
         .cs-card { background: var(--surface, #fff); border-radius: 8px; padding: 24px;
                    box-shadow: 0 2px 8px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 20px; }
-        .cs-card h2 { font-size: 16px; font-weight: 600; margin: 0 0 6px; color: var(--text, #333); }
-        .cs-card > p { font-size: 13px; color: var(--text-muted, #666); margin: 0 0 18px; line-height: 1.55; }
+        .cs-card h2 { font-size: var(--font-size-xl, 16px); font-weight: 600; margin: 0 0 6px; color: var(--text, #333); }
+        .cs-card > p { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin: 0 0 18px; line-height: 1.55; }
 
         .cs-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; max-width: 520px; }
-        .cs-field > span { font-size: 12px; color: var(--text-muted, #666); }
+        .cs-field > span { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .cs-field input, .cs-field select {
             padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 4px;
-            background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; font-family: inherit;
+            background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); font-family: inherit;
         }
         .cs-radio { display: flex; gap: 18px; margin-bottom: 14px; flex-wrap: wrap; }
-        .cs-radio label { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; }
+        .cs-radio label { display: inline-flex; align-items: center; gap: 7px; font-size: var(--font-size-md, 13px); cursor: pointer; }
         .cs-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
 
-        .cs-note { font-size: 12px; color: var(--text-muted, #666); line-height: 1.55; margin-top: 6px; }
+        .cs-note { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); line-height: 1.55; margin-top: 6px; }
 
         /* The permission warning. It is not a failure state, so it must not look
            like one — but an administrator must not discover the scope of
@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'system'];
         .cs-warn {
             background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e);
             border: 1px solid var(--warning-border, #f0d9a8); border-radius: 4px;
-            padding: 12px 14px; font-size: 12px; line-height: 1.6; margin-bottom: 18px;
+            padding: 12px 14px; font-size: var(--font-size-sm, 12px); line-height: 1.6; margin-bottom: 18px;
         }
         /* ⚠️ Scoped to the TITLE. A bare `.cs-warn strong` also caught the inline
            <strong> emphasis inside the body text — "Calendars.ReadWrite",
@@ -80,9 +80,9 @@ $translationNamespaces = ['common', 'system'];
         .cs-result.bad  { background: var(--danger-bg, #f8d7da);  color: var(--danger-text, #721c24); }
         .cs-result code { font-family: Consolas, Monaco, monospace; word-break: break-all; }
 
-        .cs-people { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .cs-people { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
         .cs-people th {
-            text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted, #888);
+            text-align: left; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #888);
             padding: 6px 10px 8px; border-bottom: 1px solid var(--border-soft, #eee);
         }
         .cs-people td { padding: 7px 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); vertical-align: middle; }
@@ -99,7 +99,7 @@ $translationNamespaces = ['common', 'system'];
         .cs-people input.cs-inherited { color: var(--text-muted, #888); font-style: italic; }
         .cs-people .cs-analyst-name { font-weight: 600; color: var(--text, #333); }
         .cs-people .cs-analyst-email { font-size: 11.5px; color: var(--text-muted, #888); }
-        .cs-pill { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; white-space: nowrap; }
+        .cs-pill { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); white-space: nowrap; }
         .cs-pill.on   { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
         .cs-pill.offp { background: var(--surface-2, #f0f0f0); color: var(--text-muted, #777); }
         .cs-pill.bad  { background: var(--danger-bg, #f8d7da);  color: var(--danger-text, #721c24); }
@@ -108,7 +108,7 @@ $translationNamespaces = ['common', 'system'];
         /* The health strip. Deliberately at the TOP of the inbound card, above the
            settings rather than below them: "is this working?" is the question an
            admin arrives with, and it should not be answered after a scroll. */
-        .cs-health { margin: 0 0 16px; padding: 10px 12px; border-radius: 6px; font-size: 13px;
+        .cs-health { margin: 0 0 16px; padding: 10px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px);
                      border: 1px solid var(--border, #e0e0e0); background: var(--surface-2, #f8f9fa); }
         .cs-health.warn { border-color: var(--warning-border, #856404); background: var(--warning-bg, #fff3cd); }
         .cs-health.warn strong { color: var(--warning-text, #856404); }
@@ -116,8 +116,8 @@ $translationNamespaces = ['common', 'system'];
         .cs-health p + p { margin-top: 6px; }
 
         .cs-inbound { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-soft, #eee); }
-        .cs-inbound h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; color: var(--text, #333); }
-        .cs-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; margin: 10px 0 2px; }
+        .cs-inbound h3 { font-size: var(--font-size-lg, 14px); font-weight: 600; margin: 0 0 6px; color: var(--text, #333); }
+        .cs-check { display: inline-flex; align-items: center; gap: 8px; font-size: var(--font-size-md, 13px); cursor: pointer; margin: 10px 0 2px; }
 
         /* The connections list, and the one editor that opens beneath it. */
         .cs-conn-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
@@ -126,10 +126,10 @@ $translationNamespaces = ['common', 'system'];
         .cs-conn.editing { border-color: var(--accent); }
         .cs-conn-main { flex: 1 1 260px; min-width: 0; }
         .cs-conn-name { font-weight: 600; color: var(--text, #333); font-size: 13.5px; }
-        .cs-conn-detail { font-size: 12px; color: var(--text-muted, #888); overflow-wrap: anywhere; }
+        .cs-conn-detail { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #888); overflow-wrap: anywhere; }
         .cs-conn-btns { display: flex; gap: 6px; }
         .cs-editor { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-soft, #eee); }
-        .cs-editor h3 { font-size: 14px; font-weight: 600; margin: 0 0 12px; color: var(--text, #333); }
+        .cs-editor h3 { font-size: var(--font-size-lg, 14px); font-weight: 600; margin: 0 0 12px; color: var(--text, #333); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -257,9 +257,9 @@ $translationNamespaces = ['common', 'system'];
                     <div class="cs-field" style="margin-bottom:6px;"><span><?php echo htmlspecialchars(t('system.calsync.caldav_probe')); ?></span></div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:520px;" data-sys-cap="user + password inputs">
                         <input type="text" id="csProbeUser" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('system.calsync.probe_user')); ?>"
-                               style="flex:1 1 180px;padding:8px 10px;border:1px solid var(--border,#ddd);border-radius:4px;background:var(--surface,#fff);color:var(--text,#333);font-size:13px;">
+                               style="flex:1 1 180px;padding:8px 10px;border:1px solid var(--border,#ddd);border-radius:4px;background:var(--surface,#fff);color:var(--text,#333);font-size:var(--font-size-md, 13px);">
                         <input type="password" id="csProbePass" autocomplete="new-password" placeholder="<?php echo htmlspecialchars(t('system.calsync.probe_pass')); ?>"
-                               style="flex:1 1 180px;padding:8px 10px;border:1px solid var(--border,#ddd);border-radius:4px;background:var(--surface,#fff);color:var(--text,#333);font-size:13px;">
+                               style="flex:1 1 180px;padding:8px 10px;border:1px solid var(--border,#ddd);border-radius:4px;background:var(--surface,#fff);color:var(--text,#333);font-size:var(--font-size-md, 13px);">
                     </div>
                 </div>
                 </div><!-- /#csEditor -->

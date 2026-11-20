@@ -244,8 +244,8 @@ if ($wfCompanyPicker) {
                     <?php endif; ?>
                     <div class="wf-needs-config" id="wfReadOnly" style="display: none;"></div>
                     <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border, #e0e0e0);">
-                    <h4 style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim, #888);">Recent runs</h4>
-                    <div id="execList" style="font-size: 13px; color: var(--text-muted, #666);">
+                    <h4 style="margin: 0 0 8px; font-size: var(--font-size-sm, 12px); text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim, #888);">Recent runs</h4>
+                    <div id="execList" style="font-size: var(--font-size-md, 13px); color: var(--text-muted, #666);">
                         <em>Save the workflow first, then test-fire it to see runs here.</em>
                     </div>
                 </div>
@@ -374,11 +374,11 @@ if ($wfCompanyPicker) {
 
                 <div class="form-group">
                     <label for="wfAiPrompt"><?php echo htmlspecialchars(t('workflow.ai.prompt_label')); ?></label>
-                    <textarea id="wfAiPrompt" rows="4" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('workflow.ai.prompt_placeholder')); ?>" style="width:100%; padding:10px 12px; border:1px solid var(--border, #ddd); border-radius:5px; font-family: inherit; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
+                    <textarea id="wfAiPrompt" rows="4" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('workflow.ai.prompt_placeholder')); ?>" style="width:100%; padding:10px 12px; border:1px solid var(--border, #ddd); border-radius:5px; font-family: inherit; font-size: var(--font-size-lg, 14px); resize: vertical; box-sizing: border-box;"></textarea>
                     <small id="wfAiIterateHint" style="display: none; color: var(--text-muted, #6b7280); margin-top: 6px;"><?php echo htmlspecialchars(t('workflow.ai.iterate_hint')); ?></small>
                 </div>
 
-                <p style="font-size: 12px; color: var(--warning-text, #92400e); background: var(--wf-accent-soft, #fef3c7); padding: 8px 12px; border-radius: 4px; margin: 0 0 16px;">
+                <p style="font-size: var(--font-size-sm, 12px); color: var(--warning-text, #92400e); background: var(--wf-accent-soft, #fef3c7); padding: 8px 12px; border-radius: 4px; margin: 0 0 16px;">
                     <?php echo htmlspecialchars(t('workflow.ai.only_log_message')); ?>
                 </p>
 
@@ -388,17 +388,17 @@ if ($wfCompanyPicker) {
 
                     <div class="form-group">
                         <label><?php echo htmlspecialchars(t('workflow.ai.explanation_label')); ?></label>
-                        <div id="wfAiExplanation" style="padding: 12px 14px; background: var(--surface-2, #f8fafc); border-left: 3px solid var(--wf-accent, #f59e0b); border-radius: 4px; font-size: 13px; line-height: 1.5; color: var(--text, #374151);"></div>
+                        <div id="wfAiExplanation" style="padding: 12px 14px; background: var(--surface-2, #f8fafc); border-left: 3px solid var(--wf-accent, #f59e0b); border-radius: 4px; font-size: var(--font-size-md, 13px); line-height: 1.5; color: var(--text, #374151);"></div>
                     </div>
 
                     <div class="form-group">
                         <label><?php echo htmlspecialchars(t('workflow.ai.preview_label')); ?></label>
-                        <div id="wfAiPreview" style="font-size: 13px; color: var(--text, #374151);"></div>
+                        <div id="wfAiPreview" style="font-size: var(--font-size-md, 13px); color: var(--text, #374151);"></div>
                     </div>
 
                     <div id="wfAiWarnings" style="display: none;" class="form-group">
                         <label><?php echo htmlspecialchars(t('workflow.ai.warnings_label')); ?></label>
-                        <ul id="wfAiWarningsList" style="font-size: 12px; color: var(--warning-text, #92400e); background: var(--warning-bg, #fef9c3); padding: 8px 12px 8px 28px; border-radius: 4px; margin: 0;"></ul>
+                        <ul id="wfAiWarningsList" style="font-size: var(--font-size-sm, 12px); color: var(--warning-text, #92400e); background: var(--warning-bg, #fef9c3); padding: 8px 12px 8px 28px; border-radius: 4px; margin: 0;"></ul>
                     </div>
                 </div>
             </div>

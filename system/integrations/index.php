@@ -150,14 +150,14 @@ $ms365Set = $entraImporting || $intuneSet;
         }
         .provider-card:hover { border-color: var(--sys-accent); transform: translateY(-2px); }
         .provider-card h3 { margin: 0 0 6px; font-size: 17px; font-weight: 600; color: var(--text); }
-        .provider-card p  { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        .provider-card p  { margin: 0; font-size: var(--font-size-md, 13px); color: var(--text-muted); line-height: 1.5; }
         .provider-icon {
             width: 34px; height: 34px; margin-bottom: 12px;
             color: var(--sys-accent);
         }
         .provider-count {
             display: inline-block; margin-top: 12px;
-            font-size: 12px; font-weight: 600;
+            font-size: var(--font-size-sm, 12px); font-weight: 600;
             padding: 3px 9px; border-radius: 20px;
             background: var(--sys-accent-soft); color: var(--sys-accent);
         }

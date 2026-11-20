@@ -152,12 +152,12 @@ $translationNamespaces = ['common', 'workflow'];
                 }
                 // GH #209. Which company each runs for, once there are companies.
                 const companyLine = w => !d.multi_company ? ''
-                    : '<br><span style="color:var(--text-dim, #777); font-size: 12px;">'
+                    : '<br><span style="color:var(--text-dim, #777); font-size: var(--font-size-sm, 12px);">'
                       + esc(w.company ? w.company.name : window.t('workflow.list.all_companies')) + '</span>';
                 tb.innerHTML = d.workflows.map(w => `
                     <tr>
-                        <td><strong><a href="editor.php?id=${w.id}" style="color: var(--text, #333); text-decoration: none;">${esc(w.name)}</a></strong>${w.description ? '<br><span style="color:var(--text-dim, #777); font-size: 12px;">' + esc(w.description) + '</span>' : ''}${companyLine(w)}</td>
-                        <td><code style="font-size:12px;">${esc(w.trigger_event)}</code></td>
+                        <td><strong><a href="editor.php?id=${w.id}" style="color: var(--text, #333); text-decoration: none;">${esc(w.name)}</a></strong>${w.description ? '<br><span style="color:var(--text-dim, #777); font-size: var(--font-size-sm, 12px);">' + esc(w.description) + '</span>' : ''}${companyLine(w)}</td>
+                        <td><code style="font-size:var(--font-size-sm, 12px);">${esc(w.trigger_event)}</code></td>
                         <td style="color:var(--text-muted, #666);">${w.run_count} run${w.run_count == 1 ? '' : 's'}</td>
                         <td>${fmtDate(w.last_run_datetime)}</td>
                         <td>${statusPill(+w.is_active)}</td>

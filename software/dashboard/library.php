@@ -59,7 +59,7 @@ $translationNamespaces = ['common', 'software'];
         .library-toolbar-left a {
             color: var(--text-muted, #555);
             text-decoration: none;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -76,7 +76,7 @@ $translationNamespaces = ['common', 'software'];
 
         .library-toolbar h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text, #333);
         }
 
@@ -90,7 +90,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 8px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             width: 240px;
             background: var(--surface, #fff);
             color: var(--text, #333);
@@ -108,7 +108,7 @@ $translationNamespaces = ['common', 'software'];
             border-radius: 6px;
             background: var(--surface, #fff);
             color: var(--text, #333);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -121,7 +121,7 @@ $translationNamespaces = ['common', 'software'];
         .btn-primary { background: var(--sw-accent, #5c6bc0); color: #fff; border-color: var(--sw-accent, #5c6bc0); }
         .btn-primary:hover { background: var(--sw-accent-hover, #4a5ab5); }
 
-        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-sm { padding: 5px 10px; font-size: var(--font-size-sm, 12px); }
 
         .btn-danger { color: var(--danger-text, #d13438); border-color: var(--danger-text, #d13438); }
         .btn-danger:hover { background: var(--danger-bg, #fdf3f3); }
@@ -147,7 +147,7 @@ $translationNamespaces = ['common', 'software'];
         .widget-table th {
             text-align: left;
             padding: 12px 16px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -158,7 +158,7 @@ $translationNamespaces = ['common', 'software'];
 
         .widget-table td {
             padding: 12px 16px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             border-bottom: 1px solid var(--border-soft, #f0f0f0);
             vertical-align: middle;
@@ -178,7 +178,7 @@ $translationNamespaces = ['common', 'software'];
 
         .widget-table .widget-desc {
             color: var(--text-dim, #888);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             margin-top: 2px;
         }
 
@@ -186,7 +186,7 @@ $translationNamespaces = ['common', 'software'];
             display: inline-block;
             padding: 2px 10px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 500;
             background: var(--surface-hover, #f0f0f0);
             color: var(--text-muted, #555);
@@ -237,7 +237,7 @@ $translationNamespaces = ['common', 'software'];
         }
 
         .edit-form label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #555);
         }
@@ -248,7 +248,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 8px 10px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-family: inherit;
             background: var(--surface, #fff);
             color: var(--text, #333);
@@ -291,7 +291,7 @@ $translationNamespaces = ['common', 'software'];
             text-align: center;
             padding: 40px;
             color: var(--text-dim, #888);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         @media (max-width: 900px) {

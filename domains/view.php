@@ -178,7 +178,7 @@ $translationNamespaces = ['common', 'domains'];
         <div class="modal-content" style="max-width:480px">
             <div class="modal-header"><?php echo htmlspecialchars(t('domains.code.title')); ?></div>
             <div class="modal-body">
-                <p class="dom-hint" style="font-size:13px"><?php echo htmlspecialchars(t('domains.code.intro')); ?></p>
+                <p class="dom-hint" style="font-size:var(--font-size-md, 13px)"><?php echo htmlspecialchars(t('domains.code.intro')); ?></p>
                 <div class="form-group"><label for="cCode"><?php echo htmlspecialchars(t('domains.field.auth_code')); ?></label><input type="text" id="cCode" autocomplete="off" spellcheck="false"></div>
                 <div class="dom-hint"><?php echo htmlspecialchars(t('domains.code.blank_clears')); ?></div>
             </div>
@@ -193,7 +193,7 @@ $translationNamespaces = ['common', 'domains'];
         <div class="modal-content" style="max-width:520px">
             <div class="modal-header"><?php echo htmlspecialchars(t('domains.move.title')); ?></div>
             <div class="modal-body">
-                <p class="dom-hint" style="font-size:13px" id="mvIntro"></p>
+                <p class="dom-hint" style="font-size:var(--font-size-md, 13px)" id="mvIntro"></p>
                 <div class="form-group"><label for="mvCompany"><?php echo htmlspecialchars(t('domains.move.company')); ?></label><select id="mvCompany"></select></div>
                 <div class="dom-hint" id="mvWith"></div>
                 <div class="dom-hint"><?php echo htmlspecialchars(t('domains.move.cleared')); ?></div>

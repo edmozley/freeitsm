@@ -2911,7 +2911,7 @@ const PM = (() => {
         const related = connectors.filter(c => c.fromId == sid || c.toId == sid);
         const container = document.getElementById('detailConnectors');
         if (!related.length) {
-            container.innerHTML = '<div style="color: #999; font-size: 12px;">' + t('process-mapper.detail.no_connectors') + '</div>';
+            container.innerHTML = '<div style="color: #999; font-size: var(--font-size-sm, 12px);">' + t('process-mapper.detail.no_connectors') + '</div>';
         } else {
             container.innerHTML = related.map(c => {
                 const cid = c.id || c.tempId;

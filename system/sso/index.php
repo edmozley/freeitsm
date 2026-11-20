@@ -72,25 +72,25 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
 
         .settings-card { background: var(--surface, #fff); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 24px; }
         .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
-        .settings-card .card-desc { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 20px 0; line-height: 1.5; }
+        .settings-card .card-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 20px 0; line-height: 1.5; }
 
         /* Shown when the switches could not be read. Uses the real danger tokens —
            var(--danger) alone does not exist in theme.css, only --danger-bg/-text/-border. */
         .load-error { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 0 0 18px;
-                      padding: 11px 14px; border-radius: 6px; font-size: 13px; line-height: 1.5;
+                      padding: 11px 14px; border-radius: 6px; font-size: var(--font-size-md, 13px); line-height: 1.5;
                       background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b);
                       border: 1px solid var(--danger-border, #f0c2c2); }
         .load-error[hidden] { display: none; }
         .load-error strong { font-weight: 600; }
         .load-error span { flex: 1; min-width: 220px; }
-        .load-error .btn { padding: 5px 12px; font-size: 12px; border-radius: 5px; cursor: pointer;
+        .load-error .btn { padding: 5px 12px; font-size: var(--font-size-sm, 12px); border-radius: 5px; cursor: pointer;
                            background: var(--surface, #fff); color: var(--danger-text, #991b1b);
                            border: 1px solid var(--danger-border, #f0c2c2); }
 
         .setting-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
         .setting-row:last-child { margin-bottom: 0; }
         .switch input:disabled + .slider { opacity: .5; cursor: not-allowed; }
-        .setting-label { flex: 1; font-size: 13px; color: var(--text-muted, #555); }
+        .setting-label { flex: 1; font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); }
         .setting-label strong { display: block; color: var(--text, #333); margin-bottom: 2px; }
 
         /* Toggle switch */
@@ -101,7 +101,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         .switch input:checked + .slider { background: var(--sys-accent, #546e7a); }
         .switch input:checked + .slider:before { transform: translateX(20px); }
 
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: #455a64; }
         .btn-secondary { background: var(--sys-accent-soft, #eceff1); color: #455a64; }
@@ -111,7 +111,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .save-area { margin-top: 24px; }
 
-        .info-note { background: #f5f7fa; border: 1px solid var(--border, #e0e0e0); border-radius: 6px; padding: 14px 16px; font-size: 12px; color: var(--text-muted, #666); line-height: 1.6; }
+        .info-note { background: #f5f7fa; border: 1px solid var(--border, #e0e0e0); border-radius: 6px; padding: 14px 16px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); line-height: 1.6; }
         .info-note strong { color: var(--text, #333); }
         /* The URI on its own line with Copy underneath and on the left, so all
            three cards on this page put their button in the same place. Side by
@@ -122,9 +122,9 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
            item that scrolls its own overflow, and without it a long URI refuses
            to shrink and pushes the card sideways. */
         .redirect-uri-box { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; }
-        .signout-heading { margin: 22px 0 4px; font-size: 14px; color: var(--text, #333); }
-        .signout-label { font-size: 12px; font-weight: 600; color: var(--text-dim, #666); margin-bottom: -4px; }
-        .redirect-uri-box code { align-self: stretch; min-width: 0; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 8px 10px; font-size: 12px; color: var(--text, #333); overflow-x: auto; white-space: nowrap; }
+        .signout-heading { margin: 22px 0 4px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
+        .signout-label { font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-dim, #666); margin-bottom: -4px; }
+        .redirect-uri-box code { align-self: stretch; min-width: 0; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 8px 10px; font-size: var(--font-size-sm, 12px); color: var(--text, #333); overflow-x: auto; white-space: nowrap; }
 
         /* Providers table */
         /* Stacked, not two-up: the button belongs under its own description and
@@ -132,18 +132,18 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
            flex-start` keeps it hugging its text instead of stretching to the
            card's full width. */
         .providers-head { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
-        .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; cursor: pointer; }
         .add-btn:hover { background: #455a64; }
-        table.providers { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table.providers th { text-align: left; color: var(--text-dim, #888); font-weight: 600; font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
+        table.providers { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
+        table.providers th { text-align: left; color: var(--text-dim, #888); font-weight: 600; font-size: var(--font-size-sm, 12px); padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
         table.providers td { padding: 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: middle; }
         table.providers tr:last-child td { border-bottom: none; }
-        .issuer-cell { color: var(--text-dim, #888); font-size: 12px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .issuer-cell { color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: var(--font-size-xs, 11px); font-weight: 600; }
         .status-badge.on { background: #e8f5e9; color: #2e7d32; }
         .status-badge.off { background: #f0f0f0; color: #999; }
-        .badge-jit { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #e3f2fd; color: #1565c0; }
-        .badge-sync { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+        .badge-jit { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); background: #e3f2fd; color: #1565c0; }
+        .badge-sync { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 500; }
         .badge-sync.always { background: #e0f2fe; color: #0369a1; }
         .badge-sync.initial { background: #fef3c7; color: #b45309; }
         .badge-sync.never { background: #f3f4f6; color: #6b7280; }
@@ -154,7 +154,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
            every one carries BOTH `title` (the hover tooltip) and `aria-label`
            (what a screen reader announces) — an icon button with neither is a
            button that says nothing at all. */
-        .table-action-btn { background: none; border: none; cursor: pointer; color: #607d8b; padding: 5px; font-size: 13px; border-radius: 4px;
+        .table-action-btn { background: none; border: none; cursor: pointer; color: #607d8b; padding: 5px; font-size: var(--font-size-md, 13px); border-radius: 4px;
             display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
         .table-action-btn svg { width: 16px; height: 16px; display: block; }
         .table-action-btn:hover { background: var(--sys-accent-soft, #eceff1); color: var(--accent, #0078d4); }
@@ -181,20 +181,20 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
            width); only the fixed full height is this page's own. */
         .sso-modal { height: 90vh; }
         .sso-tabs { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--border-soft, #eee); flex: 0 0 auto; overflow-x: auto; }
-        .sso-tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 12px 14px; cursor: pointer; font-size: 14px; color: var(--text-muted, #666); white-space: nowrap; }
+        .sso-tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 12px 14px; cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text-muted, #666); white-space: nowrap; }
         .sso-tabs button.active { color: var(--accent, #0078d4); border-bottom-color: var(--accent, #0078d4); font-weight: 600; }
-        .sso-tab-intro { margin: 0 0 12px; font-size: 13px; color: var(--text-muted, #666); }
+        .sso-tab-intro { margin: 0 0 12px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         .sso-guide-link { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; margin: 0 0 18px; padding: 10px 12px; border-radius: 6px;
-                          background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border, #b9def5); font-size: 13px; }
+                          background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border, #b9def5); font-size: var(--font-size-md, 13px); }
         .sso-guide-link a { font-weight: 600; color: var(--info-text, #075985); text-decoration: none; }
         .sso-guide-link a:hover { text-decoration: underline; }
         .sso-guide-link span { color: var(--info-text, #075985); opacity: .85; }
         .sso-map { width: 100%; border-collapse: collapse; }
-        .sso-map th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted, #666); padding: 4px 6px; }
+        .sso-map th { text-align: left; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #666); padding: 4px 6px; }
         .sso-map td { padding: 4px 6px; vertical-align: top; }
         .sso-map td:last-child { width: 1%; }
         .sso-map input, .sso-map select { width: 100%; box-sizing: border-box; }
-        .sso-group-warn { font-size: 12px; color: var(--warning-text, #92400e); margin-top: 4px; }
+        .sso-group-warn { font-size: var(--font-size-sm, 12px); color: var(--warning-text, #92400e); margin-top: 4px; }
         .sso-group-warn:empty { display: none; }
         .sso-group-picker select, .sso-group-picker input { width: 100%; box-sizing: border-box; }
         /* The four attribute mappings sit two-up; they collapse to one column on narrow screens. */
@@ -206,20 +206,20 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         .enc-row input[type=number] { flex: 0 0 110px; width: 110px; }
         .ldap-attr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
         .ldap-attr-grid .hint { display: block; margin-bottom: 2px; }
-        .proto-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; background: var(--surface-alt, #eef1f4); color: var(--text-muted, #667); }
+        .proto-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; background: var(--surface-alt, #eef1f4); color: var(--text-muted, #667); }
         .form-field { margin-bottom: 16px; }
-        .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
-        .form-field .hint { font-size: 12px; color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
-        .form-field input[type=text], .form-field input[type=password], .form-field input[type=number], .form-field select { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
+        .form-field label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
+        .form-field .hint { font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
+        .form-field input[type=text], .form-field input[type=password], .form-field input[type=number], .form-field select { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
         .form-field input:focus, .form-field select:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
         .issuer-row { display: flex; gap: 8px; }
         .issuer-row input { flex: 1; }
         .checkbox-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
         .checkbox-field input { margin-top: 3px; }
-        .checkbox-field .cb-label { font-size: 13px; color: var(--text, #444); }
+        .checkbox-field .cb-label { font-size: var(--font-size-md, 13px); color: var(--text, #444); }
         .checkbox-field .cb-label strong { display: block; }
-        .checkbox-field .cb-label span { color: var(--text-faint, #999); font-size: 12px; }
-        .test-result { margin-top: 6px; font-size: 12px; padding: 8px 10px; border-radius: 5px; display: none; }
+        .checkbox-field .cb-label span { color: var(--text-faint, #999); font-size: var(--font-size-sm, 12px); }
+        .test-result { margin-top: 6px; font-size: var(--font-size-sm, 12px); padding: 8px 10px; border-radius: 5px; display: none; }
         .test-result.ok { display: block; background: #e8f5e9; color: #2e7d32; }
         .test-result.err { display: block; background: #ffebee; color: #c62828; }
         /* The safety brake is a REFUSAL, not a failure — amber, not red. Nothing
@@ -228,14 +228,14 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         .test-result.ok, .test-result.err { white-space: pre-wrap; }
 
         /* Recent sync runs */
-        table.sync-runs { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+        table.sync-runs { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm, 12px); margin-top: 4px; }
         table.sync-runs th { text-align: left; padding: 5px 8px; color: var(--text-dim, #888); font-weight: 600; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
         table.sync-runs td { padding: 5px 8px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); white-space: nowrap; }
-        .sync-pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .sync-pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; }
         .sync-pill.ok { background: #e8f5e9; color: #2e7d32; }
         .sync-pill.stopped { background: #fff4ce; color: #6b5900; }
         .sync-pill.bad, .sync-pill.err { background: #ffebee; color: #c62828; }
-        td.sync-msg { white-space: normal; color: var(--text-muted, #666); font-size: 11px; padding-bottom: 10px; }
+        td.sync-msg { white-space: normal; color: var(--text-muted, #666); font-size: var(--font-size-xs, 11px); padding-bottom: 10px; }
         .jit-off { color: #bbb; }
         .tenant-global { color: var(--text-faint, #999); }
 
@@ -708,7 +708,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
                                 <a href="../teams/"><?php echo htmlspecialchars(t('system.sso.go_teams')); ?></a></div>
                             <?php endif; ?>
                         </div>
-                        <div id="oidcLastSeen" style="font-size:12px;color:var(--text-muted,#666);margin-top:6px;"></div>
+                        <div id="oidcLastSeen" style="font-size:var(--font-size-sm, 12px);color:var(--text-muted,#666);margin-top:6px;"></div>
                     </div>
                 </div>
                 </div><!-- /groups -->
@@ -1104,9 +1104,9 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         const body = $('ssoSeenRows');
         $('ssoSeenField').style.display = ssoSeenList.length ? '' : 'none';
         body.innerHTML = ssoSeenList.map((g, i) =>
-            '<tr><td><code style="font-size:12px;word-break:break-all;">' + esc(g.group) + '</code></td>'
+            '<tr><td><code style="font-size:var(--font-size-sm, 12px);word-break:break-all;">' + esc(g.group) + '</code></td>'
           + '<td><input type="text" class="sso-label" data-i="' + i + '" maxlength="100" value="' + esc(g.label || '') + '" placeholder="' + esc(window.t('system.sso.group_name_ph')) + '"></td>'
-          + '<td style="white-space:nowrap;font-size:12px;color:var(--text-muted,#666);">' + esc(g.last_seen && window.fmtDateTime ? window.fmtDateTime(g.last_seen) : (g.last_seen || '')) + '</td></tr>').join('');
+          + '<td style="white-space:nowrap;font-size:var(--font-size-sm, 12px);color:var(--text-muted,#666);">' + esc(g.last_seen && window.fmtDateTime ? window.fmtDateTime(g.last_seen) : (g.last_seen || '')) + '</td></tr>').join('');
         body.querySelectorAll('.sso-label').forEach(inp => inp.addEventListener('input', () => {
             ssoSeenList[+inp.dataset.i].label = inp.value.trim() || null;
             ssoPickersRefresh();

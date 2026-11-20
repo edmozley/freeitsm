@@ -51,7 +51,7 @@ $translationNamespaces = ['common', 'tickets'];
         .library-toolbar-left a {
             color: var(--text-muted, #555);
             text-decoration: none;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -68,7 +68,7 @@ $translationNamespaces = ['common', 'tickets'];
 
         .library-toolbar h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             color: var(--text, #333);
         }
 
@@ -82,7 +82,7 @@ $translationNamespaces = ['common', 'tickets'];
             padding: 8px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             width: 240px;
         }
 
@@ -98,7 +98,7 @@ $translationNamespaces = ['common', 'tickets'];
             border-radius: 6px;
             background: var(--surface, #fff);
             color: var(--text, #333);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -111,7 +111,7 @@ $translationNamespaces = ['common', 'tickets'];
         .btn-primary { background: var(--accent, #0078d4); color: var(--on-accent, #fff); border-color: var(--accent, #0078d4); }
         .btn-primary:hover { background: var(--accent-hover, #106ebe); }
 
-        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-sm { padding: 5px 10px; font-size: var(--font-size-sm, 12px); }
 
         .btn-danger { color: var(--danger-accent, #d13438); border-color: var(--danger-accent, #d13438); }
         .btn-danger:hover { background: var(--danger-bg, #fdf3f3); }
@@ -137,7 +137,7 @@ $translationNamespaces = ['common', 'tickets'];
         .widget-table th {
             text-align: left;
             padding: 12px 16px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -148,7 +148,7 @@ $translationNamespaces = ['common', 'tickets'];
 
         .widget-table td {
             padding: 12px 16px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             border-bottom: 1px solid var(--border-soft, #f0f0f0);
             vertical-align: middle;
@@ -168,7 +168,7 @@ $translationNamespaces = ['common', 'tickets'];
 
         .widget-table .widget-desc {
             color: var(--text-dim, #888);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             margin-top: 2px;
         }
 
@@ -176,7 +176,7 @@ $translationNamespaces = ['common', 'tickets'];
             display: inline-block;
             padding: 2px 10px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 500;
             background: var(--surface-hover, #f0f0f0);
             color: var(--text-muted, #555);
@@ -232,7 +232,7 @@ $translationNamespaces = ['common', 'tickets'];
             text-align: center;
             padding: 40px;
             color: var(--text-dim, #888);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         /* Form fields follow the palette (inbox.css only themes specific input classes). */
     .dashboard-page input, .dashboard-page select, .dashboard-page textarea { background: var(--surface, #fff); color: var(--text, #333); }

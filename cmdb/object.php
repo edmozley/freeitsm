@@ -131,7 +131,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-secs > .o2-sec:nth-child(4) { animation-delay: 105ms; }
         .o2-secs > .o2-sec:nth-child(n+5) { animation-delay: 140ms; }
 
-        .o2-breadcrumb { font-size: 13px; color: var(--text-muted, #6b7280); padding: 14px 2px 10px; }
+        .o2-breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); padding: 14px 2px 10px; }
         .o2-breadcrumb a { color: var(--cmdb-accent, #be185d); text-decoration: none; }
         .o2-breadcrumb a:hover { text-decoration: underline; }
         .o2-breadcrumb .sep { margin: 0 7px; color: var(--text-faint, #d1d5db); }
@@ -197,7 +197,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .o2-chip {
             display: inline-flex; align-items: center; gap: 6px;
-            font-size: 12px; font-weight: 600;
+            font-size: var(--font-size-sm, 12px); font-weight: 600;
             padding: 4px 11px;
             border-radius: 999px;
             border: 1px solid var(--border, #e5e7eb);
@@ -221,7 +221,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         /* ---------------- Buttons ---------------- */
         .o2-btn {
             display: inline-flex; align-items: center; gap: 7px;
-            font: inherit; font-size: 13px; font-weight: 600;
+            font: inherit; font-size: var(--font-size-md, 13px); font-weight: 600;
             padding: 9px 15px;
             border-radius: 8px;
             border: 1px solid var(--border, #e5e7eb);
@@ -282,9 +282,9 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             color: var(--text, #111827);
             font-variant-numeric: tabular-nums;
         }
-        .o2-stat-val .unit { font-size: 16px; font-weight: 600; color: var(--text-muted, #6b7280); margin-left: 2px; }
+        .o2-stat-val .unit { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text-muted, #6b7280); margin-left: 2px; }
         .o2-stat-lbl {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #6b7280);
             margin-top: 5px;
             line-height: 1.35;
@@ -306,11 +306,11 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             margin-bottom: 14px;
         }
         .o2-card-title {
-            font-size: 12px; font-weight: 700;
+            font-size: var(--font-size-sm, 12px); font-weight: 700;
             letter-spacing: 0.07em; text-transform: uppercase;
             color: var(--text-muted, #6b7280);
         }
-        .o2-card-sub { font-size: 13px; color: var(--text-dim, #9ca3af); margin-left: auto; }
+        .o2-card-sub { font-size: var(--font-size-md, 13px); color: var(--text-dim, #9ca3af); margin-left: auto; }
         .o2-lede {
             font-size: 17px; font-weight: 600;
             color: var(--text, #111827);
@@ -318,7 +318,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             letter-spacing: -0.01em;
         }
         .o2-empty {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #9ca3af);
             padding: 4px 0;
         }
@@ -327,7 +327,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-chain { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: 4px 0 8px; }
         .o2-hop { flex: 0 0 auto; min-width: 168px; }
         .o2-hop-lbl {
-            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
             color: var(--text-dim, #9ca3af);
             margin-bottom: 8px; padding-left: 2px;
         }
@@ -365,14 +365,14 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-node-txt { min-width: 0; display: flex; flex-direction: column; }
         .o2-node-name {
             display: block;
-            font-size: 13px; font-weight: 600;
+            font-size: var(--font-size-md, 13px); font-weight: 600;
             color: var(--text, #111827);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .o2-node.root .o2-node-name { color: var(--cmdb-on-accent, #fff); }
-        .o2-node-sub { display: block; font-size: 11px; color: var(--text-dim, #9ca3af); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .o2-node-sub { display: block; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .o2-node.root .o2-node-sub { color: var(--cmdb-on-accent, #fff); opacity: 0.8; }
-        .o2-via { font-size: 11px; color: var(--text-dim, #9ca3af); font-style: italic; margin-top: 3px; padding-left: 2px; }
+        .o2-via { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); font-style: italic; margin-top: 3px; padding-left: 2px; }
 
         /* ---------------- Connections ---------------- */
         /* The always-on count row. Every figure renders, zeroes included — a
@@ -385,7 +385,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             border-bottom: 1px solid var(--border-soft, #f1f2f4);
         }
         .o2-tally-item {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #6b7280);
             letter-spacing: 0.02em;
         }
@@ -400,7 +400,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         /* Each kind carries its own way in, because each is created a different
            way. One button above the row implied it covered all four. */
         .o2-tally-act {
-            font: inherit; font-size: 11px; font-weight: 600;
+            font: inherit; font-size: var(--font-size-xs, 11px); font-weight: 600;
             background: none; cursor: pointer;
             border: 1px solid var(--border, #e5e7eb);
             border-radius: 999px;
@@ -418,7 +418,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-seg { display: flex; gap: 0; }
         .o2-seg button {
             flex: 1 1 0;
-            font: inherit; font-size: 13px; font-weight: 600;
+            font: inherit; font-size: var(--font-size-md, 13px); font-weight: 600;
             padding: 9px 10px;
             border: 1px solid var(--border, #e5e7eb);
             background: var(--surface, #fff);
@@ -451,7 +451,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-conn-col { min-width: 0; }
         .o2-conn-col.mid { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 22px; }
         .o2-conn-lbl {
-            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
             color: var(--text-dim, #9ca3af);
             margin-bottom: 9px;
         }
@@ -470,9 +470,9 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             color: var(--cmdb-on-accent, #fff);
             min-width: 150px;
         }
-        .o2-centre-name { font-size: 14px; font-weight: 650; text-align: center; }
-        .o2-centre-cls { font-size: 11px; opacity: 0.8; }
-        .o2-rel-verb { font-size: 11px; color: var(--text-dim, #9ca3af); font-style: italic; margin-bottom: 2px; overflow-wrap: anywhere; }
+        .o2-centre-name { font-size: var(--font-size-lg, 14px); font-weight: 650; text-align: center; }
+        .o2-centre-cls { font-size: var(--font-size-xs, 11px); opacity: 0.8; }
+        .o2-rel-verb { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); font-style: italic; margin-bottom: 2px; overflow-wrap: anywhere; }
         .o2-conn-col.right .o2-rel-verb { text-align: right; }
         .o2-updown { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 
@@ -489,7 +489,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             .o2-prop:hover { border-color: var(--cmdb-accent, #be185d); }
         }
         .o2-prop-lbl {
-            font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; letter-spacing: 0.03em;
             color: var(--text-muted, #6b7280);
             text-transform: uppercase;
             margin-bottom: 5px;
@@ -516,7 +516,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             display: inline-block;
             padding: 2px 10px;
             border-radius: 999px;
-            font-size: 13px; font-weight: 600;
+            font-size: var(--font-size-md, 13px); font-weight: 600;
             background: var(--surface-3, #f3f4f6);
             color: var(--text, #111827);
         }
@@ -524,22 +524,22 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             display: inline-flex; align-items: center; gap: 6px;
             color: var(--cmdb-accent, #be185d);
             text-decoration: none;
-            font-size: 14px; font-weight: 600;
+            font-size: var(--font-size-lg, 14px); font-weight: 600;
         }
         .o2-ref:hover { text-decoration: underline; }
         /* GH #312: a person / team / location ... - the record's live name */
-        .o2-rec { color: var(--text, #111827); font-size: 14px; font-weight: 600; text-decoration: none; }
+        .o2-rec { color: var(--text, #111827); font-size: var(--font-size-lg, 14px); font-weight: 600; text-decoration: none; }
         a.o2-rec { color: var(--cmdb-accent, #be185d); }
         a.o2-rec:hover { text-decoration: underline; }
-        .o2-rec-gone { color: var(--text-dim, #6b7280); font-size: 13px; font-style: italic; font-weight: 400; }
+        .o2-rec-gone { color: var(--text-dim, #6b7280); font-size: var(--font-size-md, 13px); font-style: italic; font-weight: 400; }
 
         .o2-blanks {
             margin-top: 12px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #9ca3af);
         }
         .o2-blanks button {
-            font: inherit; font-size: 13px;
+            font: inherit; font-size: var(--font-size-md, 13px);
             background: none; border: none; padding: 0;
             color: var(--cmdb-accent, #be185d);
             cursor: pointer;
@@ -572,7 +572,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-ai-ico { color: var(--cmdb-accent, #be185d); flex: 0 0 auto; margin-top: 1px; }
         .o2-ai-txt { flex: 1 1 auto; font-size: 14.5px; line-height: 1.6; color: var(--text, #111827); max-width: 100ch; }
         .o2-ai-txt.muted { color: var(--text-muted, #6b7280); font-style: italic; }
-        .o2-ai-when { font-size: 11px; color: var(--text-dim, #9ca3af); margin-top: 6px; }
+        .o2-ai-when { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); margin-top: 6px; }
 
         /* ---------------- Tickets ---------------- */
         .o2-tix { display: flex; flex-direction: column; gap: 8px; }
@@ -589,9 +589,9 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         @media (hover: hover) and (pointer: fine) {
             .o2-tik:hover { transform: translateY(-1px); border-color: var(--cmdb-accent, #be185d); }
         }
-        .o2-tik-ref { font-size: 12px; font-weight: 700; color: var(--cmdb-accent, #be185d); font-variant-numeric: tabular-nums; }
-        .o2-tik-sub { font-size: 14px; font-weight: 600; color: var(--text, #111827); flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .o2-tik-meta { font-size: 11px; color: var(--text-dim, #9ca3af); white-space: nowrap; }
+        .o2-tik-ref { font-size: var(--font-size-sm, 12px); font-weight: 700; color: var(--cmdb-accent, #be185d); font-variant-numeric: tabular-nums; }
+        .o2-tik-sub { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #111827); flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .o2-tik-meta { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); white-space: nowrap; }
 
         /* ---------------- Danger zone ---------------- */
         .o2-danger {
@@ -602,7 +602,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             margin-top: 22px;
             background: transparent;
         }
-        .o2-danger-txt { font-size: 13px; color: var(--text-muted, #6b7280); flex: 1 1 auto; }
+        .o2-danger-txt { font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); flex: 1 1 auto; }
 
         /* Toasts and confirms are the SHARED components (assets/js/toast.js and
            confirm.js), pulled in by includes/header.php via the waffle menu.
@@ -610,7 +610,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
 
         /* ---------------- Editing affordances ---------------- */
         .o2-chip.act {
-            font: inherit; font-size: 12px; font-weight: 600;
+            font: inherit; font-size: var(--font-size-sm, 12px); font-weight: 600;
             cursor: pointer;
             transition: transform 160ms var(--o2-ease-out), background-color 140ms ease, border-color 140ms ease;
         }
@@ -620,7 +620,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             .o2-chip.act.planned:hover { color: var(--warning-text, #92400e); }
         }
         .o2-chip-x {
-            font: inherit; font-size: 11px; font-weight: 600;
+            font: inherit; font-size: var(--font-size-xs, 11px); font-weight: 600;
             background: none; border: none; cursor: pointer;
             color: var(--text-dim, #9ca3af);
             margin-left: 7px; padding: 0;
@@ -628,7 +628,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         }
         .o2-chip-x:hover { color: var(--cmdb-accent, #be185d); }
 
-        .o2-btn.small { padding: 6px 11px; font-size: 12px; margin-left: auto; }
+        .o2-btn.small { padding: 6px 11px; font-size: var(--font-size-sm, 12px); margin-left: auto; }
         .o2-card-head .o2-card-sub + .o2-btn.small { margin-left: 12px; }
 
         /* The unlink × sits outside the anchor — nesting a button inside a link
@@ -638,7 +638,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-unlink {
             flex: 0 0 auto;
             width: 26px;
-            font: inherit; font-size: 16px; line-height: 1;
+            font: inherit; font-size: var(--font-size-xl, 16px); line-height: 1;
             background: none; cursor: pointer;
             border: 1px solid transparent;
             border-radius: 8px;
@@ -681,14 +681,14 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .ac-result {
             padding: 8px 12px; cursor: pointer;
             display: flex; justify-content: space-between; gap: 10px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .ac-result:hover, .ac-result.highlighted {
             background: var(--cmdb-accent-soft, #fdf2f8);
             color: var(--cmdb-accent, #be185d);
         }
-        .ac-result .ac-class { color: var(--text-dim, #9ca3af); font-size: 11px; }
-        .ac-empty { padding: 10px; color: var(--text-dim, #9ca3af); font-size: 13px; text-align: center; }
+        .ac-result .ac-class { color: var(--text-dim, #9ca3af); font-size: var(--font-size-xs, 11px); }
+        .ac-empty { padding: 10px; color: var(--text-dim, #9ca3af); font-size: var(--font-size-md, 13px); text-align: center; }
 
         /* ---------------- Modals ---------------- */
         .o2-modal {
@@ -711,7 +711,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         @keyframes o2Pop { from { opacity: 0; transform: scale(0.96); } }
         .o2-modal-head {
             padding: 16px 20px 0;
-            font-size: 16px; font-weight: 650;
+            font-size: var(--font-size-xl, 16px); font-weight: 650;
             color: var(--text, #111827);
         }
         .o2-modal-body { padding: 14px 20px 4px; }
@@ -723,12 +723,12 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .o2-field { margin-bottom: 14px; }
         .o2-field label {
             display: block;
-            font-size: 12px; font-weight: 600;
+            font-size: var(--font-size-sm, 12px); font-weight: 600;
             color: var(--text-muted, #6b7280);
             margin-bottom: 5px;
         }
         .o2-field input[type=text], .o2-field input[type=number], .o2-field select {
-            width: 100%; font: inherit; font-size: 14px;
+            width: 100%; font: inherit; font-size: var(--font-size-lg, 14px);
             padding: 8px 10px;
             border: 1px solid var(--border, #e5e7eb);
             border-radius: 8px;
@@ -739,7 +739,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             outline: none; border-color: var(--cmdb-accent, #be185d);
         }
         .o2-field small { display: block; font-size: 11.5px; color: var(--text-dim, #9ca3af); margin-top: 5px; }
-        .o2-check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text, #111827); }
+        .o2-check { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-lg, 14px); color: var(--text, #111827); }
         .o2-check input { width: auto; }
         .o2-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
@@ -761,14 +761,14 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             background: var(--cmdb-accent, #be185d);
             color: var(--cmdb-on-accent, #fff);
             border-radius: 14px 14px 0 0;
-            font-size: 14px; font-weight: 650;
+            font-size: var(--font-size-lg, 14px); font-weight: 650;
             cursor: move; user-select: none;
             display: flex; justify-content: space-between; align-items: center;
         }
         .o2-float-close {
             background: none; border: none; cursor: pointer;
             color: var(--cmdb-on-accent, #fff);
-            font-size: 20px; line-height: 1; padding: 0; opacity: 0.85;
+            font-size: var(--font-size-3xl, 20px); line-height: 1; padding: 0; opacity: 0.85;
         }
         .o2-float-close:hover { opacity: 1; }
         .o2-float-body { padding: 16px 20px 4px; overflow-y: auto; max-height: calc(100vh - 240px); }
@@ -785,11 +785,11 @@ if ($showDomains) $translationNamespaces[] = 'domains';
 
         /* GH #199 Part B: the From discovery card. */
         .o2-disc { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px 16px; margin-top: 6px; }
-        .o2-disc span { display: block; font-size: 11px; color: var(--text-dim, #9ca3af); }
-        .o2-disc b { font-weight: 600; font-size: 13px; color: var(--text, #111827); }
+        .o2-disc span { display: block; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); }
+        .o2-disc b { font-weight: 600; font-size: var(--font-size-md, 13px); color: var(--text, #111827); }
 
         /* GH #199 Part C: impact grades and the limits of the analysis. */
-        .o2-grade { display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 99px; font-size: 11px; font-weight: 650; }
+        .o2-grade { display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 99px; font-size: var(--font-size-xs, 11px); font-weight: 650; }
         .o2-grade.g-affected { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #b91c1c); }
         .o2-grade.g-may_be_interrupted { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #a16207); }
         .o2-grade.g-redundancy_reduced { background: var(--info-bg, #e0f2fe); color: var(--info-text, #0369a1); }

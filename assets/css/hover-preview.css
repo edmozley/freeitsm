@@ -13,7 +13,7 @@
     border: 1px solid var(--border, #e0e0e0);
     border-radius: 6px;
     box-shadow: 0 6px 20px var(--shadow, rgba(0, 0, 0, 0.1));
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.4;
     /* Read-only: the pointer passes through to the list underneath. */
     pointer-events: none;
@@ -22,7 +22,7 @@
 
 .hover-preview-title {
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     /* A name with no spaces in it still wraps rather than widening the card. */
     overflow-wrap: anywhere;
 }
@@ -45,7 +45,7 @@
     margin: 10px 0 0;
     padding-top: 8px;
     border-top: 1px solid var(--border-soft, #eee);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 .hover-preview-facts dt { color: var(--text-dim, #888); }
 .hover-preview-facts dd { margin: 0; overflow-wrap: anywhere; }

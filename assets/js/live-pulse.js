@@ -145,13 +145,13 @@
         chip.className = 'live-pulse-chip';
         chip.setAttribute('role', 'status');
         chip.style.cssText = 'display:flex;align-items:center;gap:10px;margin:6px 0 8px;padding:6px 12px;border-radius:999px;'
-            + 'background:rgba(37,99,235,.10);color:var(--text,#1e293b);font-size:13px;width:fit-content;max-width:100%;';
+            + 'background:rgba(37,99,235,.10);color:var(--text,#1e293b);font-size:var(--font-size-md, 13px);width:fit-content;max-width:100%;';
         const msg = document.createElement('span');
         msg.textContent = T('common.live.updated', 'Updated by someone else just now.');
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'btn btn-primary';
-        btn.style.cssText = 'padding:3px 12px;font-size:12px;';
+        btn.style.cssText = 'padding:3px 12px;font-size:var(--font-size-sm, 12px);';
         btn.textContent = T('common.live.refresh', 'Refresh');
         btn.onclick = () => { chip.remove(); onRefresh(); };
         chip.append(msg, btn);

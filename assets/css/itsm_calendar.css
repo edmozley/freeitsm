@@ -28,7 +28,7 @@
 }
 
 .calendar-sidebar .sidebar-section h3 {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin: 0 0 12px 0;
@@ -74,7 +74,7 @@
 }
 
 .category-filter-name {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     flex-grow: 1;
 }
@@ -108,7 +108,7 @@
 }
 
 .calendar-title {
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     font-weight: 600;
     color: var(--text, #333);
     margin: 0 0 0 10px;
@@ -147,7 +147,7 @@
     padding: 8px 16px;
     border: none;
     background: var(--surface, #fff);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     color: var(--text-muted, #666);
     cursor: pointer;
@@ -190,7 +190,7 @@
 .month-header-cell {
     padding: 10px;
     text-align: center;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #666);
     text-transform: uppercase;
@@ -250,7 +250,7 @@
 }
 
 .day-number {
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     color: var(--text, #333);
     padding: 4px;
@@ -266,7 +266,7 @@
 }
 
 .event-pill {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     padding: 2px 6px;
     border-radius: 3px;
     color: #fff;
@@ -312,7 +312,7 @@
 }
 
 .more-events {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-muted, #666);
     padding: 2px 6px;
     cursor: pointer;
@@ -336,14 +336,14 @@
 }
 
 .week-day-name {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     color: var(--text-muted, #666);
     text-transform: uppercase;
 }
 
 .week-day-number {
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     font-weight: 600;
     color: var(--text, #333);
     margin-top: 4px;
@@ -379,7 +379,7 @@
     right: 2px;
     padding: 4px 6px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: #fff;
     overflow: hidden;
     cursor: pointer;
@@ -422,7 +422,7 @@
 }
 
 .day-header-weekday {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text-muted, #666);
     margin-top: 4px;
 }
@@ -439,7 +439,7 @@
     right: 4px;
     padding: 8px 10px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: #fff;
     overflow: hidden;
     cursor: pointer;
@@ -456,12 +456,12 @@
 }
 
 .day-event-time {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     opacity: 0.9;
 }
 
 .day-event-location {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     opacity: 0.8;
     margin-top: 4px;
 }
@@ -478,7 +478,7 @@
 }
 
 .all-day-label {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-muted, #666);
     padding: 4px 8px;
 }
@@ -486,7 +486,7 @@
 .all-day-event {
     padding: 4px 10px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: #fff;
     cursor: pointer;
 }
@@ -515,7 +515,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text, #333);
     cursor: pointer;
 }
@@ -541,7 +541,7 @@
 
 .btn-sm {
     padding: 6px 12px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 
 /* Subscribe-to-calendar ("Add to your phone") — sidebar teaser + modal */
@@ -572,7 +572,7 @@
 }
 
 .event-popup-category {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 500;
     padding: 3px 8px;
     border-radius: 3px;
@@ -582,7 +582,7 @@
 .event-popup-close {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     color: var(--text-faint, #999);
     cursor: pointer;
     line-height: 1;
@@ -595,7 +595,7 @@
 .event-popup-title {
     margin: 0;
     padding: 15px 15px 10px;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     font-weight: 600;
     color: var(--text, #333);
 }
@@ -604,13 +604,13 @@
 .event-popup-location,
 .event-popup-description {
     padding: 0 15px 10px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #666);
 }
 
 .event-popup-description {
     color: var(--text-dim, #888);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     max-height: 60px;
     overflow: hidden;
 }

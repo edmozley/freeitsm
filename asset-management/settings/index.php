@@ -147,33 +147,33 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .settings-section-header svg { color: #107c10; flex-shrink: 0; }
-        .settings-section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
+        .settings-section-header h2 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
         .settings-section-body { padding: 25px; }
-        .settings-description { font-size: 13px; color: var(--text-muted, #666); margin: 0 0 20px 0; line-height: 1.5; }
+        .settings-description { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin: 0 0 20px 0; line-height: 1.5; }
 
         .form-group { margin-bottom: 18px; }
         .form-group:last-child { margin-bottom: 0; }
-        .form-label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
+        .form-label { display: block; margin-bottom: 6px; font-weight: 500; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
 
         .form-input {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             box-sizing: border-box;
             transition: border-color 0.15s, box-shadow 0.15s;
         }
 
         .form-input:focus { outline: none; border-color: #107c10; box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.1); }
-        .form-hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; }
+        .form-hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 4px; }
 
         .form-actions {
             display: flex; align-items: center; gap: 12px;
             margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border-soft, #eee);
         }
 
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.15s; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: var(--font-size-lg, 14px); font-weight: 500; transition: background-color 0.15s; }
         .btn-primary { background-color: #107c10; color: white; }
         .btn-primary:hover { background-color: #0b5c0b; }
         .btn-primary:disabled { background-color: #999; cursor: not-allowed; }
@@ -185,7 +185,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .password-wrapper { position: relative; }
         .password-wrapper .form-input { padding-right: 45px; }
-        .password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-dim, #888); font-size: 13px; padding: 4px; }
+        .password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); padding: 4px; }
         .password-toggle:hover { color: var(--text, #333); }
 
         .modal-content {
@@ -194,7 +194,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         .modal-header {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             margin-bottom: 20px;
             color: var(--text, #333);
@@ -218,7 +218,7 @@ $translationNamespaces = ['common', 'asset-management'];
             border-radius: 6px;
             background: var(--warning-bg, #fff8e6);
             color: var(--warning-text, #6b4e00);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             margin-bottom: 18px;
         }
         .cf-block {
@@ -230,9 +230,9 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .cf-block-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .cf-block-title { margin: 0 0 4px 0; font-size: 15px; font-weight: 600; color: var(--text, #333); }
-        .cf-block-intro { margin: 0 0 14px 0; font-size: 13px; color: var(--text-muted, #666); line-height: 1.5; }
+        .cf-block-intro { margin: 0 0 14px 0; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; }
         .cf-typebar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-        .cf-typebar label { font-size: 13px; color: var(--text-muted, #666); }
+        .cf-typebar label { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         .cf-typebar select { min-width: 220px; }
         .cf-typeactions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -247,13 +247,13 @@ $translationNamespaces = ['common', 'asset-management'];
             margin-bottom: 6px;
             background: var(--surface-2, #fafafa);
         }
-        .cf-row-name { font-weight: 600; color: var(--text, #333); font-size: 13px; }
-        .cf-row-kind { font-size: 12px; color: var(--text-muted, #666); }
-        .cf-row-from { margin-left: auto; font-size: 11px; color: var(--text-muted, #666); }
+        .cf-row-name { font-weight: 600; color: var(--text, #333); font-size: var(--font-size-md, 13px); }
+        .cf-row-kind { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
+        .cf-row-from { margin-left: auto; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); }
         .cf-req { color: var(--danger-text, #c0392b); margin-left: 3px; }
-        .cf-empty { color: var(--text-faint, #999); padding: 14px 12px; font-size: 13px; }
+        .cf-empty { color: var(--text-faint, #999); padding: 14px 12px; font-size: var(--font-size-md, 13px); }
         .cf-warn { color: var(--danger-text, #c0392b); }
-        .cf-scope { font-size: 11px; color: var(--text-muted, #666); }
+        .cf-scope { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); }
 
         /* Field/set pickers inside the modals. */
         .cf-picker {
@@ -262,15 +262,15 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .cf-pick {
             display: flex; align-items: center; gap: 8px;
-            padding: 7px 8px; border-radius: 4px; font-size: 13px; color: var(--text, #333);
+            padding: 7px 8px; border-radius: 4px; font-size: var(--font-size-md, 13px); color: var(--text, #333);
         }
         .cf-pick:hover { background: var(--surface-hover, #f0f0f0); }
         .cf-pick input[type="checkbox"] { flex-shrink: 0; }
-        .cf-pick-kind { color: var(--text-muted, #666); font-size: 12px; }
-        .cf-pick-req { margin-left: auto; font-size: 11px; color: var(--text-muted, #666); display: flex; align-items: center; gap: 4px; }
+        .cf-pick-kind { color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
+        .cf-pick-req { margin-left: auto; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); display: flex; align-items: center; gap: 4px; }
 
         /* ── Custom fields: the tree ───────────────────────────────── */
-        .cf-tree { font-size: 13px; }
+        .cf-tree { font-size: var(--font-size-md, 13px); }
         .cf-tree-node { padding: 2px 0; }
         .cf-tree-type {
             display: flex; align-items: baseline; gap: 8px;
@@ -290,24 +290,24 @@ $translationNamespaces = ['common', 'asset-management'];
         .cf-tree-set-name { color: var(--text, #333); font-weight: 600; }
         .cf-tree-field { padding-left: 44px; color: var(--text-muted, #666); }
         .cf-tree-field::before { left: 29px; }
-        .cf-tree-kind { color: var(--text-dim, #888); font-size: 12px; }
+        .cf-tree-kind { color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
         .cf-tree-req { color: var(--danger-text, #c0392b); }
-        .cf-tree-count { font-size: 11px; color: var(--text-dim, #888); font-weight: 400; }
+        .cf-tree-count { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); font-weight: 400; }
         /* A type with no custom fields, or a field in no set. Stated, not hidden. */
         .cf-tree-none { color: var(--text-faint, #999); font-style: italic; padding-left: 22px; }
         .cf-tree-warn { color: var(--warning-text, #6b4e00); }
         .cf-tree-section {
             margin-top: 16px; padding-top: 12px;
             border-top: 1px solid var(--border, #e0e0e0);
-            font-size: 11px; font-weight: 600; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; letter-spacing: 0.4px;
             text-transform: uppercase; color: var(--text-muted, #666);
         }
 
         /* ── Asset type layout (GH #200) ─────────────────────────────── */
         .atl-box { border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 12px 14px; }
-        .atl-intro { font-size: 13px; color: var(--text-muted, #666); margin: 0 0 10px; line-height: 1.5; }
-        .atl-sub { font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
-        .atl-note { font-size: 12px; color: var(--text-muted, #666); margin: 0 0 8px; }
+        .atl-intro { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin: 0 0 10px; line-height: 1.5; }
+        .atl-sub { font-size: var(--font-size-md, 13px); font-weight: 600; margin: 14px 0 6px; }
+        .atl-note { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 0 0 8px; }
         /* Scoped to the row: `.modal .form-group label` makes every label a block. */
         #itemLayoutRow .atl-opt { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; margin: 0; cursor: pointer; font-weight: normal; }
         #itemLayoutRow .atl-opt input { margin-top: 3px; flex-shrink: 0; }
@@ -315,15 +315,15 @@ $translationNamespaces = ['common', 'asset-management'];
         #itemExpectedRow .atl-opt { display: inline-flex; align-items: center; gap: 8px; width: 48%; padding: 4px 0; margin: 0; cursor: pointer; font-weight: normal; vertical-align: top; }
         #itemExpectedRow .atl-opt input { flex-shrink: 0; margin: 0; }
         #itemLayoutRow .atl-tab-opt { display: flex; margin: 0; }
-        .atl-opt-name { display: block; font-size: 14px; }
-        .atl-opt-desc { display: block; font-size: 12px; color: var(--text-muted, #666); }
+        .atl-opt-name { display: block; font-size: var(--font-size-lg, 14px); }
+        .atl-opt-desc { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .atl-tab-opt { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0; }
         #itemLayoutTabs .rl-list { max-width: none; }
 
         /* ── Asset type icon picker ────────────────────────────────── */
         .ic-picked { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .ic-preview { display: inline-flex; width: 24px; height: 24px; color: var(--accent, #0078d4); }
-        .ic-name { font-size: 13px; color: var(--text-muted, #666); flex: 1; }
+        .ic-name { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); flex: 1; }
         .ic-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
             gap: 4px; max-height: 190px; overflow-y: auto;
@@ -350,13 +350,13 @@ $translationNamespaces = ['common', 'asset-management'];
             margin-top: 12px; padding: 10px 12px; border-radius: 6px;
             background: var(--surface-2, #fafafa);
             border: 1px solid var(--border-soft, #eee);
-            font-size: 13px; color: var(--text, #333);
+            font-size: var(--font-size-md, 13px); color: var(--text, #333);
         }
         .imp-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 16px; }
         .imp-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .imp-hint { font-size: 12px; color: var(--text-dim, #888); }
+        .imp-hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .imp-badge {
-            font-size: 12px; padding: 2px 9px; border-radius: 999px;
+            font-size: var(--font-size-sm, 12px); padding: 2px 9px; border-radius: 999px;
             background: var(--surface-3, #f8f9fa); border: 1px solid var(--border, #e0e0e0);
             color: var(--text-muted, #666);
         }
@@ -369,7 +369,7 @@ $translationNamespaces = ['common', 'asset-management'];
            word carries it for anybody who cannot see the colour. */
         .imp-act {
             display: inline-block; min-width: 76px; text-align: center;
-            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase;
             letter-spacing: 0.3px; padding: 2px 8px; border-radius: 4px;
         }
         .imp-act-create    { background: var(--success-bg, #e6f4ea); color: var(--success-text, #1e7e34); }
@@ -385,7 +385,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .imp-tally { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
         .imp-tally span {
-            font-size: 12px; padding: 4px 10px; border-radius: 6px;
+            font-size: var(--font-size-sm, 12px); padding: 4px 10px; border-radius: 6px;
             background: var(--surface-2, #fafafa); border: 1px solid var(--border-soft, #eee);
             color: var(--text, #333);
         }
@@ -393,14 +393,14 @@ $translationNamespaces = ['common', 'asset-management'];
         .imp-row {
             display: flex; align-items: flex-start; gap: 10px;
             padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .imp-row-main { flex: 1; min-width: 0; }
         .imp-row-name { font-weight: 600; color: var(--text, #333); }
-        .imp-row-detail { color: var(--text-muted, #666); font-size: 12px; margin-top: 2px; word-break: break-word; }
+        .imp-row-detail { color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); margin-top: 2px; word-break: break-word; }
         .imp-row-raw {
             margin-top: 4px; font-family: ui-monospace, Consolas, monospace;
-            font-size: 11px; color: var(--text-dim, #888); word-break: break-all;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); word-break: break-all;
         }
 
         /* ── Suppliers tab ─────────────────────────────────────────── */
@@ -415,24 +415,24 @@ $translationNamespaces = ['common', 'asset-management'];
         .ho-spacer { flex: 1 1 auto; }
         .ho-select {
             padding: 8px 10px; border: 1px solid var(--border, #d5dbe1); border-radius: 5px;
-            background: var(--surface, #fff); color: var(--text, #333); font-size: 14px; min-width: 220px;
+            background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-lg, 14px); min-width: 220px;
         }
         .ho-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
         .ho-field { display: block; margin-bottom: 14px; }
-        .ho-field-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted, #666); margin-bottom: 4px; }
+        .ho-field-label { display: block; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #666); margin-bottom: 4px; }
         .ho-field input[type=text], .ho-block textarea, .ho-block input[type=text] {
             width: 100%; box-sizing: border-box; padding: 8px 10px;
             border: 1px solid var(--border, #d5dbe1); border-radius: 5px;
             background: var(--surface, #fff); color: var(--text, #333);
-            font-size: 13px; font-family: inherit;
+            font-size: var(--font-size-md, 13px); font-family: inherit;
         }
         .ho-block textarea { resize: vertical; min-height: 62px; }
         .ho-merge { border: 1px solid var(--border, #e0e0e0); border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; }
-        .ho-merge-title { font-size: 12px; font-weight: 700; color: var(--text, #333); }
-        .ho-merge-hint { font-size: 12px; color: var(--text-muted, #666); margin: 2px 0 8px; }
+        .ho-merge-title { font-size: var(--font-size-sm, 12px); font-weight: 700; color: var(--text, #333); }
+        .ho-merge-hint { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 2px 0 8px; }
         .ho-merge-codes { display: flex; flex-wrap: wrap; gap: 6px; }
         .ho-code {
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--font-size-xs, 11px);
             padding: 3px 7px; border-radius: 4px; cursor: pointer;
             border: 1px solid var(--border, #d5dbe1); background: var(--surface-hover, #f4f6f8); color: var(--text, #333);
         }
@@ -443,20 +443,20 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .ho-block.disabled { opacity: 0.55; }
         .ho-block-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
-        .ho-block-name { font-weight: 600; font-size: 13px; flex: 1 1 auto; color: var(--text, #333); }
+        .ho-block-name { font-weight: 600; font-size: var(--font-size-md, 13px); flex: 1 1 auto; color: var(--text, #333); }
         .ho-mini {
             border: 1px solid var(--border, #d5dbe1); background: var(--surface, #fff);
             color: var(--text-muted, #666); border-radius: 4px; cursor: pointer;
-            width: 26px; height: 26px; line-height: 1; font-size: 13px;
+            width: 26px; height: 26px; line-height: 1; font-size: var(--font-size-md, 13px);
         }
         .ho-mini:hover:not(:disabled) { color: var(--accent, #0078d4); border-color: var(--accent, #0078d4); }
         .ho-mini:disabled { opacity: 0.35; cursor: default; }
         .ho-block-body { padding: 0 10px 10px; display: grid; gap: 8px; }
         .ho-cols { display: flex; flex-wrap: wrap; gap: 10px; }
-        .ho-col-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text, #333); }
+        .ho-col-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: var(--font-size-sm, 12px); color: var(--text, #333); }
         .ho-preview-wrap { position: sticky; top: 12px; }
         .ho-preview-head {
-            font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-sm, 12px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
             color: var(--text-muted, #666); margin-bottom: 6px;
         }
         /* The preview is a real document, so it keeps the document's own light
@@ -480,24 +480,24 @@ $translationNamespaces = ['common', 'asset-management'];
         /* Review (GH #200 part D). */
         .rv-item { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) auto; gap: 8px 16px; align-items: center;
                    padding: 12px 14px; border: 1px solid var(--border, #ddd); border-radius: 8px; margin-bottom: 10px; background: var(--surface, #fff); }
-        .rv-what { font-size: 13px; color: var(--text, #333); }
-        .rv-kind { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); margin-right: 4px; }
-        .rv-meta { display: block; font-size: 12px; color: var(--text-dim, #888); margin-top: 2px; }
+        .rv-what { font-size: var(--font-size-md, 13px); color: var(--text, #333); }
+        .rv-kind { display: inline-block; font-size: var(--font-size-xs, 11px); padding: 1px 8px; border-radius: 10px; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); margin-right: 4px; }
+        .rv-meta { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 2px; }
         .rv-assets a { font-weight: 600; color: var(--accent, #0078d4); text-decoration: none; }
         .rv-assets > div + div { margin-top: 6px; }
         .rv-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-        .rv-status { font-size: 12px; color: var(--text-muted, #666); }
+        .rv-status { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .rv-empty { padding: 24px; color: var(--text-dim, #888); }
         .merge-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
-        .merge-card { display: flex; flex-direction: column; gap: 3px; padding: 12px; border: 2px solid var(--border, #ddd); border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .merge-card { display: flex; flex-direction: column; gap: 3px; padding: 12px; border: 2px solid var(--border, #ddd); border-radius: 8px; cursor: pointer; font-size: var(--font-size-md, 13px); }
         .merge-card:has(input:checked) { border-color: var(--accent, #0078d4); }
         .merge-card input { align-self: flex-start; margin: 0 0 4px; }
         .merge-ci:empty { display: none; }
-        .merge-ci { margin: 4px 0 12px; padding: 12px; border: 1px solid var(--border, #ddd); border-radius: 8px; font-size: 13px; }
+        .merge-ci { margin: 4px 0 12px; padding: 12px; border: 1px solid var(--border, #ddd); border-radius: 8px; font-size: var(--font-size-md, 13px); }
         .merge-ci-title { font-weight: 600; margin-bottom: 6px; }
         .merge-ci label { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; cursor: pointer; }
         .merge-ci .merge-ci-ack { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border, #ddd); }
-        .merge-card em { font-style: normal; font-size: 12px; color: var(--accent, #0078d4); margin-top: 4px; visibility: hidden; }
+        .merge-card em { font-style: normal; font-size: var(--font-size-sm, 12px); color: var(--accent, #0078d4); margin-top: 4px; visibility: hidden; }
         .merge-card:has(input:checked) em { visibility: visible; }
         @media (max-width: 768px) {
             .rv-item { grid-template-columns: 1fr; }
@@ -531,14 +531,14 @@ $translationNamespaces = ['common', 'asset-management'];
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="assetsSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('asset-management.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="assetsSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('asset-management.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>
@@ -1152,11 +1152,11 @@ $translationNamespaces = ['common', 'asset-management'];
                         </div>
 
                         <div class="card" style="background:var(--surface-2, #f3f6fa); border:1px solid var(--border, #e2e6ea); border-radius:8px; padding:14px 16px; margin:16px 0;">
-                            <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted, #667); margin-bottom:4px;">
+                            <div style="font-size:var(--font-size-sm, 12px); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted, #667); margin-bottom:4px;">
                                 <?php echo htmlspecialchars(t('asset-management.settings.asset_tags_preview_label')); ?>
                             </div>
-                            <div style="font-size:16px; font-family:monospace; font-weight:700; color:var(--accent, #0056b3);" id="tagFormatPreview">AST-00001</div>
-                            <ul id="tagProblems" style="margin:8px 0 0; padding-left:18px; color:var(--danger, #c0392b); font-size:13px;" hidden></ul>
+                            <div style="font-size:var(--font-size-xl, 16px); font-family:monospace; font-weight:700; color:var(--accent, #0056b3);" id="tagFormatPreview">AST-00001</div>
+                            <ul id="tagProblems" style="margin:8px 0 0; padding-left:18px; color:var(--danger, #c0392b); font-size:var(--font-size-md, 13px);" hidden></ul>
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="tagSaveBtn"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
@@ -1265,7 +1265,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                 
                                 <!-- QR Logo Section directly in Left Column -->
                                 <div style="border-top: 1px solid var(--border, #e2e6ea); padding-top: 16px;">
-                                    <h3 style="font-size:14px; font-weight:600; margin:0 0 10px 0;"><?php echo htmlspecialchars(t('asset-management.settings.asset_label_logo_heading')); ?></h3>
+                                    <h3 style="font-size:var(--font-size-lg, 14px); font-weight:600; margin:0 0 10px 0;"><?php echo htmlspecialchars(t('asset-management.settings.asset_label_logo_heading')); ?></h3>
                                     <div class="form-group">
                                         <label class="form-label" style="display:flex; align-items:center; gap:10px;">
                                             <label class="toggle-switch">
@@ -1286,7 +1286,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                                 <?php echo htmlspecialchars(t('asset-management.settings.asset_label_logo_remove_btn')); ?>
                                             </button>
                                         </div>
-                                        <div id="lblLogoStatusText" style="font-size:12px; color:var(--text-muted, #778);"></div>
+                                        <div id="lblLogoStatusText" style="font-size:var(--font-size-sm, 12px); color:var(--text-muted, #778);"></div>
                                         <div class="form-hint" style="width:100%; margin-top:6px;"><?php echo htmlspecialchars(t('asset-management.settings.asset_label_logo_restrictions_hint', 'Logo format: PNG or JPG only, max 2 MB. Square, bold, or high-contrast logos work best. Scaled to 22% in the center of the QR code with Error Correction Level H (30% redundancy) to ensure reliable scanning.')); ?></div>
                                     </div>
                                 </div>
@@ -1304,7 +1304,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                                 <input type="checkbox" id="lblShowFieldLabels" onchange="updateLabelLivePreview()">
                                                 <span class="toggle-slider"></span>
                                             </label>
-                                            <span style="font-size:13px;"><?php echo htmlspecialchars(t('asset-management.settings.asset_label_show_labels_label', 'Include field labels on printed tag')); ?></span>
+                                            <span style="font-size:var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('asset-management.settings.asset_label_show_labels_label', 'Include field labels on printed tag')); ?></span>
                                         </label>
                                         <div class="form-hint" style="margin-left: 48px;"><?php echo htmlspecialchars(t('asset-management.settings.asset_label_show_labels_hint', 'When enabled, prints field names before values (e.g. "Hostname: LON-01"). When disabled, prints only values for maximum space efficiency.')); ?></div>
                                     </div>
@@ -1321,10 +1321,10 @@ $translationNamespaces = ['common', 'asset-management'];
                         <!-- Live Physical Label Preview Card -->
                         <div class="card" style="background:var(--surface-2, #f3f6fa); border:1px solid var(--border, #e2e6ea); border-radius:8px; padding:16px; margin:20px 0;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-                                <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted, #667);">
+                                <div style="font-size:var(--font-size-sm, 12px); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted, #667);">
                                     <?php echo htmlspecialchars(t('asset-management.settings.asset_label_preview_heading', 'Live physical label previews (100% physical scale — all 4 sheet sizes)')); ?>
                                 </div>
-                                <div style="font-size:11px; color:var(--text-muted, #778); font-style:italic;">
+                                <div style="font-size:var(--font-size-xs, 11px); color:var(--text-muted, #778); font-style:italic;">
                                     Shown at actual 1:1 physical print dimensions (mm). Verify that your selected fields fit comfortably without excessive truncation.
                                 </div>
                             </div>
@@ -1332,7 +1332,7 @@ $translationNamespaces = ['common', 'asset-management'];
                             <div style="display:flex; gap:20px; align-items:flex-start; overflow-x:auto; padding:12px 6px 18px 6px;">
                                 <!-- 65 per sheet: 38.1 x 21.2 mm -->
                                 <div style="flex:0 0 auto;">
-                                    <div style="font-size:11px; font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                                    <div style="font-size:var(--font-size-xs, 11px); font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                                         <span>65 per sheet</span>
                                         <span style="font-size:10px; color:#889; font-weight:normal;">(38.1 × 21.2 mm)</span>
                                     </div>
@@ -1351,7 +1351,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
                                 <!-- 40 per sheet: 45.7 x 25.4 mm (Standard) -->
                                 <div style="flex:0 0 auto;">
-                                    <div style="font-size:11px; font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                                    <div style="font-size:var(--font-size-xs, 11px); font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                                         <span>40 per sheet</span>
                                         <span style="font-size:10px; color:#889; font-weight:normal;">(45.7 × 25.4 mm)</span>
                                         <span style="font-size:9px; background:#e8f5e9; color:#2e7d32; padding:1px 4px; border-radius:3px;">Standard</span>
@@ -1371,7 +1371,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
                                 <!-- 24 per sheet: 63.5 x 33.9 mm -->
                                 <div style="flex:0 0 auto;">
-                                    <div style="font-size:11px; font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                                    <div style="font-size:var(--font-size-xs, 11px); font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                                         <span>24 per sheet</span>
                                         <span style="font-size:10px; color:#889; font-weight:normal;">(63.5 × 33.9 mm)</span>
                                     </div>
@@ -1390,7 +1390,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
                                 <!-- 12 per sheet: 63.5 x 72.0 mm -->
                                 <div style="flex:0 0 auto;">
-                                    <div style="font-size:11px; font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                                    <div style="font-size:var(--font-size-xs, 11px); font-weight:600; color:#556; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                                         <span>12 per sheet</span>
                                         <span style="font-size:10px; color:#889; font-weight:normal;">(63.5 × 72.0 mm)</span>
                                     </div>
@@ -1435,7 +1435,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     <form id="reconciliationForm" onsubmit="saveReconciliationSettings(event); return false;">
                         <div class="form-group">
                             <label class="form-label" for="reconIgnoredSerials"><?php echo htmlspecialchars(t('asset-management.settings.ignored_serials_label')); ?></label>
-                            <textarea class="form-input" id="reconIgnoredSerials" rows="6" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.ignored_serials_placeholder')); ?>" style="font-family: monospace; font-size: 12px;"></textarea>
+                            <textarea class="form-input" id="reconIgnoredSerials" rows="6" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.ignored_serials_placeholder')); ?>" style="font-family: monospace; font-size: var(--font-size-sm, 12px);"></textarea>
                             <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.ignored_serials_hint')); ?></div>
                         </div>
                         <?php /* GH #200 part D. A setting because teams differ: most want a correction to
@@ -1579,7 +1579,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <label><input type="checkbox" id="proxmoxActive" checked> <?php echo htmlspecialchars(t('asset-management.proxmox.field_active')); ?></label>
                             </div>
                         </div>
-                        <p style="color:var(--text-muted, #666); font-size:12px; margin-top:10px;"><?php echo htmlspecialchars(t('asset-management.proxmox.perm_help')); ?></p>
+                        <p style="color:var(--text-muted, #666); font-size:var(--font-size-sm, 12px); margin-top:10px;"><?php echo htmlspecialchars(t('asset-management.proxmox.perm_help')); ?></p>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -1623,7 +1623,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 <div style="display:flex; gap:8px; align-items:center;"><code id="hvKey" style="word-break:break-all;"></code>
                     <button type="button" class="btn btn-outline btn-sm" onclick="hvCopy('hvKey')"><?php echo htmlspecialchars(t('asset-management.hyperv.key_copy')); ?></button></div>
                 <h4 style="margin:16px 0 6px;"><?php echo htmlspecialchars(t('asset-management.hyperv.command_title')); ?></h4>
-                <pre id="hvCommand" style="white-space:pre-wrap; word-break:break-all; padding:10px; background:var(--surface-hover, #f3f4f6); border-radius:6px; font-size:12px;"></pre>
+                <pre id="hvCommand" style="white-space:pre-wrap; word-break:break-all; padding:10px; background:var(--surface-hover, #f3f4f6); border-radius:6px; font-size:var(--font-size-sm, 12px);"></pre>
                 <button type="button" class="btn btn-outline btn-sm" onclick="hvCopy('hvCommand')"><?php echo htmlspecialchars(t('asset-management.hyperv.key_copy')); ?></button>
                 <p class="form-hint"><?php echo htmlspecialchars(t('asset-management.hyperv.command_hint')); ?></p>
             </div>
@@ -1639,13 +1639,13 @@ $translationNamespaces = ['common', 'asset-management'];
 
             <div class="settings-section" style="margin-top:16px;">
                 <h3 style="margin-top:0;"><?php echo htmlspecialchars(t('asset-management.hyperv.setup_title')); ?></h3>
-                <ul style="margin:0; padding-left:20px; line-height:1.6; color:var(--text-muted, #555); font-size:13px;">
+                <ul style="margin:0; padding-left:20px; line-height:1.6; color:var(--text-muted, #555); font-size:var(--font-size-md, 13px);">
                     <li><?php echo htmlspecialchars(t('asset-management.hyperv.setup_ps')); ?></li>
                     <li><?php echo htmlspecialchars(t('asset-management.hyperv.setup_modules')); ?></li>
                     <li><?php echo htmlspecialchars(t('asset-management.hyperv.setup_cluster')); ?></li>
                     <li><?php echo htmlspecialchars(t('asset-management.hyperv.setup_hosts')); ?></li>
                 </ul>
-                <p style="font-size:13px;"><a href="https://github.com/edmozley/freeitsm/wiki/Hyper-V-Discovery" target="_blank" rel="noopener"><?php echo htmlspecialchars(t('asset-management.hyperv.setup_more')); ?></a></p>
+                <p style="font-size:var(--font-size-md, 13px);"><a href="https://github.com/edmozley/freeitsm/wiki/Hyper-V-Discovery" target="_blank" rel="noopener"><?php echo htmlspecialchars(t('asset-management.hyperv.setup_more')); ?></a></p>
             </div>
         </div>
 
@@ -1797,7 +1797,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <label><input type="checkbox" id="vcloudActive" checked> <?php echo htmlspecialchars(t('asset-management.vcloud.field_active')); ?></label>
                             </div>
                         </div>
-                        <p style="color:var(--text-muted, #666); font-size:12px; margin-top:10px;"><?php echo htmlspecialchars(t('asset-management.vcloud.perm_help')); ?></p>
+                        <p style="color:var(--text-muted, #666); font-size:var(--font-size-sm, 12px); margin-top:10px;"><?php echo htmlspecialchars(t('asset-management.vcloud.perm_help')); ?></p>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -2259,12 +2259,12 @@ $translationNamespaces = ['common', 'asset-management'];
                 const labelName = availableLabelFieldsMap[fk] || fk;
                 const row = document.createElement('div');
                 row.className = 'lbl-field-item';
-                row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--surface,#fff); border:1px solid var(--border,#d5dbe1); border-radius:4px; padding:6px 10px; font-size:13px;';
+                row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--surface,#fff); border:1px solid var(--border,#d5dbe1); border-radius:4px; padding:6px 10px; font-size:var(--font-size-md, 13px);';
 
                 const left = document.createElement('div');
                 left.style.cssText = 'display:flex; align-items:center; gap:8px;';
-                const dragIcon = '<span style="color:var(--text-muted,#889); font-size:12px;">☰</span>';
-                left.innerHTML = dragIcon + '<strong>' + escapeHtml(labelName) + '</strong>' + (fk === 'asset_tag' ? ' <span style="font-size:11px; color:#2e7d32; background:#e8f5e9; padding:1px 5px; border-radius:3px; font-weight:normal;">Required</span>' : '');
+                const dragIcon = '<span style="color:var(--text-muted,#889); font-size:var(--font-size-sm, 12px);">☰</span>';
+                left.innerHTML = dragIcon + '<strong>' + escapeHtml(labelName) + '</strong>' + (fk === 'asset_tag' ? ' <span style="font-size:var(--font-size-xs, 11px); color:#2e7d32; background:#e8f5e9; padding:1px 5px; border-radius:3px; font-weight:normal;">Required</span>' : '');
 
                 const actions = document.createElement('div');
                 actions.style.cssText = 'display:flex; align-items:center; gap:4px;';
@@ -2272,7 +2272,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 const upBtn = document.createElement('button');
                 upBtn.type = 'button';
                 upBtn.className = 'btn btn-secondary';
-                upBtn.style.cssText = 'padding:2px 6px; font-size:11px;';
+                upBtn.style.cssText = 'padding:2px 6px; font-size:var(--font-size-xs, 11px);';
                 upBtn.textContent = '↑';
                 upBtn.disabled = (idx === 0);
                 upBtn.onclick = () => moveSelectedLabelField(idx, -1);
@@ -2280,7 +2280,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 const dnBtn = document.createElement('button');
                 dnBtn.type = 'button';
                 dnBtn.className = 'btn btn-secondary';
-                dnBtn.style.cssText = 'padding:2px 6px; font-size:11px;';
+                dnBtn.style.cssText = 'padding:2px 6px; font-size:var(--font-size-xs, 11px);';
                 dnBtn.textContent = '↓';
                 dnBtn.disabled = (idx === selectedLabelFields.length - 1);
                 dnBtn.onclick = () => moveSelectedLabelField(idx, 1);
@@ -2292,7 +2292,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     const delBtn = document.createElement('button');
                     delBtn.type = 'button';
                     delBtn.className = 'btn btn-secondary delete';
-                    delBtn.style.cssText = 'padding:2px 6px; font-size:11px; margin-left:4px;';
+                    delBtn.style.cssText = 'padding:2px 6px; font-size:var(--font-size-xs, 11px); margin-left:4px;';
                     delBtn.textContent = '✕';
                     delBtn.onclick = () => removeSelectedLabelField(idx);
                     actions.appendChild(delBtn);
@@ -2711,7 +2711,7 @@ $translationNamespaces = ['common', 'asset-management'];
         // defaults it inherits, each with a Hide/Show toggle.
         function renderItemsScoped(type, tbody, scoped) {
             const groupRow = (label, hint) =>
-                `<tr><td colspan="5" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:12px;font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
+                `<tr><td colspan="5" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:var(--font-size-sm, 12px);font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
 
             let html = '';
             html += groupRow(`${scoped.company.name}’s own`);
@@ -3198,7 +3198,7 @@ $translationNamespaces = ['common', 'asset-management'];
             }
             tbody.innerHTML = rows.map(s => {
                 const alt = (s.trading_name && s.legal_name && s.trading_name !== s.legal_name)
-                    ? ` <span style="color:#999;font-size:12px;">(${escapeHtml(s.legal_name)})</span>` : '';
+                    ? ` <span style="color:#999;font-size:var(--font-size-sm, 12px);">(${escapeHtml(s.legal_name)})</span>` : '';
                 const inactive = !s.is_active ? ` <span class="status-badge status-inactive">${window.t('asset-management.status.inactive')}</span>` : '';
                 return `
                     <tr>

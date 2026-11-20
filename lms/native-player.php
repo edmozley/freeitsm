@@ -57,7 +57,7 @@ $translationNamespaces = ['common', 'lms'];
                     <div class="lms-native-progress-fill" id="progressFill"></div>
                 </div>
                 <span class="lms-native-step" id="stepLabel"></span>
-                <a href="<?php echo htmlspecialchars($backHref ?? './'); ?>" class="btn btn-secondary" style="font-size: 12px; padding: 5px 12px;"><?php echo htmlspecialchars($backLabel ?? t('lms.player.back')); ?></a>
+                <a href="<?php echo htmlspecialchars($backHref ?? './'); ?>" class="btn btn-secondary" style="font-size: var(--font-size-sm, 12px); padding: 5px 12px;"><?php echo htmlspecialchars($backLabel ?? t('lms.player.back')); ?></a>
             </div>
         </div>
 

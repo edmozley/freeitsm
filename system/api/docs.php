@@ -67,13 +67,13 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
 
         /* ---- Left: search + navigation tree -------------------------------- */
         .nav-search { padding: 12px; border-bottom: 1px solid var(--border-soft, #eef1f3); }
-        .nav-search input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .nav-search input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .nav-search input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
         .nav-tree { flex: 1; overflow-y: auto; padding: 8px 0 30px; }
-        .nav-home { display: block; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--text, #37474f); text-decoration: none; }
+        .nav-home { display: block; padding: 8px 14px; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #37474f); text-decoration: none; }
         .nav-home:hover, .nav-home.active { background: var(--surface-hover, #eef3f6); color: #1565c0; }
         .nav-section { margin-top: 2px; }
-        .nav-section-head { display: flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: var(--sys-accent, #546e7a); text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer; user-select: none; }
+        .nav-section-head { display: flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: var(--font-size-sm, 12px); font-weight: 700; color: var(--sys-accent, #546e7a); text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer; user-select: none; }
         .nav-section-head:hover { background: var(--surface-hover, #f7f9fa); }
         .nav-caret { transition: transform 0.12s; font-size: 10px; color: var(--text-dim, #90a4ae); }
         .nav-section.open .nav-caret { transform: rotate(90deg); }
@@ -92,16 +92,16 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
 
         /* ---- Middle: the endpoint document ---------------------------------- */
         .ep-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 4px; }
-        .ep-title .method { flex: none; padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #fff; font-family: Consolas, Monaco, monospace; }
+        .ep-title .method { flex: none; padding: 5px 12px; border-radius: 5px; font-size: var(--font-size-sm, 12px); font-weight: 700; color: #fff; font-family: Consolas, Monaco, monospace; }
         .method.GET { background: #2e7d32; } .method.POST { background: #1565c0; }
         .method.PATCH { background: #e65100; } .method.DELETE { background: #c62828; }
         .ep-title code { font-size: 17px; color: var(--text, #263238); font-family: Consolas, Monaco, monospace; font-weight: 600; }
         .ep-meta { display: flex; align-items: center; gap: 10px; margin: 8px 0 16px; flex-wrap: wrap; }
         .ep-perm { font-size: 11.5px; background: #e3f2fd; color: #1565c0; border-radius: 10px; padding: 3px 10px; }
-        .wiki-link { font-size: 12px; color: var(--sys-accent, #546e7a); text-decoration: none; }
+        .wiki-link { font-size: var(--font-size-sm, 12px); color: var(--sys-accent, #546e7a); text-decoration: none; }
         .wiki-link:hover { text-decoration: underline; }
         .ep-desc { font-size: 13.5px; color: var(--text, #444); line-height: 1.65; margin: 0 0 20px; max-width: 760px; }
-        .doc-h { font-size: 13px; font-weight: 700; color: var(--sys-accent, #546e7a); text-transform: uppercase; letter-spacing: 0.5px; margin: 24px 0 10px; }
+        .doc-h { font-size: var(--font-size-md, 13px); font-weight: 700; color: var(--sys-accent, #546e7a); text-transform: uppercase; letter-spacing: 0.5px; margin: 24px 0 10px; }
 
         .example-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
         .chip { padding: 6px 13px; border: 1px solid var(--border, #cfd8dc); border-radius: 16px; background: var(--surface, #fff); font-size: 12.5px; color: var(--text, #37474f); cursor: pointer; }
@@ -110,13 +110,13 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         .example-note { font-size: 12.5px; color: var(--text-dim, #777); line-height: 1.5; margin: 4px 0 0; min-height: 18px; max-width: 760px; }
 
         table.params { width: 100%; max-width: 860px; border-collapse: collapse; font-size: 12.5px; background: var(--surface, #fff); border: 1px solid var(--border, #e8ecef); border-radius: 8px; overflow: hidden; }
-        table.params th { text-align: left; color: var(--text-muted, #78909c); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 12px; border-bottom: 1px solid var(--border, #e8ecef); background: var(--surface-2, #fafbfc); }
+        table.params th { text-align: left; color: var(--text-muted, #78909c); font-weight: 600; font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 12px; border-bottom: 1px solid var(--border, #e8ecef); background: var(--surface-2, #fafbfc); }
         table.params td { padding: 8px 12px; border-bottom: 1px solid var(--border-soft, #f2f4f6); color: var(--text, #444); vertical-align: middle; }
         table.params tr:last-child td { border-bottom: none; }
-        table.params code { background: var(--surface-3, #f5f7fa); padding: 1px 6px; border-radius: 3px; font-size: 12px; }
+        table.params code { background: var(--surface-3, #f5f7fa); padding: 1px 6px; border-radius: 3px; font-size: var(--font-size-sm, 12px); }
         .param-req { color: var(--danger-text, #c62828); font-weight: 600; font-size: 10.5px; margin-left: 4px; }
-        .param-in { font-size: 11px; color: var(--text-dim, #90a4ae); }
-        .p-input { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--border, #dde3e7); border-radius: 4px; font-size: 12px; font-family: Consolas, Monaco, monospace; background: var(--surface, #fff); color: var(--text, #333); }
+        .param-in { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #90a4ae); }
+        .p-input { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--border, #dde3e7); border-radius: 4px; font-size: var(--font-size-sm, 12px); font-family: Consolas, Monaco, monospace; background: var(--surface, #fff); color: var(--text, #333); }
         .p-input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
         td.p-cell { width: 220px; }
         .body-editor { width: 100%; max-width: 860px; min-height: 140px; box-sizing: border-box; padding: 10px; border: 1px solid var(--border, #dde3e7); border-radius: 6px; font-size: 12.5px; font-family: Consolas, Monaco, monospace; resize: vertical; background: var(--surface, #fff); color: var(--text, #333); }
@@ -124,7 +124,7 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         .body-invalid { border-color: var(--danger-accent, #c62828) !important; }
 
         table.errors { width: 100%; max-width: 860px; border-collapse: collapse; font-size: 12.5px; background: var(--surface, #fff); border: 1px solid var(--border, #e8ecef); border-radius: 8px; overflow: hidden; }
-        table.errors th { text-align: left; color: var(--text-muted, #78909c); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 12px; border-bottom: 1px solid var(--border, #e8ecef); background: var(--surface-2, #fafbfc); }
+        table.errors th { text-align: left; color: var(--text-muted, #78909c); font-weight: 600; font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 12px; border-bottom: 1px solid var(--border, #e8ecef); background: var(--surface-2, #fafbfc); }
         table.errors td { padding: 8px 12px; border-bottom: 1px solid var(--border-soft, #f2f4f6); color: var(--text, #444); vertical-align: top; }
         table.errors tr:last-child td { border-bottom: none; }
         .err-code { font-family: Consolas, Monaco, monospace; font-weight: 700; white-space: nowrap; }
@@ -136,18 +136,18 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         /* ---- Overview (landing) --------------------------------------------- */
         .ov-card { background: var(--surface, #fff); border: 1px solid var(--border, #e8ecef); border-radius: 8px; padding: 20px 24px; margin-bottom: 18px; max-width: 860px; }
         .ov-card h3 { margin: 0 0 8px; font-size: 15px; color: var(--text, #263238); }
-        .ov-card p, .ov-card li { font-size: 13px; color: var(--text-muted, #555); line-height: 1.65; }
-        .ov-card code { background: var(--surface-3, #f5f7fa); padding: 1px 6px; border-radius: 3px; font-size: 12px; }
+        .ov-card p, .ov-card li { font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); line-height: 1.65; }
+        .ov-card code { background: var(--surface-3, #f5f7fa); padding: 1px 6px; border-radius: 3px; font-size: var(--font-size-sm, 12px); }
         .ov-card a { color: #1565c0; }
 
         /* ---- Right: live code pane ------------------------------------------ */
         .code-key { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
-        .code-key input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #455a64; border-radius: 5px; background: #1e272c; color: #eceff1; font-size: 12px; font-family: Consolas, Monaco, monospace; }
+        .code-key input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #455a64; border-radius: 5px; background: #1e272c; color: #eceff1; font-size: var(--font-size-sm, 12px); font-family: Consolas, Monaco, monospace; }
         .code-key input::placeholder { color: #78909c; }
         .code-key input:focus { outline: none; border-color: #90a4ae; }
         .key-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #78909c; }
         .key-dot.ok { background: #66bb6a; } .key-dot.bad { background: #ef5350; }
-        .key-note { font-size: 11px; color: #90a4ae; margin: -8px 0 14px; }
+        .key-note { font-size: var(--font-size-xs, 11px); color: #90a4ae; margin: -8px 0 14px; }
         .key-note a { color: #90caf9; }
 
         .lang-tabs { display: flex; gap: 2px; flex-wrap: wrap; margin-bottom: 0; }
@@ -158,19 +158,19 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         .code-block pre { margin: 0; padding: 14px; font-size: 11.5px; line-height: 1.55; overflow-x: auto; color: #e3f2fd; font-family: Consolas, Monaco, monospace; white-space: pre; max-height: 440px; overflow-y: auto; }
         .code-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 0; }
         .code-label { font-size: 10.5px; font-weight: 700; color: #78909c; text-transform: uppercase; letter-spacing: 0.6px; }
-        .copy-btn { background: #37474f; color: #cfd8dc; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
+        .copy-btn { background: #37474f; color: #cfd8dc; border: none; border-radius: 4px; padding: 4px 10px; font-size: var(--font-size-xs, 11px); cursor: pointer; }
         .copy-btn:hover { background: #455a64; color: #fff; }
         .resp-block pre { max-height: 520px; }
         .resp-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px 0; }
-        .resp-status { font-size: 12px; font-weight: 700; }
+        .resp-status { font-size: var(--font-size-sm, 12px); font-weight: 700; }
         .resp-status.ok { color: #81c784; } .resp-status.err { color: #ef9a9a; }
-        .resp-note { font-size: 11px; color: #78909c; }
+        .resp-note { font-size: var(--font-size-xs, 11px); color: #78909c; }
         .send-btn { padding: 8px 24px; background: #1565c0; color: #fff; border: none; border-radius: 5px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
         .send-btn:hover { background: #0d47a1; }
         .send-btn:disabled { opacity: 0.55; cursor: wait; }
         .send-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-        .send-hint { font-size: 11px; color: #90a4ae; }
-        .resp-placeholder { padding: 14px; font-size: 12px; color: #78909c; line-height: 1.6; }
+        .send-hint { font-size: var(--font-size-xs, 11px); color: #90a4ae; }
+        .resp-placeholder { padding: 14px; font-size: var(--font-size-sm, 12px); color: #78909c; line-height: 1.6; }
 
         /* ---- Dark mode: pale washes + light-tuned link/status colours -------- */
         [data-theme-mode="dark"] .nav-home:hover,
@@ -356,7 +356,7 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         const wikiLinks = [...new Set(Object.values(WIKI))].map(w =>
             '<a href="' + WIKI_BASE + w + '" target="_blank" rel="noopener">' + esc(w.replace(/-/g, ' ')) + '</a>').join(' · ');
         document.getElementById('docsMain').innerHTML = `
-            <div class="ep-title"><code style="font-size:20px;">FreeITSM REST API v1</code></div>
+            <div class="ep-title"><code style="font-size:var(--font-size-3xl, 20px);">FreeITSM REST API v1</code></div>
             <p class="ep-desc">Pick an endpoint on the left (or press <code>/</code> to search). The middle pane documents it —
                fill in the parameter fields or click an example, and the right pane rewrites the code sample in your
                language and shows the live response from this install.</p>

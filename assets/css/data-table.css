@@ -48,7 +48,7 @@
     padding: 7px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .dt-toolbar .dt-search:focus {
     outline: none;
@@ -61,7 +61,7 @@
     border-radius: 4px;
     background: var(--surface, #fff);
     color: var(--text, #333);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     cursor: pointer;
     display: inline-flex;
@@ -71,7 +71,7 @@
 }
 .dt-toolbar .dt-btn:hover { border-color: var(--dt-accent); color: var(--dt-accent); }
 .dt-toolbar .dt-btn svg { flex-shrink: 0; }
-.dt-toolbar .dt-count { color: var(--text-muted, #666); font-size: 13px; margin-left: auto; }
+.dt-toolbar .dt-count { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); margin-left: auto; }
 
 /* ── Table ────────────────────────────────────────────────────────── */
 .dt-wrap {
@@ -87,7 +87,7 @@ table.dt-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .dt-table thead th {
     position: sticky;
@@ -111,7 +111,7 @@ table.dt-table {
 }
 .dt-th-content:hover { background: var(--surface-hover, #eef2f7); }
 .dt-th-label { flex: 1; }
-.dt-sort-arrow { font-size: 11px; color: var(--text-faint, #999); line-height: 1; }
+.dt-sort-arrow { font-size: var(--font-size-xs, 11px); color: var(--text-faint, #999); line-height: 1; }
 .dt-th-content.sorted .dt-sort-arrow { color: var(--dt-accent); }
 
 .dt-filter-btn {
@@ -161,7 +161,7 @@ table.dt-table {
     background: transparent;
     padding: 4px 6px;
     border-radius: 3px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     font-family: inherit;
     box-sizing: border-box;
@@ -202,7 +202,7 @@ table.dt-table {
     border: 1px solid var(--border, #d0d7e1);
     border-radius: 6px;
     box-shadow: 0 8px 24px var(--shadow, rgba(0, 0, 0, 0.12));
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .dt-filter-pop {
     min-width: 220px;
@@ -214,14 +214,14 @@ table.dt-table {
     padding: 6px 8px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     margin-bottom: 8px;
 }
 .dt-filter-pop .dt-pop-actions {
     display: flex;
     justify-content: space-between;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 .dt-filter-pop .dt-pop-actions a {
     color: var(--dt-accent);
@@ -260,7 +260,7 @@ table.dt-table {
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     background: var(--surface, #fff);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     cursor: pointer;
 }
 .dt-filter-pop .dt-pop-buttons .dt-pop-apply {
@@ -277,11 +277,11 @@ table.dt-table {
 }
 .dt-cols-pop h4 {
     margin: 0 0 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
     color: var(--text, #333);
 }
-.dt-cols-hint { color: var(--text-dim, #888); font-size: 11px; margin-bottom: 10px; }
+.dt-cols-hint { color: var(--text-dim, #888); font-size: var(--font-size-xs, 11px); margin-bottom: 10px; }
 .dt-cols-item {
     display: flex; align-items: center; gap: 8px;
     padding: 5px 6px;
@@ -294,7 +294,7 @@ table.dt-table {
 .dt-cols-drag {
     color: var(--text-faint, #aaa);
     cursor: grab;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1;
 }
 
@@ -333,13 +333,13 @@ table.dt-table {
     display: flex; align-items: center; justify-content: space-between;
     padding: 16px 20px 12px; border-bottom: 1px solid var(--border-soft, #eee);
 }
-.dt-modal-head h3 { margin: 0; font-size: 16px; }
+.dt-modal-head h3 { margin: 0; font-size: var(--font-size-xl, 16px); }
 /* A real target, not a bare glyph. 21x22px with 4px of side padding was small
    to hit and sat 3px above centre; a fixed square centred on its own axis fixes
    both, and gives somewhere for the hover state to actually show. */
 .dt-modal-x {
     border: none; background: none; cursor: pointer;
-    font-size: 20px; line-height: 1; color: var(--text-faint, #999);
+    font-size: var(--font-size-3xl, 20px); line-height: 1; color: var(--text-faint, #999);
     width: 30px; height: 30px; padding: 0; border-radius: 6px;
     display: inline-flex; align-items: center; justify-content: center;
     /* Horizontal only. It sits 3px below the header's vertical midpoint, and
@@ -363,7 +363,7 @@ table.dt-table {
     background: var(--surface, #fff);
     color: var(--text, #333);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     cursor: pointer;
     display: inline-flex;
@@ -387,7 +387,7 @@ table.dt-table {
     padding: 14px 20px 10px;
 }
 .dt-views-search {
-    flex: 1; padding: 8px 10px; font: inherit; font-size: 13px;
+    flex: 1; padding: 8px 10px; font: inherit; font-size: var(--font-size-md, 13px);
     border: 1px solid var(--border, #ddd); border-radius: 6px;
     background: var(--surface, #fff); color: var(--text, #333);
 }
@@ -404,7 +404,7 @@ table.dt-table {
 }
 
 .dt-views-body { padding: 0 20px 8px; overflow-y: auto; flex: 1; }
-.dt-views-empty { padding: 28px 4px; color: var(--text-dim, #999); font-size: 13px; text-align: center; }
+.dt-views-empty { padding: 28px 4px; color: var(--text-dim, #999); font-size: var(--font-size-md, 13px); text-align: center; }
 
 /* One entry, two layouts. The CONTENT is identical either way — only the
    arrangement changes — so nothing is hidden from somebody who prefers cards. */
@@ -452,17 +452,17 @@ table.dt-table {
 .dt-views-cards .dt-view-acts { margin-top: auto; padding-top: 8px; justify-content: flex-end; }
 
 .dt-field { display: block; margin-bottom: 14px; }
-.dt-field > span { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted, #666); margin-bottom: 5px; }
+.dt-field > span { display: block; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #666); margin-bottom: 5px; }
 .dt-field input[type="text"], .dt-field textarea, .dt-view-team {
-    width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: 13px;
+    width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: var(--font-size-md, 13px);
     border: 1px solid var(--border, #ddd); border-radius: 6px;
     background: var(--surface, #fff); color: var(--text, #333);
 }
 .dt-field input:focus, .dt-field textarea:focus, .dt-view-team:focus { outline: none; border-color: var(--dt-accent); }
 .dt-vis-choices { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
-.dt-vis-choices label { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
+.dt-vis-choices label { display: inline-flex; align-items: center; gap: 5px; font-size: var(--font-size-md, 13px); }
 .dt-vis-off { opacity: .5; }
-.dt-views-hint { font-size: 12px; color: var(--text-dim, #999); line-height: 1.45; margin-top: 6px; }
+.dt-views-hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #999); line-height: 1.45; margin-top: 6px; }
 
 @media (max-width: 700px) {
     .dt-views-cards { grid-template-columns: 1fr; }
@@ -474,7 +474,7 @@ table.dt-table {
 .dt-stale { opacity: .55; }
 .dt-server-error, .dt-pagination { padding: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .dt-server-error { border: 1px solid var(--border); color: var(--text); }
-.dt-pagination { flex: none; padding: 0 16px 12px; font-size: 13px; line-height: 20px; }
+.dt-pagination { flex: none; padding: 0 16px 12px; font-size: var(--font-size-md, 13px); line-height: 20px; }
 .dt-page-range { margin-right: auto; color: var(--text-muted); }
 .dt-page-size { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .dt-pagination button { cursor: pointer; }

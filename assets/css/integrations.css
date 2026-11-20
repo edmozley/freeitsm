@@ -25,7 +25,7 @@
 .back-link {
     display: inline-block;
     margin-bottom: 18px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted);
     text-decoration: none;
 }
@@ -40,7 +40,7 @@
     gap: 7px;
     margin: 4px 0 18px;
     padding: 6px 14px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     text-decoration: none;
     color: var(--sys-accent);
     border: 1px solid var(--sys-accent);
@@ -57,7 +57,7 @@
     border-radius: 8px;
     padding: 14px 16px;
     margin-bottom: 22px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text);
 }
 
@@ -80,14 +80,14 @@
     flex-wrap: wrap;
 }
 .section-header h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--text); }
-.card-desc { font-size: 13px; color: var(--text-muted); margin: 0 0 16px; line-height: 1.55; }
+.card-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted); margin: 0 0 16px; line-height: 1.55; }
 
 /* ------------------------------------------------------------------- table */
 
 table.int-table { width: 100%; border-collapse: collapse; }
 table.int-table th {
     text-align: left;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .04em;
@@ -97,15 +97,15 @@ table.int-table th {
 }
 table.int-table td {
     padding: 11px 10px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text);
     border-bottom: 1px solid var(--border-soft);
 }
-.empty-row { text-align: center; color: var(--text-faint); padding: 26px 10px; font-size: 14px; }
+.empty-row { text-align: center; color: var(--text-faint); padding: 26px 10px; font-size: var(--font-size-lg, 14px); }
 
 .status-badge {
     display: inline-block;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     padding: 3px 9px;
     border-radius: 20px;
@@ -115,7 +115,7 @@ table.int-table td {
 
 .badge-shared {
     display: inline-block;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     padding: 2px 8px;
     border-radius: 20px;
     background: var(--sys-accent-soft);
@@ -157,7 +157,7 @@ table.int-table td {
     border: none;
     border-radius: 6px;
     padding: 8px 16px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 500;
     cursor: pointer;
 }
@@ -167,7 +167,7 @@ table.int-table td {
     border: none;
     border-radius: 6px;
     padding: 9px 18px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     cursor: pointer;
 }
 .btn-secondary {
@@ -176,7 +176,7 @@ table.int-table td {
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 9px 18px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     cursor: pointer;
 }
 .btn-primary[disabled], .btn-secondary[disabled] { opacity: .55; cursor: default; }
@@ -190,20 +190,20 @@ table.int-table td {
 .int-field { margin-bottom: 15px; }
 .int-field label {
     display: block;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
     color: var(--text);
     margin-bottom: 5px;
     white-space: nowrap;
 }
-.int-field .hint, .modal-box .hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+.int-field .hint, .modal-box .hint { font-size: var(--font-size-sm, 12px); color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
 .int-field input[type=text],
 .int-field input[type=password],
 .int-field select,
 .int-field textarea {
     width: 100%;
     padding: 9px 11px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     background: var(--surface-2);
     color: var(--text);
     border: 1px solid var(--border);
@@ -238,7 +238,7 @@ table.int-table td {
     padding: 24px;
     box-shadow: var(--shadow);
 }
-.modal-box h3 { margin: 0 0 18px; font-size: 18px; color: var(--text); }
+.modal-box h3 { margin: 0 0 18px; font-size: var(--font-size-2xl, 18px); color: var(--text); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
 /* ------------------------------------------------------------------ narrow */

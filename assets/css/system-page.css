@@ -58,7 +58,7 @@
 .sys-subtitle {
     margin: 5px 0 0;
     max-width: none;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.55;
     color: var(--text-dim, #888);
 }
@@ -138,7 +138,7 @@
     margin: 0;
     padding: 15px 24px;
     border-bottom: 1px solid var(--border, #e0e0e0);
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     font-weight: 600;
     line-height: 1.35;
     color: var(--text, #333);
@@ -181,7 +181,7 @@
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 500;
     line-height: normal;
     cursor: pointer;

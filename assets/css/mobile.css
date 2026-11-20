@@ -213,7 +213,7 @@
         max-height: 100dvh !important;
         border-radius: 0 !important;
     }
-    .modal-header { padding: 14px 16px; font-size: 18px; }
+    .modal-header { padding: 14px 16px; font-size: var(--font-size-2xl, 18px); }
     .modal-body   { padding: 16px; }
     .modal-footer { padding: 12px 16px; }
 
@@ -253,7 +253,7 @@
 
     /* ...except that rule was never reaching the typed inputs (#998).
        inbox.css:2653 styles modal fields as
-           `.modal .form-group input[type="date"] { font-size: 14px }`
+           `.modal .form-group input[type="date"] { font-size: var(--font-size-lg, 14px) }`
        — (0,3,1) against the (0,2,0) above, so it wins on specificity no matter
        what order the files load in. Every native date / time / number / email
        field in every modal has therefore stayed at 14px on a phone, which is
@@ -340,7 +340,7 @@
        preview tiles; none of these classes exist there. */
     .att-modal-ref {
         display: block;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 500;
         color: var(--text-dim, #888);
         margin-top: 2px;
@@ -372,7 +372,7 @@
         margin-bottom: 6px;
     }
     .att-card-name .attachment-icon { margin-right: 6px; }
-    .att-card-line { display: flex; gap: 10px; font-size: 13px; line-height: 1.6; }
+    .att-card-line { display: flex; gap: 10px; font-size: var(--font-size-md, 13px); line-height: 1.6; }
     .att-card-k { flex: 0 0 84px; color: var(--text-dim, #888); }
     .att-card-v { flex: 1; min-width: 0; color: var(--text, #444); overflow-wrap: anywhere; }
     .att-card .att-send-btn { width: 100%; margin-top: 10px; min-height: 40px; }
@@ -396,7 +396,7 @@
         padding-left: 14px;
         padding-right: 14px;
     }
-    .email-subject-line { font-size: 20px; }
+    .email-subject-line { font-size: var(--font-size-3xl, 20px); }
 
     /* ====================================================================
        LAYER 5 — Reading-pane action toolbar: icon-only, pinned to the BOTTOM.
@@ -418,7 +418,7 @@
     }
     .action-toolbar .action-btn { flex: 0 0 auto; padding: 9px 13px; }
     .action-toolbar .action-btn span:not(.action-btn-icon) { display: none; }
-    .action-toolbar .action-btn-icon { font-size: 18px; }
+    .action-toolbar .action-btn-icon { font-size: var(--font-size-2xl, 18px); }
 
     /* Channel reply composer (Telegram / WhatsApp / Slack / web chat): its
        Attach / Suggest / Summarise / Send row is one unwrapped flex line on
@@ -449,7 +449,7 @@
     .email-subject-line::after {
         content: '\25BE';               /* ▾ */
         margin-left: auto;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         color: var(--text-dim, #888);
         flex-shrink: 0;
         transition: transform 0.2s ease;
@@ -477,7 +477,7 @@
         justify-content: space-between;
         padding: 14px 16px;
         border-bottom: 1px solid var(--border, #ddd);
-        font-size: 18px;
+        font-size: var(--font-size-2xl, 18px);
         font-weight: 600;
         color: var(--text, #333);
         flex-shrink: 0;
@@ -524,7 +524,7 @@
         justify-content: center;
         min-height: 40px;
         padding: 9px 16px;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
     }
     .ms-body .link-add-menu { left: 0; right: 0; min-width: 0; }
@@ -610,12 +610,12 @@
         border: 1px solid #ffc107;
         border-radius: 11px;
         padding: 2px 9px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         line-height: 1.4;
         cursor: pointer;
     }
-    .mobile-attach-badge .mab-clip { font-size: 12px; }
+    .mobile-attach-badge .mab-clip { font-size: var(--font-size-sm, 12px); }
 
     /* (3) Action bar forced to a single row of five icons + the "…" button. */
     .action-toolbar {
@@ -649,7 +649,7 @@
     }
     /* In the panel the actions regain their word labels (hidden on the bar). */
     .mobile-more-panel .action-btn span:not(.action-btn-icon) { display: inline; }
-    .mobile-more-panel .action-btn .action-btn-icon { font-size: 18px; }
+    .mobile-more-panel .action-btn .action-btn-icon { font-size: var(--font-size-2xl, 18px); }
 
     /* Company (tenant) switcher relocated into the module drawer (mobile.js).
        Its header styling is white-on-blue for the top bar; recolour it for the
@@ -732,7 +732,7 @@
         padding: 9px 16px 7px;
         background: var(--surface-hover, #f0f0f0);
         border-bottom: 1px solid var(--border, #e0e0e0);
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
@@ -758,7 +758,7 @@
     .ma-time {
         margin-left: auto;
         flex-shrink: 0;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         color: var(--text-muted, #999);
     }
 
@@ -767,7 +767,7 @@
        point of the sheet, so they must never be clipped. */
     .ma-vals {
         margin-top: 4px;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         line-height: 1.4;
         overflow-wrap: anywhere;
     }
@@ -777,7 +777,7 @@
 
     .ma-who {
         margin-top: 4px;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         color: var(--text-muted, #888);
     }
 
@@ -882,7 +882,7 @@
         border: 1px solid #f9a8d4;
         border-radius: 8px;
         background: #fdf2f8;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
     }
     .mobile-sheet-cmdb .cmdb-section-head .btn-link:hover { text-decoration: none; }
@@ -898,7 +898,7 @@
         transform: none;
         box-shadow: none;
     }
-    .mobile-sheet-cmdb .cmdb-picker-result { padding: 11px 12px; font-size: 14px; }
+    .mobile-sheet-cmdb .cmdb-picker-result { padding: 11px 12px; font-size: var(--font-size-lg, 14px); }
     .mobile-sheet-cmdb .cmdb-picker-results { max-height: 260px; }
 
     /* Dark mode: the cards are authored in light pinks that glare in a dark
@@ -1110,7 +1110,7 @@
        alone is most of a third of it — and the word is still on the button's
        `title` for a screen reader. */
     .asset-detail-actions .asset-act-label { display: none; }
-    .asset-detail-actions .asset-act-icon { display: inline; font-size: 20px; line-height: 1; }
+    .asset-detail-actions .asset-act-icon { display: inline; font-size: var(--font-size-3xl, 20px); line-height: 1; }
 
     /* ⚠️ The bar covers the end of whichever tab is open, and the end of a
        list is exactly what somebody scrolls to. Give that height back to
@@ -1176,7 +1176,7 @@
         display: inline;
         padding: 0 !important;    /* the devices renderer inlines padding-left:36px */
         border: none;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-muted, #666);
     }
 
@@ -1214,7 +1214,7 @@
         display: block;
         margin: 0;
         padding: 8px 14px !important;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         font-weight: 600;
         color: var(--text-muted, #555);
         background: var(--surface-3, #f8f9fa);
@@ -1268,7 +1268,7 @@
     .history-table tbody td.history-meta {
         display: inline-block;
         margin-right: 12px;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
     }
     .history-value-old,
     .history-value-new { word-break: break-word; }
@@ -1449,7 +1449,7 @@
 
        ⚠️ `!important` on the font-size, and this one is earned. Fields in
        this codebase carry INLINE styles (`<select id="rcTone" style="…
-       font-size: 14px">`), and an inline style beats any ordinary author
+       font-size: var(--font-size-lg, 14px)">`), and an inline style beats any ordinary author
        rule however specific. Losing here is not cosmetic: under 16px iOS
        zooms on focus, the layout spills wide, Safari reflows the page to
        desktop width and the entire mobile block switches off. Same failure
@@ -1570,7 +1570,7 @@
         overscroll-behavior-x: contain;
         white-space: nowrap;
     }
-    .raw-json { font-size: 11px; overflow-x: auto; }
+    .raw-json { font-size: var(--font-size-xs, 11px); overflow-x: auto; }
 
     /* ====================================================================
        LAYER 16 — CALENDAR module (#998)
@@ -1646,13 +1646,13 @@
     .calendar-main .calendar-nav .btn {
         min-height: 36px;
         padding: 7px 12px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         white-space: nowrap;
     }
     .calendar-main .btn-icon { width: 36px; height: 36px; padding: 0; flex-shrink: 0; }
     /* Three equal thumb-sized view buttons across the full width. */
     .calendar-main .view-toggle { width: 100%; }
-    .calendar-main .view-btn { flex: 1; padding: 10px 4px; font-size: 13px; min-height: 40px; }
+    .calendar-main .view-btn { flex: 1; padding: 10px 4px; font-size: var(--font-size-md, 13px); min-height: 40px; }
 
     /* --------------------------------------------------------------------
        16b — Month view: dots, not pills.
@@ -1681,12 +1681,12 @@
     .all-day-event:hover { opacity: 1; }
 
     .day-number {
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         padding: 2px;
         margin-bottom: 3px;
         text-align: center;
     }
-    .month-day.today .day-number { width: 24px; height: 24px; font-size: 12px; }
+    .month-day.today .day-number { width: 24px; height: 24px; font-size: var(--font-size-sm, 12px); }
 
     .day-events {
         flex-direction: row;
@@ -1746,8 +1746,8 @@
        block is desktop-roomy and the events want a thumb-sized body.
        -------------------------------------------------------------------- */
     .day-header { padding: 10px 12px; }
-    .day-header-date { font-size: 24px; }
-    .day-header-weekday { font-size: 13px; }
+    .day-header-date { font-size: var(--font-size-4xl, 24px); }
+    .day-header-weekday { font-size: var(--font-size-md, 13px); }
     .all-day-section { padding: 8px 12px; }
     .day-event { padding: 8px 10px; }
 
@@ -1775,10 +1775,10 @@
     }
     .event-popup-header { padding: 12px 16px; }
     .event-popup-close { font-size: 26px; padding: 4px 10px; min-height: 38px; }
-    .event-popup-title { font-size: 18px; padding: 14px 16px 8px; }
+    .event-popup-title { font-size: var(--font-size-2xl, 18px); padding: 14px 16px 8px; }
     .event-popup-time,
     .event-popup-location,
-    .event-popup-description { font-size: 14px; padding: 0 16px 10px; }
+    .event-popup-description { font-size: var(--font-size-lg, 14px); padding: 0 16px 10px; }
     /* Desktop clamps the description to 60px because the popup floats over the
        grid; a bottom sheet can scroll, so show the whole thing. */
     .event-popup-description { max-height: none; }
@@ -1861,7 +1861,7 @@
         padding: 34px 16px;
         text-align: center;
         color: var(--text-muted, #666);
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
     }
     .mc-ag-item {
         display: flex;
@@ -1892,14 +1892,14 @@
         color: var(--text, #333);
         overflow-wrap: anywhere;
     }
-    .mc-ag-time { font-size: 13px; color: var(--text-muted, #666); margin-top: 3px; }
+    .mc-ag-time { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-top: 3px; }
     .mc-ag-loc {
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         margin-top: 2px;
         overflow-wrap: anywhere;
     }
-    .mc-ag-cat { font-size: 12px; color: var(--text-dim, #888); margin-top: 2px; }
+    .mc-ag-cat { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 2px; }
     /* The agenda's own "add here" action, pre-filled with the day you're on. */
     .mc-ag-new {
         display: block;
@@ -1973,7 +1973,7 @@
        See [[Consistency over bespoke]].
        -------------------------------------------------------------------- */
     body[data-mobile-page="settings"] .section-header { flex-wrap: wrap; gap: 10px; }
-    body[data-mobile-page="settings"] .add-btn { min-height: 40px; padding: 9px 16px; font-size: 14px; }
+    body[data-mobile-page="settings"] .add-btn { min-height: 40px; padding: 9px 16px; font-size: var(--font-size-lg, 14px); }
 
     /* Thumb-sized row actions inside the (now horizontally scrolling) tables. */
     body[data-mobile-page="settings"] .action-btn {
@@ -2030,7 +2030,7 @@
     body[data-mobile-page="settings"] .modal-content > h2 {
         margin: 0;
         padding: 14px 16px;
-        font-size: 18px;
+        font-size: var(--font-size-2xl, 18px);
         border-bottom: 1px solid var(--border, #e0e0e0);
     }
 
@@ -2053,7 +2053,7 @@
         border-radius: 8px;
         padding: 8px 14px;
         min-height: 38px;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
     }
 
     /* ====================================================================
@@ -2145,7 +2145,7 @@
        at 360px will not fit on one line, and a horizontal scrollbar inside a
        list that also scrolls vertically is the fault reported as "a scrollbar
        that does nothing". */
-    .kb-breadcrumb { flex-wrap: wrap; row-gap: 2px; font-size: 12px; padding-bottom: 8px; }
+    .kb-breadcrumb { flex-wrap: wrap; row-gap: 2px; font-size: var(--font-size-sm, 12px); padding-bottom: 8px; }
     .kb-breadcrumb a { min-height: 24px; display: inline-flex; align-items: center; }
 
     /* --------------------------------------------------------------------
@@ -2183,7 +2183,7 @@
     /* A lift-on-hover sticks after a tap on a touchscreen. */
     .article-card:hover { transform: none; box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.08)); }
     .article-card-title { font-size: 16px; padding-right: 40px; }
-    .article-card-preview { font-size: 13px; margin-bottom: 10px; }
+    .article-card-preview { font-size: var(--font-size-md, 13px); margin-bottom: 10px; }
     /* Date and tags side by side at 360px squeeze both; give tags their row. */
     .article-card-meta { flex-direction: column; align-items: flex-start; gap: 8px; }
     .article-card-info { gap: 12px; flex-wrap: wrap; }
@@ -2230,7 +2230,7 @@
         padding: 0 12px;
         display: inline-flex;
         align-items: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         white-space: nowrap;
     }
     .article-actions { flex: 1 1 auto; flex-wrap: nowrap; gap: 6px; min-width: 0; }
@@ -2241,7 +2241,7 @@
         justify-content: center;
         min-height: 42px;
         padding: 0 8px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         white-space: nowrap;
     }
 
@@ -2260,7 +2260,7 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 3px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         padding: 4px 0;
         cursor: pointer;
     }
@@ -2474,7 +2474,7 @@
         border-radius: 8px;
         background: var(--surface-2, #f5f5f5);
         color: var(--text, #333);
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         cursor: pointer;
     }
@@ -2585,7 +2585,7 @@
        -------------------------------------------------------------------- */
     .review-container { padding: 12px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
     .review-header { flex-direction: column; align-items: stretch; gap: 10px; }
-    .review-header h1 { font-size: 20px; }
+    .review-header h1 { font-size: var(--font-size-3xl, 20px); }
     .review-search { width: 100%; font-size: 16px; min-height: 44px; box-sizing: border-box; }
     /* Four tabs with badges don't fit; scroll them rather than wrap to two
        rows that push the list off the screen (the 15e tab-strip move). */
@@ -2615,7 +2615,7 @@
         padding: 0;
         width: auto;
         white-space: normal;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     .review-table td:first-child {
         font-size: 15px;
@@ -2659,7 +2659,7 @@
        -------------------------------------------------------------------- */
     .ka-page { padding: 12px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
     .ka-head { flex-direction: column; align-items: stretch; gap: 12px; }
-    .ka-head h1 { font-size: 20px; }
+    .ka-head h1 { font-size: var(--font-size-3xl, 20px); }
     .ka-btn { min-height: 44px; }
     .ka-tabs {
         flex-wrap: nowrap;
@@ -2722,7 +2722,7 @@
     /* Icon only, exactly as the ticket bar does it — the word is carried by
        `title` for anyone who hovers or uses a reader. */
     body[data-kb-view="detail"] .article-actions .kb-act-label { display: none; }
-    body[data-kb-view="detail"] .article-actions .kb-act-icon { display: inline; font-size: 20px; line-height: 1; }
+    body[data-kb-view="detail"] .article-actions .kb-act-icon { display: inline; font-size: var(--font-size-3xl, 20px); line-height: 1; }
     /* Share is an inline SVG rather than an emoji; size it to match. */
     body[data-kb-view="detail"] .article-actions .btn-share svg { width: 20px; height: 20px; }
     body[data-kb-view="detail"] .article-actions .share-dropdown { flex: 1 1 0; min-width: 0; display: flex; }
@@ -2773,7 +2773,7 @@
         box-sizing: border-box;
     }
     .section-title { font-size: 16px; margin-bottom: 12px; gap: 10px; }
-    .new-btn { min-height: 40px; padding: 8px 14px; font-size: 14px; white-space: nowrap; }
+    .new-btn { min-height: 40px; padding: 8px 14px; font-size: var(--font-size-lg, 14px); white-space: nowrap; }
 
     /* --------------------------------------------------------------------
        18b — The service board.
@@ -2791,7 +2791,7 @@
     }
     .service-card { padding: 12px 10px; }
     .service-card:hover { box-shadow: none; }      /* a hover lift sticks after a tap */
-    .service-card .service-name { font-size: 13px; }
+    .service-card .service-name { font-size: var(--font-size-md, 13px); }
 
     /* ---- lining the cards up (#1004) ----
        Grid rows already stretch every card to the tallest in the row, but the
@@ -2804,7 +2804,7 @@
         flex-direction: column;
     }
     .service-card .service-desc {
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         margin-bottom: 8px;
         flex: 1 1 auto;             /* absorb the height difference */
         /* Two lines is the most a 150px card can carry before it starts
@@ -2823,7 +2823,7 @@
        room for the full text on a desktop card. The full string stays in the
        DOM, so it is still read out and still copyable. */
     .impact-badge {
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         padding: 4px 10px;
         display: block;
         max-width: 100%;
@@ -2857,7 +2857,7 @@
         border: none;
         background: var(--surface, #fff);
         color: var(--text-muted, #666);
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         font-family: inherit;
         cursor: pointer;
@@ -2870,7 +2870,7 @@
     /* With the switcher naming the section, the section's own heading repeats
        it — but the Services one carries the count and the Incidents one
        carries the New button, so neither can simply go. Shrink instead. */
-    .status-layout .section-title { font-size: 14px; }
+    .status-layout .section-title { font-size: var(--font-size-lg, 14px); }
 
     /* --------------------------------------------------------------------
        18c — Incidents: four columns become a card feed.
@@ -2911,7 +2911,7 @@
     /* Keyed on the renderer's own classes, never on cell position. */
     .incident-title { font-size: 15px; font-weight: 600; display: inline-block; }
     .incident-services-list { display: flex; flex-wrap: wrap; gap: 5px; }
-    .incident-date { font-size: 12px; color: var(--text-dim, #888); }
+    .incident-date { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
     /* Desktop greys a resolved incident with a row class; keep that reading. */
     .incident-table tr.resolved { opacity: 0.72; }
 
@@ -3038,7 +3038,7 @@
        being unable to start a conversation is a real loss on a phone, which is
        where somebody is most likely to be when they need one. */
     .wr-sidebar-actions { gap: 8px; margin-bottom: 8px; }
-    .wr-side-btn { min-height: 36px; font-size: 13px; }
+    .wr-side-btn { min-height: 36px; font-size: var(--font-size-md, 13px); }
 
     .wr-channels {
         flex-direction: row;
@@ -3067,7 +3067,7 @@
         margin-top: 6px;
         padding: 5px 2px 0;
         border-top: 1px solid var(--border-soft, #f0f0f0);
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         line-height: 1.4;
     }
 
@@ -3120,7 +3120,7 @@
     .wr-title { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .wr-topic { display: none; }
     .wr-tools { gap: 4px; }
-    .wr-tool { min-height: 34px; padding: 6px 10px; font-size: 12px; }
+    .wr-tool { min-height: 34px; padding: 6px 10px; font-size: var(--font-size-sm, 12px); }
 
     .wr-messages { padding: 8px 10px; }
     .wr-msg-body { font-size: 15px; }
@@ -3168,9 +3168,9 @@
        inline under the message rather than floating over its top-right corner,
        where they would cover the text on a narrow column. */
     .wr-msg-acts { position: static; opacity: 1; margin-top: 6px; }
-    .wr-msg-act { min-height: 32px; padding: 4px 12px; font-size: 12px; }
+    .wr-msg-act { min-height: 32px; padding: 4px 12px; font-size: var(--font-size-sm, 12px); }
 
-    .wr-desktop-opt { font-size: 13px; }
+    .wr-desktop-opt { font-size: var(--font-size-md, 13px); }
     .wr-desktop-opt input { width: 20px; height: 20px; }
     /* 16px again: a select under it and iOS zooms the page, which is what takes
        the whole mobile layer off. */
@@ -3234,7 +3234,7 @@
 
     /* Let the row give way rather than push the date off the edge. */
     .email-footer-row { flex-wrap: nowrap; gap: 6px; min-width: 0; }
-    .email-footer-row .email-time { flex: 0 0 auto; font-size: 11px; }
+    .email-footer-row .email-time { flex: 0 0 auto; font-size: var(--font-size-xs, 11px); }
     .email-sla-slot { min-width: 0; overflow: hidden; }
 
     /* ═══════════════════════════════════════════════════════════════════════
@@ -3334,7 +3334,7 @@
        icon is self-explanatory in a way "Updated 09:14" is not, so the icon
        is what loses its label. The word stays on the button's `title`. */
     .wt-refresh-label { display: none; }
-    .wt-refresh-btn { padding: 9px 10px; min-height: 40px; font-size: 13px; }
+    .wt-refresh-btn { padding: 9px 10px; min-height: 40px; font-size: var(--font-size-md, 13px); }
 
     /* One column below 768, not 700. The module's own breakpoint leaves 701-768
        on two columns, which is a ~370px card — narrower than the phone layout
@@ -3355,7 +3355,7 @@
         gap: 10px 4px;
     }
     .wt-metric { min-width: 0; }
-    .wt-metric-value { font-size: 20px; }
+    .wt-metric-value { font-size: var(--font-size-3xl, 20px); }
     /* Long labels ("AWAITING RESPONSE") wrap inside their own column instead of
        stretching it, so the columns stay equal. Centred to match the value. */
     .wt-metric-label {
@@ -3519,7 +3519,7 @@
     .pm-table tbody tr:has(.pm-when) .pm-when,
     .pm-table tbody tr:has(.pm-when) .pm-when + td {
         display: inline;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         color: var(--text-dim, #6b7280);
     }
     .pm-table tbody tr:has(.pm-when) .pm-when::after { content: " · "; }
@@ -3858,7 +3858,7 @@
         gap: 10px;
     }
     .cm-rt-card-name {
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         color: var(--text-muted, #555);
         min-width: 0;
@@ -3868,14 +3868,14 @@
     }
     .cm-rt-card-edit {
         flex-shrink: 0;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         color: var(--accent, #0d9488);
     }
     /* Two lines of excerpt: enough to recognise which field this is, not so
        much that six of them become the page. */
     .cm-rt-card-body {
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         line-height: 1.4;
         color: var(--text, #333);
         display: -webkit-box;
@@ -4066,7 +4066,7 @@
         border: 1px solid var(--border, #cfd8dc);
         border-radius: 4px;
         font: inherit;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 500;
         cursor: pointer;
     }
@@ -4187,7 +4187,7 @@
     .software-table tbody td[colspan] {
         display: block;
         padding: 10px 14px !important;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 400;
         color: var(--text-muted, #666);
         text-align: center;
@@ -4210,11 +4210,11 @@
         display: inline;
         padding: 0;
         border-bottom: none;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     .licence-container .licence-table tbody td:first-child {
         display: block;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         margin-bottom: 4px;
         overflow-wrap: anywhere;
@@ -4268,7 +4268,7 @@
         display: inline;
         padding: 0;
         border-bottom: none;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     .library-container .widget-table tbody td:first-child { display: block; margin-bottom: 4px; }
     .library-container .widget-table tbody td:nth-child(3)::before,
@@ -4432,7 +4432,7 @@
         margin-bottom: 6px;
     }
     .task-table tbody td:not(:first-child) {
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-muted, #666);
     }
     .task-table tbody td:not(:first-child):not(:nth-child(2))::before {
@@ -4578,7 +4578,7 @@
         flex: 1;
         min-width: 0;
         padding: 10px 4px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         min-height: 40px;
     }
 
@@ -4878,7 +4878,7 @@
         flex: 1 1 100%;             /* a full-width line unless told otherwise */
         padding: 0 !important;
         border: none;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-muted, #666);
     }
     #checksTable tbody td:first-child    { order: 1; }
@@ -4942,7 +4942,7 @@
     }
     /* The old block gave every status button `width: 100%`, which is what made
        them full-bleed rows. Flex sizes them now. */
-    #checksTable .status-btn { width: auto; font-size: 13px; }
+    #checksTable .status-btn { width: auto; font-size: var(--font-size-md, 13px); }
     #checksTable .status-buttons > * {
         /* flex-basis 0, not auto. With auto each button is sized by its own
            text, and the three of them wrapped onto three rows — 144px of card
@@ -4961,7 +4961,7 @@
     /* Sizing is above with the other order/flex rules; only the look is here.
        (No `display: inline` — see the note there for why it did nothing.) */
     #checksTable td.mc-checked-by,
-    #checksTable td.mc-checked-at { font-size: 12px; margin-top: 4px; }
+    #checksTable td.mc-checked-at { font-size: var(--font-size-sm, 12px); margin-top: 4px; }
     #checksTable td.mc-checked-at::before { content: "\00a0\00b7\00a0"; }
     /* ⚠️ When a check has not been done yet the renderer emits an em dash in
        BOTH cells, which as a card line reads "— · —" and means nothing. Hide
@@ -5019,7 +5019,7 @@
     #checksTable tbody tr.mc-group-row td {
         display: block;
         padding: 12px 14px 4px !important;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .04em;
@@ -5089,7 +5089,7 @@
     /* The desktop rule caps notes at 200px so a table column stays narrow.
        In a card there is no column to protect and it just truncates the width
        of the text. */
-    .notes-display { max-width: none; font-size: 13px; }
+    .notes-display { max-width: none; font-size: var(--font-size-md, 13px); }
 
     /* ====================================================================
        LAYER 27 — FORMS  (#1289)
@@ -5478,7 +5478,7 @@
     }
     /* The label is now a heading for its field, not a word in a row. */
     .subs-toolbar-right .filter-group label {
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         font-weight: 600;
         color: var(--text-dim, #888);
     }
@@ -5628,7 +5628,7 @@
        above a narrow one — at 360px it left 40% of the row for the label and
        wrapped every answer to three lines. Stack them. */
     .ca-answer { flex-direction: column; gap: 2px; padding: 8px 12px; }
-    .ca-answer .a-lbl { flex: 0 0 auto; font-size: 12px; }
+    .ca-answer .a-lbl { flex: 0 0 auto; font-size: var(--font-size-sm, 12px); }
 
     .ca-comment { font-size: 16px; min-height: 60px; }
     /* Approve and Reject are why the page is open on a phone. */
@@ -5675,7 +5675,7 @@
         align-items: stretch;
         gap: 10px;
     }
-    .editor-toolbar h2 { font-size: 18px; }
+    .editor-toolbar h2 { font-size: var(--font-size-2xl, 18px); }
     .editor-toolbar-actions { flex-wrap: wrap; gap: 8px; }
     .editor-toolbar-actions > * { flex: 1 1 auto; justify-content: center; min-height: 40px; }
 
@@ -5904,7 +5904,7 @@
        Ed's phone. */
     .editor-footer { padding: 8px 12px 8px; }
     .fm-glyph { font-size: 17px; line-height: 1; }
-    .readonly-banner { padding: 10px 12px; font-size: 13px; }
+    .readonly-banner { padding: 10px 12px; font-size: var(--font-size-md, 13px); }
 
     /* ═══════════════════════════════════════════════════════════════════════
        LAYER 28 — CONTRACTS module  (#1362-#1365)
@@ -6136,7 +6136,7 @@
     }
     .contracts-sidebar .sidebar-stat > span:not(.stat-value),
     .rfp-sidebar .sidebar-stat > span:not(.stat-value) {
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--text-dim, #888);
@@ -6193,13 +6193,13 @@
         box-shadow: 0 1px 3px var(--shadow, rgba(0, 0, 0, 0.06));
     }
     .contracts-sidebar .sidebar-total .stat-value {
-        font-size: 24px;
+        font-size: var(--font-size-4xl, 24px);
         line-height: 1.1;
         font-weight: 700;
         color: var(--text, #222);
     }
     .contracts-sidebar .sidebar-total > span:not(.stat-value) {
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--text-dim, #888);
@@ -6209,7 +6209,7 @@
     .contracts-sidebar #overviewBreakdown h4 {
         grid-column: 1 / -1;
         margin: 6px 0 0;
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -6269,7 +6269,7 @@
     .contracts-sidebar .sidebar-add-btn,
     .rfp-sidebar .sidebar-add-btn {
         min-height: 44px;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         padding: 11px 14px;
         text-align: center;
         justify-content: center;
@@ -6493,7 +6493,7 @@
        carry the weight; they are not meta. */
     body[data-mobile-page="contracts-list"] .section-card table tbody td:nth-child(2),
     body[data-mobile-page="contracts-contacts"] .section-card table tbody td:nth-child(2) {
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         color: var(--text, #333);
         margin: 2px 0 4px;
     }
@@ -6541,7 +6541,7 @@
         margin: 0;
         padding: 20px 0;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
 
     /* ---- `extracted`: the one whose body is a sentence ----
@@ -6558,7 +6558,7 @@
     }
     body[data-mobile-page="rfp-extracted"] .page-wrap table tbody td:nth-child(3) {
         flex: 1 1 100%;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         color: var(--text, #333);
         white-space: normal;
         overflow-wrap: anywhere;
@@ -6892,7 +6892,7 @@
 
        ⚠️ The selector list is MIRRORED FROM LAYER 3 rather than shortened,
        for the reason #998 recorded: inbox.css carries
-       `.modal .form-group input[type="date"] { font-size: 14px }` at (0,3,1),
+       `.modal .form-group input[type="date"] { font-size: var(--font-size-lg, 14px) }` at (0,3,1),
        which beats a shorter selector on specificity no matter what order the
        files load in — and that had every native date, time, number and email
        field in the product sitting at 14px on a phone for months. A module
@@ -7032,7 +7032,7 @@
         margin-bottom: 14px;
     }
     [data-mobile-module="contracts"] .page-header h1 {
-        font-size: 18px;
+        font-size: var(--font-size-2xl, 18px);
         line-height: 1.3;
     }
     [data-mobile-module="contracts"] .page-actions { flex-wrap: wrap; gap: 8px; }
@@ -7060,8 +7060,8 @@
         margin-bottom: 14px;
     }
     [data-mobile-module="contracts"] .stat-card { padding: 12px 14px; }
-    [data-mobile-module="contracts"] .stat-card .stat-value { font-size: 20px; }
-    [data-mobile-module="contracts"] .stat-card .stat-label { font-size: 11px; }
+    [data-mobile-module="contracts"] .stat-card .stat-value { font-size: var(--font-size-3xl, 20px); }
+    [data-mobile-module="contracts"] .stat-card .stat-label { font-size: var(--font-size-xs, 11px); }
 
     /* --------------------------------------------------------------------
        28j — A contract's actions as an icon bar along the BOTTOM (Ed, polish
@@ -7134,7 +7134,7 @@
     [data-mobile-module="contracts"] .contract-card-header .actions .cv-act-label { display: none; }
     [data-mobile-module="contracts"] .contract-card-header .actions .cv-act-icon {
         display: inline;
-        font-size: 20px;
+        font-size: var(--font-size-3xl, 20px);
         line-height: 1;
     }
     /* A secondary button filled with a SURFACE token has no edges against the
@@ -7442,7 +7442,7 @@
         min-height: 42px;
         padding: 9px 10px;
         font: inherit;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         border: 1px solid var(--border, #ddd);
         border-radius: 8px;
         background: var(--surface, #fff);
@@ -7571,7 +7571,7 @@
         display: none;
         padding: 24px 12px;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
     }
 
@@ -7621,7 +7621,7 @@
     [data-mobile-module="contracts"] .req-row-text {
         flex: 1 1 100%;
         min-width: 0;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         line-height: 1.55;
         overflow-wrap: anywhere;
     }
@@ -7655,7 +7655,7 @@
     [data-mobile-module="contracts"] .req-row-actions .icon-btn {
         flex: 1 1 auto;
         min-height: 40px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         padding: 8px 10px;
     }
     /* The AI's reasoning sits under the requirement as a quiet second
@@ -7716,7 +7716,7 @@
     [data-mobile-module="contracts"] .form-row input { min-height: 44px; }
     /* The uppercase micro-label is fine once it has a row to itself; it was
        only ever unreadable because it was wrapping inside a 74px column. */
-    [data-mobile-module="contracts"] .form-row label { font-size: 12px; }
+    [data-mobile-module="contracts"] .form-row label { font-size: var(--font-size-sm, 12px); }
 
     /* --------------------------------------------------------------------
        28t — The edit-requirement sheet on `extracted` (Ed: "extracted
@@ -8139,7 +8139,7 @@
         margin: 0;
         padding: 20px 0;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     /* The harvested column headings (§21), printed from the attribute
        mobile.js stamps. The rule is general since the contracts round; only
@@ -8386,7 +8386,7 @@
         min-height: 40px;
         padding: 8px 12px;
         font: inherit;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         cursor: pointer;
         flex: 0 0 auto;
     }
@@ -8508,7 +8508,7 @@
         min-height: 42px;
         padding: 9px 10px;
         font: inherit;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         border: 1px solid var(--border, #ddd);
         border-radius: 8px;
         background: var(--surface, #fff);
@@ -8848,7 +8848,7 @@
         border-radius: 8px;
         background: var(--surface, #fff);
         color: var(--text, #333);
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         cursor: pointer;
     }
@@ -9051,7 +9051,7 @@
         margin: 0;
         padding: 20px 0;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     /* --------------------------------------------------------------------
        30f — The selected item, as a bottom sheet (#1418, Ed's request).
@@ -9669,7 +9669,7 @@
     }
     [data-mobile-module="network-mapper"] .nm-palette-header {
         padding: 14px 14px 12px;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
     }
     /* Three up rather than two: the tiles are icon-over-name and the sheet
        is wider than the desktop column it replaces. */
@@ -9701,7 +9701,7 @@
         border-radius: 8px;
         background: var(--surface, #fff);
         color: var(--text, #333);
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         cursor: pointer;
     }
@@ -9947,7 +9947,7 @@
         flex-wrap: wrap;
         gap: 4px 10px;
         padding: 8px 12px;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
     }
     /* 🔴 16px on every focusable field, or iOS zooms on focus, the sheet
        spills wide, Safari reflows the page to a desktop width, and the
@@ -10020,7 +10020,7 @@
     }
     .nm-drag-ghost .nm-palette-tile-count { display: none; }
     .nm-drag-ghost .nm-palette-tile-name {
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         font-weight: 600;
         color: var(--text, #111827);
         max-width: 90px;
@@ -10061,7 +10061,7 @@
         border-radius: 4px;
         background: transparent;
         color: #b91c1c;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         cursor: pointer;
     }
@@ -10271,7 +10271,7 @@
     /* The status text ("Saved" / "Saving…") is a live region, not a control,
        and it was taking a control's worth of the row. */
     [data-mobile-module="workflow"] .wf-status {
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         align-self: center;
     }
 
@@ -10480,7 +10480,7 @@
         margin: 0;
         padding: 20px 0;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
 
     /* --------------------------------------------------------------------
@@ -10632,7 +10632,7 @@
         margin: 0;
         padding: 20px 0;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     /* An empty cell that has been given a §21 label prints the label with
        nothing after it — a heading for a fact that is not there. */
@@ -10890,7 +10890,7 @@
         margin: 0;
         padding: 20px 0;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     /* A labelled cell with nothing in it prints the heading and then silence. */
     body[data-mobile-page="webhooks"] table.wh tbody tr td:empty:not(:first-child) {
@@ -11047,7 +11047,7 @@
     }
     [data-mobile-module="system"] .landing-content h2,
     [data-mobile-module="system"] .landing-head h2 {
-        font-size: 20px;
+        font-size: var(--font-size-3xl, 20px);
     }
     [data-mobile-module="system"] .system-cards {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -11058,7 +11058,7 @@
         min-width: 0;
     }
     [data-mobile-module="system"] .system-card h3 {
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         overflow-wrap: anywhere;
     }
     [data-mobile-module="system"] .system-card svg {
@@ -11410,7 +11410,7 @@
     /* The page-level heading blocks across the module: every card page opens
        with a title and a paragraph sized for a 720px column. */
     [data-mobile-module="system"] .page-title { font-size: 19px; }
-    [data-mobile-module="system"] .page-subtitle { font-size: 13px; margin-bottom: 16px; }
+    [data-mobile-module="system"] .page-subtitle { font-size: var(--font-size-md, 13px); margin-bottom: 16px; }
     /* Two-up stat/summary rows, wherever a System page draws one. */
     [data-mobile-module="system"] .stat-row,
     [data-mobile-module="system"] .stats-row,
@@ -11642,9 +11642,9 @@
         max-width: 100%;
         text-align: left;
     }
-    [data-mobile-module="reporting"] .landing-content h2 { font-size: 20px; }
+    [data-mobile-module="reporting"] .landing-content h2 { font-size: var(--font-size-3xl, 20px); }
     [data-mobile-module="reporting"] .landing-content .subtitle {
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         margin-bottom: 20px;
     }
     [data-mobile-module="reporting"] .report-cards {
@@ -11683,7 +11683,7 @@
     [data-mobile-module="reporting"] .coming-soon-container { padding: 24px 14px; }
     [data-mobile-module="reporting"] .coming-soon-card { padding: 32px 22px; }
     [data-mobile-module="reporting"] .coming-soon-card h2 { font-size: 19px; }
-    [data-mobile-module="reporting"] .coming-soon-card p { font-size: 13px; }
+    [data-mobile-module="reporting"] .coming-soon-card p { font-size: var(--font-size-md, 13px); }
 
     /* --------------------------------------------------------------------
        35d — System logs: the chrome around the table.
@@ -11731,7 +11731,7 @@
         min-width: 0;
         min-height: 42px;
         padding: 10px 8px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     /* The pager keeps its pinned row; the buttons become thumb-sized and the
        count between them takes what is left. */
@@ -11749,7 +11749,7 @@
         flex: 1 1 auto;
         min-width: 0;
         text-align: center;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
     }
     /* §12: the feed below replaces a 553px table, and this container is the
        box that was absorbing it. Say so, so the next wide thing reports. */
@@ -11881,7 +11881,7 @@
         margin: 0;
         padding: 20px 0;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     /* A labelled cell with nothing in it prints its heading and then silence.
        mobile.js skips blank cells; this catches one holding only markup. */
@@ -12056,7 +12056,7 @@
         min-height: 40px;
         min-width: 0;
         padding: 8px 16px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     body[data-mobile-page="rep-intune"] .drill-footer .drill-actions {
         flex: 1 1 100%;
@@ -12239,7 +12239,7 @@
         padding: 14px 12px 24px;
     }
     [data-mobile-module="wiki"] .page-title { font-size: 19px; }
-    [data-mobile-module="wiki"] .page-subtitle { font-size: 13px; }
+    [data-mobile-module="wiki"] .page-subtitle { font-size: var(--font-size-md, 13px); }
     /* 🔴 16px on every focusable field, or iOS zooms on focus, the layout
        spills wide, Safari reflows to a desktop width and the whole
        `max-width: 768px` layer stops matching (§3). */
@@ -12396,7 +12396,7 @@
     }
     [data-mobile-module="wiki"] .stat-chip {
         min-width: 0;
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
     }
     [data-mobile-module="wiki"] .stats-bar .search-box {
         grid-column: 1 / -1;
@@ -12494,7 +12494,7 @@
         margin: 0;
         padding: 24px 8px;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     /* A description that is absent renders as an empty cell; a labelled one
        that is empty prints its heading and then silence. */
@@ -12579,7 +12579,7 @@
         flex: 1 1 100%;
         padding: 24px 8px;
         text-align: center;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     body[data-mobile-page="wiki-tables"] .tables-card { border-radius: 8px; }
 
@@ -12631,7 +12631,7 @@
     body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(1) {
         flex: 1 1 auto;
         order: -2;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         color: var(--text, #333);
     }
     body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(2) {
@@ -12668,7 +12668,7 @@
         flex: 1 1 100%;
         min-height: 44px;
     }
-    body[data-mobile-page="wiki-scan"] .scan-info { flex: 1 1 100%; font-size: 12px; }
+    body[data-mobile-page="wiki-scan"] .scan-info { flex: 1 1 100%; font-size: var(--font-size-sm, 12px); }
     /* 🔴 The instruction contains a command line in a `<code>` — author-
        shaped content of a width nobody chose. It scrolls in place rather
        than pushing the page. */
@@ -12822,7 +12822,7 @@
         gap: 6px 12px;
     }
     body[data-mobile-page="wiki-file"] .file-title { font-size: 17px; overflow-wrap: anywhere; }
-    body[data-mobile-page="wiki-file"] .file-path { font-size: 12px; overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-file"] .file-path { font-size: var(--font-size-sm, 12px); overflow-wrap: anywhere; }
 
     /* --------------------------------------------------------------------
        36i — The breadcrumb, on all three detail pages.
@@ -12855,7 +12855,7 @@
     }
     body[data-mobile-page="wiki-table"] .ref-table td { overflow-wrap: anywhere; }
     body[data-mobile-page="wiki-table"] .ref-table td.line-ref { white-space: nowrap; }
-    body[data-mobile-page="wiki-table"] .table-name { font-size: 18px; overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-table"] .table-name { font-size: var(--font-size-2xl, 18px); overflow-wrap: anywhere; }
     body[data-mobile-page="wiki-table"] .ref-group-header { flex-wrap: wrap; gap: 6px; }
 
     /* --------------------------------------------------------------------
@@ -12920,14 +12920,14 @@
         justify-content: center;
         gap: 4px;
         padding: 8px 4px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         text-align: center;
     }
     body[data-mobile-page="wiki-search"] .result-item { padding: 12px 14px; }
     body[data-mobile-page="wiki-search"] .result-item a { overflow-wrap: anywhere; }
     body[data-mobile-page="wiki-search"] .result-meta,
     body[data-mobile-page="wiki-search"] .result-desc {
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         overflow-wrap: anywhere;
     }
 
@@ -13004,7 +13004,7 @@
         background: none;
         color: var(--text-muted, #666);
         font: inherit;
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         line-height: 1.1;
         cursor: pointer;
         /* A translated label can be long; it shrinks rather than widening
@@ -13176,7 +13176,7 @@
         overflow: hidden;
     }
     body[data-mobile-page="tickets-rota"] .rota-ch-top {
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
@@ -13184,7 +13184,7 @@
         max-width: 100%;
     }
     body[data-mobile-page="tickets-rota"] .rota-ch-sub {
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         line-height: 1;
     }
     body[data-mobile-page="tickets-rota"] .rota-ch-today .rota-ch-sub { font-weight: 700; }
@@ -13250,7 +13250,7 @@
         content: attr(data-mlabel);
         flex: 0 0 auto;
         white-space: nowrap;
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         font-weight: 600;
         color: var(--text-muted, #666);
         margin: 0;
@@ -13319,7 +13319,7 @@
         min-width: 0;
         min-height: 40px;
         padding: 9px 4px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
 
     /* ---- 38b. TRIAGE: a card feed, and §11 allows no argument ----------
@@ -13616,8 +13616,8 @@
         text-overflow: clip;
         overflow-wrap: anywhere;
     }
-    body[data-mobile-page="tickets-users"] .ticket-row .ticket-priority { grid-area: priority; padding-left: 0; font-size: 12px; color: var(--text-dim, #888); }
-    body[data-mobile-page="tickets-users"] .ticket-row .ticket-date     { grid-area: date; justify-self: end; font-size: 12px; }
+    body[data-mobile-page="tickets-users"] .ticket-row .ticket-priority { grid-area: priority; padding-left: 0; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
+    body[data-mobile-page="tickets-users"] .ticket-row .ticket-date     { grid-area: date; justify-self: end; font-size: var(--font-size-sm, 12px); }
 
     /* ---- 39b. The calendar modal's four buttons become icons -----------
        Ed asked for this, mobile only. mobile.js swaps the markup and puts the
@@ -13684,8 +13684,8 @@
         gap: 10px;
         padding: 12px 0;
     }
-    body[data-mobile-page="tickets-csat"] .recent-rating { font-size: 24px; text-align: left; }
-    body[data-mobile-page="tickets-csat"] .recent-comment { font-size: 13px; }
+    body[data-mobile-page="tickets-csat"] .recent-rating { font-size: var(--font-size-4xl, 24px); text-align: left; }
+    body[data-mobile-page="tickets-csat"] .recent-comment { font-size: var(--font-size-md, 13px); }
     /* The meta drops under the subject rather than holding a 160px column
        hostage, and reads left so it lines up with everything above it. */
     body[data-mobile-page="tickets-csat"] .recent-meta {
@@ -13748,11 +13748,11 @@
         padding: 14px 0;
         background: var(--surface, #fff);
         border-bottom: 1px solid var(--border, #ddd);
-        font-size: 18px;
+        font-size: var(--font-size-2xl, 18px);
         font-weight: 600;
         color: var(--text, #333);
     }
-    body[data-mobile-page="tickets-csat"] .cf-field { font-size: 13px; }
+    body[data-mobile-page="tickets-csat"] .cf-field { font-size: var(--font-size-md, 13px); }
     /* 16px text: iOS zooms the page into any smaller input it focuses. */
     body[data-mobile-page="tickets-csat"] .cf-field input,
     body[data-mobile-page="tickets-csat"] .cf-field select {
@@ -13793,7 +13793,7 @@
         border-radius: 11px;
         background: var(--accent, #0078d4);
         color: var(--on-accent, #fff);
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         line-height: 22px;
         text-align: center;
     }
@@ -14039,7 +14039,7 @@
         background: var(--surface, #fff);
         color: var(--text, #1e293b);
         font: inherit;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         cursor: pointer;
     }
@@ -14140,7 +14140,7 @@
         background: var(--surface, #fff);
         margin: 0;
         padding: 18px 56px 14px 18px;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
     }
     .ticket-context-menu.ctx-sheet .ticket-context-menu-item {
         min-height: 52px;
@@ -14210,7 +14210,7 @@
         cursor: pointer;
     }
     .ctx-sheet-level2-title {
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -14348,7 +14348,7 @@
         background: var(--surface, #fff);
         color: var(--text, #1e293b);
         font: inherit;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         cursor: pointer;
     }
@@ -14454,7 +14454,7 @@
         min-width: 0;              /* §14 */
         padding: 0;
         border: 0;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         overflow-wrap: anywhere;
         box-sizing: border-box;
     }
@@ -14550,7 +14550,7 @@
         display: block;
         padding: 2px 0;
         border: 0;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-dim, #888);
         overflow-wrap: anywhere;
     }
@@ -14627,7 +14627,7 @@
         align-items: center;
         justify-content: center;
         border-radius: 8px;
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -14778,7 +14778,7 @@
         border: none;
         min-width: 0;
         order: 4;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-muted, #555);
         overflow-wrap: anywhere;
     }
@@ -14786,7 +14786,7 @@
     body[data-mobile-module="people"] .ppl-table td:first-child {
         order: 0;
         flex: 1 1 60%;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         color: var(--text, #222);
     }
@@ -14820,7 +14820,7 @@
     body[data-mobile-module="people"] #sec-forms td:nth-child(n+2)::before {
         content: attr(data-label) "\00a0";
         color: var(--text-dim, #888);
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
     }
 
     /* Status pills ride on the first line, at the right (§23). A person's
@@ -14845,7 +14845,7 @@
     body[data-mobile-module="people"] #sec-tickets td:nth-child(2) {
         order: 3;
         flex: 0 0 100%;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         color: var(--text, #333);
     }
 
@@ -14967,7 +14967,7 @@
         min-width: 0;
     }
     body[data-mobile-page="assets-users"] .au-search input[type=search] { flex-basis: 100%; }
-    body[data-mobile-page="assets-users"] .au-head-btn { min-height: 36px; padding: 6px 14px; font-size: 13px; }
+    body[data-mobile-page="assets-users"] .au-head-btn { min-height: 36px; padding: 6px 14px; font-size: var(--font-size-md, 13px); }
     body[data-mobile-page="assets-users"] .au-person { padding: 12px 14px; min-height: 52px; box-sizing: border-box; }
     body[data-mobile-page="assets-users"] .au-btn { min-height: 40px; }
     body[data-mobile-page="assets-users"] .au-detail-head { padding: 14px 12px; }
@@ -15011,14 +15011,14 @@
         border: none;
         min-width: 0;
         order: 4;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text-muted, #555);
         overflow-wrap: anywhere;
     }
     body[data-mobile-page="assets-users"] .au-table td:nth-child(2) {
         order: 0;
         flex: 1 1 60%;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         color: var(--text, #333);
     }
     body[data-mobile-page="assets-users"] .au-table td:nth-child(2) a { display: inline-block; padding: 4px 0; }
@@ -15027,7 +15027,7 @@
     body[data-mobile-page="assets-users"] .au-table td[data-mobile-label]::before {
         content: attr(data-mobile-label) "\00a0";
         color: var(--text-dim, #888);
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;   /* the app's own (inbox.css) - not the code font of the serial and tag cells */
     }
     /* "No equipment" is one colspan cell: keep it whole and centred. */
@@ -15041,7 +15041,7 @@
         min-height: 40px;
     }
     body[data-mobile-page="manager-access"] .ma-wrap { padding: 12px; }
-    body[data-mobile-page="manager-access"] .ma-back { min-height: 40px; padding: 6px 14px; font-size: 14px; }
+    body[data-mobile-page="manager-access"] .ma-back { min-height: 40px; padding: 6px 14px; font-size: var(--font-size-lg, 14px); }
     body[data-mobile-page="manager-access"] .ma-stat { min-width: 0; flex: 1 1 100%; }
     body[data-mobile-page="manager-access"] .ma-btn { min-height: 36px; padding: 6px 12px; }
     /* The search results: name (and its job line) take the full width, the
@@ -15118,7 +15118,7 @@
         background: none;
         color: var(--text-muted, #666);
         font: inherit;
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         line-height: 1.1;
         cursor: pointer;
         overflow: hidden;
@@ -15363,7 +15363,7 @@
         content: attr(data-mobile-count-label);
         grid-area: lbl;
         align-self: end;
-        font-size: 11px;
+        font-size: var(--font-size-xs, 11px);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: .3px;
@@ -15373,7 +15373,7 @@
     body[data-mobile-page^="lms-tests"] .ct-skill .ct-x { min-width: 40px; min-height: 40px; }
 
     /* ---- a candidate result */
-    body[data-mobile-page^="lms-tests"] .ct-title-row h1 { font-size: 20px; overflow-wrap: anywhere; }
+    body[data-mobile-page^="lms-tests"] .ct-title-row h1 { font-size: var(--font-size-3xl, 20px); overflow-wrap: anywhere; }
     body[data-mobile-page^="lms-tests"] .ct-score-big { font-size: 38px; }
     /* §10: the six facts two-up on a grid, not one tall column. */
     body[data-mobile-page^="lms-tests"] .ct-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
@@ -15518,7 +15518,7 @@
         background: var(--surface, #fff);
         color: var(--text, #1e293b);
         font: inherit;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         cursor: pointer;
     }
@@ -15633,7 +15633,7 @@
         flex: 1 1 100%;
     }
     body[data-mobile-page="projects-view"] .prj-banner h1 { font-size: 22px; overflow-wrap: anywhere; }
-    body[data-mobile-page="projects-view"] .prj-banner-goal { font-size: 14px; }
+    body[data-mobile-page="projects-view"] .prj-banner-goal { font-size: var(--font-size-lg, 14px); }
     body[data-mobile-page="projects-view"] .prj-banner-facts { gap: 6px 14px; margin-top: 10px; }
     /* Edit and Delete moved to the footer (44h), so the row they left would
        be an empty strip. */
@@ -15911,7 +15911,7 @@
         gap: 8px;
         border-radius: 8px;
         box-sizing: border-box;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
@@ -16083,7 +16083,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text, #222);
     }
     body[data-mobile-page="projects-view"] .prj-raci-cell { flex: 0 0 40px; width: 40px; height: 40px; }
@@ -16193,7 +16193,7 @@
     body[data-mobile-module="projects"] .prj-tg-table tr { border: 1px solid var(--border, #e5e7eb); border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; }
     body[data-mobile-module="projects"] .prj-tg-table td { border: none; padding: 3px 0; display: flex; gap: 10px; overflow-wrap: anywhere; }
     body[data-mobile-module="projects"] .prj-tg-table td:empty { display: none; }
-    body[data-mobile-module="projects"] .prj-tg-table td::before { content: attr(data-label); flex: 0 0 38%; color: var(--text-dim, #888); font-size: 12px; }
+    body[data-mobile-module="projects"] .prj-tg-table td::before { content: attr(data-label); flex: 0 0 38%; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
     body[data-mobile-module="projects"] .prj-tg-table td:first-child { font-size: 15px; }
     body[data-mobile-module="projects"] .prj-tg-table td:first-child::before { display: none; }
 
@@ -16251,7 +16251,7 @@
         -webkit-overflow-scrolling: touch;
         padding: 12px 12px 24px;
     }
-    body[data-mobile-page="projects-tutorial"] .prj-tutorial-head h1 { font-size: 20px; }
+    body[data-mobile-page="projects-tutorial"] .prj-tutorial-head h1 { font-size: var(--font-size-3xl, 20px); }
     body[data-mobile-page="projects-tutorial"] .prj-tour.is-walk .prj-tour-panel { order: -1; }
     body[data-mobile-page="projects-tutorial"] .prj-tour-bar .prj-seg { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
     body[data-mobile-page="projects-tutorial"] .prj-tour-bar .prj-seg button,
@@ -16356,7 +16356,7 @@
     }
     body[data-mobile-page="files-desktop"] .fdm-row > svg { flex: 0 0 auto; }
     body[data-mobile-page="files-desktop"] .fdm-name { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-    body[data-mobile-page="files-desktop"] .fdm-meta { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    body[data-mobile-page="files-desktop"] .fdm-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* 45c - fields at 16px so iOS does not zoom (§3); dialogs fit the screen. */
     body[data-mobile-module="files"] input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),
@@ -16467,7 +16467,7 @@
         background: var(--surface, #fff);
         color: var(--text, #1e293b);
         font: inherit;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         font-weight: 600;
         cursor: pointer;
     }
@@ -16488,7 +16488,7 @@
         border-radius: 10px;
         background: var(--accent, #0078d4);
         color: var(--on-accent, #fff);
-        font-size: 12px;
+        font-size: var(--font-size-sm, 12px);
         line-height: 20px;
         text-align: center;
     }
@@ -16566,13 +16566,13 @@
         background: transparent;
     }
     body[data-mobile-page="tasks-board"] .m-fsheet .sidebar-section { margin-bottom: 18px; }
-    body[data-mobile-page="tasks-board"] .m-fsheet .sidebar-label { display: block; font-size: 12px; margin-bottom: 8px; }
+    body[data-mobile-page="tasks-board"] .m-fsheet .sidebar-label { display: block; font-size: var(--font-size-sm, 12px); margin-bottom: 8px; }
     body[data-mobile-page="tasks-board"] .m-fsheet .view-toggle { display: flex; width: 100%; }
     body[data-mobile-page="tasks-board"] .m-fsheet .view-btn {
         flex: 1 1 0;
         min-width: 0;
         min-height: 44px;
-        font-size: 14px;
+        font-size: var(--font-size-lg, 14px);
         justify-content: center;
     }
     body[data-mobile-page="tasks-board"] .m-fsheet .filter-btn { min-height: 44px; font-size: 15px; }

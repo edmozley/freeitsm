@@ -34,7 +34,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -47,7 +47,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s;
@@ -73,11 +73,11 @@ $translationNamespaces = ['common', 'contracts'];
         .upload-form { display: grid; grid-template-columns: 1fr 220px auto; gap: 12px; align-items: end; }
         .upload-form .field { display: flex; flex-direction: column; }
         .upload-form label {
-            font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #555);
             margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .upload-form input[type=file], .upload-form select {
-            padding: 8px 10px; font-size: 14px;
+            padding: 8px 10px; font-size: var(--font-size-lg, 14px);
             border: 1px solid var(--border, #ddd); border-radius: 6px; box-sizing: border-box;
             font-family: inherit;
         }
@@ -85,24 +85,24 @@ $translationNamespaces = ['common', 'contracts'];
             outline: none; border-color: var(--con-accent, #f59e0b);
         }
         .upload-status {
-            font-size: 13px; color: var(--text-muted, #555); margin-top: 12px;
+            font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); margin-top: 12px;
         }
         .upload-status.error { color: #d13438; }
         .upload-status.success { color: #065f46; }
         .upload-status.busy { color: #b45309; }
         .upload-help {
-            font-size: 12px; color: var(--text-dim, #888); margin-top: 8px;
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 8px;
         }
 
         /* Documents table */
         table { width: 100%; border-collapse: collapse; }
         thead th {
-            text-align: left; padding: 12px 24px; font-size: 12px; font-weight: 600;
+            text-align: left; padding: 12px 24px; font-size: var(--font-size-sm, 12px); font-weight: 600;
             color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             border-bottom: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafafa);
         }
         tbody td {
-            padding: 14px 24px; font-size: 14px; color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
+            padding: 14px 24px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
         }
         tbody tr:last-child td { border-bottom: none; }
         tbody tr:hover { background: var(--surface-hover, #fafafa); }
@@ -110,13 +110,13 @@ $translationNamespaces = ['common', 'contracts'];
         .filename { font-weight: 600; color: var(--text, #222); }
         .dept-badge {
             display: inline-block; padding: 3px 10px; border-radius: 12px;
-            font-size: 12px; font-weight: 500; color: white;
+            font-size: var(--font-size-sm, 12px); font-weight: 500; color: white;
         }
         .dept-badge.empty { background: #e5e7eb; color: #6b7280; }
 
         .doc-status {
             display: inline-block; padding: 3px 10px; border-radius: 12px;
-            font-size: 12px; font-weight: 500; text-transform: capitalize;
+            font-size: var(--font-size-sm, 12px); font-weight: 500; text-transform: capitalize;
         }
         .doc-status.uploaded  { background: #e5e7eb; color: #374151; }
         .doc-status.extracted { background: #d1fae5; color: #065f46; }
@@ -152,10 +152,10 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             padding: 16px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
-        .modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
-        .modal-meta { font-size: 12px; color: var(--text-dim, #888); }
+        .modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; }
+        .modal-meta { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .modal-close {
-            background: none; border: none; font-size: 24px; line-height: 1;
+            background: none; border: none; font-size: var(--font-size-4xl, 24px); line-height: 1;
             cursor: pointer; color: var(--text-dim, #888); padding: 0 4px;
         }
         .modal-body {
@@ -164,7 +164,7 @@ $translationNamespaces = ['common', 'contracts'];
         .modal-body pre {
             margin: 0; padding: 20px 24px; flex: 1; overflow: auto;
             white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            font-size: 13px; line-height: 1.5; color: var(--text, #333); background: var(--surface-2, #fafafa);
+            font-size: var(--font-size-md, 13px); line-height: 1.5; color: var(--text, #333); background: var(--surface-2, #fafafa);
         }
         .modal-footer {
             display: flex; justify-content: flex-end; gap: 10px;
@@ -173,7 +173,7 @@ $translationNamespaces = ['common', 'contracts'];
 
         .alert-info {
             background: #fff7ed; border-left: 4px solid var(--con-accent, #f59e0b);
-            padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #7c2d12;
+            padding: 12px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); color: #7c2d12;
             margin-bottom: 16px;
         }
         .alert-info a { color: var(--con-accent-hover, #b45309); font-weight: 600; }
@@ -372,7 +372,7 @@ $translationNamespaces = ['common', 'contracts'];
                     : `<span class="dept-badge empty">${escapeHtml(window.t('contracts.rfp.documents.unassigned'))}</span>`;
                 const sizeText = d.has_text ? window.t('contracts.rfp.documents.chars', { n: formatNumber(d.char_count) }) : '—';
                 const reqsCell = d.extracted_count > 0
-                    ? `<span style="display:inline-block; min-width:24px; padding:2px 8px; background:#d1fae5; color:#065f46; border-radius:10px; text-align:center; font-size:12px; font-weight:600;">${d.extracted_count}</span>`
+                    ? `<span style="display:inline-block; min-width:24px; padding:2px 8px; background:#d1fae5; color:#065f46; border-radius:10px; text-align:center; font-size:var(--font-size-sm, 12px); font-weight:600;">${d.extracted_count}</span>`
                     : `<span style="color:var(--text-faint, #bbb);">—</span>`;
                 const extractTitle = d.extracted_count > 0 ? window.t('contracts.rfp.documents.reextract_title') : window.t('contracts.rfp.documents.extract_title');
                 return `

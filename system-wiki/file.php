@@ -45,7 +45,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             padding: 24px 20px;
         }
         .breadcrumb {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin-bottom: 16px;
         }
@@ -70,7 +70,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             margin-bottom: 8px;
         }
         .file-path {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin-bottom: 12px;
             font-family: monospace;
@@ -81,7 +81,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             flex-wrap: wrap;
         }
         .meta-item {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
         .meta-item strong { color: var(--text, #333); }
@@ -89,7 +89,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             margin-top: 12px;
             padding-top: 12px;
             border-top: 1px solid var(--border-soft, #eee);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-muted, #555);
             line-height: 1.5;
         }
@@ -102,7 +102,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         }
         .section-header {
             padding: 14px 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text, #333);
             border-bottom: 1px solid var(--border-soft, #eee);
@@ -117,7 +117,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             background: var(--surface-hover, #f0f0f0);
             padding: 1px 8px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 500;
             color: var(--text-dim, #888);
         }
@@ -127,7 +127,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         .detail-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .detail-table th {
             text-align: left;
@@ -135,7 +135,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             background: #f9f9f9;
             color: var(--text-muted, #666);
             font-weight: 600;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
@@ -192,8 +192,8 @@ $translationNamespaces = ['common', 'system-wiki'];
         .access-badge.read { background: #e3f2fd; color: #1565c0; }
         .access-badge.write { background: #fff3e0; color: #e65100; }
 
-        .line-ref { color: var(--text-faint, #aaa); font-family: monospace; font-size: 12px; }
-        .empty-section { padding: 16px 20px; color: var(--text-faint, #aaa); font-size: 13px; font-style: italic; }
+        .line-ref { color: var(--text-faint, #aaa); font-family: monospace; font-size: var(--font-size-sm, 12px); }
+        .empty-section { padding: 16px 20px; color: var(--text-faint, #aaa); font-size: var(--font-size-md, 13px); font-style: italic; }
 
         /* ---- Dark mode: colours whose light values don't match a token exactly ---- */
         [data-theme-mode="dark"] .wiki-detail { background: var(--app-bg, #f5f7fa); }

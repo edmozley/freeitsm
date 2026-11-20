@@ -46,13 +46,13 @@ $translationNamespaces = ['common', 'system-wiki'];
             padding: 24px 20px;
         }
         .page-title {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 8px;
         }
         .page-subtitle {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin-bottom: 20px;
         }
@@ -74,14 +74,14 @@ $translationNamespaces = ['common', 'system-wiki'];
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 500;
             transition: background 0.15s;
         }
         .scan-btn:hover { background: var(--wiki-accent-hover, #b71c1c); }
         .scan-btn:disabled { background: #ccc; cursor: not-allowed; }
         .scan-info {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             line-height: 1.5;
         }
@@ -90,7 +90,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             color: var(--text-muted, #666);
             padding: 1px 6px;
             border-radius: 3px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .history-card {
@@ -101,7 +101,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         }
         .history-title {
             padding: 14px 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text, #333);
             border-bottom: 1px solid var(--border-soft, #eee);
@@ -109,7 +109,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         .history-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .history-table th {
             text-align: left;
@@ -128,13 +128,13 @@ $translationNamespaces = ['common', 'system-wiki'];
             display: inline-block;
             padding: 2px 8px;
             border-radius: 3px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         .status-badge.completed { background: #e8f5e9; color: #2e7d32; }
         .status-badge.running { background: #fff3e0; color: #e65100; }
         .status-badge.failed { background: #fce4ec; color: #c62828; }
-        .no-data { text-align: center; padding: 40px; color: var(--text-faint, #aaa); font-size: 14px; }
+        .no-data { text-align: center; padding: 40px; color: var(--text-faint, #aaa); font-size: var(--font-size-lg, 14px); }
 
         /* Dark-mode overrides for the few colours that stay hardcoded */
         [data-theme-mode="dark"] .scan-btn:disabled { background: #3a3f4a; color: #8b919c; }
@@ -213,7 +213,7 @@ $translationNamespaces = ['common', 'system-wiki'];
                             <td>${s.classes_found}</td>
                             <td>${esc(s.scanned_by || '-')}</td>
                         </tr>
-                        ${s.error_message ? `<tr><td colspan="7" style="color:var(--wiki-accent,#c62828);font-size:12px;padding:4px 16px 8px;">${esc(s.error_message)}</td></tr>` : ''}
+                        ${s.error_message ? `<tr><td colspan="7" style="color:var(--wiki-accent,#c62828);font-size:var(--font-size-sm, 12px);padding:4px 16px 8px;">${esc(s.error_message)}</td></tr>` : ''}
                     `;
                 }).join('');
             } catch (e) { console.error(e); }

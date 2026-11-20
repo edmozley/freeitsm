@@ -51,11 +51,11 @@ $translationNamespaces = ['common', 'war-room'];
             grid-template-columns: max-content 1fr;
             gap: 6px 18px;
             margin-top: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .help-cmds code {
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--accent);
             white-space: nowrap;
         }

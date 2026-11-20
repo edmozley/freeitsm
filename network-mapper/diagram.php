@@ -83,7 +83,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 6px 10px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             flex-shrink: 0;
             text-decoration: none;
             display: inline-flex;
@@ -91,7 +91,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         }
         .nm-back-btn:hover { background: var(--surface-hover, #f9fafb); color: var(--text, #111827); }
         .nm-editor-title {
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #111827);
             margin: 0;
@@ -106,7 +106,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             border: 1px solid #a5f3fc;
             padding: 2px 8px;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             white-space: nowrap;
         }
@@ -134,7 +134,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             align-items: center;
             gap: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #4b5563);
             user-select: none;
         }
@@ -164,7 +164,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
 
         /* ---- Status indicator ---- */
         .nm-status {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #6b7280);
             min-width: 120px;
             text-align: right;
@@ -201,7 +201,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .nm-btn:hover { background: var(--nm-accent-hover, #0891b2); }
         .nm-btn.secondary { background: var(--surface, #fff); color: var(--text-muted, #374151); border: 1px solid var(--border, #d1d5db); }
@@ -220,7 +220,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             border-radius: 0;
             border-right-width: 0;
             padding: 7px 10px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .nm-zoom-group .nm-btn:first-child { border-radius: 4px 0 0 4px; }
         .nm-zoom-group .nm-btn:last-child  { border-radius: 0 4px 4px 0; border-right-width: 1px; }
@@ -231,7 +231,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             color: var(--text-muted, #374151);
             font-weight: 500;
         }
-        .nm-zoom-fit { font-size: 12px; }
+        .nm-zoom-fit { font-size: var(--font-size-sm, 12px); }
 
         /* Export buttons — same segmented look as zoom, two buttons (PNG/PDF) */
         .nm-export-group {
@@ -245,7 +245,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             border-radius: 0;
             border-right-width: 0;
             padding: 7px 10px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
         .nm-export-group .nm-btn:first-child { border-radius: 4px 0 0 4px; }
         .nm-export-group .nm-btn:last-child  { border-radius: 0 4px 4px 0; border-right-width: 1px; }
@@ -253,7 +253,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
 
         /* ---- Meta row ---- */
         .nm-meta-row {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #6b7280);
             padding: 8px 20px;
             background: var(--surface-2, #fafbfc);
@@ -269,7 +269,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             background: #fff7ed;
             border-bottom: 1px solid #fed7aa;
             color: #9a3412;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -297,7 +297,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-palette-header {
             padding: 11px 14px;
             border-bottom: 1px solid var(--border, #e5e7eb);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text-muted, #374151);
             display: flex;
@@ -305,7 +305,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             align-items: center;
         }
         .nm-palette-hint {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-faint, #9ca3af);
             font-weight: 400;
         }
@@ -321,7 +321,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-palette-empty {
             grid-column: 1 / -1;
             color: var(--text-faint, #9ca3af);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.5;
             padding: 14px 8px;
         }
@@ -353,7 +353,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             height: 32px;
         }
         .nm-palette-tile-name {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text, #111827);
             text-align: center;
@@ -404,7 +404,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             transform: translate(-50%, -50%);
             text-align: center;
             color: #9ca3af;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             max-width: 380px;
             line-height: 1.5;
         }
@@ -444,7 +444,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         }
         .nm-node-label {
             margin-top: 4px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
             color: #1f2937;
             text-align: center;
@@ -543,7 +543,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         }
         .nm-page-outline-label {
             fill: #0e7490;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-family: inherit;
             font-weight: 600;
             text-transform: capitalize;
@@ -564,7 +564,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             pointer-events: none;
             z-index: 1;
             color: #334155;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             box-sizing: border-box;
             gap: 12px;
         }
@@ -592,7 +592,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             margin-top: 8px;
         }
         .nm-brand-grid .row-label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #475569);
             text-align: right;
@@ -611,7 +611,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 6px 8px;
             border: 1px solid var(--border, #d1d5db);
             border-radius: 4px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-family: inherit;
             box-sizing: border-box;
         }
@@ -626,7 +626,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             border-radius: 6px;
             padding: 10px 12px;
             margin-top: 14px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: #075985;
             line-height: 1.7;
         }
@@ -647,7 +647,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         }
         .nm-connector-label {
             fill: #1f2937;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-family: inherit;
             text-anchor: middle;
             user-select: none;
@@ -659,7 +659,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             width: 160px;
             height: 28px;
             padding: 4px 8px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-family: inherit;
             color: #1f2937;
             background: white;
@@ -669,7 +669,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             outline: none;
             box-sizing: border-box;
         }
-        .nm-connector-label-input::placeholder { color: #9ca3af; font-style: italic; font-size: 11px; }
+        .nm-connector-label-input::placeholder { color: #9ca3af; font-style: italic; font-size: var(--font-size-xs, 11px); }
 
         /* ---- Edge handles (start a connector drag) ---- */
         .nm-edge-handle {
@@ -712,7 +712,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 20px 16px;
             text-align: center;
             color: var(--text-faint, #9ca3af);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .nm-vd-row {
             display: flex;
@@ -735,7 +735,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             gap: 8px;
         }
         .nm-vd-label {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text, #111827);
             overflow: hidden;
@@ -745,7 +745,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             min-width: 0;
         }
         .nm-vd-row-meta {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-dim, #6b7280);
         }
         .nm-vd-pill {
@@ -801,7 +801,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-detail-title-text { min-width: 0; }
         .nm-detail-title-text h3 {
             margin: 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text, #111827);
             overflow: hidden;
@@ -809,7 +809,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             white-space: nowrap;
         }
         .nm-detail-subtitle {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-dim, #6b7280);
             margin-top: 2px;
         }
@@ -835,7 +835,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             gap: 10px;
             padding: 6px 0;
             border-bottom: 1px solid var(--border-soft, #f3f4f6);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .nm-detail-field:last-child { border-bottom: 0; }
         .nm-detail-label { color: var(--text-dim, #6b7280); flex-shrink: 0; }
@@ -865,7 +865,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
 
         /* ---- Properties sub-section (CMDB property values for the bound object) ---- */
         .nm-detail-section-header {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-dim, #6b7280);
             text-transform: uppercase;
@@ -888,7 +888,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-prop-empty {
             padding: 8px 0;
             color: var(--text-faint, #9ca3af);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-style: italic;
         }
         .nm-prop-row {
@@ -898,13 +898,13 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-prop-row:last-child { border-bottom: 0; }
         .nm-prop-label {
             display: block;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-dim, #6b7280);
             margin-bottom: 3px;
         }
         .nm-prop-value {
             display: block;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #111827);
             line-height: 1.45;
             word-break: break-word;
@@ -915,7 +915,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             display: inline-block;
             padding: 2px 8px;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 500;
             background: #f3f4f6;
             color: var(--text-muted, #374151);
@@ -929,7 +929,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             gap: 6px;
             padding: 3px 9px;
             border-radius: 999px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
             background: #fce7f3;
             color: #9d174d;
@@ -963,7 +963,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         }
         .nm-detail-icon-btn {
             padding: 4px 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 500;
             color: #0e7490;
             background: var(--surface, #fff);
@@ -986,7 +986,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 9px 12px;
             border: 1px solid var(--border, #d1d5db);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             box-sizing: border-box;
         }
         .nm-ip-search:focus {
@@ -1004,7 +1004,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         }
         .nm-ip-category {
             padding: 8px 8px 4px 8px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-dim, #6b7280);
             text-transform: uppercase;
@@ -1057,13 +1057,13 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 28px 16px;
             text-align: center;
             color: var(--text-faint, #9ca3af);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         /* ---- Related-objects modal ---- */
         .nm-modal.nm-modal-wide { width: 560px; }
         .nm-rm-intro {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #6b7280);
             margin: 0 0 14px 0;
             line-height: 1.5;
@@ -1080,7 +1080,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 28px 16px;
             text-align: center;
             color: var(--text-faint, #9ca3af);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .nm-rm-group {
             background: var(--surface, #fff);
@@ -1092,7 +1092,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             align-items: center;
             padding: 8px 14px;
             background: var(--surface-hover, #f9fafb);
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-dim, #6b7280);
             text-transform: uppercase;
@@ -1106,7 +1106,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             gap: 10px;
             padding: 9px 14px;
             border-bottom: 1px solid var(--border-soft, #f3f4f6);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
         }
         .nm-rm-row:last-child { border-bottom: 0; }
@@ -1150,11 +1150,11 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             white-space: nowrap;
         }
         .nm-rm-class {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-dim, #6b7280);
         }
         .nm-rm-link-text {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: #0e7490;
             font-style: italic;
         }
@@ -1187,7 +1187,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 9px 12px;
             border: 1px solid var(--border, #d1d5db);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             box-sizing: border-box;
         }
         .nm-picker-search:focus {
@@ -1210,7 +1210,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #1f2937);
             background: var(--surface, #fff);
         }
@@ -1227,7 +1227,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             gap: 8px;
         }
         .nm-picker-parent {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-faint, #9ca3af);
         }
         .nm-picker-planned {
@@ -1245,7 +1245,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 28px 16px;
             text-align: center;
             color: var(--text-faint, #9ca3af);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             background: var(--surface, #fff);
         }
         .nm-picker-empty a { color: var(--nm-accent, #06b6d4); }
@@ -1273,7 +1273,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 16px 22px;
             border-bottom: 1px solid var(--border, #e5e7eb);
             font-weight: 600;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #111827);
         }
         .nm-modal-body { padding: 22px; flex: 1; overflow-y: auto; }
@@ -1287,7 +1287,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-form-group { margin-bottom: 14px; }
         .nm-form-group label {
             display: block;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             color: var(--text-muted, #374151);
             margin-bottom: 5px;
@@ -1297,7 +1297,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             padding: 9px 12px;
             border: 1px solid var(--border, #d1d5db);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-family: inherit;
             box-sizing: border-box;
         }
@@ -1307,7 +1307,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             border-color: var(--nm-accent, #06b6d4);
             box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
         }
-        .nm-form-group small { color: #6b7280; font-size: 12px; display: block; margin-top: 4px; }
+        .nm-form-group small { color: #6b7280; font-size: var(--font-size-sm, 12px); display: block; margin-top: 4px; }
 
         /* ---- Present mode: hide all chrome and show only the diagram.
            Toggled by adding .is-presenting to .nm-editor. The canvas itself
@@ -1325,7 +1325,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             border: none;
             border-radius: 999px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             letter-spacing: 0.3px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
@@ -1594,7 +1594,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         <div class="nm-modal nm-modal-wide">
             <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.branding.title')); ?></div>
             <div class="nm-modal-body">
-                <p style="font-size:13px;color:#6b7280;margin:0 0 12px 0;line-height:1.5;">
+                <p style="font-size:var(--font-size-md, 13px);color:#6b7280;margin:0 0 12px 0;line-height:1.5;">
                     <?php echo t('network-mapper.branding.intro'); ?>
                 </p>
                 <div class="nm-brand-grid">
@@ -1631,7 +1631,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         <div class="nm-modal">
             <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.newversion.title')); ?></div>
             <div class="nm-modal-body">
-                <p style="font-size:13px;color:#6b7280;margin:0 0 16px 0;line-height:1.5;">
+                <p style="font-size:var(--font-size-md, 13px);color:#6b7280;margin:0 0 16px 0;line-height:1.5;">
                     <?php echo htmlspecialchars(t('network-mapper.newversion.intro')); ?>
                 </p>
                 <div class="nm-form-group">

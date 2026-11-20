@@ -97,7 +97,7 @@ nav:not(.app-sidebar):not(.header-nav) a.active {
 }
 
 .date-display h2 {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     color: var(--text, #2c3e50);
     margin: 0;
     flex-shrink: 0;
@@ -120,7 +120,7 @@ nav:not(.app-sidebar):not(.header-nav) a.active {
     padding: 8px 12px;
     border: 1px solid var(--border, #ced4da);
     border-radius: 5px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-family: inherit;
 }
 
@@ -138,7 +138,7 @@ nav:not(.app-sidebar):not(.header-nav) a.active {
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     transition: all 0.3s;
     white-space: nowrap;
 }
@@ -155,7 +155,7 @@ nav:not(.app-sidebar):not(.header-nav) a.active {
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     transition: all 0.3s;
     white-space: nowrap;
 }
@@ -288,7 +288,7 @@ tr.status-red {
 
 /* Notes Display */
 .notes-display {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text-muted, #6c757d);
     max-width: 300px;
     word-wrap: break-word;
@@ -304,7 +304,7 @@ tr.status-red {
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     background-color: var(--accent, #0078d4);
     color: white;
 }
@@ -315,7 +315,7 @@ tr.status-red {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     transition: all 0.3s;
     margin-right: 5px;
@@ -366,13 +366,13 @@ tr.status-red {
 }
 
 .chart-footer-header h2 {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     color: var(--text, #2c3e50);
     margin: 0;
 }
 
 .toggle-icon {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     color: var(--accent, #007bff);
     font-weight: bold;
 }
@@ -429,7 +429,7 @@ tr.status-red {
     border: 1px solid var(--border, #ced4da);
     border-radius: 5px;
     font-family: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .form-group textarea {
@@ -453,7 +453,7 @@ tr.status-red {
 .badge {
     padding: 4px 12px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
 }
 
@@ -477,7 +477,7 @@ tr.status-red {
     display: inline-block;
     margin-top: 6px;
     padding: 4px 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 500;
     color: #00838f;
     background: #e0f7fa;
@@ -507,7 +507,7 @@ tr.status-red {
 }
 
 .modal-content h2 {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     font-weight: 600;
     color: var(--text, #333);
     margin: 0 0 10px;
@@ -516,7 +516,7 @@ tr.status-red {
 .modal-content p {
     color: var(--text-muted, #6c757d);
     margin: 0 0 20px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .modal-actions {
@@ -554,7 +554,7 @@ tr.status-red {
     /* Matches .btn-today / .btn-pdf exactly: those have no border and 8px/16px
        padding, so 1px border + 7px/15px lands on the same box height. Change the
        two together or the row of buttons goes ragged again. */
-    font-size: 14px; font-weight: 600; padding: 7px 15px;
+    font-size: var(--font-size-lg, 14px); font-weight: 600; padding: 7px 15px;
     border-radius: 5px; cursor: pointer; white-space: nowrap;
     transition: background 150ms ease, color 150ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -573,9 +573,9 @@ tr.status-red {
     padding: 8px 12px !important;
     border-top: 1px solid var(--border, #d5dbe1);
 }
-.mc-group-name { font-weight: 600; font-size: 13px; color: var(--text, #333); }
+.mc-group-name { font-weight: 600; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
 .mc-group-route {
-    margin-left: 10px; font-size: 11px; color: var(--text-muted, #6b7280);
+    margin-left: 10px; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #6b7280);
     padding: 2px 8px; border-radius: 10px; background: var(--surface, #fff);
     border: 1px solid var(--border, #d5dbe1);
 }
@@ -584,7 +584,7 @@ tr.status-red {
    whatever the group heading already said. */
 .mc-assigned {
     display: inline-block; margin-left: 8px;
-    font-size: 11px; font-weight: 500;
+    font-size: var(--font-size-xs, 11px); font-weight: 500;
     color: var(--text-muted, #6b7280);
     padding: 1px 7px; border-radius: 9px;
     background: var(--surface-hover, #eef1f4);
@@ -592,7 +592,7 @@ tr.status-red {
 
 /* Who actually did it. Quiet, because it is a fact after the event rather than
    an instruction — and it appears on every completed row, so it must not shout. */
-.mc-doneby { margin-top: 6px; font-size: 11px; color: var(--text-dim, #9ca3af); }
+.mc-doneby { margin-top: 6px; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); }
 
 @media (prefers-reduced-motion: reduce) { .mc-filter-btn:active { transform: none; } }
 
@@ -633,7 +633,7 @@ tr.status-red {
 }
 .mc-icon-btn:disabled:active { transform: none; }
 
-.mc-checked-by, .mc-checked-at { font-size: 13px; color: var(--text-muted, #555); white-space: nowrap; }
+.mc-checked-by, .mc-checked-at { font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); white-space: nowrap; }
 .mc-dash { color: var(--text-faint, #bbb); }
 
 /* Ticket-or-task choice in the raise modal. */
@@ -642,7 +642,7 @@ tr.status-red {
     border: 1px solid var(--border, #ddd);
     background: var(--surface, #fff);
     color: var(--text-muted, #666);
-    padding: 7px 18px; border-radius: 6px; cursor: pointer; font-size: 14px;
+    padding: 7px 18px; border-radius: 6px; cursor: pointer; font-size: var(--font-size-lg, 14px);
     transition: background 150ms ease, color 150ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .mc-kind-btn:hover { border-color: var(--accent, #00acc1); }

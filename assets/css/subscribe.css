@@ -11,14 +11,14 @@
  */
 
 .subscribe-intro {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     margin: 0 0 12px 0;
     line-height: 1.4;
 }
 .subscribe-modal { max-width: 420px; }
 .subscribe-modal .form-hint {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-dim, #888);
     margin: 6px 0 0 0;
     line-height: 1.4;
@@ -48,12 +48,12 @@
     /* Monospaced: a long opaque token is far easier to check and to select
        accurately when the characters line up. */
     font-family: Consolas, Monaco, monospace;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #555);
     background: var(--surface-3, #f8f8f8);
 }
 .subscribe-hint {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #666);
     margin: 0 0 8px 0;
     line-height: 1.45;
@@ -63,7 +63,7 @@
     background: none;
     border: none;
     padding: 0;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-faint, #999);
     cursor: pointer;
     text-decoration: underline;
@@ -80,7 +80,7 @@
     border: 1px solid var(--warning-border, #f0d9a8);
     border-radius: 4px;
     padding: 10px 12px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.5;
     margin-bottom: 14px;
 }

@@ -77,31 +77,31 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
            a 50px top margin and an `h3` margin/size that would push the title
            and buttons 1px off the 24px grid - cancelled here for these boxes. */
         .modal-box.sys-modal { border: 0; margin: auto 0; }
-        .modal-box .sys-modal-head { margin: 0; font-size: 18px; }
+        .modal-box .sys-modal-head { margin: 0; font-size: var(--font-size-2xl, 18px); }
         .map-section { margin-bottom: 26px; }
         .map-section h4 {
             margin: 0 0 4px; font-size: 15px; color: var(--text); font-weight: 600;
         }
         .map-section .map-hint {
-            font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;
         }
         .map-row {
             display: grid; grid-template-columns: 1fr 24px 1fr; align-items: center;
             gap: 10px; margin-bottom: 8px;
         }
-        .map-row .map-local { font-size: 14px; color: var(--text); }
+        .map-row .map-local { font-size: var(--font-size-lg, 14px); color: var(--text); }
         .map-row .map-arrow { text-align: center; color: var(--text-faint); }
         .map-row select, .map-row input[type=text] {
             width: 100%; padding: 7px 10px; border: 1px solid var(--border);
-            border-radius: 6px; background: var(--surface); color: var(--text); font-size: 14px;
+            border-radius: 6px; background: var(--surface); color: var(--text); font-size: var(--font-size-lg, 14px);
         }
         .map-row.map-default .map-local { font-style: italic; color: var(--text-muted); }
-        .map-empty { font-size: 13px; color: var(--text-muted); }
+        .map-empty { font-size: var(--font-size-md, 13px); color: var(--text-muted); }
         /* Sub-headings inside a section. Departments and companies are different
            kinds of rule and one overrides the other, so they are never one flat
            list — the grouping is what makes the precedence visible. */
         .map-group {
-            font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+            font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .05em;
             color: var(--text-muted); font-weight: 600;
             margin: 16px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border-soft);
         }
@@ -214,7 +214,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
-            <div class="hint" id="credKeepHint" style="display:none;margin:-8px 0 14px;font-size:12px;color:var(--text-muted);">
+            <div class="hint" id="credKeepHint" style="display:none;margin:-8px 0 14px;font-size:var(--font-size-sm, 12px);color:var(--text-muted);">
                 <?php echo htmlspecialchars(t('system.integrations.creds_keep_hint')); ?>
             </div>
 

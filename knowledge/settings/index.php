@@ -73,7 +73,7 @@ $translationNamespaces = ['common', 'knowledge'];
             padding: 10px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .form-group input:not([type="radio"]):not([type="checkbox"]):focus,
@@ -87,7 +87,7 @@ $translationNamespaces = ['common', 'knowledge'];
             display: block;
             margin-top: 4px;
             color: var(--text-dim, #888);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .form-row {
@@ -137,7 +137,7 @@ $translationNamespaces = ['common', 'knowledge'];
         }
 
         .radio-option-desc {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
@@ -174,7 +174,7 @@ $translationNamespaces = ['common', 'knowledge'];
         .btn {
             padding: 10px 20px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             cursor: pointer;
             border: none;
             transition: all 0.2s;
@@ -251,7 +251,7 @@ $translationNamespaces = ['common', 'knowledge'];
             border-radius: 6px;
             border: 1px solid var(--border, #ddd);
             background: var(--surface, #fff);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
         }
         .kb-perm-preview.is-widening {
@@ -308,7 +308,7 @@ $translationNamespaces = ['common', 'knowledge'];
 
                 <!-- SMTP Settings -->
                 <div class="smtp-settings" id="smtpSettings">
-                    <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.smtp_config')); ?></h3>
+                    <h3 style="font-size: var(--font-size-xl, 16px); margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.smtp_config')); ?></h3>
 
                     <div class="form-row">
                         <div class="form-group">
@@ -371,7 +371,7 @@ $translationNamespaces = ['common', 'knowledge'];
 
                 <!-- Mailbox Settings -->
                 <div class="mailbox-settings" id="mailboxSettings">
-                    <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.mailbox_heading')); ?></h3>
+                    <h3 style="font-size: var(--font-size-xl, 16px); margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.mailbox_heading')); ?></h3>
 
                     <div class="form-group">
                         <label for="selectedMailbox"><?php echo htmlspecialchars(t('knowledge.settings.mailbox_select')); ?></label>
@@ -399,7 +399,7 @@ $translationNamespaces = ['common', 'knowledge'];
             <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_intro')); ?></p>
 
             <!-- Assistant provider/model/key — reusable block (Anthropic / OpenAI / OpenRouter). -->
-            <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_chat_heading')); ?></h3>
+            <h3 style="font-size: var(--font-size-xl, 16px); margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_chat_heading')); ?></h3>
             <?php renderAiSettingsPanel('knowledge_ai'); ?>
 
             <!-- The assistant: judging whether a ticket contains an article, and
@@ -407,14 +407,14 @@ $translationNamespaces = ['common', 'knowledge'];
                  line on the bill — but it falls back to the chat key above if
                  left blank, so nobody has to configure two things to get going
                  (see writeupAiConfig() in includes/knowledge/writeup_ai.php). -->
-            <h3 style="font-size: 16px; margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid var(--border, #e0e0e0);">Assistant</h3>
-            <p style="color: var(--text-muted, #666); margin-bottom: 15px; font-size: 13px;">
+            <h3 style="font-size: var(--font-size-xl, 16px); margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid var(--border, #e0e0e0);">Assistant</h3>
+            <p style="color: var(--text-muted, #666); margin-bottom: 15px; font-size: var(--font-size-md, 13px);">
                 Finds the questions your service desk keeps answering that the knowledge base
                 does not cover, and drafts the article. Leave the key blank to reuse the one above.
             </p>
             <?php renderAiSettingsPanel('knowledge_writeup'); ?>
 
-            <h4 style="font-size: 14px; margin: 22px 0 12px 0;">When the assistant speaks up</h4>
+            <h4 style="font-size: var(--font-size-lg, 14px); margin: 22px 0 12px 0;">When the assistant speaks up</h4>
             <form id="assistantSettingsForm">
                 <div class="form-group">
                     <label for="gapMinCluster">Ask the same question this many times before suggesting an article</label>
@@ -442,7 +442,7 @@ $translationNamespaces = ['common', 'knowledge'];
             </form>
 
             <!-- OpenAI key for semantic-search embeddings — a separate concern from the chat provider. -->
-            <h3 style="font-size: 16px; margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid var(--border, #e0e0e0);"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_heading')); ?></h3>
+            <h3 style="font-size: var(--font-size-xl, 16px); margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid var(--border, #e0e0e0);"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_heading')); ?></h3>
             <form id="aiSettingsForm">
                 <div class="form-group">
                     <label for="openaiApiKey"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_key')); ?></label>
@@ -469,7 +469,7 @@ $translationNamespaces = ['common', 'knowledge'];
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.embedding_status')); ?></strong>
-                        <div id="embeddingStats" style="margin-top: 5px; color: var(--text-muted, #666); font-size: 13px;"><?php echo htmlspecialchars(t('knowledge.settings.embed_loading')); ?></div>
+                        <div id="embeddingStats" style="margin-top: 5px; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('knowledge.settings.embed_loading')); ?></div>
                     </div>
                     <button type="button" class="btn btn-primary" id="generateEmbeddingsBtn" onclick="generateEmbeddings()"><?php echo htmlspecialchars(t('knowledge.settings.generate')); ?></button>
                 </div>
@@ -523,14 +523,14 @@ $translationNamespaces = ['common', 'knowledge'];
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="kbPermModel" value="containers" onchange="previewPermModel(this.value)">
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.perm_containers_title')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('knowledge.settings.perm_containers_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="kbPermModel" value="filing" onchange="previewPermModel(this.value)">
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.perm_filing_title')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('knowledge.settings.perm_filing_desc')); ?>
                         </span>
                     </label>
@@ -564,14 +564,14 @@ $translationNamespaces = ['common', 'knowledge'];
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="kbSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.always_title')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('knowledge.settings.always_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="kbSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.hover_title')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('knowledge.settings.hover_desc')); ?>
                         </span>
                     </label>
@@ -586,14 +586,14 @@ $translationNamespaces = ['common', 'knowledge'];
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="kbBrowseMode" value="panel" onchange="saveBrowseMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.browse_panel_title')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('knowledge.settings.browse_panel_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="kbBrowseMode" value="explorer" onchange="saveBrowseMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.browse_explorer_title')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('knowledge.settings.browse_explorer_desc')); ?>
                         </span>
                     </label>

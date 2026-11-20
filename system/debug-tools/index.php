@@ -59,12 +59,12 @@ $debugTools = getDebugTools();
         .intro-card .intro-text strong { color: #0d47a1; }
 
         .debug-search { position: relative; max-width: 420px; margin: 0 0 30px; }
-        .debug-search input { width: 100%; padding: 11px 14px 11px 40px; border: 1px solid var(--border, #d6dde3); border-radius: 8px; font-size: 14px; background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
+        .debug-search input { width: 100%; padding: 11px 14px 11px 40px; border: 1px solid var(--border, #d6dde3); border-radius: 8px; font-size: var(--font-size-lg, 14px); background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
         .debug-search input::placeholder { color: var(--text-faint, #999); }
         .debug-search input:focus { outline: none; border-color: var(--sys-accent, #546e7a); box-shadow: 0 0 0 3px rgba(84,110,122,0.12); }
         .debug-search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-faint, #9aa7b0); pointer-events: none; }
 
-        .debug-no-results { display: none; text-align: center; color: var(--text-dim, #888); font-size: 14px; margin-top: 8px; }
+        .debug-no-results { display: none; text-align: center; color: var(--text-dim, #888); font-size: var(--font-size-lg, 14px); margin-top: 8px; }
 
         .debug-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         .debug-card { background: var(--surface, #fff); border-radius: 10px; padding: 20px 18px; box-shadow: 0 2px 12px var(--shadow, rgba(0,0,0,0.08)); text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s; border: 2px solid transparent; display: flex; flex-direction: column; }

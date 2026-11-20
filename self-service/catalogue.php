@@ -53,7 +53,7 @@ $pageStyles = <<<'CSS'
             color: var(--text, #333);
             margin: 0 0 6px 0;
         }
-        .cat-header p { font-size: 14px; color: var(--text-muted, #666); margin: 0; }
+        .cat-header p { font-size: var(--font-size-lg, 14px); color: var(--text-muted, #666); margin: 0; }
 
         .cat-grid {
             display: grid;
@@ -78,14 +78,14 @@ $pageStyles = <<<'CSS'
         .cat-card-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--surface-2, #f3f4f6); }
         .cat-card-body { display: flex; flex-direction: column; height: 100%; }
         .cat-card-price { margin-top: auto; padding-top: 10px; font-size: 15px; font-weight: 600; color: var(--ss-accent, #0078d4); }
-        .cat-form-price { margin: -2px 0 12px; font-size: 16px; font-weight: 600; color: var(--ss-accent, #0078d4); }
+        .cat-form-price { margin: -2px 0 12px; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--ss-accent, #0078d4); }
         .cat-card-title {
             font-size: 15px;
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 6px;
         }
-        .cat-card-desc { font-size: 13px; color: var(--text-muted, #666); line-height: 1.5; }
+        .cat-card-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; }
 
         .cat-form {
             background: var(--surface, #fff);
@@ -98,13 +98,13 @@ $pageStyles = <<<'CSS'
             max-width: var(--form-card-max, 1040px);
         }
         .cat-form h1 {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 6px 0;
         }
         .cat-form-desc {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text-muted, #666);
             margin-bottom: 22px;
             line-height: 1.5;
@@ -120,7 +120,7 @@ $pageStyles = <<<'CSS'
         }
         .cat-section:first-child { margin-top: 0; }
         .cat-section h2 {
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0;
@@ -137,16 +137,16 @@ $pageStyles = <<<'CSS'
         }
         .lookup-option {
             display: block; width: 100%; text-align: left; background: none; border: 0;
-            padding: 9px 12px; font-size: 14px; color: var(--text, #333); cursor: pointer;
+            padding: 9px 12px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); cursor: pointer;
         }
         .lookup-option:hover { background: var(--surface-hover, #f3f4f6); }
-        .lookup-empty { padding: 9px 12px; font-size: 13px; color: var(--text-muted, #666); }
+        .lookup-empty { padding: 9px 12px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
 
         /* Conditionally hidden — toggled by applyVisibility() as answers change. */
         .cat-field.is-hidden, .cat-section.is-hidden { display: none; }
         .cat-field label.cat-label {
             display: block;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 6px;
@@ -167,7 +167,7 @@ $pageStyles = <<<'CSS'
             background: var(--surface, #fff);
             color: var(--text, #333);
             font-family: inherit;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .cat-field textarea { min-height: 110px; resize: vertical; }
         .cat-field input:focus, .cat-field select:focus, .cat-field textarea:focus {
@@ -177,7 +177,7 @@ $pageStyles = <<<'CSS'
         .cat-option {
             display: block;
             font-weight: 400;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             margin: 4px 0;
         }
@@ -187,7 +187,7 @@ $pageStyles = <<<'CSS'
             align-items: center;
             gap: 6px;
             color: var(--ss-accent, #0078d4);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             margin-bottom: 20px;
             background: none;
@@ -205,7 +205,7 @@ $pageStyles = <<<'CSS'
             text-align: center;
         }
         .cat-empty-title { font-size: 15px; font-weight: 600; color: var(--text, #333); margin-bottom: 6px; }
-        .cat-empty-hint { font-size: 13px; color: var(--text-muted, #666); }
+        .cat-empty-hint { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
 CSS;
 
 $pageScripts = <<<'JS'

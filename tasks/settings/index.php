@@ -54,13 +54,13 @@ $translationNamespaces = ['common', 'tasks'];
         .tab:hover { color: var(--tsk-accent, #7c3aed); }
         .tab.active { color: var(--tsk-accent, #7c3aed); border-bottom-color: var(--tsk-accent, #7c3aed); }
 
-        .section-header h2 { margin: 0 0 8px; font-size: 18px; color: var(--text, #333); }
+        .section-header h2 { margin: 0 0 8px; font-size: var(--font-size-2xl, 18px); color: var(--text, #333); }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 
         .lookup-table { width: 100%; border-collapse: collapse; }
-        .lookup-table th, .lookup-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: 14px; }
+        .lookup-table th, .lookup-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: var(--font-size-lg, 14px); }
         .lookup-table th { font-weight: 600; color: var(--text-muted, #666); background: var(--surface-2, #fafafa); }
-        .badge-yes { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #f3e8ff; color: #7e22ce; font-size: 11px; font-weight: 600; }
+        .badge-yes { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #f3e8ff; color: #7e22ce; font-size: var(--font-size-xs, 11px); font-weight: 600; }
         .badge-no { color: var(--text-dim, #999); }
         /* Active/Inactive uses the shared .status-badge / .status-active / .status-inactive classes from inbox.css (canonical green/red). */
         .swatch { display: inline-block; width: 18px; height: 18px; border-radius: 3px; vertical-align: middle; border: 1px solid var(--border, #ddd); margin-right: 6px; }
@@ -69,21 +69,21 @@ $translationNamespaces = ['common', 'tasks'];
         .action-btn.delete:hover { color: var(--danger-accent, #c62828); }
         .actions-cell { white-space: nowrap; }
         .actions-cell .action-btn { display: inline-flex; vertical-align: middle; }
-        .add-btn { background: var(--tsk-accent, #7c3aed); color: #fff; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+        .add-btn { background: var(--tsk-accent, #7c3aed); color: #fff; padding: 8px 16px; border: none; border-radius: 4px; font-size: var(--font-size-md, 13px); cursor: pointer; }
         .add-btn:hover { background: var(--tsk-accent-hover, #6d28d9); }
 
         /* Modal sizing — base modal / form CSS lives in inbox.css. */
         .modal-content { padding: 20px; max-width: 500px; }
-        .modal-header { padding: 0; border-bottom: none; margin-bottom: 20px; font-size: 20px; font-weight: 600; color: var(--text, #333); }
+        .modal-header { padding: 0; border-bottom: none; margin-bottom: 20px; font-size: var(--font-size-3xl, 20px); font-weight: 600; color: var(--text, #333); }
         .modal-actions { margin-top: 20px; }
-        .btn { padding: 10px 20px; border-radius: 4px; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; }
+        .btn { padding: 10px 20px; border-radius: 4px; font-size: var(--font-size-lg, 14px); cursor: pointer; border: none; transition: all 0.2s; }
         .btn-primary { background: var(--tsk-accent, #7c3aed); color: #fff; }
         .btn-primary:hover { background: var(--tsk-accent-hover, #6d28d9); }
         .btn-secondary { background: var(--surface-3, #e0e0e0); color: var(--text, #333); }
         .btn-secondary:hover { background: var(--surface-hover, #bdbdbd); }
 
         /* Toast — dark pill, reads on both modes */
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 18px; border-radius: 4px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1100; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 18px; border-radius: 4px; font-size: var(--font-size-lg, 14px); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1100; }
         .toast.show { opacity: 1; }
         .toast.toast-error { background: var(--danger-accent, #c62828); }
 
@@ -93,8 +93,8 @@ $translationNamespaces = ['common', 'tasks'];
         .span-mode-card:hover { border-color: var(--tsk-accent, #7c3aed); }
         .span-mode-card.selected { border-color: var(--tsk-accent, #7c3aed); background: #faf5ff; }
         .span-mode-card input { margin-top: 2px; accent-color: var(--tsk-accent, #7c3aed); width: 16px; height: 16px; cursor: pointer; }
-        .span-mode-name { font-weight: 600; font-size: 14px; color: var(--text, #333); margin-bottom: 3px; }
-        .span-mode-desc { font-size: 13px; color: var(--text-muted, #777); line-height: 1.45; }
+        .span-mode-name { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333); margin-bottom: 3px; }
+        .span-mode-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #777); line-height: 1.45; }
 
         /* Card field toggles */
         .card-field-options { display: flex; flex-direction: column; gap: 2px; max-width: 640px; }
@@ -107,19 +107,19 @@ $translationNamespaces = ['common', 'tasks'];
         .cp-option {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 6px 12px; border: 1px solid var(--border, #d5dbe1);
-            border-radius: 6px; font-size: 13px; cursor: pointer;
+            border-radius: 6px; font-size: var(--font-size-md, 13px); cursor: pointer;
             background: var(--surface, #fff); transition: border-color .15s, background .15s;
         }
         .cp-option:hover { border-color: var(--tsk-accent, #7c3aed); }
         .cp-option:has(input:checked) { border-color: var(--tsk-accent, #7c3aed); background: #faf5ff; }
         .cp-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--tsk-accent, #7c3aed); }
         .cp-preview-wrap { margin-top: 14px; }
-        .cp-preview-label { font-size: 12px; color: var(--text-dim, #888); margin-bottom: 6px; }
+        .cp-preview-label { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-bottom: 6px; }
         .cp-preview { background: var(--bg-subtle, #f4f5f7); border-radius: 8px; padding: 12px; max-width: 280px; }
         [data-theme-mode="dark"] .cp-option:has(input:checked) { background: #241b3d; }
         [data-theme-mode="dark"] .cp-preview { background: #1b1830; }
-        .card-field-name { font-weight: 600; font-size: 14px; color: var(--text, #333); }
-        .card-field-desc { font-size: 13px; color: var(--text-dim, #888); margin-top: 2px; line-height: 1.4; }
+        .card-field-name { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
+        .card-field-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-top: 2px; line-height: 1.4; }
 
         /* Dark-mode overrides for the pale-violet tints (yes-badge + selected/hover
            cards) — their light values differ from --tsk-accent-soft, so they stay
@@ -509,14 +509,14 @@ $translationNamespaces = ['common', 'tasks'];
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="tasksSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('tasks.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="tasksSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('tasks.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>
@@ -993,7 +993,7 @@ $translationNamespaces = ['common', 'tasks'];
             tbody.innerHTML = rows.map(r => {
                 const safeName = escapeHtml(r.name).replace(/'/g, "\\'");
                 const swatch = r.colour
-                    ? `<span class="swatch" style="background:${escapeHtml(r.colour)};"></span><code style="font-size:12px;">${escapeHtml(r.colour)}</code>`
+                    ? `<span class="swatch" style="background:${escapeHtml(r.colour)};"></span><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(r.colour)}</code>`
                     : '<span class="badge-no">—</span>';
                 const closedCol = cfg.hasClosed
                     ? `<td>${r.is_closed ? yes : no}</td>`

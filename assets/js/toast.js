@@ -24,7 +24,7 @@
         '.toast-container.bottom-center{bottom:20px;left:50%;transform:translateX(-50%);align-items:center;flex-direction:column-reverse}' +
         '.toast-container.bottom-right{bottom:20px;right:20px;align-items:flex-end;flex-direction:column-reverse}' +
         '.toast-item{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:8px;background:#fff;' +
-            'box-shadow:0 4px 12px rgba(0,0,0,0.15);border-left:4px solid #ccc;font-size:14px;' +
+            'box-shadow:0 4px 12px rgba(0,0,0,0.15);border-left:4px solid #ccc;font-size:var(--font-size-lg, 14px);' +
             'font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;color:#333;pointer-events:auto;' +
             'min-width:280px;max-width:380px;opacity:0;transition:opacity 0.3s,transform 0.3s}' +
         '.toast-item.show{opacity:1;transform:none!important}' +
@@ -47,7 +47,7 @@
         '.toast-warning .toast-icon{color:#f59e0b}' +
         '.toast-info .toast-icon{color:#3b82f6}' +
         '.toast-msg{flex:1;line-height:1.4}' +
-        '.toast-close{flex-shrink:0;background:none;border:none;color:#999;cursor:pointer;font-size:18px;padding:0 2px;line-height:1}' +
+        '.toast-close{flex-shrink:0;background:none;border:none;color:#999;cursor:pointer;font-size:var(--font-size-2xl, 18px);padding:0 2px;line-height:1}' +
         '.toast-close:hover{color:#333}';
     document.head.appendChild(style);
 

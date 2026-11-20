@@ -87,12 +87,12 @@ $translationNamespaces = ['common', 'forms'];
 
         .subs-toolbar-left h2 {
             margin: 0;
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             color: var(--text, #333);
         }
 
         .subs-toolbar-left .sub-count {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             background: var(--surface-hover, #f0f0f0);
             padding: 3px 10px;
@@ -109,7 +109,7 @@ $translationNamespaces = ['common', 'forms'];
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
@@ -117,7 +117,7 @@ $translationNamespaces = ['common', 'forms'];
             padding: 6px 10px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-family: inherit;
             background: var(--surface, #fff);
             color: var(--text, #333);
@@ -133,7 +133,7 @@ $translationNamespaces = ['common', 'forms'];
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             display: inline-flex;
             align-items: center;
@@ -163,7 +163,7 @@ $translationNamespaces = ['common', 'forms'];
         .subs-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .subs-table th {
@@ -207,7 +207,7 @@ $translationNamespaces = ['common', 'forms'];
             border-radius: 3px;
             text-align: center;
             line-height: 18px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 700;
         }
 
@@ -235,13 +235,13 @@ $translationNamespaces = ['common', 'forms'];
 
         .empty-state h3 {
             margin: 15px 0 8px;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text-muted, #666);
         }
 
         .empty-state p {
             margin: 0;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         /* Detail modal */
@@ -281,7 +281,7 @@ $translationNamespaces = ['common', 'forms'];
 
         .detail-header h3 {
             margin: 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
@@ -291,7 +291,7 @@ $translationNamespaces = ['common', 'forms'];
             cursor: pointer;
             padding: 4px;
             color: var(--text-faint, #999);
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             line-height: 1;
         }
 
@@ -304,7 +304,7 @@ $translationNamespaces = ['common', 'forms'];
         .detail-meta {
             display: flex;
             gap: 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin-bottom: 20px;
             padding-bottom: 14px;
@@ -316,7 +316,7 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         .detail-field-label {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-dim, #888);
             text-transform: uppercase;
@@ -325,7 +325,7 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         .detail-field-value {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
             line-height: 1.5;
             white-space: pre-wrap;
@@ -359,8 +359,8 @@ $translationNamespaces = ['common', 'forms'];
             box-shadow: 0 8px 30px var(--shadow, rgba(0,0,0,0.2));
         }
 
-        .confirm-box h3 { margin: 0 0 8px; font-size: 16px; color: var(--text, #333); }
-        .confirm-box p { margin: 0 0 20px; font-size: 14px; color: var(--text-muted, #666); }
+        .confirm-box h3 { margin: 0 0 8px; font-size: var(--font-size-xl, 16px); color: var(--text, #333); }
+        .confirm-box p { margin: 0 0 20px; font-size: var(--font-size-lg, 14px); color: var(--text-muted, #666); }
 
         .confirm-actions {
             display: flex;
@@ -396,7 +396,7 @@ $translationNamespaces = ['common', 'forms'];
             border: 1px solid var(--border);
         }
         .subs-selbar.open { display: flex; }
-        .subs-selbar .sel-count { font-weight: 600; font-size: 14px; color: var(--text); white-space: nowrap; }
+        .subs-selbar .sel-count { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text); white-space: nowrap; }
         .subs-selbar .sel-spacer { flex: 1; }
 
         /* The tick column stays narrow and does not travel when the table
@@ -428,12 +428,12 @@ $translationNamespaces = ['common', 'forms'];
             padding: 10px 12px;
             margin-bottom: 16px;
             background: var(--surface-2, #f8fafc);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .detail-approval .da-row { display: flex; gap: 8px; margin-bottom: 4px; }
         .detail-approval .da-row:last-child { margin-bottom: 0; }
         .detail-approval .da-label { color: var(--text-muted, #64748b); min-width: 88px; }
-        .da-pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-weight: 600; font-size: 12px; }
+        .da-pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-weight: 600; font-size: var(--font-size-sm, 12px); }
         .da-approved { background: #dcfce7; color: #16a34a; }
         .da-rejected { background: #fee2e2; color: #dc2626; }
         .da-pending  { background: #fef3c7; color: #b45309; }

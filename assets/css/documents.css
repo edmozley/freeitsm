@@ -27,13 +27,13 @@
 }
 .fd-head h4 {
     margin: 0; padding: 0;
-    font-size: 14px; font-weight: 600; line-height: 1.4;
+    font-size: var(--font-size-lg, 14px); font-weight: 600; line-height: 1.4;
     color: var(--text, #333);
     text-transform: none;    /* several settings pages upper-case their headings */
     letter-spacing: normal;
 }
 .fd-count {
-    font-size: 12px; color: var(--text-dim, #888);
+    font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888);
 }
 .fd-head .fd-spacer { flex: 1; }
 
@@ -47,7 +47,7 @@
     margin: 0;
     text-align: center;
     color: var(--text-muted, #666);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 400;        /* pages that embolden their labels must not embolden this */
     line-height: 1.5;
     background: var(--surface-2, #fafafa);
@@ -62,14 +62,14 @@
 .fd-drop input[type=file] { display: none; }
 .fd-drop-or {
     display: block; margin-top: 6px;
-    font-size: 12px; color: var(--text-dim, #888);
+    font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888);
 }
 
 /* -- Add a link ---------------------------------------------------------- */
 .fd-linkrow { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .fd-linkrow input {
     flex: 1; min-width: 180px;
-    padding: 8px 11px; font-size: 13px;
+    padding: 8px 11px; font-size: var(--font-size-md, 13px);
     border: 1px solid var(--border, #ccc); border-radius: 6px;
     background: var(--surface, #fff); color: var(--text, #333);
 }
@@ -91,17 +91,17 @@
 }
 .fd-body { flex: 1; min-width: 0; }
 .fd-title {
-    font-size: 13px; font-weight: 600; color: var(--text, #333);
+    font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333);
     word-break: break-word;
 }
 .fd-title a { color: inherit; text-decoration: none; }
 .fd-title a:hover { text-decoration: underline; }
 .fd-desc {
-    font-size: 12px; color: var(--text-muted, #666);
+    font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666);
     margin-top: 2px; word-break: break-word;
 }
 .fd-meta {
-    font-size: 11px; color: var(--text-dim, #999); margin-top: 4px;
+    font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); margin-top: 4px;
 }
 
 /* Where else this document is attached. Shown because attaching somewhere
@@ -110,7 +110,7 @@
     margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px;
 }
 .fd-also-tag {
-    font-size: 11px; padding: 1px 7px; border-radius: 10px;
+    font-size: var(--font-size-xs, 11px); padding: 1px 7px; border-radius: 10px;
     background: var(--warning-bg, #fef3c7);
     color: var(--warning-text, #92400e);
     border: 1px solid var(--warning-border, #f0d9a8);
@@ -125,7 +125,7 @@
 }
 .fd-hc a { color: inherit; font-weight: 600; }
 .fd-hc-tag {
-    font-size: 11px; padding: 1px 7px; border-radius: 10px; display: inline-block; margin-top: 5px;
+    font-size: var(--font-size-xs, 11px); padding: 1px 7px; border-radius: 10px; display: inline-block; margin-top: 5px;
     background: var(--success-bg, #dcfce7); color: var(--success-text, #166534);
     border: 1px solid var(--success-border, #bbf7d0);
 }
@@ -136,7 +136,7 @@
 
 .fd-actions { flex: 0 0 auto; display: flex; gap: 6px; align-items: center; }
 .fd-btn {
-    padding: 4px 9px; font-size: 12px; border-radius: 5px; cursor: pointer;
+    padding: 4px 9px; font-size: var(--font-size-sm, 12px); border-radius: 5px; cursor: pointer;
     border: 1px solid var(--border, #ccc);
     background: var(--surface, #fff); color: var(--text, #333);
 }
@@ -149,7 +149,7 @@
     width: 24px; height: 24px; padding: 0;
     border-radius: 50%;
     font-style: italic; font-family: Georgia, 'Times New Roman', serif;
-    font-size: 13px; line-height: 1; font-weight: 700;
+    font-size: var(--font-size-md, 13px); line-height: 1; font-weight: 700;
 }
 
 /* ─── The "attached to" dialogue ─────────────────────────────────────────
@@ -172,17 +172,17 @@
     display: flex; align-items: center; gap: 10px;
     padding: 13px 16px; border-bottom: 1px solid var(--border, #e0e0e0);
 }
-.fd-modal-title { flex: 1; font-size: 14px; word-break: break-word; }
+.fd-modal-title { flex: 1; font-size: var(--font-size-lg, 14px); word-break: break-word; }
 .fd-modal-x {
     background: none; border: none; cursor: pointer;
     font-size: 22px; line-height: 1; color: var(--text-dim, #999);
 }
 .fd-modal-x:hover { color: var(--text, #333); }
-.fd-modal-body { padding: 14px 16px; font-size: 13px; }
+.fd-modal-body { padding: 14px 16px; font-size: var(--font-size-md, 13px); }
 .fd-modal-desc { margin: 0 0 8px; }
-.fd-modal-meta { margin: 0 0 6px; font-size: 12px; color: var(--text-muted, #666); }
+.fd-modal-meta { margin: 0 0 6px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
 .fd-modal-sub {
-    margin: 14px 0 6px; font-size: 12px; font-weight: 600;
+    margin: 14px 0 6px; font-size: var(--font-size-sm, 12px); font-weight: 600;
     text-transform: uppercase; letter-spacing: .04em;
     color: var(--text-dim, #999);
 }
@@ -190,7 +190,7 @@
 .fd-modal-links li { margin-bottom: 4px; word-break: break-word; }
 .fd-modal-links a { color: var(--accent, #0078d4); }
 .fd-modal-hidden {
-    margin: 10px 0 0; padding: 7px 10px; border-radius: 6px; font-size: 12px;
+    margin: 10px 0 0; padding: 7px 10px; border-radius: 6px; font-size: var(--font-size-sm, 12px);
     background: var(--warning-bg, #fef3c7);
     color: var(--warning-text, #92400e);
     border: 1px solid var(--warning-border, #f0d9a8);
@@ -198,10 +198,10 @@
 
 .fd-empty {
     padding: 14px; text-align: center;
-    font-size: 13px; color: var(--text-dim, #999);
+    font-size: var(--font-size-md, 13px); color: var(--text-dim, #999);
 }
 .fd-error {
-    margin-top: 10px; padding: 9px 12px; border-radius: 6px; font-size: 13px;
+    margin-top: 10px; padding: 9px 12px; border-radius: 6px; font-size: var(--font-size-md, 13px);
     background: var(--danger-bg, #fee2e2);
     color: var(--danger-text, #991b1b);
     border: 1px solid var(--danger-border, #f0c2c2);
@@ -226,14 +226,14 @@
     border: 1px solid var(--border, #ccc);
     background: var(--surface, #fff); color: var(--text-muted, #666);
     font-style: italic; font-family: Georgia, 'Times New Roman', serif;
-    font-size: 12px; font-weight: 700; line-height: 1;
+    font-size: var(--font-size-sm, 12px); font-weight: 700; line-height: 1;
 }
 .cmdp-info:hover { border-color: var(--accent, #0078d4); color: var(--accent, #0078d4); }
 
 /* -- Attach one that already exists -------------------------------------- */
 .fd-existing { margin-top: 8px; position: relative; }
 .fd-find {
-    width: 100%; padding: 8px 11px; font-size: 13px;
+    width: 100%; padding: 8px 11px; font-size: var(--font-size-md, 13px);
     border: 1px solid var(--border, #ccc); border-radius: 6px;
     background: var(--surface, #fff); color: var(--text, #333);
 }
@@ -246,22 +246,22 @@
 .fd-findrow {
     display: block; width: 100%; text-align: left; cursor: pointer;
     padding: 8px 11px; border: none; border-bottom: 1px solid var(--border, #eee);
-    background: none; color: var(--text, #333); font-size: 13px;
+    background: none; color: var(--text, #333); font-size: var(--font-size-md, 13px);
 }
 .fd-findrow:last-child { border-bottom: none; }
 .fd-findrow:hover { background: var(--surface-2, #f5f5f5); }
 .fd-findtitle { display: block; font-weight: 600; }
 /* Where it already lives. Attaching widens who can read it, so this is the
    sentence somebody should read before clicking. */
-.fd-findwhere { display: block; font-size: 11px; color: var(--warning-text, #92400e); margin-top: 2px; }
-.fd-findempty { padding: 10px 11px; font-size: 12px; color: var(--text-dim, #999); }
+.fd-findwhere { display: block; font-size: var(--font-size-xs, 11px); color: var(--warning-text, #92400e); margin-top: 2px; }
+.fd-findempty { padding: 10px 11px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #999); }
 
 /* GH #303: files from Files in the "attach something already in FreeITSM" box */
-.fd-findhead { padding: 6px 10px 2px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #666); }
+.fd-findhead { padding: 6px 10px 2px; font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #666); }
 .fd-findfile { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; cursor: default; }
 .fd-findfile .fd-findtitle { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .fd-findfile .fd-findwhere { flex: 1 1 100%; order: 3; }
 .fd-findhows { display: inline-flex; gap: 6px; }
-.fd-findhow { padding: 2px 10px; font-size: 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--accent, #0078d4); cursor: pointer; }
+.fd-findhow { padding: 2px 10px; font-size: var(--font-size-sm, 12px); border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--accent, #0078d4); cursor: pointer; }
 .fd-findhow:hover { background: var(--surface-2, #f5f5f5); }
 .fd-title .fd-muted { color: var(--text-muted, #666); font-style: italic; }

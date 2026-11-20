@@ -23,8 +23,8 @@ body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-ho
     max-width: 1240px;
     margin: 0 auto 24px;
 }
-.rp-list-toolbar h1 { margin: 0; font-size: 24px; color: var(--text, #333); }
-.rp-list-sub { margin: 4px 0 0; color: var(--text-muted, #666); font-size: 14px; }
+.rp-list-toolbar h1 { margin: 0; font-size: var(--font-size-4xl, 24px); color: var(--text, #333); }
+.rp-list-sub { margin: 4px 0 0; color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); }
 .rp-list-actions { display: flex; gap: 10px; align-items: center; }
 
 .rp-search, .rp-input {
@@ -32,7 +32,7 @@ body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-ho
     border: 1px solid var(--border, #ddd);
     border-radius: 6px;
     font: inherit;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     background: var(--surface, #fff);
     color: var(--text, #333);
     box-sizing: border-box;
@@ -83,13 +83,13 @@ body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-ho
 .rp-card-thumb span:last-child { width: 75%; }
 
 .rp-card-body { padding: 14px 16px 6px; flex: 1; }
-.rp-card-title { margin: 0 0 4px; font-size: 16px; color: var(--text, #333); overflow-wrap: anywhere; }
-.rp-card-desc { margin: 0 0 8px; color: var(--text-muted, #666); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.rp-card-title { margin: 0 0 4px; font-size: var(--font-size-xl, 16px); color: var(--text, #333); overflow-wrap: anywhere; }
+.rp-card-desc { margin: 0 0 8px; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); line-height: 1.4; overflow-wrap: anywhere; }
 .rp-card-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
-.rp-card-when { margin: 0; color: var(--text-dim, #888); font-size: 12px; }
+.rp-card-when { margin: 0; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
 
 .rp-role {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
@@ -111,7 +111,7 @@ body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-ho
     border: none;
     color: var(--accent);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     padding: 4px 8px;
     border-radius: 4px;
     cursor: pointer;
@@ -134,8 +134,8 @@ body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-ho
 /* Dialogs */
 .rp-modal-sm { max-width: 460px; }
 .rp-modal-md { max-width: 640px; }
-.rp-hint { margin: 0 0 16px; color: var(--text-muted, #666); font-size: 13px; line-height: 1.5; }
-.rp-form-error { color: #c62828; font-size: 13px; margin-top: 8px; }
+.rp-hint { margin: 0 0 16px; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); line-height: 1.5; }
+.rp-form-error { color: #c62828; font-size: var(--font-size-md, 13px); margin-top: 8px; }
 .rp-btn-danger { background: #c62828; color: #fff; }
 .rp-btn-danger:hover { background: #a61f1f; }
 
@@ -146,8 +146,8 @@ body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-ho
 .rp-share-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-soft, #eee); }
 .rp-share-icon { width: 22px; text-align: center; }
 .rp-share-name { flex: 1; color: var(--text, #333); overflow-wrap: anywhere; }
-.rp-share-kind { color: var(--text-dim, #888); font-size: 12px; }
-.rp-share-empty { padding: 14px 0; color: var(--text-muted, #666); font-size: 13px; }
+.rp-share-kind { color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
+.rp-share-empty { padding: 14px 0; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); }
 
 @media (max-width: 640px) {
     .rp-list-page { padding: 18px 16px 40px; }

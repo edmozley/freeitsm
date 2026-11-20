@@ -53,7 +53,7 @@ $translationNamespaces = ['common', 'software'];
 
         .software-toolbar h3 {
             margin: 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
@@ -68,7 +68,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 8px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             box-sizing: border-box;
         }
 
@@ -85,7 +85,7 @@ $translationNamespaces = ['common', 'software'];
         }
 
         .software-count {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             white-space: nowrap;
             font-weight: 400;
@@ -108,7 +108,7 @@ $translationNamespaces = ['common', 'software'];
 
         .filter-tab {
             padding: 10px 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             color: var(--text-muted, #666);
             cursor: pointer;
@@ -133,7 +133,7 @@ $translationNamespaces = ['common', 'software'];
             color: var(--text-muted, #666);
             padding: 1px 7px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             margin-left: 6px;
         }
 
@@ -186,7 +186,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 12px 20px;
             text-align: left;
             font-weight: 600;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #555);
             border-bottom: 2px solid var(--border, #e0e0e0);
             text-transform: uppercase;
@@ -226,7 +226,7 @@ $translationNamespaces = ['common', 'software'];
         .software-table tbody td {
             padding: 10px 20px;
             border-bottom: 1px solid var(--border-soft, #eee);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
 
@@ -237,7 +237,7 @@ $translationNamespaces = ['common', 'software'];
             border-radius: 4px;
             background: var(--sw-accent, #5c6bc0);
             color: #fff;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             cursor: pointer;
             white-space: nowrap;
@@ -252,7 +252,7 @@ $translationNamespaces = ['common', 'software'];
             margin-left: 8px;
             padding: 1px 7px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             background: var(--surface-hover, #eef0f5);
             color: var(--text-muted, #666);
             vertical-align: middle;
@@ -278,7 +278,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 2px 10px;
             border-radius: 12px;
             font-weight: 600;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             min-width: 28px;
             text-align: center;
         }
@@ -326,7 +326,7 @@ $translationNamespaces = ['common', 'software'];
 
         .detail-header h3 {
             margin: 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
         }
 
@@ -334,7 +334,7 @@ $translationNamespaces = ['common', 'software'];
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             cursor: pointer;
             width: 32px;
             height: 32px;
@@ -358,7 +358,7 @@ $translationNamespaces = ['common', 'software'];
         }
 
         .detail-toolbar .machine-count {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
@@ -368,7 +368,7 @@ $translationNamespaces = ['common', 'software'];
             border: none;
             padding: 6px 14px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -398,7 +398,7 @@ $translationNamespaces = ['common', 'software'];
             background-color: var(--surface-2, #f0f0f0);
             padding: 8px 15px;
             text-align: left;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -407,7 +407,7 @@ $translationNamespaces = ['common', 'software'];
 
         .machine-table tbody td {
             padding: 8px 15px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             border-bottom: 1px solid var(--border-soft, #eee);
         }
@@ -429,7 +429,7 @@ $translationNamespaces = ['common', 'software'];
             padding: 20px;
             text-align: center;
             color: var(--text-dim, #888);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .loading-spinner {
@@ -459,7 +459,7 @@ $translationNamespaces = ['common', 'software'];
             justify-content: center;
             padding: 60px;
             color: var(--text-dim, #888);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
     </style>
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">

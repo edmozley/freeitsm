@@ -83,13 +83,13 @@ $translationNamespaces = ['common', 'system'];
         .status-icon svg { width: 20px; height: 20px; }
 
         .status-title {
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             font-weight: 600;
             color: var(--text, #333);
         }
 
         .status-detail {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
             line-height: 1.6;
         }
@@ -98,7 +98,7 @@ $translationNamespaces = ['common', 'system'];
             background: var(--surface-hover, #f0f0f0);
             padding: 2px 6px;
             border-radius: 3px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-family: 'Consolas', 'Courier New', monospace;
         }
 
@@ -116,7 +116,7 @@ $translationNamespaces = ['common', 'system'];
             gap: 8px;
             padding: 10px 20px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             border: none;
             cursor: pointer;
@@ -173,7 +173,7 @@ $translationNamespaces = ['common', 'system'];
 
         .info-list li {
             padding: 8px 0;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #555);
             line-height: 1.5;
             display: flex;
@@ -215,7 +215,7 @@ $translationNamespaces = ['common', 'system'];
 
         .warning-box p {
             margin: 0;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #6d4c00;
             line-height: 1.5;
         }
@@ -228,7 +228,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .encrypted-group h4 {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--sys-accent, #546e7a);
             margin: 0 0 8px 0;
@@ -241,7 +241,7 @@ $translationNamespaces = ['common', 'system'];
         }
 
         .encrypted-group ul li {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
             padding: 4px 0;
             font-family: 'Consolas', 'Courier New', monospace;
@@ -263,7 +263,7 @@ $translationNamespaces = ['common', 'system'];
             text-align: center;
             padding: 40px;
             color: var(--text-dim, #888);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         /* ---- Dark mode ----

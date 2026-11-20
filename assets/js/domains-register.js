@@ -219,7 +219,7 @@
             [c(r => r.transfer_lock === false), T('stat.unlocked'), c(r => r.transfer_lock === false) ? 'red' : 'green', 'unlocked'],
         ];
         let html = stats.map(([v, l, cls, vw]) => '<div class="dom-stat clickable ' + cls + '" data-view="' + vw + '"><div class="v">' + v + '</div><div class="l">' + esc(l) + '</div></div>').join('');
-        if (cost > 0) html += '<div class="dom-stat accent"><div class="v" style="font-size:20px">' + esc(money(cost, cur)) + '</div><div class="l">' + esc(T('stat.annual_cost')) + '</div></div>';
+        if (cost > 0) html += '<div class="dom-stat accent"><div class="v" style="font-size:var(--font-size-3xl, 20px)">' + esc(money(cost, cur)) + '</div><div class="l">' + esc(T('stat.annual_cost')) + '</div></div>';
         document.getElementById('domStats').innerHTML = html;
     }
 
@@ -403,7 +403,7 @@
         let done = 0, failed = 0;
         /** Redraws the progress line and bar. */
         const draw = () => {
-            holder.innerHTML = '<div style="font-size:13px">' + esc(label) + ' ' + done + ' / ' + ids.length + (failed ? ' · ' + esc(T('progress.failed', { n: failed })) : '') + '</div>'
+            holder.innerHTML = '<div style="font-size:var(--font-size-md, 13px)">' + esc(label) + ' ' + done + ' / ' + ids.length + (failed ? ' · ' + esc(T('progress.failed', { n: failed })) : '') + '</div>'
                 + '<div class="dom-progress"><div style="width:' + Math.round(done / ids.length * 100) + '%"></div></div>';
         };
         draw();

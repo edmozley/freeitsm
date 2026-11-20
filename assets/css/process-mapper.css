@@ -129,7 +129,7 @@ body {
     padding: 7px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .pm-sidebar-search input:focus {
@@ -147,7 +147,7 @@ body {
     padding: 0 10px 0 0;
     cursor: pointer;
     border-left: 3px solid transparent;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -186,7 +186,7 @@ body {
 }
 
 .pm-process-item .pm-process-date {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-faint, #999);
     margin-left: 8px;
     flex-shrink: 0;
@@ -199,7 +199,7 @@ body {
     color: #c33;
     cursor: pointer;
     padding: 2px 6px;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     line-height: 1;
     margin-left: 4px;
 }
@@ -231,7 +231,7 @@ body {
 
 .pm-empty {
     color: var(--text-faint, #999);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     text-align: center;
     padding: 24px;
 }
@@ -273,7 +273,7 @@ body {
     border-radius: 4px;
     background: none;
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #444);
     transition: all 0.15s;
 }
@@ -298,7 +298,7 @@ body {
 
 /* --- Save status indicator + autosave toggle -------------- */
 .pm-status {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-dim, #888);
     margin-right: 8px;
     min-width: 110px;
@@ -333,7 +333,7 @@ body {
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #444);
     padding: 4px 8px;
     border-radius: 4px;
@@ -429,13 +429,13 @@ body {
 }
 .pm-modal-header h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     color: var(--text, #333);
 }
 .pm-modal-close {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     line-height: 1;
     color: var(--text-dim, #888);
     cursor: pointer;
@@ -451,7 +451,7 @@ body {
 }
 .pm-modal-hint {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #555);
     line-height: 1.5;
 }
@@ -459,7 +459,7 @@ body {
     background: var(--surface-hover, #f0f0f0);
     padding: 1px 5px;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-family: 'Consolas', monospace;
 }
 .pm-modal-textarea {
@@ -493,7 +493,7 @@ body {
     border: 1px solid var(--border, #ddd);
     padding: 8px 18px;
     border-radius: 5px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
@@ -534,7 +534,7 @@ body {
     line-height: 0;
 }
 .pm-export-name {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
 }
@@ -607,7 +607,7 @@ body {
     background: rgba(255,255,255,0.7);
     border-right: 1px solid #d0d7de;
     color: #333;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -658,7 +658,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #555);
     cursor: pointer;
     user-select: none;
@@ -691,7 +691,7 @@ body {
     top: 6px;
     left: 10px;
     right: 24px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: #555;
     pointer-events: none;
@@ -737,7 +737,7 @@ body {
 }
 .pm-annotation-body {
     padding: 10px 12px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.4;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -791,7 +791,7 @@ body {
 }
 
 .pm-connector-label {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     fill: #555;
     text-anchor: middle;
     pointer-events: all;
@@ -813,7 +813,7 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     font-weight: 500;
     color: #fff;
     cursor: grab;
@@ -988,7 +988,7 @@ body {
 
 .pm-detail-body .form-label {
     display: block;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--text-muted, #555);
     margin-bottom: 4px;
@@ -999,7 +999,7 @@ body {
     padding: 7px 10px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .pm-detail-body .form-input:focus {
@@ -1018,7 +1018,7 @@ body {
     align-items: center;
     gap: 6px;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-muted, #555);
 }
 
@@ -1027,7 +1027,7 @@ body {
     padding: 4px 8px;
     border: 1px solid var(--border, #ddd);
     border-radius: 3px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 
 .pm-detail-connector input:focus {
@@ -1040,7 +1040,7 @@ body {
     border: none;
     color: #c33;
     cursor: pointer;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     padding: 0 4px;
 }
 
@@ -1064,7 +1064,7 @@ body {
     max-width: 360px;
     padding: 12px 20px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.4;
     color: #fff;
     background: #333;
@@ -1097,7 +1097,7 @@ body {
     box-shadow: 0 6px 24px var(--shadow, rgba(0,0,0,0.18));
     padding: 4px;
     min-width: 168px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     user-select: none;
 }
@@ -1198,7 +1198,7 @@ body {
     border: 2px solid #0078d4;
     border-radius: 4px;
     padding: 4px 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }

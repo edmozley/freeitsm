@@ -56,7 +56,7 @@ $translationNamespaces = ['common', 'cmdb'];
             align-items: center;
             margin-bottom: 16px;
         }
-        .section-header h2 { font-size: 18px; color: var(--text,#111827); margin: 0; }
+        .section-header h2 { font-size: var(--font-size-2xl, 18px); color: var(--text,#111827); margin: 0; }
         .add-btn {
             background: var(--cmdb-accent,#be185d);
             color: white;
@@ -65,7 +65,7 @@ $translationNamespaces = ['common', 'cmdb'];
             border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .add-btn:hover { background: var(--cmdb-accent-hover,#9d174d); }
 
@@ -73,13 +73,13 @@ $translationNamespaces = ['common', 'cmdb'];
         thead th {
             text-align: left;
             padding: 10px 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             text-transform: uppercase;
             color: var(--text-muted,#6b7280);
             border-bottom: 1px solid var(--border,#e5e7eb);
             font-weight: 600;
         }
-        tbody td { padding: 12px; border-bottom: 1px solid var(--border-soft,#f3f4f6); font-size: 14px; color: var(--text,#1f2937); }
+        tbody td { padding: 12px; border-bottom: 1px solid var(--border-soft,#f3f4f6); font-size: var(--font-size-lg, 14px); color: var(--text,#1f2937); }
         tbody tr:hover { background: var(--surface-2,#fafafa); }
 
         .action-btn {
@@ -103,7 +103,7 @@ $translationNamespaces = ['common', 'cmdb'];
         .badge {
             display: inline-block;
             padding: 2px 8px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             border-radius: 999px;
             background: var(--surface-3, #f3f4f6);
             color: var(--text, #374151);
@@ -121,7 +121,7 @@ $translationNamespaces = ['common', 'cmdb'];
            tertiary action used for the Test connection button. */
         .modal-content { width: 600px; max-width: 95vw; }
         .modal-content.wide { width: 900px; }
-        .form-check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .form-check { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-lg, 14px); }
         .form-check input[type="checkbox"] { width: auto; }
 
         .btn-primary { background: var(--cmdb-accent,#be185d); color: white; }
@@ -130,9 +130,9 @@ $translationNamespaces = ['common', 'cmdb'];
         .btn-test:hover { background: #4b5563; }
 
         .empty-row { text-align: center; padding: 30px; color: var(--text-dim,#9ca3af); font-style: italic; }
-        .key-hint { font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; color: var(--text-muted,#6b7280); }
+        .key-hint { font-family: 'Consolas', 'Monaco', monospace; font-size: var(--font-size-sm, 12px); color: var(--text-muted,#6b7280); }
 
-        .test-result { margin-top: 16px; padding: 10px 14px; border-radius: 4px; font-size: 13px; display: none; }
+        .test-result { margin-top: 16px; padding: 10px 14px; border-radius: 4px; font-size: var(--font-size-md, 13px); display: none; }
         .test-result.success { background: var(--success-bg,#dcfce7); color: var(--success-text,#166534); display: block; }
         .test-result.error { background: var(--danger-bg,#fee2e2); color: var(--danger-text,#991b1b); display: block; }
 
@@ -159,7 +159,7 @@ $translationNamespaces = ['common', 'cmdb'];
             padding: 8px 14px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             display: inline-flex;
             align-items: center;
@@ -170,7 +170,7 @@ $translationNamespaces = ['common', 'cmdb'];
         /* AI Suggest modal */
         .ai-stage { display: none; }
         .ai-stage.active { display: block; }
-        .ai-loading { padding: 40px; text-align: center; color: var(--text-muted,#6b7280); font-size: 14px; }
+        .ai-loading { padding: 40px; text-align: center; color: var(--text-muted,#6b7280); font-size: var(--font-size-lg, 14px); }
         .ai-loading .spinner-dot {
             display: inline-block; width: 8px; height: 8px; margin: 0 3px;
             background: var(--cmdb-accent,#be185d); border-radius: 50%; animation: aiblink 1.4s infinite both;
@@ -187,9 +187,9 @@ $translationNamespaces = ['common', 'cmdb'];
             border-radius: 0 4px 4px 0;
         }
         [data-theme-mode="dark"] .ai-question { background: rgba(190,24,93,0.14); }
-        .ai-question label { font-weight: 500; color: var(--text,#1f2937); display: block; margin-bottom: 6px; font-size: 14px; }
-        .ai-question .examples { color: var(--text-muted,#6b7280); font-size: 12px; font-style: italic; margin-bottom: 8px; }
-        .ai-question input { width: 100%; padding: 8px 10px; border: 1px solid var(--border,#e5e7eb); border-radius: 4px; font-size: 13px; }
+        .ai-question label { font-weight: 500; color: var(--text,#1f2937); display: block; margin-bottom: 6px; font-size: var(--font-size-lg, 14px); }
+        .ai-question .examples { color: var(--text-muted,#6b7280); font-size: var(--font-size-sm, 12px); font-style: italic; margin-bottom: 8px; }
+        .ai-question input { width: 100%; padding: 8px 10px; border: 1px solid var(--border,#e5e7eb); border-radius: 4px; font-size: var(--font-size-md, 13px); }
         .ai-question input:focus { outline: none; border-color: var(--cmdb-accent,#be185d); }
 
         .ai-suggestion {
@@ -205,10 +205,10 @@ $translationNamespaces = ['common', 'cmdb'];
         .ai-suggestion input[type="checkbox"] { margin-top: 4px; flex-shrink: 0; transform: scale(1.2); accent-color: var(--cmdb-accent,#be185d); }
         .ai-suggestion .sug-body { flex: 1; min-width: 0; }
         .ai-suggestion .sug-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
-        .ai-suggestion .sug-label { font-weight: 600; color: var(--text,#1f2937); font-size: 14px; }
-        .ai-suggestion .sug-key { font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; color: var(--text-muted,#6b7280); }
-        .ai-suggestion .sug-why { color: var(--text-muted,#4b5563); font-size: 13px; line-height: 1.4; margin-top: 4px; }
-        .ai-suggestion .sug-meta { color: var(--text-muted,#6b7280); font-size: 12px; margin-top: 4px; }
+        .ai-suggestion .sug-label { font-weight: 600; color: var(--text,#1f2937); font-size: var(--font-size-lg, 14px); }
+        .ai-suggestion .sug-key { font-family: 'Consolas', 'Monaco', monospace; font-size: var(--font-size-sm, 12px); color: var(--text-muted,#6b7280); }
+        .ai-suggestion .sug-why { color: var(--text-muted,#4b5563); font-size: var(--font-size-md, 13px); line-height: 1.4; margin-top: 4px; }
+        .ai-suggestion .sug-meta { color: var(--text-muted,#6b7280); font-size: var(--font-size-sm, 12px); margin-top: 4px; }
     </style>
     <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -234,7 +234,7 @@ $translationNamespaces = ['common', 'cmdb'];
                     <button class="add-btn" onclick="openClassModal()"><?php echo htmlspecialchars(t('cmdb.settings.add')); ?></button>
                 </div>
             </div>
-            <p style="color: var(--text-muted,#6b7280); font-size: 13px; margin-bottom: 16px; max-width: 720px;">
+            <p style="color: var(--text-muted,#6b7280); font-size: var(--font-size-md, 13px); margin-bottom: 16px; max-width: 720px;">
                 <?php echo t('cmdb.settings.classes_intro'); ?>
             </p>
             <?php
@@ -276,7 +276,7 @@ $translationNamespaces = ['common', 'cmdb'];
                 <h2><?php echo htmlspecialchars(t('cmdb.settings.rel_types_heading')); ?></h2>
                 <button class="add-btn" onclick="openRelTypeModal()"><?php echo htmlspecialchars(t('cmdb.settings.add')); ?></button>
             </div>
-            <p style="color: var(--text-muted,#6b7280); font-size: 13px; margin-bottom: 16px; max-width: 720px;">
+            <p style="color: var(--text-muted,#6b7280); font-size: var(--font-size-md, 13px); margin-bottom: 16px; max-width: 720px;">
                 <?php echo t('cmdb.settings.rel_types_intro'); ?>
             </p>
             <table>
@@ -305,7 +305,7 @@ $translationNamespaces = ['common', 'cmdb'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('cmdb.settings.impact_heading')); ?></h2>
             </div>
-            <p style="color: var(--text-muted,#6b7280); font-size: 13px; margin-bottom: 16px; max-width: 720px;">
+            <p style="color: var(--text-muted,#6b7280); font-size: var(--font-size-md, 13px); margin-bottom: 16px; max-width: 720px;">
                 <?php echo htmlspecialchars(t('cmdb.settings.impact_intro')); ?>
             </p>
             <form id="impactForm" onsubmit="saveImpactSettings(event)" style="max-width: 640px;">
@@ -331,7 +331,7 @@ $translationNamespaces = ['common', 'cmdb'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('cmdb.settings.asset_card_heading')); ?></h2>
             </div>
-            <p style="color: var(--text-muted,#6b7280); font-size: 13px; margin-bottom: 16px; max-width: 720px;">
+            <p style="color: var(--text-muted,#6b7280); font-size: var(--font-size-md, 13px); margin-bottom: 16px; max-width: 720px;">
                 <?php echo htmlspecialchars(t('cmdb.settings.asset_card_intro')); ?>
             </p>
             <form id="assetCardForm" onsubmit="saveAssetCard(event)" style="max-width: 640px;">
@@ -355,10 +355,10 @@ $translationNamespaces = ['common', 'cmdb'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('cmdb.settings.ai_heading')); ?></h2>
             </div>
-            <p style="color: var(--text-muted,#555); font-size: 14px;">
+            <p style="color: var(--text-muted,#555); font-size: var(--font-size-lg, 14px);">
                 <?php echo t('cmdb.settings.ai_intro1'); ?>
             </p>
-            <p style="color: var(--text-muted,#555); font-size: 14px;">
+            <p style="color: var(--text-muted,#555); font-size: var(--font-size-lg, 14px);">
                 <?php echo htmlspecialchars(t('cmdb.settings.ai_intro2')); ?>
             </p>
 
@@ -395,14 +395,14 @@ $translationNamespaces = ['common', 'cmdb'];
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border,#ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="cmdbSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-muted,#777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted,#777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('cmdb.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid var(--border,#ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="cmdbSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: var(--text-muted,#777); margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: var(--font-size-sm, 12px); color: var(--text-muted,#777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('cmdb.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>
@@ -462,7 +462,7 @@ $translationNamespaces = ['common', 'cmdb'];
             </div>
             <div class="modal-body">
                 <div class="section-header">
-                    <h2 style="font-size: 14px;"><?php echo htmlspecialchars(t('cmdb.settings.props_heading')); ?></h2>
+                    <h2 style="font-size: var(--font-size-lg, 14px);"><?php echo htmlspecialchars(t('cmdb.settings.props_heading')); ?></h2>
                     <div style="display: flex; gap: 8px;">
                         <?php require_once '../../includes/ai_settings.php'; if (aiFeatureReady(connectToDatabase(), 'cmdb_ai')): // GH #309 ?>
                         <button class="btn-ai" onclick="openAiSuggestModal()" title="<?php echo htmlspecialchars(t('cmdb.settings.suggest_ai_title')); ?>">
@@ -656,7 +656,7 @@ $translationNamespaces = ['common', 'cmdb'];
 
                 <!-- Stage 1: questions form -->
                 <div class="ai-stage" id="aiStageQuestions">
-                    <p style="color: var(--text-muted,#4b5563); font-size: 13px; margin-bottom: 16px;">
+                    <p style="color: var(--text-muted,#4b5563); font-size: var(--font-size-md, 13px); margin-bottom: 16px;">
                         <?php echo t('cmdb.ai_suggest.questions_intro'); ?>
                     </p>
                     <div id="aiQuestionsList"></div>
@@ -674,7 +674,7 @@ $translationNamespaces = ['common', 'cmdb'];
 
                 <!-- Stage 3: suggestions list -->
                 <div class="ai-stage" id="aiStageSuggestions">
-                    <p style="color: var(--text-muted,#4b5563); font-size: 13px; margin-bottom: 16px;">
+                    <p style="color: var(--text-muted,#4b5563); font-size: var(--font-size-md, 13px); margin-bottom: 16px;">
                         <?php echo t('cmdb.ai_suggest.suggestions_intro'); ?>
                     </p>
                     <div id="aiSuggestionsList"></div>
@@ -689,7 +689,7 @@ $translationNamespaces = ['common', 'cmdb'];
                 <!-- Error stage -->
                 <div class="ai-stage" id="aiStageError">
                     <div style="padding: 30px; text-align: center;">
-                        <p style="color: var(--danger-text,#b91c1c); font-size: 14px; margin-bottom: 12px;" id="aiErrorMessage"></p>
+                        <p style="color: var(--danger-text,#b91c1c); font-size: var(--font-size-lg, 14px); margin-bottom: 12px;" id="aiErrorMessage"></p>
                         <button class="btn btn-secondary" onclick="closeAiSuggestModal()"><?php echo htmlspecialchars(t('cmdb.ai_suggest.close')); ?></button>
                     </div>
                 </div>

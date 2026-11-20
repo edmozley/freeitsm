@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'watchtower'];
         .tab.active { color: var(--wt-accent, #0f766e); border-bottom-color: var(--wt-accent, #0f766e); }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .section-header h2 { margin: 0 0 8px; font-size: 18px; color: var(--text, #333); }
+        .section-header h2 { margin: 0 0 8px; font-size: var(--font-size-2xl, 18px); color: var(--text, #333); }
         .intro { color: var(--text-muted, #666); margin-bottom: 20px; max-width: 760px; line-height: 1.5; }
 
         /* Same shape as the Tasks card-field toggles, so the two screens read alike. */
@@ -80,8 +80,8 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-opt { display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; border-radius: 8px; cursor: pointer; transition: background 0.12s; }
         .wt-opt:hover { background: var(--surface-2, #f0fdfa); }
         .wt-opt input { margin-top: 1px; accent-color: var(--wt-accent, #0f766e); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
-        .wt-opt-name { font-weight: 600; font-size: 14px; color: var(--text, #333); }
-        .wt-opt-desc { font-size: 13px; color: var(--text-dim, #888); margin-top: 2px; line-height: 1.4; }
+        .wt-opt-name { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
+        .wt-opt-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-top: 2px; line-height: 1.4; }
 
         /* The module stripe and pill are the only colour on the page, and both are
            the module's own — so the eye groups the two ticket rows together
@@ -89,21 +89,21 @@ $translationNamespaces = ['common', 'watchtower'];
            the same hex, which reads on both light and dark grounds. */
         .wt-group { border: 1px solid var(--border, #ddd); border-left-width: 3px; border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; max-width: 760px; }
         .wt-group h3 { margin: 0 0 4px; font-size: 15px; color: var(--text, #333); display: flex; align-items: center; gap: 9px; }
-        .wt-mod-pill { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 10px; white-space: nowrap; letter-spacing: 0.02em; }
+        .wt-mod-pill { font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 2px 9px; border-radius: 10px; white-space: nowrap; letter-spacing: 0.02em; }
         .wt-opt { border-left: 3px solid transparent; }
-        .wt-group .why { font-size: 13px; color: var(--text-muted, #777); margin: 0 0 12px; line-height: 1.45; }
+        .wt-group .why { font-size: var(--font-size-md, 13px); color: var(--text-muted, #777); margin: 0 0 12px; line-height: 1.45; }
         .wt-members { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .wt-member { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--border, #ddd); border-radius: 20px; font-size: 13px; cursor: pointer; }
+        .wt-member { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--border, #ddd); border-radius: 20px; font-size: var(--font-size-md, 13px); cursor: pointer; }
         .wt-member input { accent-color: var(--wt-accent, #0f766e); cursor: pointer; }
         .wt-members.disabled { opacity: 0.45; pointer-events: none; }
 
-        .btn { padding: 10px 20px; border-radius: 4px; font-size: 14px; cursor: pointer; border: none; }
+        .btn { padding: 10px 20px; border-radius: 4px; font-size: var(--font-size-lg, 14px); cursor: pointer; border: none; }
         .btn-primary { background: var(--wt-accent, #0f766e); color: #fff; }
         .btn-primary:hover { background: var(--wt-accent-hover, #0d5f59); }
         .save-bar { margin-top: 22px; }
-        .num-input { width: 90px; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 14px; }
+        .num-input { width: 90px; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: var(--font-size-lg, 14px); }
 
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 18px; border-radius: 4px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1100; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 18px; border-radius: 4px; font-size: var(--font-size-lg, 14px); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1100; }
         .toast.show { opacity: 1; }
         .toast.toast-error { background: var(--danger-accent, #c62828); }
 
@@ -113,7 +113,7 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-opt-elsewhere {
             display: block;
             margin-top: 4px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
         .wt-opt-elsewhere a {
             color: var(--primary-color, #4a90d9);
@@ -159,7 +159,7 @@ $translationNamespaces = ['common', 'watchtower'];
                 </h3>
                 <p class="why"><?php echo htmlspecialchars(t('watchtower.settings.paused_why')); ?></p>
                 <input type="number" min="1" max="8760" class="num-input" id="pausedHours" value="24">
-                <span style="font-size:13px;color:var(--text-muted,#777);margin-left:6px;"><?php echo htmlspecialchars(t('watchtower.settings.paused_unit')); ?></span>
+                <span style="font-size:var(--font-size-md, 13px);color:var(--text-muted,#777);margin-left:6px;"><?php echo htmlspecialchars(t('watchtower.settings.paused_unit')); ?></span>
             </div>
 
             <div class="save-bar"><button class="btn btn-primary" onclick="saveSettings()"><?php echo htmlspecialchars(t('common.save')); ?></button></div>

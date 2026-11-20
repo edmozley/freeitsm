@@ -142,17 +142,17 @@ $title = $asset ? ($asset['asset_tag'] ?: $asset['hostname'] ?: t('asset-managem
             margin-bottom: 14px;
         }
         .asset-tag {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             letter-spacing: 1px;
             text-transform: uppercase;
             color: var(--text-muted, #667);
             margin: 0 0 4px;
         }
-        .asset-name { font-size: 24px; font-weight: 700; margin: 0 0 12px; line-height: 1.2; word-break: break-word; }
+        .asset-name { font-size: var(--font-size-4xl, 24px); font-weight: 700; margin: 0 0 12px; line-height: 1.2; word-break: break-word; }
         .facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 14.5px; }
         .facts dt { color: var(--text-muted, #667); }
         .facts dd { margin: 0; font-weight: 500; word-break: break-word; }
-        .field-label { display: block; font-size: 13px; color: var(--text-muted, #667); margin: 0 0 6px; }
+        .field-label { display: block; font-size: var(--font-size-md, 13px); color: var(--text-muted, #667); margin: 0 0 6px; }
         /* 44px minimum: the accepted floor for a touch target, and these get
            pressed with a thumb while holding a laptop in the other hand. */
         select.touch, .btn-touch {
@@ -181,7 +181,7 @@ $title = $asset ? ($asset['asset_tag'] ?: $asset['hostname'] ?: t('asset-managem
             color: var(--text, #222);
             border: 1px solid var(--border, #cfd6dd);
         }
-        .saved { font-size: 13px; color: var(--success-text, #166534); min-height: 18px; margin-top: 6px; }
+        .saved { font-size: var(--font-size-md, 13px); color: var(--success-text, #166534); min-height: 18px; margin-top: 6px; }
         .saved.error { color: var(--danger-text, #991b1b); }
         .empty { text-align: center; padding: 40px 16px; }
         .empty h1 { font-size: 19px; margin: 0 0 8px; }

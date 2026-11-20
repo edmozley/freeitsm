@@ -53,24 +53,24 @@ $rT = function ($k, $p = []) { return t('system.emailed_reports.' . $k, $p); };
         }
         /* Page layout, title and panels: assets/css/system-page.css (.sys-page, .sys-panel). */
         .er-panel h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px; }
-        .er-panel .er-desc { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 14px; line-height: 1.5; }
+        .er-panel .er-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 14px; line-height: 1.5; }
         .er-how { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-        .er-how label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 14px; color: var(--text, #333); }
+        .er-how label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
         .er-how input { margin-top: 3px; }
-        .er-how small { display: block; font-size: 12px; color: var(--text-dim, #888); }
-        .er-warn { margin: 4px 0 0 26px; padding: 8px 12px; border-radius: 6px; font-size: 12px;
+        .er-how small { display: block; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
+        .er-warn { margin: 4px 0 0 26px; padding: 8px 12px; border-radius: 6px; font-size: var(--font-size-sm, 12px);
                    background: var(--warning-bg, #fff8e1); color: var(--warning-text, #8a6d00); border: 1px solid var(--warning-border, #ffe08a); word-break: break-all; }
-        .er-days { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text, #333); margin-bottom: 16px; }
+        .er-days { display: flex; align-items: center; gap: 10px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); margin-bottom: 16px; }
         .er-days select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
-        .er-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .er-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
         .er-table th { text-align: left; font-weight: 600; color: var(--text-dim, #888); padding: 8px; border-bottom: 1px solid var(--border, #e0e0e0); }
         .er-table td { padding: 8px; border-bottom: 1px solid var(--border, #eee); color: var(--text, #333); vertical-align: middle; }
         .er-table td.num { font-variant-numeric: tabular-nums; }
-        .er-empty { font-size: 13px; color: var(--text-dim, #888); }
-        .er-status { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: var(--surface-2, #f0f2f5); }
+        .er-empty { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); }
+        .er-status { font-size: var(--font-size-sm, 12px); padding: 2px 8px; border-radius: 10px; background: var(--surface-2, #f0f2f5); }
         .er-status.active { background: var(--success-bg, #e6f4ea); color: var(--success-text, #1e7e34); }
         .er-scroll { overflow-x: auto; }
-        .er-panel .btn-small { padding: 4px 10px; font-size: 12px; }
+        .er-panel .btn-small { padding: 4px 10px; font-size: var(--font-size-sm, 12px); }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>

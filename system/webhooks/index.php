@@ -232,7 +232,7 @@ function whAgo($s) {
 
         .card { background: var(--surface, #fff); border-radius: 8px; padding: 22px 24px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 22px; }
         .card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
-        .card .desc { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 16px 0; line-height: 1.5; }
+        .card .desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 16px 0; line-height: 1.5; }
 
         /* ---- Setup / status banner ---- */
         .setup { border-left: 4px solid #90a4ae; }
@@ -247,23 +247,23 @@ function whAgo($s) {
         .setup-pill.down, .setup-pill.never { background: #fce8e8; color: #c0392b; } .setup-pill.down .dot, .setup-pill.never .dot { background: #c0392b; }
         .setup-when { font-size: 12.5px; color: #78909c; }
 
-        .setup-explain { font-size: 13px; color: var(--text-muted, #55606a); line-height: 1.6; margin: 12px 0 0; }
+        .setup-explain { font-size: var(--font-size-md, 13px); color: var(--text-muted, #55606a); line-height: 1.6; margin: 12px 0 0; }
         .setup-explain strong { color: var(--text, #333); }
         .steps { margin: 16px 0 0; padding: 0; list-style: none; counter-reset: step; }
-        .steps li { position: relative; padding: 0 0 16px 34px; font-size: 13px; color: var(--text, #444); line-height: 1.55; }
+        .steps li { position: relative; padding: 0 0 16px 34px; font-size: var(--font-size-md, 13px); color: var(--text, #444); line-height: 1.55; }
         .steps li:last-child { padding-bottom: 0; }
-        .steps li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: -1px; width: 22px; height: 22px; border-radius: 50%; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .steps li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: -1px; width: 22px; height: 22px; border-radius: 50%; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); font-size: var(--font-size-sm, 12px); font-weight: 700; display: flex; align-items: center; justify-content: center; }
         .steps li strong { color: var(--text, #333); }
         .cmd-row { display: flex; align-items: stretch; gap: 8px; margin: 8px 0 4px; }
-        .cmd-row code { flex: 1; background: #263238; color: #eceff1; border-radius: 5px; padding: 9px 12px; font-size: 12px; font-family: Consolas, Monaco, monospace; overflow-x: auto; white-space: nowrap; }
-        .copy-btn { padding: 6px 14px; background: var(--sys-accent-soft, #eceff1); color: #455a64; border: none; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .cmd-row code { flex: 1; background: #263238; color: #eceff1; border-radius: 5px; padding: 9px 12px; font-size: var(--font-size-sm, 12px); font-family: Consolas, Monaco, monospace; overflow-x: auto; white-space: nowrap; }
+        .copy-btn { padding: 6px 14px; background: var(--sys-accent-soft, #eceff1); color: #455a64; border: none; border-radius: 5px; font-size: var(--font-size-sm, 12px); font-weight: 600; cursor: pointer; white-space: nowrap; }
         .copy-btn:hover { background: #cfd8dc; }
-        .sub { font-size: 12px; color: #90a4ae; margin: 2px 0 0; }
+        .sub { font-size: var(--font-size-sm, 12px); color: #90a4ae; margin: 2px 0 0; }
         .sub a { color: var(--sys-accent, #546e7a); }
 
         .facts { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-soft, #eef2f4); }
-        .fact { font-size: 12px; color: #90a4ae; }
-        .fact b { display: block; font-size: 13px; color: var(--text, #37474f); font-weight: 600; margin-top: 2px; }
+        .fact { font-size: var(--font-size-sm, 12px); color: #90a4ae; }
+        .fact b { display: block; font-size: var(--font-size-md, 13px); color: var(--text, #37474f); font-weight: 600; margin-top: 2px; }
 
         /* ---- Queue table ---- */
         .wh-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -271,20 +271,20 @@ function whAgo($s) {
         .wh-chip { padding: 5px 12px; border: 1px solid var(--border, #d7dce1); border-radius: 16px; background: var(--surface, #fff); font-size: 12.5px; color: var(--text, #445); cursor: pointer; }
         .wh-chip.active { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border-color: var(--sys-accent, #546e7a); }
         .wh-chip .n { opacity: 0.7; margin-left: 4px; }
-        .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; cursor: pointer; }
         .add-btn:hover { background: #455a64; }
         table.wh { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-        table.wh th { text-align: left; color: #78909c; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 10px; border-bottom: 1px solid var(--border, #e8ecef); }
+        table.wh th { text-align: left; color: #78909c; font-weight: 600; font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 10px; border-bottom: 1px solid var(--border, #e8ecef); }
         table.wh td { padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #f2f4f6); vertical-align: middle; }
-        .st { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .st { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; }
         .st.delivered { background: #e6f4ea; color: #1e7e34; }
         .st.pending, .st.delivering { background: #e8eef2; color: #465a66; }
         .st.failed { background: #fdf0e2; color: #b26a00; }
         .st.dead { background: #fce8e8; color: #c0392b; }
         .wh-url { font-family: Consolas, Monaco, monospace; font-size: 11.5px; color: var(--text, #37474f); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
-        .table-action-btn { padding: 4px 10px; background: var(--surface-3, #f4f6f7); border: 1px solid var(--border, #e0e5e8); border-radius: 5px; font-size: 12px; color: var(--text-muted, #455a64); cursor: pointer; }
+        .table-action-btn { padding: 4px 10px; background: var(--surface-3, #f4f6f7); border: 1px solid var(--border, #e0e5e8); border-radius: 5px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #455a64); cursor: pointer; }
         .table-action-btn:hover { background: #e8ecef; }
-        .wh-empty { padding: 30px; text-align: center; color: #90a4ae; font-size: 13px; }
+        .wh-empty { padding: 30px; text-align: center; color: #90a4ae; font-size: var(--font-size-md, 13px); }
         .modal-body pre { background: #263238; color: #eceff1; border-radius: 6px; padding: 12px; font-size: 11.5px; overflow: auto; max-height: 300px; white-space: pre-wrap; word-break: break-word; }
 
         /* ---- Overview dashboard ---- */
@@ -313,18 +313,18 @@ function whAgo($s) {
         .chart-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 11.5px; color: #90a4ae; }
         .chart-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
 
-        table.mini { width: 100%; border-collapse: collapse; font-size: 12px; }
+        table.mini { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm, 12px); }
         table.mini th { text-align: left; color: #90a4ae; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; padding: 4px 8px; border-bottom: 1px solid var(--border-soft, #eef2f4); }
         table.mini td { padding: 6px 8px; border-bottom: 1px solid var(--border-soft, #f4f6f8); vertical-align: middle; }
         table.mini td.name { font-weight: 500; color: var(--text, #37474f); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        table.mini td.mono { font-family: Consolas, Monaco, monospace; font-size: 11px; color: var(--text-muted, #455a64); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        table.mini td.mono { font-family: Consolas, Monaco, monospace; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #455a64); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         table.mini td.num { text-align: right; color: var(--text-muted, #607d8b); font-variant-numeric: tabular-nums; }
         .rate { display: flex; align-items: center; gap: 7px; justify-content: flex-end; }
         .rate .track { width: 42px; height: 5px; border-radius: 3px; background: #eef2f4; overflow: hidden; }
         .rate .fill { height: 100%; background: #66bb6a; }
         .rate .fill.warn { background: #ffb74d; }
         .rate .fill.bad { background: #e57373; }
-        .rate .pct { font-size: 11px; color: var(--text-muted, #607d8b); min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+        .rate .pct { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #607d8b); min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
         .ov-empty { padding: 26px; text-align: center; color: #b0bec5; font-size: 12.5px; }
 
         /* ---- Dark mode ----------------------------------------------------
@@ -464,7 +464,7 @@ function whAgo($s) {
             <p class="desc"><?php echo htmlspecialchars(t('system.webhooks.del_desc')); ?></p>
 
             <div class="form-group" style="max-width: 520px; margin-top: 16px;" data-sys-cap="one select">
-                <label for="whMaxAttempts" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_attempts_label')); ?></label>
+                <label for="whMaxAttempts" style="display:block; font-weight:600; font-size:var(--font-size-md, 13px); margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_attempts_label')); ?></label>
                 <select id="whMaxAttempts" class="form-input" onchange="saveDeliverySetting('max_attempts', parseInt(this.value, 10), 'whMaxAttemptsStatus')">
                     <?php foreach (WEBHOOK_ATTEMPTS_ALLOWED as $n):
                         $label = $n === 1 ? t('system.webhooks.del_attempts_one') : t('system.webhooks.del_attempts_opt', ['n' => $n]);
@@ -472,12 +472,12 @@ function whAgo($s) {
                         <option value="<?php echo $n; ?>" <?php echo $deliveryCfg['max_attempts'] === $n ? 'selected' : ''; ?>><?php echo htmlspecialchars($label); ?></option>
                     <?php endforeach; ?>
                 </select>
-                <span id="whMaxAttemptsStatus" style="display:block; font-size:12px; margin-top:6px; min-height:16px;"></span>
+                <span id="whMaxAttemptsStatus" style="display:block; font-size:var(--font-size-sm, 12px); margin-top:6px; min-height:16px;"></span>
                 <small style="display:block; color:var(--text-muted,#666); margin-top:6px; line-height:1.55;"><?php echo t('system.webhooks.del_attempts_help'); ?></small>
             </div>
 
             <div class="form-group" style="max-width: 520px; margin-top: 16px;" data-sys-cap="one select">
-                <label for="whTimeout" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_timeout_label')); ?></label>
+                <label for="whTimeout" style="display:block; font-weight:600; font-size:var(--font-size-md, 13px); margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_timeout_label')); ?></label>
                 <select id="whTimeout" class="form-input" onchange="saveDeliverySetting('timeout', parseInt(this.value, 10), 'whTimeoutStatus')">
                     <?php foreach (WEBHOOK_TIMEOUT_ALLOWED as $n):
                         $label = t('system.webhooks.del_timeout_opt', ['n' => $n]);
@@ -485,17 +485,17 @@ function whAgo($s) {
                         <option value="<?php echo $n; ?>" <?php echo $deliveryCfg['timeout'] === $n ? 'selected' : ''; ?>><?php echo htmlspecialchars($label); ?></option>
                     <?php endforeach; ?>
                 </select>
-                <span id="whTimeoutStatus" style="display:block; font-size:12px; margin-top:6px; min-height:16px;"></span>
+                <span id="whTimeoutStatus" style="display:block; font-size:var(--font-size-sm, 12px); margin-top:6px; min-height:16px;"></span>
                 <small style="display:block; color:var(--text-muted,#666); margin-top:6px; line-height:1.55;"><?php echo t('system.webhooks.del_timeout_help'); ?></small>
             </div>
 
             <div class="form-group" style="max-width: 520px; margin-top: 16px;" data-sys-cap="one select">
-                <label for="whInterrupted" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_int_label')); ?></label>
+                <label for="whInterrupted" style="display:block; font-weight:600; font-size:var(--font-size-md, 13px); margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_int_label')); ?></label>
                 <select id="whInterrupted" class="form-input" onchange="saveDeliverySetting('interrupted', this.value, 'whInterruptedStatus')">
                     <option value="<?php echo WEBHOOK_INTERRUPTED_RETRY; ?>" <?php echo $deliveryCfg['interrupted'] === WEBHOOK_INTERRUPTED_RETRY ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.webhooks.opt_default', ['label' => t('system.webhooks.del_int_retry')])); ?></option>
                     <option value="<?php echo WEBHOOK_INTERRUPTED_STOP; ?>" <?php echo $deliveryCfg['interrupted'] === WEBHOOK_INTERRUPTED_STOP ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.webhooks.del_int_stop')); ?></option>
                 </select>
-                <span id="whInterruptedStatus" style="display:block; font-size:12px; margin-top:6px; min-height:16px;"></span>
+                <span id="whInterruptedStatus" style="display:block; font-size:var(--font-size-sm, 12px); margin-top:6px; min-height:16px;"></span>
                 <small style="display:block; color:var(--text-muted,#666); margin-top:6px; line-height:1.55;"><?php echo t('system.webhooks.del_int_help'); ?></small>
             </div>
         </div>
@@ -522,7 +522,7 @@ function whAgo($s) {
             <?php endif; ?>
 
             <div class="form-group" style="max-width: 520px; margin-top: 16px;" data-sys-cap="one select">
-                <label for="payloadRetention" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.ret_label')); ?></label>
+                <label for="payloadRetention" style="display:block; font-weight:600; font-size:var(--font-size-md, 13px); margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.ret_label')); ?></label>
                 <select id="payloadRetention" class="form-input" onchange="savePayloadRetention(this.value)">
                     <option value="0"  <?php echo $payloadRetention === 0  ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.webhooks.ret_none')); ?></option>
                     <option value="1"  <?php echo $payloadRetention === 1  ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.webhooks.ret_1')); ?></option>
@@ -530,7 +530,7 @@ function whAgo($s) {
                     <option value="30" <?php echo $payloadRetention === 30 ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.webhooks.ret_30')); ?></option>
                     <option value="-1" <?php echo $payloadRetention === -1 ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.webhooks.ret_forever')); ?></option>
                 </select>
-                <span id="payloadRetentionStatus" style="display:block; font-size:12px; margin-top:6px; min-height:16px;"></span>
+                <span id="payloadRetentionStatus" style="display:block; font-size:var(--font-size-sm, 12px); margin-top:6px; min-height:16px;"></span>
                 <small style="display:block; color:var(--text-muted,#666); margin-top:6px; line-height:1.55;">
                     <?php echo t('system.webhooks.ret_help', ['days' => $retentionDays]); ?>
                     <br><br>
@@ -735,16 +735,16 @@ function whAgo($s) {
         document.getElementById('pmTitle').textContent = wh('modal_delivery', { id: r.id, format: r.preset || wh('custom') });
         // (diagnosisHtml is defined below — same shape the workflow editor renders.)
         document.getElementById('pmBody').innerHTML =
-            '<p style="font-size:12px;color:var(--text-muted, #667);margin:0 0 8px;">' + esc(r.method) + ' ' + esc(r.url) + '</p>'
-            + '<strong style="font-size:12px;">' + esc(wh('req_headers')) + '</strong><pre>' + esc((r.headers || []).join('\n')) + '</pre>'
-            + '<strong style="font-size:12px;">' + esc(wh('req_body')) + '</strong>'
+            '<p style="font-size:var(--font-size-sm, 12px);color:var(--text-muted, #667);margin:0 0 8px;">' + esc(r.method) + ' ' + esc(r.url) + '</p>'
+            + '<strong style="font-size:var(--font-size-sm, 12px);">' + esc(wh('req_headers')) + '</strong><pre>' + esc((r.headers || []).join('\n')) + '</pre>'
+            + '<strong style="font-size:var(--font-size-sm, 12px);">' + esc(wh('req_body')) + '</strong>'
             // An empty body here would otherwise look like a bug. Say why it's gone.
             + (r.purged
                 ? '<div class="wf-diagnosis"><strong>' + esc(wh('purged_title')) + '</strong>'
                   + '<div class="wf-diagnosis-body">' + esc(wh('purged_body')) + '</div></div>'
                 : '<pre>' + esc(r.body || '') + '</pre>')
-            + (r.response ? '<strong style="font-size:12px;">' + esc(r.last_status ? wh('response_http', { code: r.last_status }) : wh('response')) + '</strong><pre>' + esc(r.response) + '</pre>' : '')
-            + (r.last_error ? '<strong style="font-size:12px;color:var(--danger-text, #c0392b);">' + esc(wh('last_error')) + '</strong><pre>' + esc(r.last_error) + '</pre>' : '')
+            + (r.response ? '<strong style="font-size:var(--font-size-sm, 12px);">' + esc(r.last_status ? wh('response_http', { code: r.last_status }) : wh('response')) + '</strong><pre>' + esc(r.response) + '</pre>' : '')
+            + (r.last_error ? '<strong style="font-size:var(--font-size-sm, 12px);color:var(--danger-text, #c0392b);">' + esc(wh('last_error')) + '</strong><pre>' + esc(r.last_error) + '</pre>' : '')
             // The raw cURL error says what broke, not what to do about it. Where the
             // server recognised the cause, show the plain-English version + the fix.
             + (r.diagnosis ? diagnosisHtml(r.diagnosis) : '');

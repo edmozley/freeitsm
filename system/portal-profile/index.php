@@ -49,7 +49,7 @@ requireModuleAccess('system');
         }
 
         /* inbox.css's .btn-primary sets only background and colour. */
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover:not(:disabled) { background: #455a64; }
         .btn:disabled { opacity: .55; cursor: progress; }
@@ -62,10 +62,10 @@ requireModuleAccess('system');
             margin-bottom: 18px;
         }
         .pp-panel h3 {
-            margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase;
+            margin: 0 0 4px 0; font-size: var(--font-size-md, 13px); text-transform: uppercase;
             letter-spacing: .5px; color: var(--text-dim, #888);
         }
-        .pp-panel > p { margin: 0 0 14px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; }
+        .pp-panel > p { margin: 0 0 14px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.55; }
 
         .pp-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border-soft, #f1f1f1); }
         .pp-row input { margin-top: 3px; }
@@ -73,7 +73,7 @@ requireModuleAccess('system');
         .pp-row-desc { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; }
         .pp-fixed { color: var(--text-muted, #666); }
         .pp-fixed .pp-row-name { color: var(--text-muted, #666); }
-        .pp-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;
+        .pp-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 500;
                   background: var(--surface-2, #f0f0f0); color: var(--text-muted, #777); }
 
         .pp-books { margin: 10px 0 0 26px; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.6; }
@@ -85,7 +85,7 @@ requireModuleAccess('system');
             border-radius: 6px; padding: 10px 12px; margin: 10px 0 0 26px;
             font-size: 12.5px; line-height: 1.55;
         }
-        .pp-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
+        .pp-saved { font-size: var(--font-size-md, 13px); color: var(--success-text, #166534); margin-left: 12px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">

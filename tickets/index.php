@@ -263,7 +263,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                             <span class="toggle-slider"></span>
                         </span>
                     </label>
-                    <div class="form-hint" id="noteSharedHint" style="font-size:12px;color:#666;margin-top:6px;">
+                    <div class="form-hint" id="noteSharedHint" style="font-size:var(--font-size-sm, 12px);color:#666;margin-top:6px;">
                         <?php echo htmlspecialchars(t('tickets.note_modal.share_hint')); ?>
                     </div>
                 </div>
@@ -345,7 +345,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                     <div class="attachment-list" id="attachmentList"></div>
                 </div>
             </div>
-            <div id="replyCleanupUndoBar" style="display:none; padding: 8px 0; color: #555; font-size: 13px;">
+            <div id="replyCleanupUndoBar" style="display:none; padding: 8px 0; color: #555; font-size: var(--font-size-md, 13px);">
                 ✨ <?php echo htmlspecialchars(t('tickets.reply_modal.cleaned_up')); ?> — <a href="#" id="replyCleanupUndoLink" style="color: #0078d4;"><?php echo htmlspecialchars(t('tickets.reply_modal.undo')); ?></a> <span id="replyCleanupUndoTimer" style="color: #999;"></span>
             </div>
             <div class="modal-footer">
@@ -406,7 +406,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
         <div class="modal-content" style="max-width: 620px;">
             <div class="modal-header"><?php echo htmlspecialchars(t('tickets.split.title')); ?></div>
             <div class="modal-body">
-                <p style="margin:0 0 14px;color:var(--text-muted,#666);font-size:13px;"><?php echo htmlspecialchars(t('tickets.split.pick_intro')); ?></p>
+                <p style="margin:0 0 14px;color:var(--text-muted,#666);font-size:var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('tickets.split.pick_intro')); ?></p>
 
                 <div class="form-group">
                     <div class="split-pick-bar">
@@ -446,7 +446,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
             <div class="modal-body">
 
                 <div id="mergeStageChoose">
-                    <p style="margin:0 0 14px;color:var(--text-muted,#666);font-size:13px;" id="mergeIntro"></p>
+                    <p style="margin:0 0 14px;color:var(--text-muted,#666);font-size:var(--font-size-md, 13px);" id="mergeIntro"></p>
                     <div class="form-group">
                         <label class="form-label" id="mergePickLabel"><?php echo htmlspecialchars(t('tickets.merge.pick_survivor')); ?></label>
                         <div id="mergeCandidates" class="merge-candidates"></div>
@@ -455,7 +455,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                 </div>
 
                 <div id="mergeStageSummary" style="display:none;">
-                    <div id="mergeResultLine" style="font-size:13px;margin-bottom:12px;"></div>
+                    <div id="mergeResultLine" style="font-size:var(--font-size-md, 13px);margin-bottom:12px;"></div>
                     <div class="form-group">
                         <label class="form-label">
                             <?php echo htmlspecialchars(t('tickets.merge.ai_heading')); ?>
@@ -492,7 +492,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                 <div class="form-group">
                     <label class="form-label"><?php echo htmlspecialchars(t('tickets.reply_modal.save_template_name')); ?></label>
                     <input type="text" class="form-input" id="saveReplyTemplateName" maxlength="100" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.reply_modal.save_template_placeholder')); ?>">
-                    <div class="form-hint" style="font-size:12px;color:var(--text-muted,#666);margin-top:6px;">
+                    <div class="form-hint" style="font-size:var(--font-size-sm, 12px);color:var(--text-muted,#666);margin-top:6px;">
                         <?php echo htmlspecialchars(t('tickets.reply_modal.save_template_hint')); ?>
                     </div>
                 </div>
@@ -565,7 +565,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                         <span id="newTicketCompanyLabel" style="color:#888;font-weight:normal;"></span>
                     </label>
                     <select class="form-select" id="newTicketMailbox"></select>
-                    <div id="newTicketMailboxHint" style="font-size:12px;color:#999;margin-top:4px;"></div>
+                    <div id="newTicketMailboxHint" style="font-size:var(--font-size-sm, 12px);color:#999;margin-top:4px;"></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.subject')); ?> *</label>
@@ -978,8 +978,8 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                 </div>
                 <div class="ctx-cmdb-results" id="ctxCmdbResults"></div>
                 <div class="form-group" style="margin-top: 12px;">
-                    <label class="form-label" style="font-size: 12px; color: #666;">Recently linked (this session)</label>
-                    <div id="ctxCmdbSessionLog" style="font-size: 12px; color: #555;">None yet — pick from the search results above.</div>
+                    <label class="form-label" style="font-size: var(--font-size-sm, 12px); color: #666;">Recently linked (this session)</label>
+                    <div id="ctxCmdbSessionLog" style="font-size: var(--font-size-sm, 12px); color: #555;">None yet — pick from the search results above.</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1044,7 +1044,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
             <div class="modal-header">Link <span id="linkTicketRef"></span> to another ticket</div>
             <div class="modal-body">
                 <div class="form-group">
-                    <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:var(--font-size-md, 13px);">
                         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="ticketLinkRelation" value="related" checked> Related to</label>
                         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="ticketLinkRelation" value="duplicate_of"> Duplicate of</label>
                         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="ticketLinkRelation" value="parent_of"> Parent of</label>
@@ -1097,7 +1097,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                     <pre id="escPreview" style="max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;
                         background:var(--surface-2);border:1px solid var(--border);border-radius:6px;
                         padding:12px;font-size:12.5px;line-height:1.55;color:var(--text);margin:0;"></pre>
-                    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+                    <div style="font-size:var(--font-size-sm, 12px);color:var(--text-muted);margin-top:6px;">
                         <?php echo htmlspecialchars(t('tickets.tracker.preview_hint')); ?>
                     </div>
                     <?php /* Files leaving the building. Hidden when the ticket has

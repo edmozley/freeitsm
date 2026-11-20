@@ -51,27 +51,27 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
     :root { color-scheme: light; --accent: <?php echo $accent; ?>; }
     * { box-sizing: border-box; }
     body { font-family: 'Segoe UI', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Bengali', Tahoma, sans-serif;
-           color: #111; background: #e9ecf1; margin: 0; font-size: 13px; line-height: 1.5; }
+           color: #111; background: #e9ecf1; margin: 0; font-size: var(--font-size-md, 13px); line-height: 1.5; }
 
     /* ── On screen: banner, choices panel, paper ─────────────────────── */
     .cr-banner { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 14px; padding: 10px 20px;
                  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #000)); color: #fff;
                  box-shadow: 0 2px 6px rgba(0,0,0,.18); }
     .cr-banner img { height: 30px; max-width: 140px; object-fit: contain; background: #fff; border-radius: 4px; padding: 3px 6px; }
-    .cr-banner .cr-brand { font-size: 12px; opacity: .85; }
-    .cr-banner .cr-what { font-size: 16px; font-weight: 600; line-height: 1.2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cr-banner .cr-brand { font-size: var(--font-size-sm, 12px); opacity: .85; }
+    .cr-banner .cr-what { font-size: var(--font-size-xl, 16px); font-weight: 600; line-height: 1.2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cr-banner .cr-grow { flex: 1; min-width: 0; }
     .cr-btn { font: inherit; font-weight: 600; padding: 7px 16px; border-radius: 4px; border: 1px solid #fff; background: #fff; color: var(--accent);
               text-decoration: none; cursor: pointer; white-space: nowrap; }
     .cr-shell { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 20px; padding: 20px; align-items: start; }
-    .cr-panel { position: sticky; top: 70px; background: #fff; border: 1px solid #d5dbe5; border-radius: 8px; padding: 14px 16px; font-size: 13px; }
-    .cr-panel h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #5b6472; margin: 14px 0 6px; }
+    .cr-panel { position: sticky; top: 70px; background: #fff; border: 1px solid #d5dbe5; border-radius: 8px; padding: 14px 16px; font-size: var(--font-size-md, 13px); }
+    .cr-panel h3 { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .05em; color: #5b6472; margin: 14px 0 6px; }
     .cr-panel h3:first-child { margin-top: 0; }
     .cr-panel label { display: flex; gap: 8px; align-items: flex-start; padding: 3px 0; cursor: pointer; }
     .cr-panel label input { margin-top: 3px; accent-color: var(--accent); }
     .cr-panel .sub { display: block; margin: 2px 0 4px 24px; }
     .cr-panel .cr-print { width: 100%; margin-top: 14px; background: var(--accent); color: #fff; border-color: var(--accent); text-align: center; display: block; }
-    .cr-panel .cr-done { margin-top: 10px; color: #1b5e20; font-size: 12px; }
+    .cr-panel .cr-done { margin-top: 10px; color: #1b5e20; font-size: var(--font-size-sm, 12px); }
     .cr-paper { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.15); border-radius: 2px; padding: 36px 44px; max-width: 900px; width: 100%; }
     @media (max-width: 860px) {
         .cr-shell { grid-template-columns: 1fr; padding: 12px; }
@@ -82,22 +82,22 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
     }
 
     /* ── The document ───────────────────────────────────────────────── */
-    h1 { font-size: 20px; margin: 0 0 4px; }
+    h1 { font-size: var(--font-size-3xl, 20px); margin: 0 0 4px; }
     h2.sec { font-size: 17px; margin: 30px 0 10px; padding-bottom: 5px; border-bottom: 2px solid var(--accent); }
     h2.sec .num { color: var(--accent); margin-right: 6px; }
-    h3 { font-size: 14px; margin: 18px 0 6px; }
-    h4 { font-size: 13px; margin: 12px 0 4px; }
+    h3 { font-size: var(--font-size-lg, 14px); margin: 18px 0 6px; }
+    h4 { font-size: var(--font-size-md, 13px); margin: 12px 0 4px; }
     table { border-collapse: collapse; width: 100%; margin: 6px 0 12px; }
     th, td { border: 1px solid #ccc; padding: 5px 7px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
     th { background: #f3f4f6; }
     table.kv th { width: 26%; }
     .meta, .sub { color: #555; }
-    .sub { font-size: 12px; }
+    .sub { font-size: var(--font-size-sm, 12px); }
     .box { border: 1px solid #ccc; padding: 8px 10px; margin: 4px 0 12px; overflow-wrap: anywhere; }
     .box * { max-width: 100%; }
     .box table { width: auto; }
     .msg-head { background: #f6f7f9; border-bottom: 1px solid #ddd; margin: -8px -10px 8px; padding: 6px 10px; }
-    .tag { display: inline-block; padding: 0 6px; border: 1px solid #999; border-radius: 8px; font-size: 11px; margin-left: 4px; }
+    .tag { display: inline-block; padding: 0 6px; border: 1px solid #999; border-radius: 8px; font-size: var(--font-size-xs, 11px); margin-left: 4px; }
     .tag.internal { border-color: #b26a00; color: #8a5200; }
     .notice { border-left: 4px solid #888; background: #f7f7f7; padding: 6px 10px; margin: 6px 0; }
     .notice.warn { border-color: #c62828; background: #fdecea; }
@@ -105,12 +105,12 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
     .task .task { margin-left: 12px; border-style: dashed; }
     .res-pass { color: #1b5e20; font-weight: 600; } .res-fail { color: #b71c1c; font-weight: 600; } .res-na { color: #555; }
     .exception { color: #b71c1c; }
-    .foot { margin-top: 28px; border-top: 1px solid #ccc; padding-top: 6px; font-size: 12px; color: #555; }
+    .foot { margin-top: 28px; border-top: 1px solid #ccc; padding-top: 6px; font-size: var(--font-size-sm, 12px); color: #555; }
     a { color: #0b57d0; }
 
     /* The head of the report when there is no cover. */
     .cr-head { border-left: 5px solid var(--accent); padding: 4px 0 4px 14px; margin-bottom: 14px; }
-    .cr-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 700; }
+    .cr-kicker { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 700; }
 
     /* Cover */
     .cr-cover { min-height: 230mm; display: flex; flex-direction: column; }
@@ -120,17 +120,17 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
     .cr-cover .cr-ref { font-size: 15px; opacity: .9; }
     .cr-cover .cr-facts { margin-top: 30px; }
     .cr-cover .cr-facts th { width: 32%; background: #f6f7f9; }
-    .cr-cover .cr-stamp { margin-top: auto; padding-top: 24px; border-top: 1px solid #ddd; color: #444; font-size: 12px; }
+    .cr-cover .cr-stamp { margin-top: auto; padding-top: 24px; border-top: 1px solid #ddd; color: #444; font-size: var(--font-size-sm, 12px); }
     .cr-cover .cr-conf { display: inline-block; margin-top: 14px; padding: 3px 10px; border: 2px solid #b71c1c; color: #b71c1c; font-weight: 700; letter-spacing: .05em; }
 
     /* Contents */
-    .cr-toc h2 { font-size: 20px; margin: 0 0 14px; border: 0; }
+    .cr-toc h2 { font-size: var(--font-size-3xl, 20px); margin: 0 0 14px; border: 0; }
     .cr-toc ol { list-style: none; padding: 0; margin: 0; }
     .cr-toc li { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px dotted #c8ccd3; }
     .cr-toc li .num { color: var(--accent); font-weight: 700; min-width: 22px; }
     .cr-toc li a { color: #111; text-decoration: none; flex: 1; }
-    .cr-toc li.sub { padding: 3px 0 3px 30px; border-bottom: 0; font-size: 12px; }
-    .cr-toc li .count { color: #666; font-size: 12px; }
+    .cr-toc li.sub { padding: 3px 0 3px 30px; border-bottom: 0; font-size: var(--font-size-sm, 12px); }
+    .cr-toc li .count { color: #666; font-size: var(--font-size-sm, 12px); }
 
     @page { margin: 16mm 13mm 16mm; }
 <?php if ($r && !empty($r['options']['pagenums'])):
@@ -470,7 +470,7 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
             <?php else: ?><div class="sub"><?php echo $e($d['original_name']); ?> · <?php echo $e(caseReportSize($d['size_bytes'])); ?> · <?php echo $e($d['mime_type']); ?></div><?php endif; ?></td>
         <td class="sub"><?php echo $e(caseReportWhere($d['where'])); ?></td>
         <td class="sub"><?php echo $e($d['uploaded_by'] ?? '-'); ?><br><?php echo $when($d['created_datetime']); ?></td>
-        <td class="sub" style="font-family:monospace;font-size:11px"><?php echo $d['content_hash'] ? $e($d['content_hash']) : $T('no_fingerprint'); ?></td></tr>
+        <td class="sub" style="font-family:monospace;font-size:var(--font-size-xs, 11px)"><?php echo $d['content_hash'] ? $e($d['content_hash']) : $T('no_fingerprint'); ?></td></tr>
     <?php endforeach; ?>
 </table>
 <?php endif; ?>

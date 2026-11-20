@@ -126,25 +126,25 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            right fix is one shared stylesheet, and the moment for it is when
            this page grows the mapping and history tabs. */
         .prov-card { background: var(--surface, #fff); border-radius: 8px; padding: 22px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
-        .back-link { font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; }
+        .back-link { font-size: var(--font-size-md, 13px); color: var(--sys-accent, #546e7a); text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
 
         .fld { margin-bottom: 18px; }
-        .fld label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
-        .fld .hint { font-size: 12px; color: var(--text-dim, #888); margin-bottom: 6px; line-height: 1.5; }
+        .fld label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
+        .fld .hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-bottom: 6px; line-height: 1.5; }
         .fld input[type=text], .fld input[type=password], .fld select {
-            width: 100%; box-sizing: border-box; padding: 9px 11px; font-size: 13px;
+            width: 100%; box-sizing: border-box; padding: 9px 11px; font-size: var(--font-size-md, 13px);
             border: 1px solid var(--border, #ddd); border-radius: 6px;
             background: var(--surface, #fff); color: var(--text, #333);
         }
-        .result { margin-top: 8px; font-size: 12px; padding: 9px 11px; border-radius: 6px; display: none; white-space: pre-wrap; line-height: 1.5; }
+        .result { margin-top: 8px; font-size: var(--font-size-sm, 12px); padding: 9px 11px; border-radius: 6px; display: none; white-space: pre-wrap; line-height: 1.5; }
         /* 🔑 Tokens, where provider.php hardcodes the light colours and then
            repeats itself in a `[data-theme-mode="dark"]` block. Same result,
            one rule instead of two, and it cannot drift out of step with the
            theme — so this is the one place the two pages deliberately differ. */
         .result.ok  { display: block; background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
         .result.err { display: block; background: var(--danger-bg, #ffebee); color: var(--danger-text, #c62828); }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-test { background: var(--surface, #fff); color: var(--sys-accent, #546e7a); border: 1px solid var(--border, #cfd8dc); }
         .btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -181,15 +181,15 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            with the count jammed against the name. Nothing errored; it just
            looked wrong, which is how a specificity clash always presents. */
         .fld .pick-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin: 0;
-            border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: 13px; font-weight: 400; cursor: pointer; }
+            border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: var(--font-size-md, 13px); font-weight: 400; cursor: pointer; }
         .fld .pick-row:last-child { border-bottom: none; }
         .fld .pick-row:hover { background: var(--surface-hover, rgba(127,127,127,0.05)); }
         .fld .pick-row input { margin: 0; flex-shrink: 0; width: auto; }
         .fld .pick-row .pick-name { color: var(--text, #333); }
-        .fld .pick-row .pick-count { margin-left: auto; font-size: 12px; color: var(--text-dim, #888); }
+        .fld .pick-row .pick-count { margin-left: auto; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .pick-empty { padding: 14px 12px; font-size: 12.5px; color: var(--text-dim, #888); }
-        .pick-actions { display: flex; gap: 14px; margin-top: 8px; font-size: 12px; }
-        .pick-actions button { background: none; border: none; padding: 0; cursor: pointer; color: var(--sys-accent, #546e7a); font-size: 12px; }
+        .pick-actions { display: flex; gap: 14px; margin-top: 8px; font-size: var(--font-size-sm, 12px); }
+        .pick-actions button { background: none; border: none; padding: 0; cursor: pointer; color: var(--sys-accent, #546e7a); font-size: var(--font-size-sm, 12px); }
         .pick-actions button:hover { text-decoration: underline; }
         .pick-summary { margin-top: 8px; font-size: 12.5px; color: var(--text-dim, #888); }
 
@@ -203,7 +203,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         table.runs { width: 100%; border-collapse: collapse; font-size: 12.5px; }
         table.runs th { text-align: left; padding: 7px 9px; color: var(--text-dim, #888); font-weight: 600; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
         table.runs td { padding: 7px 9px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); white-space: nowrap; }
-        .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+        .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 700; }
         .pill.ok, .pill.created { background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
         .pill.stopped { background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); }
         .pill.failed, .pill.running { background: var(--danger-bg, #ffebee); color: var(--danger-text, #c62828); }
@@ -389,7 +389,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
              as the page's footer. */ ?>
     <div class="save-bar">
         <button class="btn btn-primary" id="saveBtn" type="button"><?php echo htmlspecialchars(t('system.sso.save')); ?></button>
-        <span id="saveMsg" style="font-size:13px;color:var(--text-dim,#888);"></span>
+        <span id="saveMsg" style="font-size:var(--font-size-md, 13px);color:var(--text-dim,#888);"></span>
     </div>
 </div>
 
@@ -531,7 +531,7 @@ async function loadWriteLog() {
                 sum.textContent = window.t('system.sso.wl_raw', { status: e.http_status || '—' });
                 det.appendChild(sum);
                 const pre = document.createElement('pre');
-                pre.style.cssText = 'white-space:pre-wrap;word-break:break-word;margin:6px 0 0;font-size:11px;max-height:220px;overflow:auto;';
+                pre.style.cssText = 'white-space:pre-wrap;word-break:break-word;margin:6px 0 0;font-size:var(--font-size-xs, 11px);max-height:220px;overflow:auto;';
                 pre.textContent = e.server_response || window.t('system.sso.wl_no_body');
                 det.appendChild(pre);
                 tdD.appendChild(det);

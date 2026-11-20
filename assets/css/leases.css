@@ -1,18 +1,18 @@
 /* Assets -> Leases (3.5.0). Both pages: the list / Due back, and one lease. */
 
 .ls-wrap { padding: 20px 24px 40px; box-sizing: border-box; }   /* full width, like the rest of Assets */
-.ls-dim { color: var(--text-dim); font-size: 12px; }
+.ls-dim { color: var(--text-dim); font-size: var(--font-size-sm, 12px); }
 .ls-pad { padding: 14px; }
 .ls-sep { color: var(--text-faint); margin: 0 4px; }
 
 /* Top bar: tabs left, tools right */
 .ls-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
 .ls-tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
-.ls-tabs button { border: 0; background: transparent; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--text-muted); }
+.ls-tabs button { border: 0; background: transparent; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: var(--font-size-lg, 14px); color: var(--text-muted); }
 .ls-tabs button.active { background: var(--accent); color: var(--on-accent); }
 .ls-top .ls-spacer { flex: 1; }
 .ls-top input[type=search], .ls-top select {
-    padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: var(--font-size-lg, 14px);
     background: var(--surface); color: var(--text); min-width: 220px;
 }
 .ls-top select { min-width: 0; }
@@ -20,8 +20,8 @@
 
 /* Cards and tables */
 .ls-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
-.ls-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--surface); }
-.ls-table th { text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--text-muted);
+.ls-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-lg, 14px); background: var(--surface); }
+.ls-table th { text-align: left; font-size: var(--font-size-sm, 12px); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--text-muted);
                padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface-hover); }
 .ls-table td { padding: 10px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: top; color: var(--text); }
 .ls-table tr:last-child td { border-bottom: 0; }
@@ -37,15 +37,15 @@
 .ls-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); }
 .ls-empty h3 { margin: 0 0 6px; color: var(--text); }
 .ls-empty p { margin: 0 auto; max-width: 560px; line-height: 1.5; }
-.ls-empty.small { padding: 18px; font-size: 13px; }
+.ls-empty.small { padding: 18px; font-size: var(--font-size-md, 13px); }
 
-.ls-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px;
+.ls-badge { display: inline-block; font-size: var(--font-size-xs, 11px); font-weight: 600; padding: 1px 7px; border-radius: 10px;
             background: var(--surface-hover); color: var(--text-muted); border: 1px solid var(--border); white-space: nowrap; }
 .ls-badge.warn { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-border); }
 .ls-badge.danger { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
 
 /* One lease */
-.ls-back { display: inline-block; margin-bottom: 10px; color: var(--text-muted); text-decoration: none; font-size: 13px; }
+.ls-back { display: inline-block; margin-bottom: 10px; color: var(--text-muted); text-decoration: none; font-size: var(--font-size-md, 13px); }
 .ls-back:hover { color: var(--accent); }
 .ls-hero { padding: 20px 22px; }
 .ls-hero-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
@@ -54,16 +54,16 @@
 .ls-actions .btn { padding: 7px 14px; }
 .ls-danger { color: var(--danger-text) !important; }
 .ls-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px 24px; margin: 18px 0 0; }
-.ls-facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); margin-bottom: 3px; }
-.ls-facts dd { margin: 0; font-size: 14px; color: var(--text); word-break: break-word; }
+.ls-facts dt { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); margin-bottom: 3px; }
+.ls-facts dd { margin: 0; font-size: var(--font-size-lg, 14px); color: var(--text); word-break: break-word; }
 .ls-facts a { color: var(--accent); text-decoration: none; }
-.ls-notes { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-soft); font-size: 14px; color: var(--text); line-height: 1.5; }
+.ls-notes { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-soft); font-size: var(--font-size-lg, 14px); color: var(--text); line-height: 1.5; }
 
 .ls-sched-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-.ls-sched-head h2 { margin: 0 0 4px; font-size: 16px; color: var(--text); }
-.ls-meta { font-size: 13px; color: var(--text-muted); }
+.ls-sched-head h2 { margin: 0 0 4px; font-size: var(--font-size-xl, 16px); color: var(--text); }
+.ls-meta { font-size: var(--font-size-md, 13px); color: var(--text-muted); }
 .ls-sched .ls-table th { background: transparent; }
-.ls-outcome { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font-size: 13px; }
+.ls-outcome { padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font-size: var(--font-size-md, 13px); }
 .ls-row-actions { white-space: nowrap; width: 1%; }
 .ls-row-actions .action-btn { display: inline-flex; padding: 4px 6px; }
 .ls-row-actions .action-btn svg { width: 15px; height: 15px; }
@@ -74,18 +74,18 @@
 .ls-modal .modal-content { max-width: 620px; overflow: hidden; }
 .ls-modal form { padding: 20px 24px; overflow-y: auto; max-height: calc(90vh - 60px); box-sizing: border-box; }
 .ls-modal .form-group { margin-bottom: 14px; }
-.ls-modal .form-group > label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+.ls-modal .form-group > label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; margin-bottom: 5px; color: var(--text); }
 .ls-modal input[type=text], .ls-modal input[type=number], .ls-modal input[type=date], .ls-modal .di-type-date, .ls-modal input[type=search],
 .ls-modal select, .ls-modal textarea {
     width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
-    font-size: 14px; font-family: inherit; background: var(--surface); color: var(--text);
+    font-size: var(--font-size-lg, 14px); font-family: inherit; background: var(--surface); color: var(--text);
 }
-.ls-modal .form-hint { font-size: 12px; color: var(--text-dim); margin-top: 4px; line-height: 1.4; }
+.ls-modal .form-hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim); margin-top: 4px; line-height: 1.4; }
 .ls-modal .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin: 18px -24px -20px; padding: 14px 24px; position: sticky; bottom: -20px; background: var(--surface); border-top: 1px solid var(--border-soft); }
 .ls-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
-.ls-note { font-size: 12px; color: var(--text-muted); background: var(--info-bg); border: 1px solid var(--info-border); border-radius: 6px; padding: 8px 10px; margin: 0 0 14px; }
+.ls-note { font-size: var(--font-size-sm, 12px); color: var(--text-muted); background: var(--info-bg); border: 1px solid var(--info-border); border-radius: 6px; padding: 8px 10px; margin: 0 0 14px; }
 .ls-pick { border: 1px solid var(--border); border-radius: 6px; max-height: 320px; overflow-y: auto; margin-bottom: 8px; }
-.ls-pick-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; border-bottom: 1px solid var(--border-soft); cursor: pointer; font-size: 14px; }
+.ls-pick-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; border-bottom: 1px solid var(--border-soft); cursor: pointer; font-size: var(--font-size-lg, 14px); }
 .ls-pick-row:last-child { border-bottom: 0; }
 .ls-pick-row:hover { background: var(--surface-hover); }
 .ls-pick-row.busy { opacity: .6; cursor: default; }

@@ -393,7 +393,7 @@ async function loadClasses() {
         if (!data.success) throw new Error(data.error || window.t('cmdb.list.classes_load_failed'));
         classes = (data.classes || []).filter(c => c.is_active);
         if (classes.length === 0) {
-            list.innerHTML = `<div style="padding: 16px; color: #6b7280; font-size: 13px;">
+            list.innerHTML = `<div style="padding: 16px; color: #6b7280; font-size: var(--font-size-md, 13px);">
                 ${window.t('cmdb.list.no_classes', { link: `<a href="settings/" style="color: #be185d;">${escapeHtml(window.t('cmdb.list.no_classes_link'))}</a>` })}
             </div>`;
             return;
@@ -403,7 +403,7 @@ async function loadClasses() {
         const st = readUrlState();
         if (st.classId && classes.some(c => c.id === st.classId)) selectClass(st.classId, st);
     } catch (err) {
-        list.innerHTML = `<div style="padding: 16px; color: #b91c1c; font-size: 13px;">${escapeHtml(window.t('cmdb.list.error_prefix', { message: err.message }))}</div>`;
+        list.innerHTML = `<div style="padding: 16px; color: #b91c1c; font-size: var(--font-size-md, 13px);">${escapeHtml(window.t('cmdb.list.error_prefix', { message: err.message }))}</div>`;
     }
 }
 
@@ -517,7 +517,7 @@ function renderObjects() {
                             ? `<span class="parent-link"><strong>${escapeHtml(o.parent_name || '?')}</strong> <span style="color:#9ca3af">(${escapeHtml(o.parent_class_name || '')})</span></span>`
                             : '<span style="color:#d1d5db;">—</span>'}</td>
                         <td>${o.child_count > 0 ? `<span class="badge-count">${o.child_count}</span>` : '<span style="color:#d1d5db;">—</span>'}</td>
-                        <td style="color:#6b7280; font-size: 13px;">${formatDate(o.updated_datetime)}</td>
+                        <td style="color:#6b7280; font-size: var(--font-size-md, 13px);">${formatDate(o.updated_datetime)}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -636,7 +636,7 @@ function renderFieldEditor(p) {
                 <input type="hidden" id="${id}_id">
                 <div class="ac-results" id="${id}_results"></div>
             </div>
-            ${p.target_class_name ? `<small style="color:#6b7280;font-size:12px;">${window.t('cmdb.new_object.picks_from', { name: `<strong>${escapeHtml(p.target_class_name)}</strong>` })}</small>` : ''}`;
+            ${p.target_class_name ? `<small style="color:#6b7280;font-size:var(--font-size-sm, 12px);">${window.t('cmdb.new_object.picks_from', { name: `<strong>${escapeHtml(p.target_class_name)}</strong>` })}</small>` : ''}`;
         default:
             return `<input type="text" id="${id}" data-pid="${p.id}" data-ptype="text">`;
     }

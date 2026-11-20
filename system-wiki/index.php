@@ -58,7 +58,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             padding: 6px 12px;
             background: #f5f7fa;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #555);
         }
         .stat-chip strong {
@@ -68,7 +68,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         .stat-chip.scan-info {
             margin-left: auto;
             color: var(--text-dim, #888);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
         .search-box {
             margin-left: auto;
@@ -79,7 +79,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             padding: 6px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             width: 200px;
             background: var(--surface, #fff);
             color: var(--text, #333);
@@ -91,7 +91,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .search-box button:hover { background: var(--wiki-accent-hover, #b71c1c); }
 
@@ -105,7 +105,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             padding: 12px 0;
         }
         .sidebar-title {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             text-transform: uppercase;
             color: var(--text-faint, #999);
@@ -117,7 +117,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             align-items: center;
             padding: 5px 12px 5px calc(12px + var(--depth, 0) * 18px);
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #444);
             transition: background 0.1s;
             user-select: none;
@@ -137,12 +137,12 @@ $translationNamespaces = ['common', 'system-wiki'];
         }
         .tree-icon {
             margin-right: 6px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             flex-shrink: 0;
         }
         .tree-count {
             margin-left: auto;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-faint, #aaa);
             padding-left: 8px;
         }
@@ -159,7 +159,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         .file-list-header {
             padding: 12px 20px;
             border-bottom: 1px solid var(--border-soft, #eee);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 500;
             color: var(--text, #333);
             background: var(--surface-2, #fafafa);
@@ -167,7 +167,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             justify-content: space-between;
             align-items: center;
         }
-        .file-list-count { font-size: 12px; color: var(--text-dim, #888); font-weight: 400; }
+        .file-list-count { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-weight: 400; }
         .file-list {
             flex: 1;
             overflow-y: auto;
@@ -176,7 +176,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         .file-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .file-table th {
             text-align: left;
@@ -220,7 +220,7 @@ $translationNamespaces = ['common', 'system-wiki'];
         .type-badge.js { background: #fff8e1; color: #f57f17; }
         .file-desc {
             color: var(--text-dim, #888);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             max-width: 300px;
             white-space: nowrap;
             overflow: hidden;
@@ -230,7 +230,7 @@ $translationNamespaces = ['common', 'system-wiki'];
             text-align: center;
             padding: 60px 20px;
             color: var(--text-faint, #aaa);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .no-data h3 { color: var(--text-muted, #666); margin-bottom: 8px; }
 
@@ -249,13 +249,13 @@ $translationNamespaces = ['common', 'system-wiki'];
     <?php include 'includes/header.php'; ?>
 
     <div class="stats-bar" id="statsBar">
-        <span style="color:var(--text-faint,#aaa);font-size:13px;"><?php echo htmlspecialchars(t('system-wiki.index.loading_stats')); ?></span>
+        <span style="color:var(--text-faint,#aaa);font-size:var(--font-size-md, 13px);"><?php echo htmlspecialchars(t('system-wiki.index.loading_stats')); ?></span>
     </div>
 
     <div class="wiki-container">
         <div class="wiki-sidebar" id="sidebar">
             <div class="sidebar-title"><?php echo htmlspecialchars(t('system-wiki.index.folders')); ?></div>
-            <div id="folderTree"><span style="padding:16px;color:var(--text-faint,#aaa);font-size:13px;display:block;"><?php echo htmlspecialchars(t('system-wiki.index.loading')); ?></span></div>
+            <div id="folderTree"><span style="padding:16px;color:var(--text-faint,#aaa);font-size:var(--font-size-md, 13px);display:block;"><?php echo htmlspecialchars(t('system-wiki.index.loading')); ?></span></div>
         </div>
         <div class="wiki-main">
             <div class="file-list-header">
@@ -298,7 +298,7 @@ $translationNamespaces = ['common', 'system-wiki'];
                 const bar = document.getElementById('statsBar');
 
                 if (!data.success || !data.stats) {
-                    bar.innerHTML = '<span style="color:var(--text-dim,#888);font-size:13px;">' + esc(window.t('system-wiki.index.no_scan_data')) + '</span>';
+                    bar.innerHTML = '<span style="color:var(--text-dim,#888);font-size:var(--font-size-md, 13px);">' + esc(window.t('system-wiki.index.no_scan_data')) + '</span>';
                     return;
                 }
 

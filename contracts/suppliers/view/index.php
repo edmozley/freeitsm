@@ -57,11 +57,11 @@ if ($showDomains) $translationNamespaces[] = 'domains';
 
         .sidebar-section { margin-bottom: 24px; }
         .sidebar-section h3 {
-            font-size: 14px; font-weight: 600; color: var(--text, #333);
+            font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333);
             margin: 0 0 12px 0;
         }
         .sidebar-section h4 {
-            font-size: 13px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #555);
             margin: 14px 0 6px 0;
         }
         .sidebar-section h4:first-of-type { margin-top: 0; }
@@ -69,24 +69,24 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .sidebar-stat {
             display: flex; justify-content: space-between; align-items: center;
             padding: 8px 12px; border-radius: 6px;
-            font-size: 13px; color: var(--text-muted, #555); cursor: default;
+            font-size: var(--font-size-md, 13px); color: var(--text-muted, #555); cursor: default;
             margin-bottom: 2px;
         }
-        .sidebar-stat .stat-value { font-weight: 700; font-size: 14px; color: var(--text, #333); }
+        .sidebar-stat .stat-value { font-weight: 700; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
         .sidebar-total {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: var(--text, #333); cursor: default;
+            font-size: var(--font-size-lg, 14px); color: var(--text, #333); cursor: default;
             margin-bottom: 4px; background: var(--surface-2, #fafafa);
         }
-        .sidebar-total .stat-value { font-weight: 700; font-size: 16px; }
+        .sidebar-total .stat-value { font-weight: 700; font-size: var(--font-size-xl, 16px); }
 
         .sidebar-add-btn {
             display: block; width: 100%;
             padding: 10px 16px;
             background: var(--con-accent, #f59e0b); color: white;
             border: none; border-radius: 6px;
-            font-size: 14px; font-weight: 500;
+            font-size: var(--font-size-lg, 14px); font-weight: 500;
             cursor: pointer; transition: background 0.2s;
             text-align: center; text-decoration: none;
             box-sizing: border-box;
@@ -102,12 +102,12 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             display: flex; justify-content: space-between; align-items: center;
             padding: 18px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
-        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
+        .section-card .section-header h2 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
         .section-card .section-header .header-actions { display: flex; align-items: center; gap: 10px; }
 
         .back-link {
             display: inline-flex; align-items: center; gap: 6px;
-            color: var(--text-dim, #888); text-decoration: none; font-size: 13px;
+            color: var(--text-dim, #888); text-decoration: none; font-size: var(--font-size-md, 13px);
         }
         .back-link:hover { color: var(--con-accent, #f59e0b); }
 
@@ -119,7 +119,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .action-btn:hover { background: var(--surface-3, #f0f0f0); border-color: var(--con-accent, #f59e0b); color: var(--con-accent, #f59e0b); }
         .action-btn svg { width: 16px; height: 16px; }
 
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: var(--font-size-sm, 12px); font-weight: 500; }
         .status-badge.active { background: #d4edda; color: #155724; }
         .status-badge.inactive { background: #f8d7da; color: #721c24; }
 
@@ -135,12 +135,12 @@ if ($showDomains) $translationNamespaces[] = 'domains';
 
         .view-field label {
             display: block;
-            font-size: 12px; font-weight: 600;
+            font-size: var(--font-size-sm, 12px); font-weight: 600;
             color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             margin-bottom: 6px;
         }
         .view-value {
-            font-size: 14px; color: var(--text, #333);
+            font-size: var(--font-size-lg, 14px); color: var(--text, #333);
             min-height: 1.2em;
             word-wrap: break-word;
         }
@@ -151,7 +151,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
 
         .view-section {
             grid-column: span 2;
-            font-size: 13px; font-weight: 600;
+            font-size: var(--font-size-md, 13px); font-weight: 600;
             color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             padding: 16px 0 4px 0;
             margin-top: 8px;
@@ -167,7 +167,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             max-height: 80vh;
             overflow-y: auto;
         }
-        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
+        .modal-header { font-size: var(--font-size-3xl, 20px); font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
 
         .form-grid {
             display: grid;
@@ -178,7 +178,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
 
         .form-section {
             grid-column: span 2;
-            font-size: 13px; font-weight: 600;
+            font-size: var(--font-size-md, 13px); font-weight: 600;
             color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             padding: 12px 0 6px 0;
             margin-top: 5px;
@@ -187,18 +187,18 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .form-section:first-child { border-top: none; margin-top: 0; padding-top: 0; }
 
         .modal .form-group { margin-bottom: 15px; }
-        .modal .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
+        .modal .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .modal .form-group input,
         .modal .form-group select,
         .modal .form-group textarea {
             width: 100%; padding: 8px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px;
-            font-size: 14px; box-sizing: border-box; font-family: inherit;
+            font-size: var(--font-size-lg, 14px); box-sizing: border-box; font-family: inherit;
         }
         .modal .form-group textarea { height: 70px; resize: vertical; }
         .modal .form-group input:focus,
         .modal .form-group select:focus,
         .modal .form-group textarea:focus { outline: none; border-color: var(--con-accent, #f59e0b); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1); }
-        .modal .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+        .modal .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-lg, 14px); cursor: pointer; }
         .modal .checkbox-label input[type="checkbox"] { width: auto; }
         .modal-actions { margin-top: 20px; grid-column: span 2; }
 
@@ -445,7 +445,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
 
             const container = document.getElementById('overviewBreakdown');
             if (typeOrder.length === 0) {
-                container.innerHTML = '<div style="font-size:13px;color:var(--text-dim, #999);padding:8px 12px;">' + escapeHtml(window.t('contracts.suppliers.no_suppliers_yet')) + '</div>';
+                container.innerHTML = '<div style="font-size:var(--font-size-md, 13px);color:var(--text-dim, #999);padding:8px 12px;">' + escapeHtml(window.t('contracts.suppliers.no_suppliers_yet')) + '</div>';
                 return;
             }
 
@@ -687,7 +687,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             if (!d.success || !d.domains.length) return;
             const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
             const pill = n => n === null ? '' : '<span class="status-badge ' + (n < 0 ? 'expired' : (n <= 30 ? 'expiring' : 'active')) + '">' + esc(n < 0 ? window.t('domains.days.expired_ago', {n: -n}) : window.t('domains.days.in', {n: n})) + '</span>';
-            document.getElementById('supplierDomainsBody').innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:14px">'
+            document.getElementById('supplierDomainsBody').innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:var(--font-size-lg, 14px)">'
                 + d.domains.map(r => '<tr><td style="padding:8px 0"><a href="<?php echo BASE_URL; ?>domains/view.php?id=' + r.id + '">' + esc(r.display_name || r.domain_name) + '</a></td>'
                     + '<td>' + esc(r.expiry_date || '') + '</td><td>' + pill(r.days_left) + '</td><td>' + esc(r.security_grade || '') + '</td></tr>').join('') + '</table>';
             document.getElementById('supplierDomains').style.display = '';

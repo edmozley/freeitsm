@@ -91,7 +91,7 @@ $translationNamespaces = ['common', 'system'];
         /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .landing-version {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-dim, #888);
             margin: 6px 0 0 0;
         }
@@ -115,7 +115,7 @@ $translationNamespaces = ['common', 'system'];
             padding: 11px 14px 11px 40px;
             border: 1px solid #d6dde3;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             background: var(--surface, #fff);
             color: var(--text, #333);
             box-sizing: border-box;
@@ -142,7 +142,7 @@ $translationNamespaces = ['common', 'system'];
         .system-no-results {
             display: none;
             color: var(--text-dim, #888);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             margin-top: 8px;
         }
 
@@ -170,7 +170,7 @@ $translationNamespaces = ['common', 'system'];
             padding: 2px 8px;
             border-radius: 999px;
             border: none;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             line-height: 1.6;
             background: var(--sys-accent, #546e7a);
@@ -210,7 +210,7 @@ $translationNamespaces = ['common', 'system'];
             display: block;
             padding: 6px 8px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             text-decoration: none;
         }
@@ -226,11 +226,11 @@ $translationNamespaces = ['common', 'system'];
         .system-tools { display: flex; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: wrap; margin: 0 0 24px; }
         .system-tools .system-search { margin: 0; flex: 0 1 420px; }
         .system-order { display: inline-flex; border: 1px solid var(--border, #d6dde3); border-radius: 8px; overflow: hidden; background: var(--surface, #fff); }
-        .system-order button { font: inherit; font-size: 13px; padding: 9px 14px; border: none; background: none; color: var(--text-dim, #667); cursor: pointer; }
+        .system-order button { font: inherit; font-size: var(--font-size-md, 13px); padding: 9px 14px; border: none; background: none; color: var(--text-dim, #667); cursor: pointer; }
         .system-order button + button { border-left: 1px solid var(--border, #d6dde3); }
         .system-order button[aria-pressed="true"] { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         /* A group's heading: the whole row, quiet, so the cards stay the thing to look at. */
-        .system-group-head { grid-column: 1 / -1; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase;
+        .system-group-head { grid-column: 1 / -1; text-align: left; font-size: var(--font-size-sm, 12px); font-weight: 600; text-transform: uppercase;
             letter-spacing: 0.06em; color: var(--text-dim, #7a8790); padding: 0 2px 6px; margin-top: 12px;
             border-bottom: 1px solid var(--border-soft, #e3e8ec); }
         .system-group-head.first { margin-top: 0; }
@@ -268,13 +268,13 @@ $translationNamespaces = ['common', 'system'];
 
         .system-card h3 {
             margin: 0 0 6px 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
         .system-card p {
             margin: 0;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             line-height: 1.45;
         }
@@ -323,16 +323,16 @@ $translationNamespaces = ['common', 'system'];
             border-left: 4px solid #c0392b;
             border-radius: 6px;
             color: #7d1f16;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.55;
         }
-        .storage-alert__title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+        .storage-alert__title { font-weight: 700; font-size: var(--font-size-lg, 14px); margin-bottom: 6px; }
         .storage-alert p { margin: 0 0 8px; }
         .storage-alert__list { margin: 0 0 10px; padding-left: 18px; }
         .storage-alert__list li { margin-bottom: 3px; }
         .storage-alert__list code {
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             background: rgba(192, 57, 43, 0.10);
             padding: 1px 5px;
             border-radius: 3px;
@@ -369,7 +369,7 @@ $translationNamespaces = ['common', 'system'];
             border-left: 4px solid #d97706;
             border-radius: 6px;
             color: #6b4705;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.55;
         }
         .jobs-alert p { margin: 0 0 8px; }

@@ -47,7 +47,7 @@ $translationNamespaces = ['common', 'contracts'];
         /* This guide sits one level down inside Contracts, so it keeps a
            breadcrumb above the hero. Everything below the breadcrumb is the
            ordinary house style. */
-        .rfp-breadcrumb { font-size: 13px; color: var(--text-dim, #888); padding: 14px 32px 0; }
+        .rfp-breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); padding: 14px 32px 0; }
         .rfp-breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .rfp-breadcrumb a:hover { color: var(--accent); }
         .rfp-breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -66,10 +66,10 @@ $translationNamespaces = ['common', 'contracts'];
             border-radius: 6px;
             padding: 10px 12px;
             text-align: center;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #374151);
         }
-        .rfp-workflow-strip .step strong { display: block; color: var(--accent); font-size: 16px; margin-bottom: 4px; }
+        .rfp-workflow-strip .step strong { display: block; color: var(--accent); font-size: var(--font-size-xl, 16px); margin-bottom: 4px; }
 
         .help-content table td.num { text-align: right; font-variant-numeric: tabular-nums; }
 

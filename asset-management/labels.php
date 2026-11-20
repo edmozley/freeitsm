@@ -174,10 +174,10 @@ if ($ready && assetLabelDesignsReady($conn)) {
     <style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f6fa; color: #222; }
         .bar { background: #546e7a; color: #fff; padding: 12px 18px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-        .bar h1 { font-size: 16px; margin: 0; font-weight: 600; }
-        .bar label { font-size: 13px; }
+        .bar h1 { font-size: var(--font-size-xl, 16px); margin: 0; font-weight: 600; }
+        .bar label { font-size: var(--font-size-md, 13px); }
         .bar select, .bar button, .bar a.btn {
-            font-size: 13px; padding: 7px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4);
+            font-size: var(--font-size-md, 13px); padding: 7px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4);
             background: rgba(255,255,255,0.18); color: #fff; cursor: pointer; text-decoration: none;
         }
         .bar select option {
@@ -185,7 +185,7 @@ if ($ready && assetLabelDesignsReady($conn)) {
             color: #222222;
         }
         .bar button.primary { background: #fff; color: #37474f; font-weight: 600; border-color: #fff; }
-        .hint { padding: 12px 18px; font-size: 13px; color: #555; background: #fff8e1; border-bottom: 1px solid #ffe0a3; }
+        .hint { padding: 12px 18px; font-size: var(--font-size-md, 13px); color: #555; background: #fff8e1; border-bottom: 1px solid #ffe0a3; }
         .sheet { padding: 14px; }
         .labels {
             display: grid;
@@ -357,7 +357,7 @@ if ($ready && assetLabelDesignsReady($conn)) {
             <?php echo htmlspecialchars(t('asset-management.labels.csv')); ?>
         </a>
     <?php endif; ?>
-    <span style="font-size:12px; opacity:0.8; margin-left:auto;">
+    <span style="font-size:var(--font-size-sm, 12px); opacity:0.8; margin-left:auto;">
         <?php echo htmlspecialchars(t(count($assets) === 1 ? 'asset-management.labels.count_one' : 'asset-management.labels.count_many', ['n' => count($assets)])); ?>
     </span>
 </div>
@@ -390,17 +390,17 @@ if ($ready && assetLabelDesignsReady($conn)) {
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                 </div>
-                <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 8px; color: #2c3e50;">
+                <h3 style="font-size: var(--font-size-2xl, 18px); font-weight: 600; margin: 0 0 8px; color: #2c3e50;">
                     <?php if (!$ready) echo htmlspecialchars(t('asset-management.labels.not_ready_heading'));
                           elseif (!$ids) echo htmlspecialchars(t('asset-management.labels.no_ids_heading'));
                           else echo htmlspecialchars(t('asset-management.labels.none_visible_heading')); ?>
                 </h3>
-                <p style="font-size: 13px; color: #7f8c8d; line-height: 1.5; margin: 0 0 20px;">
+                <p style="font-size: var(--font-size-md, 13px); color: #7f8c8d; line-height: 1.5; margin: 0 0 20px;">
                     <?php if (!$ready) echo htmlspecialchars(t('asset-management.labels.not_ready_body'));
                           elseif (!$ids) echo htmlspecialchars(t('asset-management.labels.no_ids_body'));
                           else echo htmlspecialchars(t('asset-management.labels.none_visible_body')); ?>
                 </p>
-                <a href="../" style="display: inline-block; background: #37474f; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer;">
+                <a href="../" style="display: inline-block; background: #37474f; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer;">
                     <?php echo htmlspecialchars(t('asset-management.labels.back_to_inbox')); ?>
                 </a>
             </div>

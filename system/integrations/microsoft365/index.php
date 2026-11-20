@@ -143,22 +143,22 @@ if ($isAdmin) {
         }
         /* Gutter, width and title come from .sys-page (assets/css/system-page.css). */
         .ms-wrap { height: calc(100vh - 48px); overflow-y: auto; }
-        .ms-crumb { font-size: 13px; margin: 0 0 6px; }
+        .ms-crumb { font-size: var(--font-size-md, 13px); margin: 0 0 6px; }
         .ms-crumb a { color: var(--sys-accent, #546e7a); text-decoration: none; }
         .ms-crumb a:hover { text-decoration: underline; }
         .ms-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px 22px; margin-bottom: 18px; }
-        .ms-panel h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; color: var(--text, #333); }
-        .ms-panel > p { margin: 0 0 14px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.5; }
+        .ms-panel h2 { margin: 0 0 4px; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
+        .ms-panel > p { margin: 0 0 14px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.5; }
         .ms-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
                   padding: 12px 0; border-top: 1px solid var(--border-soft, #eee); }
         .ms-row:first-of-type { border-top: none; }
-        .ms-name { font-weight: 600; font-size: 14px; color: var(--text, #333); }
+        .ms-name { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
         .ms-meta { font-size: 12.5px; color: var(--text-muted, #666); margin-top: 3px; }
         .ms-pill { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 10px; margin-right: 6px;
                    background: var(--surface-2, #f1f3f5); color: var(--text-muted, #666); }
         .ms-pill.on { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
         .ms-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600;
                border: none; cursor: pointer; text-decoration: none; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }

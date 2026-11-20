@@ -130,19 +130,19 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         /* Title and subtitle: .sys-page-head / .sys-title / .sys-subtitle. */
         .prov-card { background: var(--surface, #fff); border-radius: 8px; padding: 22px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
         .fld { margin-bottom: 18px; }
-        .fld label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
-        .fld .hint { font-size: 12px; color: var(--text-dim, #888); margin-bottom: 6px; line-height: 1.5; }
+        .fld label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
+        .fld .hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-bottom: 6px; line-height: 1.5; }
         .fld input[type=text], .fld input[type=password], .fld input[type=number], .fld select {
-            width: 100%; box-sizing: border-box; padding: 9px 11px; font-size: 13px;
+            width: 100%; box-sizing: border-box; padding: 9px 11px; font-size: var(--font-size-md, 13px);
             border: 1px solid var(--border, #ddd); border-radius: 6px;
             background: var(--surface, #fff); color: var(--text, #333);
         }
         .fld-row { display: flex; gap: 10px; flex-wrap: wrap; }
         .fld-row > * { flex: 1; min-width: 160px; }
-        .chk { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text, #333); font-weight: 600; }
+        .chk { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-md, 13px); color: var(--text, #333); font-weight: 600; }
         .chk input { width: auto; }
         .attr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
-        .result { margin-top: 8px; font-size: 12px; padding: 9px 11px; border-radius: 6px; display: none; white-space: pre-wrap; line-height: 1.5; }
+        .result { margin-top: 8px; font-size: var(--font-size-sm, 12px); padding: 9px 11px; border-radius: 6px; display: none; white-space: pre-wrap; line-height: 1.5; }
         .result.ok   { display: block; background: #e8f5e9; color: #2e7d32; }
         .result.err  { display: block; background: #ffebee; color: #c62828; }
         /* The safety brake is a REFUSAL, not a failure. Amber: nothing is broken,
@@ -151,7 +151,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         [data-theme-mode="dark"] .result.ok   { background: #16331f; color: #86efac; }
         [data-theme-mode="dark"] .result.err  { background: #3a1b1e; color: #fca5a5; }
         [data-theme-mode="dark"] .result.warn { background: #3a3218; color: #fde68a; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-test { background: var(--surface, #fff); color: var(--sys-accent, #546e7a); border: 1px solid var(--border, #cfd8dc); }
         .btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -185,7 +185,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            example values of wildly different lengths arrive — a distinguished
            name in the manager row is enormous and would otherwise shove the
            attribute column into a sliver. */
-        table.map { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        table.map { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); table-layout: fixed; }
         table.map th, table.map td { text-align: left; padding: 8px 10px; vertical-align: top; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
         table.map thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); border-bottom: 1px solid var(--border, #e0e0e0); }
         table.map tbody th { font-weight: 600; color: var(--text, #333); }
@@ -202,7 +202,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         td.map-sample.missing { color: #c62828; font-style: italic; }
         [data-theme-mode="dark"] td.map-sample.filled { color: #86efac; }
         [data-theme-mode="dark"] td.map-sample.missing { color: #fca5a5; }
-        .avail { margin-top: 12px; font-size: 12px; color: var(--text-dim, #888); }
+        .avail { margin-top: 12px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .avail summary { cursor: pointer; font-weight: 600; color: var(--sys-accent, #546e7a); }
         .avail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 3px 18px; margin-top: 10px; }
         .avail-grid code { font-family: ui-monospace, Consolas, monospace; color: var(--text, #444); }
@@ -211,7 +211,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         table.runs th { text-align: left; padding: 7px 9px; color: var(--text-dim, #888); font-weight: 600; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
         table.runs td { padding: 7px 9px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); white-space: nowrap; }
         td.run-msg { white-space: normal; color: var(--text-muted, #666); font-size: 11.5px; padding-bottom: 12px; }
-        .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+        .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 700; }
         .pill.ok { background: #e8f5e9; color: #2e7d32; }
         .pill.stopped { background: #fff4ce; color: #6b5900; }
         .pill.failed, .pill.running { background: #ffebee; color: #c62828; }
@@ -219,7 +219,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            make the settings page itself thousands of pixels tall. */
         .ou-tree { border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff);
             max-height: 420px; overflow: auto; padding: 6px 0; }
-        .ou-row { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font-size: 13px; color: var(--text, #333); }
+        .ou-row { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .ou-row:hover { background: var(--surface-hover, rgba(127,127,127,0.06)); }
         .ou-row input[type=checkbox] { flex: 0 0 auto; margin: 0; cursor: pointer; }
         /* The twisty is a button-shaped span, fixed width so names line up
@@ -255,12 +255,12 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         /* A filter chip carries its own count, so "nothing to see here" is
            readable without clicking into each one in turn. */
         .chip { border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text-muted, #555);
-            border-radius: 20px; padding: 5px 13px; font-size: 12px; font-weight: 600; cursor: pointer; }
+            border-radius: 20px; padding: 5px 13px; font-size: var(--font-size-sm, 12px); font-weight: 600; cursor: pointer; }
         .chip.on { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border-color: var(--sys-accent, #546e7a); }
         .chip .n { opacity: .7; margin-left: 5px; font-weight: 400; }
         .run-search { margin-left: auto; flex: 0 1 240px; padding: 7px 11px; font-size: 12.5px; border: 1px solid var(--border, #ddd);
             border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
-        table.people { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        table.people { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); table-layout: fixed; }
         table.people th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888);
             font-weight: 600; padding: 10px; border-bottom: 1px solid var(--border, #e6e6e6); }
         table.people td { padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); vertical-align: top; word-break: break-word; }
@@ -277,14 +277,14 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         [data-theme-mode="dark"] .act.create { background: #16331f; color: #86efac; }
         [data-theme-mode="dark"] .act.update, [data-theme-mode="dark"] .act.adopt { background: #3a3218; color: #fde68a; }
         [data-theme-mode="dark"] .act.conflict, [data-theme-mode="dark"] .act.error { background: #3a1b1e; color: #fca5a5; }
-        .run-empty { padding: 40px 24px; text-align: center; color: var(--text-dim, #999); font-size: 13px; }
+        .run-empty { padding: 40px 24px; text-align: center; color: var(--text-dim, #999); font-size: var(--font-size-md, 13px); }
         /* A preview changed nothing. Say so where it cannot be missed, because
            the table below reads exactly like a record of things that happened. */
         .preview-banner { background: #fff4ce; color: #6b5900; padding: 10px 24px; font-size: 12.5px; font-weight: 600; }
         [data-theme-mode="dark"] .preview-banner { background: #3a3218; color: #fde68a; }
         table.runs tbody tr.clickable { cursor: pointer; }
         table.runs tbody tr.clickable:hover td { background: var(--surface-hover, rgba(127,127,127,0.07)); }
-        .back-link { font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; }
+        .back-link { font-size: var(--font-size-md, 13px); color: var(--sys-accent, #546e7a); text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
         @media (max-width: 700px) { .prov-wrap.sys-page { padding: 14px 12px 50px; } }
     </style>
@@ -575,7 +575,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
 
     <div class="save-bar">
         <button class="btn btn-primary" id="saveBtn" type="button"><?php echo htmlspecialchars(t('common.save')); ?></button>
-        <span id="saveMsg" style="font-size:13px;color:var(--text-dim,#888);"></span>
+        <span id="saveMsg" style="font-size:var(--font-size-md, 13px);color:var(--text-dim,#888);"></span>
     </div>
 </div>
 

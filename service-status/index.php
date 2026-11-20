@@ -42,7 +42,7 @@ $translationNamespaces = ['common', 'service-status'];
         }
 
         .section-title {
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 16px 0;
@@ -52,7 +52,7 @@ $translationNamespaces = ['common', 'service-status'];
         }
 
         .section-title .count {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 400;
             color: var(--text-dim, #888);
         }
@@ -89,15 +89,15 @@ $translationNamespaces = ['common', 'service-status'];
         .inc-update { padding: 8px 0; border-top: 1px solid var(--border-soft, #f1f5f9); }
         .inc-update:first-child { border-top: none; }
         .inc-update-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
-        .inc-update-when { font-size: 12px; color: var(--text-muted, #6b7280); }
-        .inc-update-who  { font-size: 11px; color: var(--text-dim, #9ca3af); }
-        .inc-update-comment { font-size: 13px; margin-bottom: 6px; }
-        .inc-update-clear { font-size: 11px; color: var(--text-dim, #9ca3af); font-style: italic; }
+        .inc-update-when { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); }
+        .inc-update-who  { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); }
+        .inc-update-comment { font-size: var(--font-size-md, 13px); margin-bottom: 6px; }
+        .inc-update-clear { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #9ca3af); font-style: italic; }
 
         /* Internal vs external on an update (#99). */
         .inc-visibility { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
-        .inc-vis-choice { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
-        .inc-vis-hint { flex-basis: 100%; font-size: 12px; line-height: 1.45; color: var(--text-muted, #6b7280); }
+        .inc-vis-choice { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); cursor: pointer; }
+        .inc-vis-hint { flex-basis: 100%; font-size: var(--font-size-sm, 12px); line-height: 1.45; color: var(--text-muted, #6b7280); }
         /* Amber when it really will be published, grey when it will not. The
            colour is the fastest way to see which of the two you are about to do. */
         .inc-vis-hint.is-live { color: var(--warning-text, #92400e); }
@@ -120,7 +120,7 @@ $translationNamespaces = ['common', 'service-status'];
         .inc-update-acts { margin-left: auto; display: inline-flex; gap: 2px; }
         .inc-update-act {
             border: none; background: none; cursor: pointer; padding: 2px 6px;
-            border-radius: 4px; font-size: 13px; line-height: 1; color: var(--text-faint, #bbb);
+            border-radius: 4px; font-size: var(--font-size-md, 13px); line-height: 1; color: var(--text-faint, #bbb);
         }
         .inc-update-act:hover { background: var(--surface-3, #eee); color: var(--text, #333); }
         .inc-update-act-danger:hover { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); }
@@ -152,7 +152,7 @@ $translationNamespaces = ['common', 'service-status'];
 
         .svc-history-toggle {
             background: none; border: none; padding: 0;
-            color: var(--ss-accent, #10b981); font-size: 12px; cursor: pointer;
+            color: var(--ss-accent, #10b981); font-size: var(--font-size-sm, 12px); cursor: pointer;
             text-decoration: underline;
         }
         .svc-history[hidden] { display: none !important; }
@@ -169,15 +169,15 @@ $translationNamespaces = ['common', 'service-status'];
             flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px;
         }
         .svc-history { margin-top: 12px; border-top: 1px solid var(--border, #e5e7eb); padding-top: 12px; }
-        .svc-history-loading { font-size: 12px; color: var(--text-muted, #6b7280); padding: 6px 0; }
+        .svc-history-loading { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); padding: 6px 0; }
 
         .svc-history-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-        .svc-uptime-figure { font-size: 20px; font-weight: 700; color: var(--text, #111); }
-        .svc-uptime-label  { font-size: 11px; color: var(--text-muted, #6b7280); margin-left: 6px; }
+        .svc-uptime-figure { font-size: var(--font-size-3xl, 20px); font-weight: 700; color: var(--text, #111); }
+        .svc-uptime-label  { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #6b7280); margin-left: 6px; }
         .svc-win-group { display: flex; gap: 4px; }
         .svc-win {
             border: 1px solid var(--border, #e5e7eb); background: var(--surface, #fff);
-            color: var(--text-muted, #6b7280); font-size: 11px; padding: 3px 8px;
+            color: var(--text-muted, #6b7280); font-size: var(--font-size-xs, 11px); padding: 3px 8px;
             border-radius: 5px; cursor: pointer;
             transition: background 150ms ease, color 150ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
         }
@@ -209,7 +209,7 @@ $translationNamespaces = ['common', 'service-status'];
         .svc-day-down { background: #dc2626; }
         .svc-strip-ends { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted, #9ca3af); margin-top: 4px; }
 
-        .svc-history-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 12px; }
+        .svc-history-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: var(--font-size-sm, 12px); }
         .svc-history-table td { padding: 6px 8px; border-top: 1px solid var(--border-soft, #f1f5f9); vertical-align: middle; }
         .svc-excluded { font-size: 10px; color: var(--text-muted, #9ca3af); font-style: italic; }
 
@@ -226,14 +226,14 @@ $translationNamespaces = ['common', 'service-status'];
         .service-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
         .service-card .service-name {
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             color: var(--text, #333);
             margin-bottom: 8px;
         }
 
         .service-card .service-desc {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #888);
             margin-bottom: 10px;
             min-height: 16px;
@@ -244,7 +244,7 @@ $translationNamespaces = ['common', 'service-status'];
             display: inline-block;
             padding: 4px 12px;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
         }
 
@@ -260,7 +260,7 @@ $translationNamespaces = ['common', 'service-status'];
             display: inline-block;
             padding: 3px 10px;
             border-radius: 12px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
         }
 
@@ -275,21 +275,21 @@ $translationNamespaces = ['common', 'service-status'];
         /* Planned maintenance (3.2.0) */
         .planned-section { margin-bottom: 30px; }
         .planned-list { display: flex; flex-direction: column; gap: 10px; }
-        .planned-empty { padding: 14px 16px; border: 1px dashed var(--border, #e5e7eb); border-radius: 10px; color: var(--text-dim, #888); font-size: 13px; }
+        .planned-empty { padding: 14px 16px; border: 1px dashed var(--border, #e5e7eb); border-radius: 10px; color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); }
         .planned-row { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-left: 4px solid #0891b2; border-radius: 10px; }
         .planned-row.live { border-left-color: #f59e0b; }
         .planned-main { flex: 1; min-width: 0; }
         .planned-name { font-weight: 600; color: var(--text, #333); }
-        .planned-state { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(8, 145, 178, .12); color: #0e7490; margin-right: 4px; }
+        .planned-state { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: var(--font-size-xs, 11px); font-weight: 700; background: rgba(8, 145, 178, .12); color: #0e7490; margin-right: 4px; }
         .planned-row.live .planned-state { background: rgba(245, 158, 11, .15); color: #b45309; }
-        .planned-time { font-size: 13px; color: var(--text-muted, #6b7280); margin-top: 3px; }
-        .planned-comment { font-size: 13px; color: var(--text, #333); margin-top: 6px; white-space: pre-wrap; }
+        .planned-time { font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); margin-top: 3px; }
+        .planned-comment { font-size: var(--font-size-md, 13px); color: var(--text, #333); margin-top: 6px; white-space: pre-wrap; }
         .planned-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
-        .planned-chip { font-size: 12px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--pc); color: var(--text, #333); }
+        .planned-chip { font-size: var(--font-size-sm, 12px); padding: 2px 9px; border-radius: 999px; border: 1px solid var(--pc); color: var(--text, #333); }
         .planned-chip small { color: var(--pc); font-weight: 600; }
-        .planned-from { font-size: 12px; color: var(--ss-accent, #10b981); }
-        .planned-btn { padding: 6px 12px; font-size: 13px; }
-        .planned-intro { font-size: 13px; color: var(--text-muted, #6b7280); margin: 0 0 14px; }
+        .planned-from { font-size: var(--font-size-sm, 12px); color: var(--ss-accent, #10b981); }
+        .planned-btn { padding: 6px 12px; font-size: var(--font-size-md, 13px); }
+        .planned-intro { font-size: var(--font-size-md, 13px); color: var(--text-muted, #6b7280); margin: 0 0 14px; }
         .planned-when { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 600px) { .planned-row { flex-direction: column; } .planned-when { grid-template-columns: 1fr; } }
 
@@ -306,7 +306,7 @@ $translationNamespaces = ['common', 'service-status'];
             background: var(--surface-2, #f9fafb);
             padding: 10px 14px;
             text-align: left;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #666);
             text-transform: uppercase;
@@ -316,7 +316,7 @@ $translationNamespaces = ['common', 'service-status'];
 
         .incident-table td {
             padding: 12px 14px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text, #333);
             border-bottom: 1px solid var(--border-soft, #f3f4f6);
         }
@@ -364,7 +364,7 @@ $translationNamespaces = ['common', 'service-status'];
             gap: 4px;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 500;
         }
 
@@ -374,7 +374,7 @@ $translationNamespaces = ['common', 'service-status'];
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
@@ -386,18 +386,18 @@ $translationNamespaces = ['common', 'service-status'];
             text-align: center;
             padding: 40px 20px;
             color: var(--text-dim, #999);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         /* Incident modal */
         .modal-content { padding: 20px; max-width: 600px; }
-        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
+        .modal-header { font-size: var(--font-size-3xl, 20px); font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
 
         .modal .form-group { margin-bottom: 15px; }
-        .modal .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
+        .modal .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .modal .form-group input,
         .modal .form-group textarea,
-        .modal .form-group select { width: 100%; padding: 8px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        .modal .form-group select { width: 100%; padding: 8px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: var(--font-size-lg, 14px); box-sizing: border-box; }
         .modal .form-group textarea { height: 80px; resize: vertical; }
         .modal .form-group input:focus,
         .modal .form-group textarea:focus,
@@ -405,7 +405,7 @@ $translationNamespaces = ['common', 'service-status'];
 
         .modal-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end; }
 
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.15s; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: var(--font-size-lg, 14px); font-weight: 500; transition: background-color 0.15s; }
         .btn-primary { background-color: var(--ss-accent, #10b981); color: white; }
         .btn-primary:hover { background-color: var(--ss-accent-hover, #059669); }
         .btn-danger { background-color: #ef4444; color: white; }
@@ -428,7 +428,7 @@ $translationNamespaces = ['common', 'service-status'];
             border: none;
             color: var(--danger-accent, #d13438);
             cursor: pointer;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             padding: 4px 8px;
             border-radius: 4px;
         }
@@ -442,14 +442,14 @@ $translationNamespaces = ['common', 'service-status'];
             padding: 6px 14px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             transition: all 0.2s;
         }
 
         .add-svc-btn:hover { border-color: var(--ss-accent, #10b981); color: var(--ss-accent, #10b981); }
 
         .incident-date {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #999);
             white-space: nowrap;
         }

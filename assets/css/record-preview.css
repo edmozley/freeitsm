@@ -79,7 +79,7 @@
     background: var(--surface, #fff);
     color: var(--text, #222);
     box-shadow: var(--shadow, 0 6px 24px rgba(0, 0, 0, .16));
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1.45;
 }
 .rp-popover[hidden] { display: none; }
@@ -107,7 +107,7 @@
 .rp-label {
     flex: 0 0 40%;
     color: var(--text-muted, #666);
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 .rp-value {
     flex: 1 1 auto;
@@ -146,7 +146,7 @@
     text-align: right;
 }
 .rp-open {
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     font-weight: 600;
     color: var(--accent, #2563eb);
     text-decoration: none;
@@ -173,6 +173,6 @@
     border-radius: 12px 12px 0 0;
     border-bottom: none;
     padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 .rp-sheet .rp-label { flex-basis: 38%; }

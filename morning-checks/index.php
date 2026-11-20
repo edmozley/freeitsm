@@ -194,7 +194,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             border: 1px solid var(--border, #e0e0e0);
             border-radius: 4px;
             color: var(--accent, #007bff);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -215,7 +215,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             border-radius: 6px;
             padding: 10px 14px;
             margin: 0 30px 12px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--warning-text, #664d03);
         }
         .orphan-banner a { color: var(--warning-text, #664d03); font-weight: 600; }
@@ -227,7 +227,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             background: var(--warning-bg, #fff3cd);
             color: var(--warning-text, #664d03);
             border: 1px solid var(--warning-border, #ffe69c);
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
 

@@ -41,7 +41,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
@@ -80,7 +80,7 @@ $translationNamespaces = ['common', 'contracts'];
         .supplier-card.rank-3 { border-top-color: var(--con-accent-hover, #b45309); }
         .supplier-card .rank-pill {
             position: absolute; top: 12px; right: 14px;
-            font-size: 11px; font-weight: 700; color: var(--text-muted, #666);
+            font-size: var(--font-size-xs, 11px); font-weight: 700; color: var(--text-muted, #666);
             background: var(--surface-3, #eef0f2); padding: 2px 9px; border-radius: 9px;
             text-transform: uppercase; letter-spacing: 0.4px;
         }
@@ -88,7 +88,7 @@ $translationNamespaces = ['common', 'contracts'];
         .supplier-card.rank-2 .rank-pill { background: var(--surface-3, #e5e7eb); color: var(--text-muted, #4b5563); }
         .supplier-card.rank-3 .rank-pill { background: #fed7aa; color: #9a3412; }
         .supplier-card .name {
-            font-size: 14px; color: var(--text-dim, #888); line-height: 1.3;
+            font-size: var(--font-size-lg, 14px); color: var(--text-dim, #888); line-height: 1.3;
             font-weight: 600;
             padding-right: 60px; /* clear of rank pill */
         }
@@ -98,10 +98,10 @@ $translationNamespaces = ['common', 'contracts'];
             line-height: 1; margin-top: auto; padding-top: 14px;
         }
         .supplier-card .big-score .out-of {
-            font-size: 16px; color: var(--text-faint, #9ca3af); font-weight: 500;
+            font-size: var(--font-size-xl, 16px); color: var(--text-faint, #9ca3af); font-weight: 500;
         }
         .supplier-card .meta {
-            font-size: 11px; color: var(--text-dim, #999); margin-top: 8px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); margin-top: 8px;
             display: flex; justify-content: space-between;
         }
 
@@ -117,7 +117,7 @@ $translationNamespaces = ['common', 'contracts'];
             background: var(--surface-2, #fafbfc);
         }
         .section-card-header h2 {
-            margin: 0; font-size: 14px; font-weight: 700; color: #075985;
+            margin: 0; font-size: var(--font-size-lg, 14px); font-weight: 700; color: #075985;
             text-transform: uppercase; letter-spacing: 0.5px;
         }
         .section-card-body { padding: 20px 22px; }
@@ -129,14 +129,14 @@ $translationNamespaces = ['common', 'contracts'];
         /* ─── Winners table ─────────────────────────────────────── */
 
         .winners-table {
-            width: 100%; border-collapse: collapse; font-size: 13px;
+            width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px);
         }
         .winners-table th, .winners-table td {
             padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-soft, #f5f5f5);
             vertical-align: middle;
         }
         .winners-table thead th {
-            font-size: 11px; font-weight: 700; color: var(--text-dim, #888);
+            font-size: var(--font-size-xs, 11px); font-weight: 700; color: var(--text-dim, #888);
             text-transform: uppercase; letter-spacing: 0.4px;
             background: var(--surface-2, #fafbfc); border-bottom: 1px solid var(--border-soft, #eef0f2);
         }
@@ -155,7 +155,7 @@ $translationNamespaces = ['common', 'contracts'];
             font-weight: 600; color: var(--success-text, #047857);
         }
         .winners-table .winner-col .gap {
-            font-size: 11px; color: var(--text-dim, #888); margin-left: 6px; font-weight: 500;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); margin-left: 6px; font-weight: 500;
         }
         .winners-table .tied { color: var(--con-accent-hover, #b45309); font-weight: 600; }
 
@@ -345,7 +345,7 @@ $translationNamespaces = ['common', 'contracts'];
                 return `
                     <div class="section-card">
                         <div class="section-card-header"><h2>${escapeHtml(window.t('contracts.rfp.compare.category_winners'))}</h2></div>
-                        <div class="section-card-body" style="color:var(--text-dim, #999);font-size:13px;text-align:center;padding:24px;">
+                        <div class="section-card-body" style="color:var(--text-dim, #999);font-size:var(--font-size-md, 13px);text-align:center;padding:24px;">
                             ${escapeHtml(window.t('contracts.rfp.compare.need_two'))}
                         </div>
                     </div>

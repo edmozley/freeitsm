@@ -68,7 +68,7 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .logs-header h2 {
-            font-size: 24px;
+            font-size: var(--font-size-4xl, 24px);
             color: var(--text, #333);
             margin: 0;
         }
@@ -86,7 +86,7 @@ $translationNamespaces = ['common', 'reporting'];
             background: var(--surface, white);
             border: none;
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 500;
             color: var(--text-muted, #666);
             border-bottom: 3px solid transparent;
@@ -140,13 +140,13 @@ $translationNamespaces = ['common', 'reporting'];
         .log-datetime {
             white-space: nowrap;
             color: var(--text-muted, #666);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         .log-status {
             padding: 3px 8px;
             border-radius: 3px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 500;
             white-space: nowrap;
             display: inline-block;
@@ -175,7 +175,7 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .log-details {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #666);
         }
 
@@ -183,13 +183,13 @@ $translationNamespaces = ['common', 'reporting'];
             background: var(--surface-2, #f0f0f0);
             padding: 2px 6px;
             border-radius: 3px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .attachment-list {
             margin: 5px 0 0 0;
             padding-left: 20px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         .attachment-list li {
@@ -243,7 +243,7 @@ $translationNamespaces = ['common', 'reporting'];
             background: var(--surface, white);
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             text-align: center;
         }
 
@@ -259,7 +259,7 @@ $translationNamespaces = ['common', 'reporting'];
 
         .pagination span {
             color: var(--text-muted, #666);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .refresh-btn {
@@ -269,7 +269,7 @@ $translationNamespaces = ['common', 'reporting'];
             padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
 
         .refresh-btn:hover {
@@ -325,14 +325,14 @@ $translationNamespaces = ['common', 'reporting'];
 
         .modal-header h3 {
             margin: 0;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #333);
         }
 
         .modal-close {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: var(--font-size-4xl, 24px);
             cursor: pointer;
             color: var(--text-muted, #666);
             line-height: 1;
@@ -354,7 +354,7 @@ $translationNamespaces = ['common', 'reporting'];
             padding: 15px;
             border-radius: 4px;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             white-space: pre-wrap;
             word-break: break-all;
             overflow-x: auto;
@@ -376,37 +376,37 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         /* ---- Background jobs (#182) ------------------------------------- */
-        .jobs-meta { font-size: 13px; color: var(--text-muted, #666); padding: 12px 15px 0; }
-        .jobs-scheduler { margin: 12px 15px 0; padding: 10px 12px; border-radius: 4px; font-size: 13px; background: var(--surface-2, #f0f0f0); color: var(--text, #333); }
+        .jobs-meta { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); padding: 12px 15px 0; }
+        .jobs-scheduler { margin: 12px 15px 0; padding: 10px 12px; border-radius: 4px; font-size: var(--font-size-md, 13px); background: var(--surface-2, #f0f0f0); color: var(--text, #333); }
         .jobs-scheduler.ok { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
         .jobs-scheduler.warn { background: var(--warning-bg, #fff3cd); color: var(--warning-text, #856404); }
-        .jobs-scheduler code { display: block; margin-top: 6px; font-size: 12px; background: var(--surface, #fff); color: var(--text, #333); padding: 4px 8px; border-radius: 3px; overflow-x: auto; white-space: nowrap; user-select: all; }
+        .jobs-scheduler code { display: block; margin-top: 6px; font-size: var(--font-size-sm, 12px); background: var(--surface, #fff); color: var(--text, #333); padding: 4px 8px; border-radius: 3px; overflow-x: auto; white-space: nowrap; user-select: all; }
         .jobs-section-title { font-size: 15px; font-weight: 600; color: var(--text, #333); padding: 16px 15px 8px; margin: 0; }
         .jobs-table td { vertical-align: top; }
         .jobs-table tbody tr { cursor: default; }
         .jobs-table tbody tr.job-row-clickable { cursor: pointer; }
         .job-name { font-weight: 600; }
-        .job-affects { font-size: 12px; color: var(--text-muted, #666); margin-top: 2px; }
-        .job-pill { padding: 3px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; white-space: nowrap; display: inline-block; }
+        .job-affects { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 2px; }
+        .job-pill { padding: 3px 8px; border-radius: 3px; font-size: var(--font-size-sm, 12px); font-weight: 500; white-space: nowrap; display: inline-block; }
         .job-pill.healthy, .job-pill.ok { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
         .job-pill.failing, .job-pill.stuck, .job-pill.failed, .job-pill.unknown { background: var(--danger-bg, #f8d7da); color: var(--danger-text, #721c24); }
         .job-pill.overdue, .job-pill.never_seen, .job-pill.partial { background: var(--warning-bg, #fff3cd); color: var(--warning-text, #856404); }
         .job-pill.not_needed, .job-pill.not_used, .job-pill.skipped, .job-pill.running { background: var(--surface-2, #f0f0f0); color: var(--text-muted, #666); }
-        .job-problem { font-size: 12px; margin-top: 4px; color: var(--text, #444); }
-        .job-problem code { font-size: 11px; background: var(--surface-2, #f0f0f0); padding: 1px 5px; border-radius: 3px; }
-        .job-sources { margin: 4px 0 0; padding-left: 18px; font-size: 12px; }
-        .job-sub { font-size: 12px; color: var(--text-muted, #666); }
+        .job-problem { font-size: var(--font-size-sm, 12px); margin-top: 4px; color: var(--text, #444); }
+        .job-problem code { font-size: var(--font-size-xs, 11px); background: var(--surface-2, #f0f0f0); padding: 1px 5px; border-radius: 3px; }
+        .job-sources { margin: 4px 0 0; padding-left: 18px; font-size: var(--font-size-sm, 12px); }
+        .job-sub { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .jobs-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 15px 10px; }
-        .jobs-filters select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; }
+        .jobs-filters select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); }
         .jobs-pager { display: flex; justify-content: center; align-items: center; gap: 10px; padding: 12px; }
-        .jobs-pager button, .job-edit-btn { padding: 5px 12px; border: 1px solid var(--border, #ddd); background: var(--surface, #fff); border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text, #333); }
+        .jobs-pager button, .job-edit-btn { padding: 5px 12px; border: 1px solid var(--border, #ddd); background: var(--surface, #fff); border-radius: 4px; cursor: pointer; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
         .jobs-pager button:disabled { opacity: .5; cursor: not-allowed; }
-        .job-detail dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0 0 12px; font-size: 13px; }
+        .job-detail dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0 0 12px; font-size: var(--font-size-md, 13px); }
         .job-detail dt { color: var(--text-muted, #666); }
         .job-detail dd { margin: 0; }
-        .job-form label { display: block; font-size: 13px; margin: 10px 0 4px; color: var(--text, #333); }
+        .job-form label { display: block; font-size: var(--font-size-md, 13px); margin: 10px 0 4px; color: var(--text, #333); }
         .job-form input[type=number] { width: 120px; padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); }
-        .job-form .hint { font-size: 12px; color: var(--text-muted, #666); margin-top: 4px; }
+        .job-form .hint { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 4px; }
         .job-form label.job-mode { margin: 12px 0 4px; font-weight: 500; }
         .job-form .job-mode-detail { margin-left: 24px; }
         .job-form input[type=time] , .job-form .di-type-time { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); }

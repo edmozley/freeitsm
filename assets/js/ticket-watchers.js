@@ -81,7 +81,7 @@
         panel.setAttribute('role', 'dialog');
         panel.setAttribute('aria-label', T('title'));
         panel.style.cssText = 'position:fixed;z-index:3400;width:300px;max-width:calc(100vw - 24px);background:var(--surface,#fff);color:var(--text,#1e293b);'
-            + 'border:1px solid var(--border,#cbd5e1);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,.18);padding:12px;font-size:13px;';
+            + 'border:1px solid var(--border,#cbd5e1);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,.18);padding:12px;font-size:var(--font-size-md, 13px);';
         document.body.appendChild(panel);
         drawPanel(panel);
         const r = btn.getBoundingClientRect();
@@ -94,7 +94,7 @@
         const me = Number(window.CURRENT_ANALYST_ID || 0);
         const rows = state.watchers.map(w => {
             const mine = w.analyst_id === me;
-            const by = w.added_by && w.added_by !== w.analyst_id && w.added_by_name ? ' <span style="color:var(--text-muted,#64748b);font-size:11px;">' + esc(T('added_by', { name: w.added_by_name })) + '</span>' : '';
+            const by = w.added_by && w.added_by !== w.analyst_id && w.added_by_name ? ' <span style="color:var(--text-muted,#64748b);font-size:var(--font-size-xs, 11px);">' + esc(T('added_by', { name: w.added_by_name })) + '</span>' : '';
             const rm = (mine || state.canAdd)
                 ? '<button type="button" class="btn-link-small" data-unwatch="' + w.analyst_id + '" style="margin-left:auto;">' + esc(mine ? T('stop') : T('remove')) + '</button>' : '';
             return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;"><span>' + esc(w.name) + (mine ? ' (' + esc(T('you')) + ')' : '') + '</span>' + by + rm + '</div>';
@@ -109,7 +109,7 @@
         panel.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><strong>' + esc(T('title')) + '</strong>'
             + '<button type="button" class="btn btn-primary btn-sm" id="ticketWatchMe">' + esc(state.watching ? T('stop') : T('watch')) + '</button></div>'
             + rows + add
-            + '<p style="margin:10px 0 0;color:var(--text-muted,#64748b);font-size:11px;">' + esc(T('explain')) + '</p>';
+            + '<p style="margin:10px 0 0;color:var(--text-muted,#64748b);font-size:var(--font-size-xs, 11px);">' + esc(T('explain')) + '</p>';
         panel.querySelector('#ticketWatchMe').onclick = () => change(state.watching ? 'unwatch' : 'watch', me, panel);
         panel.querySelectorAll('[data-unwatch]').forEach(b => { b.onclick = () => change('unwatch', Number(b.dataset.unwatch), panel); });
         const addBtn = panel.querySelector('#ticketWatchAddBtn');

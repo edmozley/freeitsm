@@ -54,13 +54,13 @@ $translationNamespaces = ['common', 'network-mapper'];
             align-items: center;
             flex-shrink: 0;
         }
-        .nm-toolbar h1 { margin: 0; font-size: 20px; color: var(--text, #111827); }
+        .nm-toolbar h1 { margin: 0; font-size: var(--font-size-3xl, 20px); color: var(--text, #111827); }
         .nm-toolbar .actions { display: flex; gap: 12px; align-items: center; }
         .nm-toolbar input[type="text"] {
             padding: 8px 12px;
             border: 1px solid var(--border, #d1d5db);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             width: 260px;
         }
         .nm-toolbar input[type="text"]:focus { outline: none; border-color: var(--nm-accent, #06b6d4); box-shadow: 0 0 0 3px rgba(6,182,212,0.12); }
@@ -73,7 +73,7 @@ $translationNamespaces = ['common', 'network-mapper'];
             border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .nm-btn:hover { background: var(--nm-accent-hover, #0891b2); }
         .nm-btn.secondary { background: var(--surface, #fff); color: var(--text-muted, #374151); border: 1px solid var(--border, #d1d5db); }
@@ -124,13 +124,13 @@ $translationNamespaces = ['common', 'network-mapper'];
             border: 1px solid #a5f3fc;
             padding: 2px 8px;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
             white-space: nowrap;
         }
         .nm-card-desc {
             color: var(--text-dim, #6b7280);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             line-height: 1.5;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -142,7 +142,7 @@ $translationNamespaces = ['common', 'network-mapper'];
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-dim, #6b7280);
             padding-top: 8px;
             border-top: 1px solid var(--border-soft, #f3f4f6);
@@ -160,7 +160,7 @@ $translationNamespaces = ['common', 'network-mapper'];
             padding: 4px 8px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             transition: all 0.12s;
         }
         .nm-card-action-btn:hover { background: var(--surface-hover, #f9fafb); color: var(--text, #111827); border-color: var(--border, #d1d5db); }
@@ -172,7 +172,7 @@ $translationNamespaces = ['common', 'network-mapper'];
             color: var(--text-dim, #6b7280);
         }
         .nm-empty h2 { color: var(--text-muted, #374151); font-weight: 600; margin: 0 0 8px 0; }
-        .nm-empty p { margin: 0 0 18px 0; font-size: 14px; }
+        .nm-empty p { margin: 0 0 18px 0; font-size: var(--font-size-lg, 14px); }
 
         /* Modal */
         .nm-modal-overlay {
@@ -197,7 +197,7 @@ $translationNamespaces = ['common', 'network-mapper'];
             padding: 16px 22px;
             border-bottom: 1px solid var(--border, #e5e7eb);
             font-weight: 600;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
             color: var(--text, #111827);
         }
         .nm-modal-body { padding: 22px; flex: 1; overflow-y: auto; }
@@ -211,7 +211,7 @@ $translationNamespaces = ['common', 'network-mapper'];
         .nm-form-group { margin-bottom: 14px; }
         .nm-form-group label {
             display: block;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             color: var(--text-muted, #374151);
             margin-bottom: 5px;
@@ -221,7 +221,7 @@ $translationNamespaces = ['common', 'network-mapper'];
             padding: 9px 12px;
             border: 1px solid var(--border, #d1d5db);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-family: inherit;
             box-sizing: border-box;
         }
@@ -231,7 +231,7 @@ $translationNamespaces = ['common', 'network-mapper'];
             border-color: var(--nm-accent, #06b6d4);
             box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
         }
-        .nm-form-group small { color: var(--text-dim, #6b7280); font-size: 12px; display: block; margin-top: 4px; }
+        .nm-form-group small { color: var(--text-dim, #6b7280); font-size: var(--font-size-sm, 12px); display: block; margin-top: 4px; }
 
         /* Pale-red danger-hover wash → dark red in dark mode so it does not glow. */
         [data-theme-mode="dark"] .nm-card-action-btn.danger:hover { background: #3a1a1a; color: #fca5a5; border-color: #5a2a2a; }
@@ -344,7 +344,7 @@ $translationNamespaces = ['common', 'network-mapper'];
                             <button class="nm-card-action-btn danger" onclick="event.stopPropagation(); deleteDiagram(${d.id}, ${jsArg(d.title)})">${escapeHtml(t('common.delete'))}</button>
                         </div>
                     </div>
-                    <div style="font-size:11px;color:var(--text-faint, #9ca3af);">${escapeHtml(t('network-mapper.index.meta_by', { author: author, date: updated }))}</div>
+                    <div style="font-size:var(--font-size-xs, 11px);color:var(--text-faint, #9ca3af);">${escapeHtml(t('network-mapper.index.meta_by', { author: author, date: updated }))}</div>
                 </div>`;
         }
 

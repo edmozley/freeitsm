@@ -165,7 +165,7 @@
     .app-sidebar .waffle-module-icon { flex-shrink: 0; }
 
     .app-sidebar-name {
-        font-size: 13px;
+        font-size: var(--font-size-md, 13px);
         color: var(--text, #333);
         white-space: nowrap;
         overflow: hidden;

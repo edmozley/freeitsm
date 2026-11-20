@@ -51,9 +51,9 @@
             body.innerHTML = servers.map(s => `
                 <tr>
                     <td><strong>${escapeHtml(s.name)}</strong>${s.is_active ? '' : ` <span class="status-badge status-inactive">${escapeHtml(T('inactive'))}</span>`}</td>
-                    <td><code style="font-size:12px;">${escapeHtml(s.host)}</code></td>
+                    <td><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(s.host)}</code></td>
                     <td>${s.last_sync_datetime ? escapeHtml(s.last_sync_datetime) : '—'}</td>
-                    <td>${statusBadge(s.last_sync_status)}<div style="font-size:12px;color:var(--text-muted, #666);margin-top:3px;">${escapeHtml(s.last_sync_message || '')}</div></td>
+                    <td>${statusBadge(s.last_sync_status)}<div style="font-size:var(--font-size-sm, 12px);color:var(--text-muted, #666);margin-top:3px;">${escapeHtml(s.last_sync_message || '')}</div></td>
                     <td style="white-space:nowrap;">
                         <button class="btn btn-secondary" onclick="proxmoxTest(${s.id}, this)">${escapeHtml(T('test'))}</button>
                         <button class="btn btn-secondary" onclick="proxmoxSync(${s.id}, this)">${escapeHtml(T('sync_now'))}</button>
@@ -167,12 +167,12 @@
         if (!data.vms.length) { body.innerHTML = `<tr><td colspan="6" style="text-align:center;">${escapeHtml(T('no_vms'))}</td></tr>`; return; }
         body.innerHTML = data.vms.map(v => `
             <tr>
-                <td>${escapeHtml(String(v.vmid))} <span style="color:var(--text-muted, #666);font-size:12px;">${escapeHtml(v.vm_type)}</span></td>
+                <td>${escapeHtml(String(v.vmid))} <span style="color:var(--text-muted, #666);font-size:var(--font-size-sm, 12px);">${escapeHtml(v.vm_type)}</span></td>
                 <td>${escapeHtml(v.name || '')}</td>
                 <td>${escapeHtml(v.node_name || '')}</td>
                 <td>${escapeHtml(v.status || '')}</td>
                 <td>${escapeHtml(String(v.vcpus || 0))} vCPU · ${escapeHtml(String(v.memory_mb || 0))} MB · ${escapeHtml(String(v.disk_gb || 0))} GB</td>
-                <td style="font-size:12px;">${escapeHtml(v.ip_addresses || '—')}<br><span style="color:var(--text-muted, #666);">${escapeHtml(v.mac_addresses || '')}</span></td>
+                <td style="font-size:var(--font-size-sm, 12px);">${escapeHtml(v.ip_addresses || '—')}<br><span style="color:var(--text-muted, #666);">${escapeHtml(v.mac_addresses || '')}</span></td>
             </tr>`).join('');
     };
 

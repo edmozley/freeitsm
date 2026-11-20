@@ -53,7 +53,7 @@ $pageHead = '<script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script
 // Page-specific styling only — shared chrome lives in self-service.css.
 $pageStyles = <<<'CSS'
 .page-title {
-            font-size: 20px;
+            font-size: var(--font-size-3xl, 20px);
             font-weight: 600;
             color: var(--text, #333);
             margin: 0 0 14px 0;
@@ -75,7 +75,7 @@ $pageStyles = <<<'CSS'
         .compose-top label {
             display: block;
             margin-bottom: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text, #333);
         }
@@ -175,7 +175,7 @@ $pageStyles = <<<'CSS'
             gap: 10px;
             margin-bottom: 6px;
         }
-        .compose-label-row label { font-weight: 600; font-size: 13px; color: var(--text, #333); }
+        .compose-label-row label { font-weight: 600; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
 
         /* Desktop has the room already, so the control is a phone affordance —
            revealed in the @media block below. */
@@ -280,7 +280,7 @@ $pageStyles = <<<'CSS'
                 background: var(--surface, #fff);
                 color: var(--ss-accent, #0078d4);
                 font-family: inherit;
-                font-size: 13px;
+                font-size: var(--font-size-md, 13px);
                 font-weight: 600;
                 padding: 6px 12px;
                 min-height: 36px;
@@ -343,14 +343,14 @@ $pageStyles = <<<'CSS'
         }
         .field-hint {
             margin-top: 5px;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-faint, #9ca3af);
         }
 
         .form-group label {
             display: block;
             margin-bottom: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--text, #333);
         }
@@ -361,7 +361,7 @@ $pageStyles = <<<'CSS'
             padding: 10px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-family: inherit;
             transition: border-color 0.2s;
         }
@@ -389,7 +389,7 @@ $pageStyles = <<<'CSS'
             color: white;
             border: none;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
@@ -402,7 +402,7 @@ $pageStyles = <<<'CSS'
             color: var(--text, #333);
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             font-weight: 500;
             cursor: pointer;
             text-decoration: none;
@@ -417,7 +417,7 @@ $pageStyles = <<<'CSS'
             padding: 12px;
             border-radius: 5px;
             margin-bottom: 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             border-left: 4px solid var(--danger-border, #c33);
             display: none;
         }
@@ -427,7 +427,7 @@ $pageStyles = <<<'CSS'
             padding: 16px;
             border-radius: 5px;
             margin-bottom: 20px;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
             border-left: 4px solid var(--success-border, #065f46);
             display: none;
         }
@@ -443,13 +443,13 @@ $pageStyles = <<<'CSS'
             padding: 20px;
             text-align: center;
             color: var(--text-faint, #999);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             cursor: pointer;
             transition: all 0.2s;
         }
         .dropzone:hover { border-color: var(--ss-accent, #0078d4); color: var(--ss-accent, #0078d4); }
         .dropzone.dragover { border-color: var(--ss-accent, #0078d4); background: var(--ss-accent-soft, #f0f7ff); color: var(--ss-accent, #0078d4); }
-        .dropzone-icon { font-size: 24px; margin-bottom: 6px; }
+        .dropzone-icon { font-size: var(--font-size-4xl, 24px); margin-bottom: 6px; }
         .dropzone-browse { color: var(--ss-accent, #0078d4); font-weight: 600; }
 
         .attachment-list { margin-top: 10px; }
@@ -462,7 +462,7 @@ $pageStyles = <<<'CSS'
             border: 1px solid var(--border, #e5e7eb);
             border-radius: 4px;
             margin-bottom: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .attachment-item .file-info {
             display: flex;
@@ -483,7 +483,7 @@ $pageStyles = <<<'CSS'
             border: none;
             color: var(--text-faint, #999);
             cursor: pointer;
-            font-size: 18px;
+            font-size: var(--font-size-2xl, 18px);
             padding: 0 4px;
             line-height: 1;
         }
@@ -499,7 +499,7 @@ $pageStyles = <<<'CSS'
             color: var(--ss-accent, #0078d4);
             border: 1px solid var(--ss-accent, #0078d4);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s;
@@ -530,7 +530,7 @@ $pageStyles = <<<'CSS'
             padding: 12px 14px;
         }
         .deflect-title {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             font-weight: 600;
             color: var(--text-muted, #666);
             margin-bottom: 8px;
@@ -547,13 +547,13 @@ $pageStyles = <<<'CSS'
         .deflect-item:hover { border-color: var(--ss-accent, #0078d4); }
         .deflect-item-title {
             display: block;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 600;
             color: var(--ss-accent, #0078d4);
         }
         .deflect-item-preview {
             display: block;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #666);
             margin-top: 2px;
             overflow: hidden;

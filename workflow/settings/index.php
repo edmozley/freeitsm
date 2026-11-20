@@ -86,7 +86,7 @@ $translationNamespaces = ['common', 'workflow'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('workflow.ai_settings.title')); ?></h2>
             </div>
-            <p style="color:var(--text-muted, #666); font-size:13px; margin: 0 0 20px 0; max-width: 720px;">
+            <p style="color:var(--text-muted, #666); font-size:var(--font-size-md, 13px); margin: 0 0 20px 0; max-width: 720px;">
                 <?php echo htmlspecialchars(t('workflow.ai_settings.intro')); ?>
             </p>
 
@@ -104,10 +104,10 @@ $translationNamespaces = ['common', 'workflow'];
                 <h2><?php echo htmlspecialchars(t('workflow.formats.title')); ?></h2>
                 <button class="add-btn" onclick="WFF.openNew()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="color:var(--text-muted, #666); font-size:13px; margin: 0 0 8px 0;">
+            <p style="color:var(--text-muted, #666); font-size:var(--font-size-md, 13px); margin: 0 0 8px 0;">
                 <?php echo t('workflow.formats.intro'); ?>
             </p>
-            <p style="color:var(--text-muted, #666); font-size:13px; margin: 0 0 20px 0;">
+            <p style="color:var(--text-muted, #666); font-size:var(--font-size-md, 13px); margin: 0 0 20px 0;">
                 <?php echo t('workflow.formats.reserved_note'); ?>
             </p>
 
@@ -209,7 +209,7 @@ $translationNamespaces = ['common', 'workflow'];
                 tb.innerHTML = d.formats.map(f => `
                     <tr>
                         <td><strong>${esc(f.label)}</strong>${f.markdown_hint ? '<br><span style="color:var(--text-dim,#777);font-size:11.5px;">' + esc(f.markdown_hint) + '</span>' : ''}</td>
-                        <td><code style="font-size:12px;">${esc(f.key)}</code></td>
+                        <td><code style="font-size:var(--font-size-sm, 12px);">${esc(f.key)}</code></td>
                         <td><code style="font-size:11.5px;word-break:break-all;">${esc((f.body_template || '').slice(0, 70))}${(f.body_template || '').length > 70 ? '…' : ''}</code></td>
                         <td>${f.is_builtin
                             ? '<span class="status-badge">' + esc(window.t('workflow.formats.builtin')) + '</span>'

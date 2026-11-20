@@ -36,7 +36,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -49,7 +49,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
@@ -75,7 +75,7 @@ $translationNamespaces = ['common', 'contracts'];
         .stat-card.pain_point  { border-left-color: #f59e0b; }
         .stat-card.challenge   { border-left-color: #8b5cf6; }
         .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
-        .stat-card .stat-label { font-size: 12px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+        .stat-card .stat-label { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
 
         /* Filter bar */
         .card {
@@ -86,17 +86,17 @@ $translationNamespaces = ['common', 'contracts'];
         .filter-bar { display: flex; gap: 14px; align-items: end; padding: 16px 24px; flex-wrap: wrap; }
         .filter-bar .field { display: flex; flex-direction: column; }
         .filter-bar label {
-            font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #555);
             margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .filter-bar select {
-            padding: 7px 10px; font-size: 14px;
+            padding: 7px 10px; font-size: var(--font-size-lg, 14px);
             border: 1px solid var(--border, #ddd); border-radius: 6px;
             font-family: inherit; min-width: 180px;
         }
         .filter-bar .filter-spacer { flex: 1; }
         .filter-bar .clear-link {
-            font-size: 13px; color: var(--text-dim, #888); cursor: pointer; text-decoration: none;
+            font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); cursor: pointer; text-decoration: none;
             padding: 8px 0;
         }
         .filter-bar .clear-link:hover { color: var(--con-accent, #f59e0b); }
@@ -104,12 +104,12 @@ $translationNamespaces = ['common', 'contracts'];
         /* Table */
         table { width: 100%; border-collapse: collapse; }
         thead th {
-            text-align: left; padding: 12px 24px; font-size: 12px; font-weight: 600;
+            text-align: left; padding: 12px 24px; font-size: var(--font-size-sm, 12px); font-weight: 600;
             color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             border-bottom: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafafa);
         }
         tbody td {
-            padding: 14px 24px; font-size: 14px; color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
+            padding: 14px 24px; font-size: var(--font-size-lg, 14px); color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
             vertical-align: top;
         }
         tbody tr:last-child td { border-bottom: none; }
@@ -117,21 +117,21 @@ $translationNamespaces = ['common', 'contracts'];
 
         .req-text { font-weight: 500; color: var(--text, #222); line-height: 1.45; }
         .req-quote {
-            font-style: italic; color: var(--text-dim, #888); font-size: 13px;
+            font-style: italic; color: var(--text-dim, #888); font-size: var(--font-size-md, 13px);
             margin-top: 6px; line-height: 1.4;
             border-left: 2px solid var(--border-soft, #eee); padding-left: 10px;
         }
-        .req-doc { font-size: 12px; color: var(--text-dim, #888); margin-top: 6px; }
+        .req-doc { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 6px; }
 
         .dept-badge {
             display: inline-block; padding: 3px 10px; border-radius: 12px;
-            font-size: 12px; font-weight: 500; color: white; white-space: nowrap;
+            font-size: var(--font-size-sm, 12px); font-weight: 500; color: white; white-space: nowrap;
         }
         .dept-badge.empty { background: var(--surface-3, #e5e7eb); color: var(--text-dim, #6b7280); }
 
         .type-badge {
             display: inline-block; padding: 3px 10px; border-radius: 12px;
-            font-size: 12px; font-weight: 500; text-transform: capitalize; white-space: nowrap;
+            font-size: var(--font-size-sm, 12px); font-weight: 500; text-transform: capitalize; white-space: nowrap;
         }
         .type-badge.requirement { background: #dbeafe; color: #1e40af; }
         .type-badge.pain_point  { background: #fed7aa; color: #9a3412; }
@@ -139,7 +139,7 @@ $translationNamespaces = ['common', 'contracts'];
 
         .conf-pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 12px; font-weight: 600; min-width: 36px; text-align: center;
+            font-size: var(--font-size-sm, 12px); font-weight: 600; min-width: 36px; text-align: center;
         }
         .conf-high { background: #d1fae5; color: #065f46; }
         .conf-mid  { background: #fef3c7; color: #92400e; }
@@ -174,8 +174,8 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; justify-content: space-between; align-items: center;
             padding: 16px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
-        .modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
-        .modal-close { background: none; border: none; font-size: 24px; line-height: 1; cursor: pointer; color: var(--text-dim, #888); }
+        .modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; }
+        .modal-close { background: none; border: none; font-size: var(--font-size-4xl, 24px); line-height: 1; cursor: pointer; color: var(--text-dim, #888); }
         .modal-body { padding: 20px 24px; overflow-y: auto; }
         .modal-footer {
             display: flex; justify-content: flex-end; gap: 8px;
@@ -184,11 +184,11 @@ $translationNamespaces = ['common', 'contracts'];
 
         .form-row { margin-bottom: 16px; }
         .form-row label {
-            display: block; font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
+            display: block; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #555);
             margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .form-row input, .form-row select, .form-row textarea {
-            width: 100%; padding: 8px 10px; font-size: 14px;
+            width: 100%; padding: 8px 10px; font-size: var(--font-size-lg, 14px);
             border: 1px solid var(--border, #ddd); border-radius: 6px; box-sizing: border-box;
             font-family: inherit;
         }
@@ -197,7 +197,7 @@ $translationNamespaces = ['common', 'contracts'];
             outline: none; border-color: var(--con-accent, #f59e0b);
         }
         .form-row .meta-row {
-            display: flex; gap: 12px; font-size: 13px; color: var(--text-muted, #666);
+            display: flex; gap: 12px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666);
         }
         .form-row .meta-row .meta-item { display: flex; gap: 6px; }
         .form-row .meta-row .meta-item span:first-child { color: var(--text-dim, #888); }

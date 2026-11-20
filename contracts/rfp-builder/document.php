@@ -43,7 +43,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -56,7 +56,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
@@ -81,14 +81,14 @@ $translationNamespaces = ['common', 'contracts'];
         .stat-card.pending  { border-left-color: #f59e0b; }
         .stat-card.edited   { border-left-color: #8b5cf6; }
         .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
-        .stat-card .stat-label { font-size: 12px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+        .stat-card .stat-label { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
 
         .gate-banner {
             background: var(--warning-bg, #fef3c7); border: 1px solid var(--warning-border, #fcd34d); color: var(--warning-text, #92400e);
-            padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
+            padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; font-size: var(--font-size-lg, 14px);
             display: flex; align-items: center; gap: 14px;
         }
-        .gate-banner .gate-icon { font-size: 20px; }
+        .gate-banner .gate-icon { font-size: var(--font-size-3xl, 20px); }
         .gate-banner .gate-msg  { flex: 1; }
 
         .empty-card {
@@ -114,11 +114,11 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .framing-panel-header .header-actions { display: flex; gap: 8px; }
         .framing-context-block {
-            padding: 12px 22px; background: var(--surface-2, #fafbfc); font-size: 13px;
+            padding: 12px 22px; background: var(--surface-2, #fafbfc); font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #444); line-height: 1.5; border-bottom: 1px solid var(--border-soft, #eef0f2);
         }
         .framing-context-block .ctx-label {
-            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px; margin-bottom: 4px;
         }
         .framing-context-block .ctx-empty { color: var(--text-dim, #999); font-style: italic; }
@@ -130,11 +130,11 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px;
         }
         .framing-card-header h3 {
-            margin: 0; font-size: 14px; font-weight: 700; color: var(--text, #222);
+            margin: 0; font-size: var(--font-size-lg, 14px); font-weight: 700; color: var(--text, #222);
             flex: 1;
         }
         .framing-card-header .meta {
-            font-size: 11px; color: var(--text-dim, #999);
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999);
             display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
         }
         .framing-card-header .meta .badge {
@@ -146,9 +146,9 @@ $translationNamespaces = ['common', 'contracts'];
         .framing-card-header .actions {
             display: flex; gap: 6px; flex-shrink: 0;
         }
-        .framing-card-body { font-size: 13px; line-height: 1.55; color: var(--text, #333); }
+        .framing-card-body { font-size: var(--font-size-md, 13px); line-height: 1.55; color: var(--text, #333); }
         .framing-card-body h3 {
-            font-size: 13px; font-weight: 700; color: var(--text, #1f2937);
+            font-size: var(--font-size-md, 13px); font-weight: 700; color: var(--text, #1f2937);
             margin: 12px 0 6px 0;
         }
         .framing-card-body p { margin: 0 0 8px 0; }
@@ -181,16 +181,16 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .form-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
         .form-row label {
-            font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
         }
-        .form-row .help { font-size: 12px; color: var(--text-dim, #888); }
+        .form-row .help { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .form-row textarea {
-            padding: 10px 12px; font-size: 13px; font-family: inherit;
+            padding: 10px 12px; font-size: var(--font-size-md, 13px); font-family: inherit;
             border: 1px solid var(--border, #d1d5db); border-radius: 6px; line-height: 1.5;
             resize: vertical; min-height: 100px;
         }
-        .form-row textarea.tall { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+        .form-row textarea.tall { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: var(--font-size-sm, 12px); }
 
         /* Version history modal */
         .modal-history-shell {
@@ -199,7 +199,7 @@ $translationNamespaces = ['common', 'contracts'];
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .history-list-empty {
-            padding: 28px 20px; text-align: center; color: var(--text-dim, #999); font-size: 13px;
+            padding: 28px 20px; text-align: center; color: var(--text-dim, #999); font-size: var(--font-size-md, 13px);
         }
         .history-row {
             border: 1px solid var(--border, #e5e7eb); border-radius: 8px;
@@ -216,15 +216,15 @@ $translationNamespaces = ['common', 'contracts'];
         .history-row-header .ver-pill {
             background: var(--surface-3, #e5e7eb); color: var(--text-muted, #374151);
             padding: 2px 9px; border-radius: 10px;
-            font-size: 12px; font-weight: 700;
+            font-size: var(--font-size-sm, 12px); font-weight: 700;
         }
         .history-row.current .ver-pill { background: #d1fae5; color: #047857; }
         .history-row-header .ver-meta {
-            font-size: 12px; color: var(--text-muted, #666); flex: 1;
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); flex: 1;
         }
         .history-row-header .ver-meta .edited-tag {
             background: #ede9fe; color: #5b21b6;
-            padding: 1px 7px; border-radius: 9px; font-size: 11px; font-weight: 600;
+            padding: 1px 7px; border-radius: 9px; font-size: var(--font-size-xs, 11px); font-weight: 600;
             margin-left: 6px;
         }
         .history-row-header .ver-actions {
@@ -232,13 +232,13 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .history-row-body {
             display: none;
-            padding: 12px 14px; font-size: 13px; line-height: 1.55; color: var(--text, #333);
+            padding: 12px 14px; font-size: var(--font-size-md, 13px); line-height: 1.55; color: var(--text, #333);
             max-height: 320px; overflow-y: auto;
             background: var(--surface, white);
         }
         .history-row.open .history-row-body { display: block; }
-        .history-row-body h3 { font-size: 13px; font-weight: 700; margin: 10px 0 6px 0; }
-        .history-row-body h4 { font-size: 12px; font-weight: 700; margin: 8px 0 4px 0; }
+        .history-row-body h3 { font-size: var(--font-size-md, 13px); font-weight: 700; margin: 10px 0 6px 0; }
+        .history-row-body h4 { font-size: var(--font-size-sm, 12px); font-weight: 700; margin: 8px 0 4px 0; }
         .history-row-body p  { margin: 0 0 8px 0; }
         .history-row-body ul, .history-row-body ol { margin: 0 0 8px 22px; }
         .history-row-body li { margin-bottom: 3px; }
@@ -259,9 +259,9 @@ $translationNamespaces = ['common', 'contracts'];
         .cat-header h2 {
             margin: 0; font-size: 17px; font-weight: 600; color: var(--text, #222);
         }
-        .cat-header .cat-desc { font-size: 13px; color: var(--text-muted, #666); margin-top: 4px; line-height: 1.45; }
+        .cat-header .cat-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin-top: 4px; line-height: 1.45; }
         .cat-header .cat-meta {
-            font-size: 11px; color: var(--text-dim, #999); margin-top: 6px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #999); margin-top: 6px;
             display: flex; gap: 12px; flex-wrap: wrap;
         }
         .cat-header .cat-meta .badge {
@@ -283,12 +283,12 @@ $translationNamespaces = ['common', 'contracts'];
             margin: 18px 0 8px 0;
         }
         .section-body h3:first-child { margin-top: 0; }
-        .section-body h4 { font-size: 13px; font-weight: 700; color: var(--text-muted, #374151); margin: 12px 0 6px 0; }
-        .section-body p  { margin: 0 0 10px 0; font-size: 14px; }
-        .section-body ul, .section-body ol { margin: 0 0 10px 22px; font-size: 14px; }
+        .section-body h4 { font-size: var(--font-size-md, 13px); font-weight: 700; color: var(--text-muted, #374151); margin: 12px 0 6px 0; }
+        .section-body p  { margin: 0 0 10px 0; font-size: var(--font-size-lg, 14px); }
+        .section-body ul, .section-body ol { margin: 0 0 10px 22px; font-size: var(--font-size-lg, 14px); }
         .section-body li { margin-bottom: 4px; }
         .section-body table {
-            border-collapse: collapse; margin: 10px 0; width: 100%; font-size: 13px;
+            border-collapse: collapse; margin: 10px 0; width: 100%; font-size: var(--font-size-md, 13px);
         }
         .section-body th, .section-body td {
             border: 1px solid var(--border, #e5e7eb); padding: 6px 10px; text-align: left;
@@ -296,7 +296,7 @@ $translationNamespaces = ['common', 'contracts'];
         .section-body th { background: var(--surface-2, #f9fafb); font-weight: 600; }
 
         .section-empty {
-            padding: 22px 28px; color: var(--text-dim, #999); font-size: 14px; font-style: italic;
+            padding: 22px 28px; color: var(--text-dim, #999); font-size: var(--font-size-lg, 14px); font-style: italic;
         }
 
         /* ─── Generate-all batch modal ─────────────────────────────── */
@@ -317,24 +317,24 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; gap: 12px;
         }
-        .batch-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222); flex: 1; }
+        .batch-modal-header h3 { margin: 0; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #222); flex: 1; }
 
         .batch-summary {
             padding: 12px 22px; border-bottom: 1px solid var(--border-soft, #eee);
-            display: flex; gap: 18px; font-size: 12px; color: var(--text-muted, #666); flex-wrap: wrap;
+            display: flex; gap: 18px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); flex-wrap: wrap;
         }
         .batch-summary strong { color: var(--text, #222); font-variant-numeric: tabular-nums; }
 
         .batch-tasks { padding: 8px 22px 6px 22px; max-height: 280px; overflow-y: auto; }
         .batch-task {
             display: flex; align-items: center; gap: 10px;
-            padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--border-soft, #f5f5f5);
+            padding: 8px 0; font-size: var(--font-size-md, 13px); border-bottom: 1px solid var(--border-soft, #f5f5f5);
         }
         .batch-task:last-child { border-bottom: none; }
         .batch-task .pico {
             width: 18px; height: 18px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700; flex-shrink: 0;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; flex-shrink: 0;
             background: var(--surface-3, #f3f4f6); color: var(--text-faint, #aaa); border: 1px solid var(--border, #e5e7eb);
         }
         .batch-task.active .pico {
@@ -349,7 +349,7 @@ $translationNamespaces = ['common', 'contracts'];
         .batch-task.done   .plabel { color: var(--text, #222); }
         .batch-task.error  .plabel { color: #991b1b; }
         .batch-task .pcount {
-            font-variant-numeric: tabular-nums; color: var(--text-dim, #888); font-size: 12px;
+            font-variant-numeric: tabular-nums; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px);
         }
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
@@ -359,13 +359,13 @@ $translationNamespaces = ['common', 'contracts'];
         .batch-stream {
             flex: 1; overflow-y: auto; padding: 12px 22px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 12px; line-height: 1.55; color: var(--text, #333);
+            font-size: var(--font-size-sm, 12px); line-height: 1.55; color: var(--text, #333);
             white-space: pre-wrap; word-break: break-word;
             background: var(--surface-2, #fafbfc); min-height: 160px;
             border-top: 1px solid var(--border-soft, #eee);
         }
         .batch-stream-label {
-            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             padding: 6px 22px 0 22px; background: var(--surface-2, #fafbfc);
         }
 

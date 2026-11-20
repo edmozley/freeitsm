@@ -65,21 +65,21 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         .st-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f7fa); }
         .st-table-wrap { overflow-x: auto; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; }
         table.st { width: 100%; border-collapse: collapse; }
-        table.st th, table.st td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: 13px; color: var(--text, #444); vertical-align: top; }
-        table.st th { background: var(--surface-3, #f9fafb); font-weight: 600; font-size: 12px; white-space: nowrap; }
+        table.st th, table.st td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: var(--font-size-md, 13px); color: var(--text, #444); vertical-align: top; }
+        table.st th { background: var(--surface-3, #f9fafb); font-weight: 600; font-size: var(--font-size-sm, 12px); white-space: nowrap; }
         table.st th.num, table.st td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
         table.st tbody tr:last-child td { border-bottom: none; }
         table.st tfoot td { border-top: 2px solid var(--border, #e5e7eb); border-bottom: none; font-weight: 600; }
         .st-what { font-weight: 600; }
-        .st-path { font-family: Consolas, Menlo, monospace; font-size: 12px; color: var(--text-muted, #555); word-break: break-all; }
-        .st-note { font-size: 12px; color: var(--text-dim, #888); margin-top: 3px; }
+        .st-path { font-family: Consolas, Menlo, monospace; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555); word-break: break-all; }
+        .st-note { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 3px; }
         .st-note.critical { color: var(--warning-text, #92400e); }
         .st-dim { color: var(--text-faint, #999); }
         .st-bad { color: var(--danger-text, #c0392b); }
         .st-ok { color: var(--success-text, #065f46); }
-        .st-foot { font-size: 12px; color: var(--text-dim, #888); margin-top: 10px; }
+        .st-foot { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 10px; }
         .st-foot p { margin: 4px 0; }
-        .st-error { color: var(--danger-text, #c0392b); font-size: 13px; }
+        .st-error { color: var(--danger-text, #c0392b); font-size: var(--font-size-md, 13px); }
         .st-newest { white-space: nowrap; }
         /* Phone: each folder becomes a card - name, path, then its figures with their
            labels - instead of a table that only scrolls sideways. Phone only. */

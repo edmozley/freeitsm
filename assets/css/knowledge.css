@@ -85,7 +85,7 @@
 }
 
 .sidebar-section h3 {
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 12px;
@@ -98,7 +98,7 @@
     padding: 10px 12px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .search-box input:focus {
@@ -119,7 +119,7 @@
     background: var(--surface-hover, #f0f0f0);
     border: 1px solid var(--border, #ddd);
     border-radius: 20px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -137,7 +137,7 @@
 
 .tag-filter .tag-count {
     margin-left: 6px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     opacity: 0.7;
 }
 
@@ -167,7 +167,7 @@
 }
 
 .article-list-header h2 {
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     color: var(--text, #333);
 }
 
@@ -176,7 +176,7 @@
    stuck to it. The colour still separates them, so which is which stays obvious. */
 .article-count {
     color: var(--text-muted, #666);
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     font-weight: 600;
 }
 
@@ -245,7 +245,7 @@
     border: 1px solid var(--border, #e0e0e0);
 }
 .kb-bulk-count { font-weight: 600; color: var(--text, #333); }
-.kb-bulk-bar label { color: var(--text-muted, #666); font-size: 13px; }
+.kb-bulk-bar label { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); }
 .kb-bulk-bar select {
     padding: 6px 10px;
     border: 1px solid var(--border, #e0e0e0);
@@ -262,7 +262,7 @@
 }
 
 .article-card-title {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 8px;
@@ -270,7 +270,7 @@
 
 .article-card-preview {
     color: var(--text-muted, #666);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.5;
     margin-bottom: 12px;
     display: -webkit-box;
@@ -283,7 +283,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-dim, #888);
 }
 
@@ -299,7 +299,7 @@
     background: var(--accent-soft, #e8f4fd);
     color: var(--accent, #0078d4);
     border-radius: 12px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 500;
 }
 
@@ -350,7 +350,7 @@
 .article-content-meta {
     display: flex;
     gap: 24px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text-muted, #666);
 }
 
@@ -408,7 +408,7 @@
 }
 
 .editor-header h2 {
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     color: var(--text, #333);
     margin: 0;
 }
@@ -676,7 +676,7 @@
     background: var(--accent, #0078d4);
     color: var(--on-accent, white);
     border-radius: 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     line-height: 1.4;
 }
 
@@ -697,7 +697,7 @@
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     outline: none;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .tag-suggestions {
@@ -722,7 +722,7 @@
 .tag-suggestion {
     padding: 10px 12px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .tag-suggestion:hover {
@@ -747,7 +747,7 @@
 }
 
 .empty-state-text {
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     margin-bottom: 20px;
 }
 
@@ -772,14 +772,14 @@
     text-align: center;
     padding: 40px;
     color: var(--text-dim, #888);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 /* Code sample blocks (TinyMCE codesample plugin) */
 .article-content-body pre[class*="language-"] {
     margin: 16px 0;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .article-content-body pre[class*="language-"] code {
@@ -798,7 +798,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     color: #fff;
     padding: 4px 8px;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
 }
 
 /* Knowledge module purple theme overrides */
@@ -856,7 +856,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     transition: background 0.2s;
 }
 
@@ -894,7 +894,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     padding: 12px 16px;
     color: var(--text, #333);
     text-decoration: none;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     transition: background 0.15s;
 }
 
@@ -917,7 +917,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     color: white;
     padding: 12px 24px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     z-index: 1000;
     opacity: 0;
     transition: all 0.3s ease;
@@ -930,7 +930,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
 
 /* Share email modal styling */
 #shareEmailModal .modal-header {
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     font-weight: 600;
     color: var(--text, #333);
     margin-bottom: 20px;
@@ -945,7 +945,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     padding: 10px 12px;
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-family: inherit;
     resize: vertical;
 }
@@ -1011,7 +1011,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     font-weight: 600;
 }
 
@@ -1019,7 +1019,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     background: none;
     border: none;
     color: var(--kb-on-accent, white);
-    font-size: 24px;
+    font-size: var(--font-size-4xl, 24px);
     cursor: pointer;
     padding: 0 4px;
     opacity: 0.8;
@@ -1042,7 +1042,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     text-align: center;
     padding: 40px 20px;
     color: var(--text-muted, #666);
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.6;
 }
 
@@ -1064,7 +1064,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     max-width: 85%;
     padding: 12px 16px;
     border-radius: 12px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1.6;
     word-wrap: break-word;
 }
@@ -1084,11 +1084,11 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
 .ai-chat-bubble p { margin: 0 0 8px 0; }
 .ai-chat-bubble p:last-child { margin-bottom: 0; }
 .ai-chat-bubble ul, .ai-chat-bubble ol { margin: 4px 0; padding-left: 20px; }
-.ai-chat-bubble code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+.ai-chat-bubble code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: var(--font-size-md, 13px); }
 .ai-chat-bubble strong { font-weight: 600; }
 
 .ai-chat-meta {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-faint, #999);
     padding: 0 4px;
 }
@@ -1102,7 +1102,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     border-radius: 12px;
     border-bottom-left-radius: 4px;
     max-width: 85%;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     color: var(--text-dim, #888);
 }
 
@@ -1132,7 +1132,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     background: var(--danger-bg, #fce4ec);
     color: var(--danger-text, #c62828);
     border-radius: 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .ai-chat-input-area {
@@ -1148,7 +1148,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     border: 1px solid var(--border, #ddd);
     border-radius: 8px;
     padding: 10px 12px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     font-family: inherit;
     resize: none;
     outline: none;
@@ -1217,7 +1217,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     background: var(--warning-bg, #fff3cd);
     border: 1px solid var(--warning-border, #ffc107);
     border-radius: 6px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--warning-text, #856404);
     margin-bottom: 16px;
 }
@@ -1241,7 +1241,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
 
 .btn-sm {
     padding: 6px 14px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 /* AI Chat Archive Toggle */
@@ -1249,7 +1249,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     padding: 10px 20px;
     border-top: 1px solid var(--border, #e0e0e0);
     background: var(--surface-2, #fafafa);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 
 .ai-archive-toggle {
@@ -1316,7 +1316,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     color: white;
     padding: 12px 24px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     z-index: 10000;
     opacity: 0;
     transition: all 0.3s ease;
@@ -1338,7 +1338,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     align-items: center;
     gap: 8px;
     margin-top: 8px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text);
     cursor: pointer;
 }
@@ -1365,7 +1365,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     gap: 6px;
     padding: 5px 8px;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text);
     cursor: pointer;
 }
@@ -1383,7 +1383,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
 }
 .kb-folder-count {
     flex: 0 0 auto;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-muted);
 }
 
@@ -1393,7 +1393,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: var(--font-size-xl, 16px);
     line-height: 1;
     cursor: pointer;
     padding: 0 4px;
@@ -1408,7 +1408,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     align-items: center;
     gap: 8px;
     margin-bottom: 10px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text);
     cursor: pointer;
 }
@@ -1427,11 +1427,11 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     gap: 8px;
     padding: 7px 10px;
     border-bottom: 1px solid var(--border);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .kb-perm-entry:last-child { border-bottom: none; }
 .kb-perm-entry-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.kb-perm-entry-kind { flex: 0 0 auto; font-size: 11px; color: var(--text-muted); text-transform: capitalize; }
+.kb-perm-entry-kind { flex: 0 0 auto; font-size: var(--font-size-xs, 11px); color: var(--text-muted); text-transform: capitalize; }
 
 .kb-perm-results {
     border: 1px solid var(--border);
@@ -1446,7 +1446,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     justify-content: space-between;
     gap: 8px;
     padding: 7px 10px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     cursor: pointer;
 }
 .kb-perm-result:hover { background: var(--surface-hover); }
@@ -1458,7 +1458,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     background: none;
     border: none;
     padding: 0 2px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     line-height: 1;
     cursor: pointer;
     opacity: 0;
@@ -1506,7 +1506,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     border: 1px solid var(--border);
     border-radius: 6px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .kb-context-item {
     padding: 7px 14px;
@@ -1520,7 +1520,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
    own permissions. Both are the "visible and rare" rule — an exception nobody
    can see from the list is an exception nobody will ever audit. */
 .kb-badge {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     opacity: 0.75;
     cursor: help;
 }
@@ -1531,7 +1531,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     display: inline-block;
     padding: 1px 8px;
     border-radius: 10px;
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     font-weight: 600;
     vertical-align: middle;
     background: var(--warning-bg);
@@ -1540,7 +1540,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
 }
 .kb-draft-note {
     margin: 6px 0 10px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted);
 }
 
@@ -1562,7 +1562,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--surface);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted);
 }
 
@@ -1575,7 +1575,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     line-height: 1;
     padding: 4px 8px;
     margin-right: 4px;
@@ -1611,7 +1611,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 4px 8px;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
     line-height: 1;
     color: var(--text-muted);
     cursor: pointer;
@@ -1650,7 +1650,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     gap: 8px;
     padding: 6px 10px;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text);
     cursor: pointer;
 }
@@ -1661,7 +1661,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     background: var(--accent-soft);
     color: var(--accent);
 }
-.kb-tree-icon { flex: 0 0 auto; font-size: 12px; }
+.kb-tree-icon { flex: 0 0 auto; font-size: var(--font-size-sm, 12px); }
 .kb-tree-label {
     flex: 1 1 auto;
     min-width: 0;
@@ -1759,7 +1759,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
        allowed to set the height. */
     height: 38px;
     border-bottom: 1px solid var(--border);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text);
     cursor: pointer;
 }
@@ -1935,7 +1935,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
 .kb-audit-entry {
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
 }
 .kb-audit-entry:last-child { border-bottom: none; }
 .kb-audit-line {
@@ -1945,9 +1945,9 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     align-items: baseline;
 }
 .kb-audit-action { font-weight: 600; color: var(--text); }
-.kb-audit-when   { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+.kb-audit-when   { color: var(--text-muted); font-size: var(--font-size-sm, 12px); white-space: nowrap; }
 .kb-audit-who    { color: var(--text-muted); margin-top: 2px; }
-.kb-audit-detail { color: var(--text-muted); margin-top: 4px; font-size: 12px; }
+.kb-audit-detail { color: var(--text-muted); margin-top: 4px; font-size: var(--font-size-sm, 12px); }
 
 /* ⚠️ The row somebody opened this window to find. An override that reads like
    every other line is one nobody spots in a list of forty. */

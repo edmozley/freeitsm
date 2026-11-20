@@ -53,15 +53,15 @@ $translationNamespaces = ['common', 'reporting'];
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e0e0e0);
         }
-        .dashboard-toolbar h2 { margin: 0; font-size: 18px; color: var(--text, #333); }
+        .dashboard-toolbar h2 { margin: 0; font-size: var(--font-size-2xl, 18px); color: var(--text, #333); }
         .dashboard-toolbar .last-sync {
-            font-size: 12px; color: var(--text-dim, #888); margin-left: 16px;
+            font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-left: 16px;
         }
         .dashboard-toolbar-actions { display: flex; gap: 8px; }
 
         .btn {
             padding: 8px 16px; border: 1px solid var(--border, #ddd); border-radius: 6px;
-            background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; cursor: pointer;
+            background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); cursor: pointer;
             display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; text-decoration: none;
         }
@@ -80,7 +80,7 @@ $translationNamespaces = ['common', 'reporting'];
             padding: 18px 20px;
         }
         .kpi-label {
-            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;
         }
         .kpi-value {
@@ -88,7 +88,7 @@ $translationNamespaces = ['common', 'reporting'];
             line-height: 1.1;
         }
         .kpi-sub {
-            font-size: 11px; color: var(--text-dim, #888); margin-top: 4px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); margin-top: 4px;
         }
         .kpi-card.warn .kpi-value { color: var(--rep-accent, #ca5010); }
         .kpi-card.bad  .kpi-value { color: var(--danger-accent, #d13438); }
@@ -110,10 +110,10 @@ $translationNamespaces = ['common', 'reporting'];
             padding: 16px 16px 0 16px;
         }
         .widget-header h3 {
-            margin: 0; font-size: 14px; font-weight: 600; color: var(--text, #333);
+            margin: 0; font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333);
         }
         .widget-header p {
-            margin: 4px 0 0 0; font-size: 12px; color: var(--text-dim, #888);
+            margin: 4px 0 0 0; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888);
         }
         .widget-chart {
             padding: 12px 16px 16px 16px;
@@ -122,10 +122,10 @@ $translationNamespaces = ['common', 'reporting'];
         }
         .widget-chart canvas { max-height: 290px; }
 
-        .loading-state { text-align: center; padding: 60px 20px; color: var(--text-dim, #888); font-size: 13px; }
+        .loading-state { text-align: center; padding: 60px 20px; color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); }
         .empty-banner {
             background: var(--warning-bg, #fff7e6); border: 1px solid var(--warning-border, #ffd591); border-radius: 8px;
-            padding: 16px 20px; margin: 24px; color: var(--warning-text, #874d00); font-size: 13px;
+            padding: 16px 20px; margin: 24px; color: var(--warning-text, #874d00); font-size: var(--font-size-md, 13px);
         }
         .empty-banner strong { color: var(--warning-text, #874d00); }
 
@@ -149,7 +149,7 @@ $translationNamespaces = ['common', 'reporting'];
             margin: 0; font-size: 15px; color: var(--text, #333);
         }
         .drill-header .drill-count {
-            color: var(--text-dim, #888); font-size: 13px; margin-left: 8px; font-weight: normal;
+            color: var(--text-dim, #888); font-size: var(--font-size-md, 13px); margin-left: 8px; font-weight: normal;
         }
         .drill-close {
             background: none; border: none; font-size: 22px; line-height: 1;
@@ -160,7 +160,7 @@ $translationNamespaces = ['common', 'reporting'];
             flex: 1; overflow: auto; padding: 0;
         }
         .drill-body table {
-            width: 100%; border-collapse: collapse; font-size: 13px;
+            width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px);
         }
         .drill-body th, .drill-body td {
             padding: 10px 14px; text-align: left;
@@ -168,21 +168,21 @@ $translationNamespaces = ['common', 'reporting'];
         }
         .drill-body th {
             background: var(--surface-2, #fafafa); font-weight: 600; color: var(--text-muted, #555);
-            font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.4px;
             position: sticky; top: 0; z-index: 1;
         }
         .drill-body tr:hover td { background: var(--surface-hover, #fafbfc); }
         .drill-body td.dim { color: var(--text-faint, #999); }
         .drill-body .compliance-pill {
             display: inline-block; padding: 2px 10px; border-radius: 10px;
-            font-size: 11px; font-weight: 500;
+            font-size: var(--font-size-xs, 11px); font-weight: 500;
         }
         .compliance-pill.compliant       { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
         .compliance-pill.noncompliant    { background: var(--danger-bg, #f8d7da); color: var(--danger-text, #721c24); }
         .compliance-pill.in-grace-period { background: var(--warning-bg, #fff3cd); color: var(--warning-text, #856404); }
         .compliance-pill.unknown         { background: var(--surface-hover, #eee); color: var(--text-muted, #555); }
         .drill-loading {
-            text-align: center; padding: 60px 20px; color: var(--text-dim, #888); font-size: 13px;
+            text-align: center; padding: 60px 20px; color: var(--text-dim, #888); font-size: var(--font-size-md, 13px);
         }
 
         .drill-footer {
@@ -191,11 +191,11 @@ $translationNamespaces = ['common', 'reporting'];
             gap: 12px;
         }
         .drill-footer .pager {
-            display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted, #555);
+            display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555);
         }
         .drill-footer .pager-btn {
             padding: 4px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px;
-            background: var(--surface, #fff); color: var(--text, #333); font-size: 12px; cursor: pointer;
+            background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-sm, 12px); cursor: pointer;
         }
         .drill-footer .pager-btn:hover:not(:disabled) { background: var(--surface-hover, #f5f5f5); }
         .drill-footer .pager-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -761,7 +761,7 @@ $translationNamespaces = ['common', 'reporting'];
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const parent = canvas.parentElement;
-            parent.innerHTML = `<div style="color:var(--text-faint,#aaa);font-size:13px;">${escapeHtml(t('reporting.intune.no_data'))}</div>`;
+            parent.innerHTML = `<div style="color:var(--text-faint,#aaa);font-size:var(--font-size-md, 13px);">${escapeHtml(t('reporting.intune.no_data'))}</div>`;
         }
 
         document.addEventListener('DOMContentLoaded', loadDashboard);

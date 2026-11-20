@@ -84,7 +84,7 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
             margin-bottom: 24px;
         }
         .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
-        .settings-card .card-desc { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 18px 0; line-height: 1.5; }
+        .settings-card .card-desc { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 18px 0; line-height: 1.5; }
 
         .cur-select {
             padding: 7px 10px;
@@ -92,7 +92,7 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
             border-radius: 6px;
             background: var(--surface, #fff);
             color: var(--text, #333);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             max-width: 100%;
         }
 
@@ -105,19 +105,19 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
             border-radius: 6px;
         }
         .fav-row.is-default { border-color: var(--sys-accent, #546e7a); background: var(--surface-2, #f7f8fa); }
-        .fav-row label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim, #888); cursor: pointer; flex-shrink: 0; }
-        .fav-name { flex: 1; font-size: 14px; color: var(--text, #333); min-width: 0; }
+        .fav-row label { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); cursor: pointer; flex-shrink: 0; }
+        .fav-name { flex: 1; font-size: var(--font-size-lg, 14px); color: var(--text, #333); min-width: 0; }
         .fav-name code { font-weight: 600; margin-right: 6px; }
-        .fav-eg { font-size: 13px; color: var(--text-muted, #666); font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .fav-eg { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); font-variant-numeric: tabular-nums; white-space: nowrap; }
         .icon-btn {
             border: none; background: none; cursor: pointer;
-            color: var(--text-dim, #888); font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 4px;
+            color: var(--text-dim, #888); font-size: var(--font-size-2xl, 18px); line-height: 1; padding: 2px 6px; border-radius: 4px;
         }
         .icon-btn:hover:not(:disabled) { color: var(--danger, #c62828); background: var(--surface-2, #f7f8fa); }
         .icon-btn:disabled { opacity: .3; cursor: default; }
         .add-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .add-row .cur-select { flex: 1; min-width: 220px; }
-        .hint { font-size: 12px; color: var(--text-dim, #888); margin: 10px 0 0; }
+        .hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin: 10px 0 0; }
 
         .picker { display: flex; gap: 8px; flex-wrap: wrap; }
         .picker .cur-select { flex: 1; min-width: 150px; }
@@ -129,16 +129,16 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
             background: var(--surface-2, #f7f8fa);
             border: 1px solid var(--border, #ddd);
         }
-        .df-preview-label { width: 100%; font-size: 12px; color: var(--text-dim, #888); }
-        .df-preview-value { font-size: 18px; font-weight: 600; color: var(--text, #333); font-variant-numeric: tabular-nums; }
+        .df-preview-label { width: 100%; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
+        .df-preview-value { font-size: var(--font-size-2xl, 18px); font-weight: 600; color: var(--text, #333); font-variant-numeric: tabular-nums; }
 
         .exc-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
         .exc-row { border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 12px; }
         .exc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .exc-head .fav-name { font-size: 14px; }
-        .exc-empty { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 14px; }
+        .exc-head .fav-name { font-size: var(--font-size-lg, 14px); }
+        .exc-empty { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin: 0 0 14px; }
 
-        .unknown-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text, #333); line-height: 1.8; }
+        .unknown-list { margin: 0; padding-left: 18px; font-size: var(--font-size-md, 13px); color: var(--text, #333); line-height: 1.8; }
 
         .df-actions { display: flex; align-items: center; gap: 14px; }
 

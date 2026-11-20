@@ -159,7 +159,7 @@ foreach ($formActionDefs as $def) {
             padding: 20px 16px;
             text-align: center;
             color: var(--text-faint, #9ca3af);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .versions-dropdown .vd-row {
             display: flex;
@@ -183,10 +183,10 @@ foreach ($formActionDefs as $def) {
         .versions-dropdown .vd-row-title {
             font-weight: 600;
             color: var(--text, #111827);
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
         .versions-dropdown .vd-row-meta {
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             color: var(--text-muted, #6b7280);
         }
         .versions-dropdown .vd-pill {
@@ -209,7 +209,7 @@ foreach ($formActionDefs as $def) {
             background: var(--warning-bg, #fff7ed);
             border: 1px solid var(--warning-border, #fed7aa);
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--warning-text, #9a3412);
             display: flex;
             align-items: center;
@@ -289,7 +289,7 @@ foreach ($formActionDefs as $def) {
             flex: 1;
         }
         .properties-empty {
-            font-size: 13px; color: var(--text-dim, #888); line-height: 1.6;
+            font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); line-height: 1.6;
         }
         .properties-empty p { margin: 0; }
 
@@ -298,7 +298,7 @@ foreach ($formActionDefs as $def) {
            saved at least once. */
         .form-meta {
             padding: 4px 0;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #555);
             line-height: 1.7;
             display: grid;
@@ -316,7 +316,7 @@ foreach ($formActionDefs as $def) {
             background: var(--forms-accent, #00897b);
             color: white;
             font-weight: 600;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
         }
 
         /* AI Assist — copied from forms/index.php so this page is
@@ -343,11 +343,11 @@ foreach ($formActionDefs as $def) {
             display: flex; justify-content: space-between; align-items: center;
         }
         .ai-modal-header h3 {
-            margin: 0; font-size: 16px; color: var(--text, #333);
+            margin: 0; font-size: var(--font-size-xl, 16px); color: var(--text, #333);
             display: flex; align-items: center; gap: 8px;
         }
         .ai-sparkle {
-            display: inline-block; font-size: 16px;
+            display: inline-block; font-size: var(--font-size-xl, 16px);
             background: linear-gradient(135deg, #6366f1, #ec4899);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -360,21 +360,21 @@ foreach ($formActionDefs as $def) {
         .ai-modal-body { padding: 20px; overflow-y: auto; flex: 1; }
         .ai-modal-body label {
             display: block; margin-bottom: 6px; font-weight: 500;
-            font-size: 13px; color: var(--text, #333);
+            font-size: var(--font-size-md, 13px); color: var(--text, #333);
         }
         .ai-modal-body textarea {
             width: 100%; padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 5px;
-            font-size: 13px; box-sizing: border-box; font-family: inherit;
+            font-size: var(--font-size-md, 13px); box-sizing: border-box; font-family: inherit;
             min-height: 110px; resize: vertical;
         }
         .ai-modal-body textarea:focus {
             outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.12);
         }
         .ai-modal-body .ai-hint {
-            color: var(--text-dim, #888); font-size: 12px; margin-top: 6px;
+            color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); margin-top: 6px;
         }
         .ai-modal-body .ai-examples {
-            font-size: 12px; color: var(--text-muted, #6b7280); margin-top: 14px;
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); margin-top: 14px;
         }
         .ai-modal-body .ai-examples strong { color: var(--text-muted, #4b5563); }
         .ai-modal-body .ai-examples ul { margin: 6px 0 0 0; padding-left: 18px; }
@@ -384,7 +384,7 @@ foreach ($formActionDefs as $def) {
         .ai-progress {
             margin-top: 16px; padding: 14px;
             background: var(--surface-2, #f8fafc); border: 1px solid var(--border, #e2e8f0); border-radius: 6px;
-            font-size: 12px; color: var(--text-muted, #475569);
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted, #475569);
         }
         .ai-progress .ai-progress-status {
             display: flex; align-items: center; gap: 8px; font-weight: 500; margin-bottom: 8px;
@@ -396,13 +396,13 @@ foreach ($formActionDefs as $def) {
         }
         @keyframes ai-spin { to { transform: rotate(360deg); } }
         .ai-progress .ai-progress-counters {
-            display: flex; gap: 14px; font-size: 11px; color: var(--text-muted, #6b7280); margin-bottom: 8px;
+            display: flex; gap: 14px; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #6b7280); margin-bottom: 8px;
         }
         .ai-progress .ai-progress-counters span strong { color: var(--text, #1f2937); }
         .ai-progress pre.ai-stream {
             margin: 0; max-height: 180px; overflow: auto;
             background: #0f172a; color: #cbd5e1; padding: 10px;
-            border-radius: 4px; font-size: 11px; line-height: 1.45;
+            border-radius: 4px; font-size: var(--font-size-xs, 11px); line-height: 1.45;
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
             white-space: pre-wrap; word-break: break-word;
         }
@@ -426,11 +426,11 @@ foreach ($formActionDefs as $def) {
             background: #f0f9ff;
             border: 1px solid #bae6fd;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: #0c4a6e;
         }
         .ai-proposal .ai-prop-head {
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             margin-bottom: 10px;
             color: #0c4a6e;
         }
@@ -469,11 +469,11 @@ foreach ($formActionDefs as $def) {
         }
         .ai-proposal .ai-prop-meta {
             color: var(--text-muted, #64748b);
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             margin-left: auto;
         }
         .ai-proposal .ai-prop-note {
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             color: var(--text-muted, #475569);
         }
 
@@ -483,30 +483,30 @@ foreach ($formActionDefs as $def) {
         .field-labelpos-picker,
         .field-width-picker {
             display: inline-flex; align-items: center; gap: 6px;
-            font-size: 12px; color: var(--text-muted, #666); white-space: nowrap;
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); white-space: nowrap;
         }
         .field-labelpos-picker select,
         .field-width-picker select {
-            padding: 3px 6px; font-size: 12px; font-family: inherit;
+            padding: 3px 6px; font-size: var(--font-size-sm, 12px); font-family: inherit;
             border: 1px solid var(--border, #ddd); border-radius: 4px;
             background: var(--surface, #fff); color: var(--text, #333);
         }
         /* ── The Catalogue tab (GH #348): the card's settings, and the card beside them ── */
-        .cc-intro { margin: 0 0 18px; font-size: 13px; color: var(--text-muted, #666); }
+        .cc-intro { margin: 0 0 18px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
         /* The same field look as the title and description above (.form-settings-card in forms.css). */
         #tabContentCatalogue .field-group { margin-bottom: 18px; }
-        #tabContentCatalogue .field-group > label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted, #666);
+        #tabContentCatalogue .field-group > label { display: block; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text-muted, #666);
             margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
         #tabContentCatalogue input[type="text"], #tabContentCatalogue input[type="number"], #tabContentCatalogue select {
-            padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 14px; font-family: inherit;
+            padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-lg, 14px); font-family: inherit;
             box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
         #tabContentCatalogue input[type="text"] { width: 100%; }
         #tabContentCatalogue input:focus, #tabContentCatalogue select:focus { outline: none; border-color: var(--forms-accent, var(--accent, #0078d4)); }
         #tabContentCatalogue .cc-count { text-transform: none; letter-spacing: 0; }
         .cc-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
         .cc-side { position: sticky; top: 0; }
-        .cc-side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint, #999); margin-bottom: 8px; }
-        .cc-count { float: right; font-size: 11px; font-weight: 400; color: var(--text-faint, #999); }
+        .cc-side-label { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint, #999); margin-bottom: 8px; }
+        .cc-count { float: right; font-size: var(--font-size-xs, 11px); font-weight: 400; color: var(--text-faint, #999); }
         .cc-count.over { color: var(--danger, #c62828); }
         .cc-price-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .cc-price-row input { flex: 0 0 140px; width: 140px; }
@@ -514,23 +514,23 @@ foreach ($formActionDefs as $def) {
         .cc-currency { font-size: 12.5px; color: var(--text-muted, #666); margin-top: 6px; }
         .cc-currency button { background: none; border: none; padding: 0; color: var(--accent, #0078d4); cursor: pointer; font: inherit; text-decoration: underline; }
         .cc-currency select { margin-top: 6px; max-width: 100%; }
-        .cc-hint { display: block; margin-top: 6px; font-size: 12px; color: var(--text-faint, #999); }
+        .cc-hint { display: block; margin-top: 6px; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); }
         /* The picture: one zone to click, drop a file on or paste into - 16:9, as the card draws it. */
         .cc-drop { position: relative; aspect-ratio: 16 / 9; max-width: 420px; border: 2px dashed var(--border, #d0d5da); border-radius: 8px;
             display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px; box-sizing: border-box;
-            font-size: 13px; color: var(--text-muted, #666); cursor: pointer; overflow: hidden; background: var(--surface-2, #f7f8fa); }
+            font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); cursor: pointer; overflow: hidden; background: var(--surface-2, #f7f8fa); }
         .cc-drop:hover, .cc-drop.dragover { border-color: var(--accent, #0078d4); color: var(--accent, #0078d4); }
         .cc-drop.is-off { cursor: not-allowed; opacity: 0.7; }
         .cc-drop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .cc-drop.has-image { border-style: solid; padding: 0; }
         .cc-drop-remove { position: absolute; top: 8px; right: 8px; z-index: 1; padding: 5px 10px; border-radius: 5px; border: none;
-            background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; cursor: pointer; }
+            background: rgba(0,0,0,0.6); color: #fff; font-size: var(--font-size-sm, 12px); cursor: pointer; }
         .cc-note { margin: 0 0 16px; padding: 9px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
         .cc-card { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; overflow: hidden; }
         .cc-card-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
         .cc-card-body { padding: 14px 16px; }
         .cc-card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
-        .cc-card-desc { font-size: 13px; color: var(--text-muted, #666); line-height: 1.45; }
+        .cc-card-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); line-height: 1.45; }
         .cc-card-price { margin-top: 10px; font-size: 15px; font-weight: 600; color: var(--accent, #0078d4); }
         @media (max-width: 900px) { .cc-layout { grid-template-columns: 1fr; } .cc-side { position: static; } }
     </style>

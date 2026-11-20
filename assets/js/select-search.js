@@ -57,7 +57,7 @@
         '.ss-box .ss-label{flex:1;overflow:hidden;text-overflow:ellipsis}' +
         '.ss-box .ss-caret{flex:none;opacity:.6;font-size:10px}' +
         '.ss-box:disabled{cursor:default;opacity:.6}' +
-        '.ss-pop{position:fixed;z-index:10050;box-sizing:border-box;min-width:220px;max-width:min(420px,calc(100vw - 16px));background:var(--surface,#fff);color:var(--text,#222);border:1px solid var(--border,#d1d5db);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.2);padding:6px;font-size:13px;font-family:inherit}' +
+        '.ss-pop{position:fixed;z-index:10050;box-sizing:border-box;min-width:220px;max-width:min(420px,calc(100vw - 16px));background:var(--surface,#fff);color:var(--text,#222);border:1px solid var(--border,#d1d5db);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.2);padding:6px;font-size:var(--font-size-md, 13px);font-family:inherit}' +
         '.ss-pop input.ss-find{width:100%;box-sizing:border-box;padding:7px 9px;border:1px solid var(--border,#d1d5db);border-radius:6px;background:var(--surface,#fff);color:var(--text,#222);font:inherit;margin:0 0 4px}' +
         '.ss-pop input.ss-find:focus{outline:none;border-color:var(--accent,#0078d4);box-shadow:0 0 0 3px var(--accent-soft,rgba(0,120,212,.15))}' +
         '.ss-pop ul{list-style:none;margin:0;padding:0}' +
@@ -65,7 +65,7 @@
         '.ss-pop li.ss-on{background:var(--accent-soft,#e8f1fb)}' +
         '.ss-pop li.ss-sel{font-weight:600}' +
         '.ss-pop li.ss-off{opacity:.45;cursor:default}' +
-        '.ss-pop .ss-more{padding:6px 9px 2px;color:var(--text-dim,#888);font-size:12px}';
+        '.ss-pop .ss-more{padding:6px 9px 2px;color:var(--text-dim,#888);font-size:var(--font-size-sm, 12px)}';
     (document.head || document.documentElement).appendChild(css);
 
     // ------------------------------------------------------------------ upgrade
@@ -319,9 +319,9 @@
     var css2 = document.createElement('style');
     css2.textContent =
         '.ss-filter{padding:6px 6px 2px;position:sticky;top:0;background:inherit;z-index:1}' +
-        '.ss-filter input.ss-find{width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid var(--border,#d1d5db);border-radius:6px;background:var(--surface,#fff);color:var(--text,#222);font:inherit;font-size:13px}' +
+        '.ss-filter input.ss-find{width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid var(--border,#d1d5db);border-radius:6px;background:var(--surface,#fff);color:var(--text,#222);font:inherit;font-size:var(--font-size-md, 13px)}' +
         '.ss-filter input.ss-find:focus{outline:none;border-color:var(--accent,#0078d4)}' +
-        '.ss-filter .ss-more{padding:4px 2px 0;color:var(--text-dim,#888);font-size:12px}';
+        '.ss-filter .ss-more{padding:4px 2px 0;color:var(--text-dim,#888);font-size:var(--font-size-sm, 12px)}';
     (document.head || document.documentElement).appendChild(css2);
 
     window.FreeitsmSelectSearch = { upgrade: upgrade, filterList: filterList, after: AFTER };

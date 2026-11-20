@@ -44,8 +44,8 @@ $translationNamespaces = ['common', 'cmdb'];
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; margin: 24px 0; padding: 0 20px; }
 
         .audit-head { margin-bottom: 18px; }
-        .audit-head h2 { font-size: 18px; color: var(--text,#111827); margin: 0 0 4px; }
-        .audit-head p { margin: 0; color: var(--text-muted,#6b7280); font-size: 13px; }
+        .audit-head h2 { font-size: var(--font-size-2xl, 18px); color: var(--text,#111827); margin: 0 0 4px; }
+        .audit-head p { margin: 0; color: var(--text-muted,#6b7280); font-size: var(--font-size-md, 13px); }
 
         .audit-summary {
             display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 20px;
@@ -55,7 +55,7 @@ $translationNamespaces = ['common', 'cmdb'];
             border-radius: 8px; padding: 12px 18px; min-width: 130px;
         }
         .audit-stat .n { font-size: 22px; font-weight: 700; color: var(--text,#111827); display: block; }
-        .audit-stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: .4px;
+        .audit-stat .l { font-size: var(--font-size-xs, 11px); text-transform: uppercase; letter-spacing: .4px;
                          color: var(--text-muted,#6b7280); }
         .audit-stat.is-clean .n { color: #15803d; }
         .audit-stat.has-findings .n { color: var(--cmdb-accent,#be185d); }
@@ -70,31 +70,31 @@ $translationNamespaces = ['common', 'cmdb'];
         .audit-card.sev-info    { border-left: 3px solid #6b7280; }
         .audit-card.is-clean    { border-left: 3px solid #15803d; }
         .audit-card h3 {
-            font-size: 14px; margin: 0 0 4px; color: var(--text,#111827);
+            font-size: var(--font-size-lg, 14px); margin: 0 0 4px; color: var(--text,#111827);
             display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
         .audit-count {
-            font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 999px;
+            font-size: var(--font-size-sm, 12px); font-weight: 700; padding: 1px 9px; border-radius: 999px;
             background: var(--surface-2,#f3f4f6); color: var(--text-muted,#6b7280);
         }
         .audit-card.sev-error   .audit-count { background: #fee2e2; color: #991b1b; }
         .audit-card.sev-warning .audit-count { background: #fef3c7; color: #92400e; }
         .audit-card.is-clean    .audit-count { background: #dcfce7; color: #166534; }
-        .audit-why { font-size: 12px; color: var(--text-muted,#6b7280); margin: 0 0 10px; line-height: 1.5; }
+        .audit-why { font-size: var(--font-size-sm, 12px); color: var(--text-muted,#6b7280); margin: 0 0 10px; line-height: 1.5; }
         .audit-items { list-style: none; padding: 0; margin: 0; max-height: 240px; overflow-y: auto; }
-        .audit-items li { padding: 5px 0; font-size: 13px; border-bottom: 1px solid var(--border-soft,#f3f4f6); }
+        .audit-items li { padding: 5px 0; font-size: var(--font-size-md, 13px); border-bottom: 1px solid var(--border-soft,#f3f4f6); }
         .audit-items li:last-child { border-bottom: none; }
         .audit-items a { color: var(--cmdb-accent,#be185d); text-decoration: none; font-weight: 500; }
         .audit-items a:hover { text-decoration: underline; }
-        .audit-items .meta { color: var(--text-muted,#6b7280); font-size: 11px; }
-        .audit-clean-msg { font-size: 13px; color: #15803d; }
+        .audit-items .meta { color: var(--text-muted,#6b7280); font-size: var(--font-size-xs, 11px); }
+        .audit-clean-msg { font-size: var(--font-size-md, 13px); color: #15803d; }
         .audit-capped {
-            margin-top: 8px; font-size: 11px; color: var(--text-muted,#6b7280);
+            margin-top: 8px; font-size: var(--font-size-xs, 11px); color: var(--text-muted,#6b7280);
             border-top: 1px dashed var(--border,#e5e7eb); padding-top: 6px;
         }
-        .audit-fix { margin-top: 10px; font-size: 12px; }
+        .audit-fix { margin-top: 10px; font-size: var(--font-size-sm, 12px); }
         .audit-fix a { color: var(--cmdb-accent,#be185d); font-weight: 600; text-decoration: none; }
-        .audit-loading { color: var(--text-muted,#6b7280); font-size: 13px; }
+        .audit-loading { color: var(--text-muted,#6b7280); font-size: var(--font-size-md, 13px); }
     </style>
     <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">

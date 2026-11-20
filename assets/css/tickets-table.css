@@ -9,7 +9,7 @@
 #ticketTableContainer[hidden], #emailList[hidden] { display: none !important; }
 #ticketTableContainer .dt-toolbar { flex-wrap: wrap; }
 #ticketTableContainer .dt-search { min-width: 160px; }
-#ticketTableContainer .ticket-content-search { padding: 8px; font-size: 12px; }
+#ticketTableContainer .ticket-content-search { padding: 8px; font-size: var(--font-size-sm, 12px); }
 #ticketTableContainer .dt-wrap { display: flex; flex-direction: column; }
 #ticketTableContainer .dt-table { flex: none; }
 #ticketTableContainer .dt-toolbar { gap: 6px; }
@@ -50,4 +50,4 @@
 }
 
 /* The Messages / Table choice in the action row. */
-.ticket-list-choice { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.ticket-list-choice { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm, 12px); }

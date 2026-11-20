@@ -32,7 +32,7 @@
 }
 
 .rota-title {
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     font-weight: 600;
     color: var(--text, #333);
     margin: 0 0 0 10px;
@@ -92,7 +92,7 @@
     background: var(--surface-2, #f5f7fa);
     padding: 12px 10px;
     font-weight: 600;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text-muted, #444);
     text-align: center;
     border-bottom: 2px solid var(--border, #e0e0e0);
@@ -114,7 +114,7 @@
 
 .rota-col-header .day-date {
     font-weight: 400;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text-dim, #888);
     margin-top: 2px;
 }
@@ -128,7 +128,7 @@
     background: var(--surface-2, #fafbfc);
     padding: 10px 12px;
     font-weight: 600;
-    font-size: 13px;
+    font-size: var(--font-size-md, 13px);
     color: var(--text, #333);
     border-bottom: 1px solid var(--border, #e0e0e0);
     border-right: 1px solid var(--border, #e0e0e0);
@@ -202,7 +202,7 @@
     border: 2px dashed var(--border, #ccc);
     background: none;
     color: var(--text-faint, #bbb);
-    font-size: 18px;
+    font-size: var(--font-size-2xl, 18px);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -223,13 +223,13 @@
 
 .rota-entry .shift-name {
     font-weight: 600;
-    font-size: 12px;
+    font-size: var(--font-size-sm, 12px);
     color: var(--text, #333);
     margin-bottom: 2px;
 }
 
 .rota-entry .shift-times {
-    font-size: 11px;
+    font-size: var(--font-size-xs, 11px);
     color: var(--text-dim, #888);
     margin-bottom: 4px;
 }
@@ -265,7 +265,7 @@
 }
 
 #rotaEntryModal .modal-header {
-    font-size: 20px;
+    font-size: var(--font-size-3xl, 20px);
     font-weight: 600;
     margin-bottom: 20px;
     color: var(--text, #333);
@@ -280,7 +280,7 @@
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--font-size-lg, 14px);
 }
 
 .btn-danger:hover {

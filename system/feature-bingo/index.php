@@ -43,28 +43,28 @@ $b = fn(string $k) => t('system.bingo.' . $k);
         .fb-score-top { display: flex; align-items: center; gap: 12px; }
         .fb-score-star { font-size: 34px; line-height: 1; color: var(--star); }
         .fb-score-num { font-size: 26px; font-weight: 700; color: var(--text, #333); }
-        .fb-score-sub { font-size: 12px; color: var(--text-muted, #666); }
+        .fb-score-sub { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .fb-bar { height: 8px; border-radius: 4px; background: var(--surface-3, #eee); overflow: hidden; margin: 10px 0 8px; }
         .fb-bar > span { display: block; height: 100%; background: var(--star); border-radius: 4px; transition: width .4s ease; }
-        .fb-tiers { display: flex; gap: 14px; font-size: 12px; color: var(--text-muted, #666); flex-wrap: wrap; }
+        .fb-tiers { display: flex; gap: 14px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); flex-wrap: wrap; }
         .fb-tiers b { color: var(--text, #333); }
-        .fb-verify { margin-bottom: 16px; padding: 12px 14px; border-radius: 8px; font-size: 13px;
+        .fb-verify { margin-bottom: 16px; padding: 12px 14px; border-radius: 8px; font-size: var(--font-size-md, 13px);
             background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .fb-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; position: sticky; top: -24px; z-index: 5;
             background: var(--app-bg, #f5f5f5); padding: 10px 0; }
-        .fb-filters input, .fb-filters select { padding: 8px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px; font-size: 13px;
+        .fb-filters input, .fb-filters select { padding: 8px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px; font-size: var(--font-size-md, 13px);
             background: var(--surface, #fff); color: var(--text, #333); }
         .fb-filters input { flex: 1 1 260px; min-width: 200px; }
-        .fb-btn { text-decoration: none; display: inline-flex; align-items: center; padding: 7px 12px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border, #ccc); background: var(--surface, #fff);
+        .fb-btn { text-decoration: none; display: inline-flex; align-items: center; padding: 7px 12px; font-size: var(--font-size-sm, 12px); border-radius: 6px; border: 1px solid var(--border, #ccc); background: var(--surface, #fff);
             color: var(--text, #333); cursor: pointer; white-space: nowrap; }
         .fb-btn:hover { background: var(--surface-hover, #f3f3f3); }
         .fb-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
         .fb-btn.primary:hover { background: var(--accent-hover); }
-        .fb-count { font-size: 12px; color: var(--text-muted, #666); margin-left: auto; }
+        .fb-count { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-left: auto; }
         .fb-group { margin-bottom: 26px; }
         .fb-group-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 10px; }
-        .fb-group-head h3 { margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
-        .fb-group-head span { font-size: 12px; color: var(--text-muted, #666); }
+        .fb-group-head h3 { margin: 0; font-size: var(--font-size-lg, 14px); text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
+        .fb-group-head span { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .fb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
         .fb-card { position: relative; text-align: left; background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 10px;
             padding: 12px 14px 12px; cursor: pointer; font: inherit; color: inherit; display: flex; flex-direction: column; gap: 6px; min-height: 104px;
@@ -74,16 +74,16 @@ $b = fn(string $k) => t('system.bingo.' . $k);
         .fb-card.lit { border-color: rgba(245, 179, 1, .55); background: linear-gradient(180deg, var(--star-soft), var(--surface, #fff) 60%); }
         .fb-card.dismissed { opacity: .5; }
         .fb-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-        .fb-mod { font-size: 11px; font-weight: 600; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .4px; }
+        .fb-mod { font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .4px; }
         .fb-star { font-size: 22px; line-height: 1; color: var(--border, #ccc); }
         .fb-card.lit .fb-star { color: var(--star); text-shadow: 0 0 8px rgba(245, 179, 1, .45); }
-        .fb-title { font-size: 14px; font-weight: 600; color: var(--text, #333); line-height: 1.3; }
+        .fb-title { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text, #333); line-height: 1.3; }
         .fb-tags { margin-top: auto; display: flex; gap: 6px; flex-wrap: wrap; }
-        .fb-tag { font-size: 11px; padding: 2px 7px; border-radius: 10px; background: var(--surface-2, #f4f4f4); color: var(--text-muted, #666); }
+        .fb-tag { font-size: var(--font-size-xs, 11px); padding: 2px 7px; border-radius: 10px; background: var(--surface-2, #f4f4f4); color: var(--text-muted, #666); }
         .fb-tag.essential { background: var(--danger-bg, #fde8e8); color: var(--danger-text, #b3261e); }
         .fb-tag.recommended { background: var(--info-bg, #e3f2fd); color: var(--info-text, #0d47a1); }
         .fb-tag.nfu { background: var(--surface-3, #eee); }
-        .fb-empty { padding: 40px 0; text-align: center; color: var(--text-muted, #666); font-size: 14px; }
+        .fb-empty { padding: 40px 0; text-align: center; color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); }
         /* The explainer */
         /* Box, head, body and footer: the System modal (system-page.css). The head
            here carries the star beside the title, so it starts from the left. */
@@ -92,16 +92,16 @@ $b = fn(string $k) => t('system.bingo.' . $k);
             background: var(--surface-2, #f4f4f4); color: var(--border, #bbb); border: 1px solid var(--border, #e0e0e0); }
         .fbm-star.lit { background: var(--star-soft); color: var(--star); border-color: rgba(245, 179, 1, .5); }
         .fbm-head h3 { margin: 0 0 4px; font-size: inherit; font-weight: inherit; color: var(--text, #333); }
-        .fbm-meta { font-size: 12px; color: var(--text-muted, #666); }
-        .fbm-state { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 10px; }
+        .fbm-meta { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
+        .fbm-state { display: inline-block; margin-top: 6px; font-size: var(--font-size-sm, 12px); font-weight: 600; padding: 2px 9px; border-radius: 10px; }
         .fbm-state.lit { background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
         .fbm-state.unlit { background: var(--surface-2, #f4f4f4); color: var(--text-muted, #666); }
         .fbm-state.dismissed { background: var(--surface-3, #eee); color: var(--text-muted, #666); }
         .fbm-sec { margin: 12px 0 0; }
         .fbm-sec:first-child { margin-top: 0; }
-        .fbm-sec h4 { margin: 0 0 3px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #888); }
-        .fbm-sec p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text, #333); }
-        .fbm-done { margin-top: 14px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;
+        .fbm-sec h4 { margin: 0 0 3px; font-size: var(--font-size-sm, 12px); text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #888); }
+        .fbm-sec p { margin: 0; font-size: var(--font-size-lg, 14px); line-height: 1.55; color: var(--text, #333); }
+        .fbm-done { margin-top: 14px; padding: 10px 12px; border-radius: 8px; font-size: var(--font-size-md, 13px); line-height: 1.5;
             background: var(--info-bg, #e3f2fd); color: var(--info-text, #0d47a1); border: 1px solid var(--info-border, #90caf9); }
         .fbm-actions { gap: 8px; flex-wrap: wrap; }
         /* .sys-modal .btn is display:inline-flex, which beats the [hidden] the

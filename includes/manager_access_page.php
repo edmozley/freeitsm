@@ -51,19 +51,19 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .ma-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 14px 24px 18px; box-sizing: border-box; }
         .ma-top { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 12px; flex-wrap: wrap; }
         /* Back is a button (Ed) - still a link underneath, so it opens in a new tab and works without script. */
-        .ma-back { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; margin-bottom: 8px; font-size: 13px; text-decoration: none;
+        .ma-back { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; margin-bottom: 8px; font-size: var(--font-size-md, 13px); text-decoration: none;
                    color: var(--text, #333); background: var(--surface, #fff); border: 1px solid var(--border, #ccc); border-radius: 4px; }
         .ma-back:hover { background: var(--surface-hover, #f3f3f3); border-color: var(--accent, #0078d4); }
         .ma-name { font-size: 22px; font-weight: 600; margin: 0; color: var(--text, #333); }
-        .ma-sub { color: var(--text-muted, #666); font-size: 13px; margin-top: 2px; }
+        .ma-sub { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); margin-top: 2px; }
         .ma-stat { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-left: 4px solid var(--accent, #0078d4);
                    border-radius: 8px; padding: 8px 16px; min-width: 200px; }
         .ma-stat[hidden] { display: none; }
         .ma-stats { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
-        .ma-stat-note { font-size: 12px; color: var(--text-muted, #666); margin-top: 2px; max-width: 320px; }
-        .ma-stat-label { font-size: 11px; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .04em; }
+        .ma-stat-note { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 2px; max-width: 320px; }
+        .ma-stat-label { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .04em; }
         .ma-stat-num { font-size: 22px; font-weight: 600; color: var(--text, #333); }
-        .ma-banner { border-radius: 6px; padding: 8px 14px; margin-bottom: 10px; font-size: 13px; border: 1px solid; }
+        .ma-banner { border-radius: 6px; padding: 8px 14px; margin-bottom: 10px; font-size: var(--font-size-md, 13px); border: 1px solid; }
         .ma-banner.info { background: var(--info-bg, #e8f4fd); border-color: var(--info-border, #b6d7f2); color: var(--info-text, #0b4f85); }
         .ma-banner.warn { background: var(--warning-bg, #fff4ce); border-color: var(--warning-border, #f0d78c); color: var(--warning-text, #6b5900); }
         .ma-banner a { color: inherit; font-weight: 600; }
@@ -75,10 +75,10 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .ma-grid[hidden], .ma-card[hidden] { display: none; }
         .ma-card { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px;
                    display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-        .ma-card-head { padding: 12px 16px; border-bottom: 1px solid var(--border-soft, #eee); font-weight: 600; font-size: 14px; color: var(--text, #333);
+        .ma-card-head { padding: 12px 16px; border-bottom: 1px solid var(--border-soft, #eee); font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333);
                         display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
         .ma-step { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%;
-                   background: var(--accent-soft, #e8f4fd); color: var(--accent, #0078d4); font-size: 11px; font-weight: 700; margin-right: 8px; }
+                   background: var(--accent-soft, #e8f4fd); color: var(--accent, #0078d4); font-size: var(--font-size-xs, 11px); font-weight: 700; margin-right: 8px; }
         .ma-card-body { padding: 12px 16px; }
         /* The part of a panel that scrolls. Everything else in it stays put. */
         .ma-fill { flex: 1; min-height: 0; overflow: auto; }
@@ -86,45 +86,45 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .ma-fixed[hidden] { display: none; }
         .ma-foot { padding: 8px 16px; border-top: 1px solid var(--border-soft, #eee); flex-shrink: 0; }
         .ma-foot:empty { display: none; }
-        .ma-sec { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted, #666); margin: 14px 0 6px; }
+        .ma-sec { font-size: var(--font-size-sm, 12px); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted, #666); margin: 14px 0 6px; }
         .ma-sec:first-child { margin-top: 0; }
         .ma-sec small { text-transform: none; letter-spacing: 0; font-weight: 400; }
         .ma-line { display: flex; align-items: center; gap: 12px; padding: 9px 10px; border: 1px solid var(--border-soft, #eee); border-radius: 6px; margin-bottom: 6px; background: var(--surface-2, #fafafa); }
         .ma-line.excl { border-left: 3px solid var(--danger-accent, #c42b1c); }
         .ma-line.dir  { border-left: 3px solid var(--accent, #0078d4); }
         .ma-line-main { flex: 1; min-width: 0; }
-        .ma-line-label { font-weight: 600; font-size: 13px; color: var(--text, #333); overflow-wrap: anywhere; }
-        .ma-line-meta { font-size: 12px; color: var(--text-muted, #666); margin-top: 2px; }
-        .ma-line-warn { font-size: 12px; color: var(--warning-text, #6b5900); margin-top: 2px; }
-        .ma-chip { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: var(--accent-soft, #e8f4fd); color: var(--text, #333); white-space: nowrap; }
-        .ma-empty { color: var(--text-muted, #666); font-size: 13px; padding: 6px 0; }
-        .ma-btn { padding: 5px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border, #ccc); background: var(--surface, #fff); color: var(--text, #333); cursor: pointer; white-space: nowrap; }
+        .ma-line-label { font-weight: 600; font-size: var(--font-size-md, 13px); color: var(--text, #333); overflow-wrap: anywhere; }
+        .ma-line-meta { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 2px; }
+        .ma-line-warn { font-size: var(--font-size-sm, 12px); color: var(--warning-text, #6b5900); margin-top: 2px; }
+        .ma-chip { font-size: var(--font-size-sm, 12px); padding: 2px 8px; border-radius: 10px; background: var(--accent-soft, #e8f4fd); color: var(--text, #333); white-space: nowrap; }
+        .ma-empty { color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); padding: 6px 0; }
+        .ma-btn { padding: 5px 12px; font-size: var(--font-size-sm, 12px); border-radius: 4px; border: 1px solid var(--border, #ccc); background: var(--surface, #fff); color: var(--text, #333); cursor: pointer; white-space: nowrap; }
         .ma-btn:hover { background: var(--surface-hover, #f3f3f3); }
         .ma-btn.primary { background: var(--accent, #0078d4); border-color: var(--accent, #0078d4); color: var(--on-accent, #fff); }
         .ma-btn.primary:hover { background: var(--accent-hover, #106ebe); }
         .ma-btn:disabled { opacity: .5; cursor: default; }
         .ma-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border-soft, #eee); padding: 0 12px; flex-shrink: 0; overflow-x: auto; }
-        .ma-tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 10px; font-size: 13px; color: var(--text-muted, #666); cursor: pointer; white-space: nowrap; }
+        .ma-tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 10px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); cursor: pointer; white-space: nowrap; }
         span.ma-tab { cursor: default; display: inline-block; }
         .ma-tab { line-height: 18px; font-family: inherit; }   /* a <span> tab and a <button> tab the same height, so the three filters line up */
         .ma-tab.active { color: var(--accent, #0078d4); border-bottom-color: var(--accent, #0078d4); font-weight: 600; }
-        .ma-search { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ccc); border-radius: 4px; font-size: 13px;
+        .ma-search { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ccc); border-radius: 4px; font-size: var(--font-size-md, 13px);
                      background: var(--surface, #fff); color: var(--text, #333); }
-        .ma-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .ma-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); }
         .ma-table td { padding: 8px 6px; border-bottom: 1px solid var(--border-soft, #eee); vertical-align: middle; color: var(--text, #333); }
         .ma-table td.acts { text-align: right; white-space: nowrap; }
         .ma-table td.acts .ma-btn + .ma-btn { margin-left: 6px; }
-        .ma-muted { color: var(--text-muted, #666); font-size: 12px; }
-        .ma-state { font-size: 12px; font-weight: 600; }
+        .ma-muted { color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
+        .ma-state { font-size: var(--font-size-sm, 12px); font-weight: 600; }
         .ma-state.added { color: var(--success-text, #107c10); }
         .ma-state.excluded { color: var(--danger-text, #b3261e); }
-        .ma-flag { font-size: 11px; padding: 1px 6px; border-radius: 8px; background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); margin-left: 6px; }
-        .ma-pager { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted, #666); }
+        .ma-flag { font-size: var(--font-size-xs, 11px); padding: 1px 6px; border-radius: 8px; background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); margin-left: 6px; }
+        .ma-pager { display: flex; align-items: center; justify-content: space-between; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
         .ma-pager .ma-btn + .ma-btn { margin-left: 6px; }
         .ma-option { border: 1px solid var(--border-soft, #eee); border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .ma-option select { padding: 6px 8px; border: 1px solid var(--border, #ccc); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; }
+        .ma-option select { padding: 6px 8px; border: 1px solid var(--border, #ccc); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); }
         .ma-team { list-style: none; margin: 0; padding: 0; }
-        .ma-team li { padding: 7px 8px; margin: 0 -8px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 13px; color: var(--text, #333);
+        .ma-team li { padding: 7px 8px; margin: 0 -8px; border-bottom: 1px solid var(--border-soft, #eee); font-size: var(--font-size-md, 13px); color: var(--text, #333);
                       cursor: pointer; border-radius: 4px; }
         .ma-team li:hover, .ma-team li:focus-visible { background: var(--surface-hover, #f3f3f3); outline: none; }
         .ma-team li.ma-empty { cursor: default; }
@@ -143,21 +143,21 @@ function managerAccessRender(int $managerId, string $backUrl): void
             background: var(--info-bg, #e3f2fd); color: var(--info-text, #0d47a1); border: 1px solid var(--info-border, #90caf9); }
         .mw-head-icon svg { width: 22px; height: 22px; }
         .mw-head h3 { margin: 0 0 4px; font-size: 19px; color: var(--text, #333); }
-        .mw-head p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted, #666); }
+        .mw-head p { margin: 0; font-size: var(--font-size-md, 13px); line-height: 1.5; color: var(--text-muted, #666); }
         /* The picture, LEFT TO RIGHT (Ed: "use less vertical space"): the manager,
            a bar down to one card per reason stacked in the middle, a bar joining
            them again, the person. A grid, so each connector cell sits on the same
            row as its card and the lines meet whatever the cards' heights. */
         .mw-tree { background: var(--surface-2, #f7f9fa); border: 1px solid var(--border-soft, #eee); border-radius: 10px; padding: 10px 14px 12px; margin-bottom: 12px; }
-        .mw-tree-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint, #999); text-align: center; margin-bottom: 8px; }
+        .mw-tree-label { font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint, #999); text-align: center; margin-bottom: 8px; }
         .mw-grid { display: grid; grid-template-columns: 110px 14px 14px minmax(0, 1fr) 14px 14px 110px; align-items: stretch; }
         .mw-person { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; grid-row: 1 / -1; text-align: center; }
         .mw-person.them { grid-column: 7; }
         .mw-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             font-weight: 700; font-size: 15px; background: var(--accent, #546e7a); color: var(--on-accent, #fff); }
         .mw-avatar.them { background: var(--surface, #fff); color: var(--accent, #546e7a); border: 2px solid var(--accent, #546e7a); }
-        .mw-person-name { font-weight: 600; font-size: 13px; color: var(--text, #333); overflow-wrap: anywhere; }
-        .mw-person-sub { font-size: 12px; color: var(--text-muted, #666); margin-top: -3px; }
+        .mw-person-name { font-weight: 600; font-size: var(--font-size-md, 13px); color: var(--text, #333); overflow-wrap: anywhere; }
+        .mw-person-sub { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: -3px; }
         /* The stems: from a person to the bar, spanning every row, line at mid-height. */
         .mw-stem { position: relative; grid-row: 1 / -1; }
         .mw-stem::after { content: ''; position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px; background: var(--border, #ccc); }
@@ -173,11 +173,11 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .mw-cell { padding: 3px 0; }
         .mw-reason { background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-left: 3px solid var(--mw-tone, var(--accent, #0078d4));
             border-radius: 8px; padding: 7px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; box-sizing: border-box; height: 100%; }
-        .mw-kind { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 12px; font-size: 12px; font-weight: 600;
+        .mw-kind { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 12px; font-size: var(--font-size-sm, 12px); font-weight: 600;
             background: var(--mw-tone-bg, var(--accent-soft, #e8f4fd)); color: var(--mw-tone, var(--accent, #0078d4)); }
         .mw-kind svg { width: 13px; height: 13px; flex: 0 0 13px; }
-        .mw-reason-name { font-weight: 600; font-size: 13px; color: var(--text, #333); overflow-wrap: anywhere; }
-        .mw-reason-sub { font-size: 12px; color: var(--text-muted, #666); overflow-wrap: anywhere; }
+        .mw-reason-name { font-weight: 600; font-size: var(--font-size-md, 13px); color: var(--text, #333); overflow-wrap: anywhere; }
+        .mw-reason-sub { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); overflow-wrap: anywhere; }
         .mw-reason.directory, .mw-reason.reports { --mw-tone: var(--accent, #0078d4);        --mw-tone-bg: var(--accent-soft, #e8f4fd); }
         .mw-reason.department { --mw-tone: var(--success-text, #2e7d32); --mw-tone-bg: var(--success-bg, #e8f5e9); }
         .mw-reason.group      { --mw-tone: var(--info-text, #0d47a1);    --mw-tone-bg: var(--info-bg, #e3f2fd); }
@@ -185,22 +185,22 @@ function managerAccessRender(int $managerId, string $backUrl): void
         .mw-reason.everyone   { --mw-tone: var(--warning-text, #e65100); --mw-tone-bg: var(--warning-bg, #fff3e0); }
         /* The info boxes share a row. */
         .mw-boxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 12px; }
-        .mw-box { border-radius: 8px; padding: 10px 12px; margin: 0; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+        .mw-box { border-radius: 8px; padding: 10px 12px; margin: 0; display: flex; gap: 10px; align-items: flex-start; font-size: var(--font-size-md, 13px); line-height: 1.5; }
         .mw-box svg { width: 18px; height: 18px; flex: 0 0 18px; margin-top: 1px; }
         .mw-box strong { display: block; margin-bottom: 2px; }
         .mw-box.info { background: var(--info-bg, #e3f2fd); color: var(--info-text, #0d47a1); border: 1px solid var(--info-border, #90caf9); }
         .mw-box.warn { background: var(--warning-bg, #fff3e0); color: var(--warning-text, #e65100); border: 1px solid var(--warning-border, #ffcc80); }
-        .mw-fix-title { font-size: 13px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px; }
-        .mw-fix-note { font-size: 12px; color: var(--text-muted, #666); margin: 0 0 6px; }
+        .mw-fix-title { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); margin: 0 0 4px; }
+        .mw-fix-note { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 0 0 6px; }
         .mw-fix { display: flex; gap: 12px; align-items: center; padding: 7px 12px; border: 1px solid var(--border-soft, #eee); border-radius: 8px; margin-bottom: 6px; background: var(--surface, #fff); }
-        .mw-fix-num { flex: 0 0 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+        .mw-fix-num { flex: 0 0 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-sm, 12px); font-weight: 700;
             background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); border: 1px solid var(--success-border, #a5d6a7); }
-        .mw-fix-text { flex: 1; font-size: 13px; line-height: 1.4; color: var(--text-muted, #666); }
+        .mw-fix-text { flex: 1; font-size: var(--font-size-md, 13px); line-height: 1.4; color: var(--text-muted, #666); }
         .mw-fix-text strong { display: block; color: var(--text, #333); }
         /* Open, Remove, Exclude and Close: one size, whatever the word or element (Ed). */
-        .mw-fix .btn, #mwClose { flex: 0 0 auto; box-sizing: border-box; width: 96px; height: 34px; padding: 0 10px; font-size: 13px; line-height: 1;
+        .mw-fix .btn, #mwClose { flex: 0 0 auto; box-sizing: border-box; width: 96px; height: 34px; padding: 0 10px; font-size: var(--font-size-md, 13px); line-height: 1;
             display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-        .mw-gone { text-align: center; padding: 20px 10px; font-size: 14px; color: var(--success-text, #2e7d32); }
+        .mw-gone { text-align: center; padding: 20px 10px; font-size: var(--font-size-lg, 14px); color: var(--success-text, #2e7d32); }
         @media (max-width: 560px) {
             /* A phone has no room across: the grid collapses to one column. */
             .mw-grid { grid-template-columns: 1fr; }

@@ -86,7 +86,7 @@ function renderTenantSwitcher(PDO $conn, int $analystId): void {
             background: rgba(255,255,255,0.12);
             color: #fff; border: none; cursor: pointer;
             padding: 0 12px; border-radius: 4px;
-            font-size: 13px; font-weight: 600; font-family: inherit;
+            font-size: var(--font-size-md, 13px); font-weight: 600; font-family: inherit;
             transition: background 0.15s;
             max-width: 240px;
         }
@@ -108,33 +108,33 @@ function renderTenantSwitcher(PDO $conn, int $analystId): void {
         }
         .tenant-switcher-panel.active { display: block; }
         .tenant-switcher-head {
-            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase;
             letter-spacing: 0.04em; color: #999; padding: 8px 10px 4px;
         }
         .tenant-switcher-item {
             display: flex; align-items: center; justify-content: space-between;
             gap: 10px; width: 100%; text-align: left;
             padding: 9px 10px; border: none; background: none; cursor: pointer;
-            font-size: 13px; color: #333; border-radius: 6px;
+            font-size: var(--font-size-md, 13px); color: #333; border-radius: 6px;
         }
         .tenant-switcher-item:hover { background: #f5f5f5; }
         .tenant-switcher-item.current { background: #e8f4fd; font-weight: 600; }
         .tenant-switcher-item .ts-check { color: #0078d4; flex-shrink: 0; }
         .tenant-switcher-sep { height: 1px; background: #eee; margin: 6px 4px; }
         /* GH #358: the search box and its "Showing 10 of ..." line. */
-        .tenant-switcher-panel .ts-find { display: block; width: calc(100% - 8px); box-sizing: border-box; margin: 2px 4px 6px; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font: inherit; font-size: 13px; }
-        .tenant-switcher-panel .ts-more { padding: 4px 10px; color: var(--text-dim, #888); font-size: 12px; }
+        .tenant-switcher-panel .ts-find { display: block; width: calc(100% - 8px); box-sizing: border-box; margin: 2px 4px 6px; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font: inherit; font-size: var(--font-size-md, 13px); }
+        .tenant-switcher-panel .ts-more { padding: 4px 10px; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
         .tenant-switcher-panel .ts-more:empty { display: none; }
         .tenant-switcher-link {
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
             width: 100%; text-align: left; text-decoration: none;
-            padding: 9px 10px; border-radius: 6px; font-size: 13px; color: #333;
+            padding: 9px 10px; border-radius: 6px; font-size: var(--font-size-md, 13px); color: #333;
         }
         .tenant-switcher-link:hover { background: #f5f5f5; }
         .tenant-switcher-link .ts-triage-count {
             min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box;
             border-radius: 9px; background: #ef6c00; color: #fff;
-            font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+            font-size: var(--font-size-xs, 11px); font-weight: 700; line-height: 18px; text-align: center;
         }
     </style>
 

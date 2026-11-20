@@ -30,7 +30,7 @@
                 + (d.can_edit ? '<button type="button" class="ppl-btn ppl-btn-sm" data-unlink="' + esc(a.email) + '">' + esc(T('remove')) + '</button>' : '') + '</div>').join('');
         box.innerHTML = rows + (d.linked.length ? '' : '<div class="ppl-dim" style="margin:4px 0">' + esc(T('none')) + '</div>')
             + (d.can_edit ? '<div class="ppl-addr-add"><input type="email" maxlength="255" placeholder="' + esc(T('placeholder')) + '" autocomplete="off"><button type="button" class="ppl-btn">' + esc(T('link')) + '</button></div>'
-                + '<div class="ppl-dim" style="font-size:12px">' + esc(T('hint')) + '</div>' : '');
+                + '<div class="ppl-dim" style="font-size:var(--font-size-sm, 12px)">' + esc(T('hint')) + '</div>' : '');
         const hist = document.getElementById('pplHistory');
         if (hist) {
             hist.innerHTML = d.history.length

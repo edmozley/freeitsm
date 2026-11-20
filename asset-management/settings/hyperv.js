@@ -267,7 +267,7 @@
     };
 
     const style = document.createElement('style');
-    style.textContent = '.hv-pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600}'
+    style.textContent = '.hv-pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:var(--font-size-sm, 12px);font-weight:600}'
         + '.hv-ok{background:var(--success-bg,#dcfce7);color:var(--success-text,#15803d)}.hv-warn{background:var(--warning-bg,#fef3c7);color:var(--warning-text,#a16207)}'
         + '.hv-link,#hyperv-tab a{color:var(--accent,#0078d4)}.hv-bad{background:var(--danger-bg,#fee2e2);color:var(--danger-text,#b91c1c)}.hv-muted{background:var(--surface-hover,#f3f4f6);color:var(--text-muted,#666)}';
     document.head.appendChild(style);

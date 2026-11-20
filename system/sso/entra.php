@@ -108,28 +108,28 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         @media (min-width: 701px) { .prov-wrap.sys-page { padding-bottom: 0; } }
         .prov-card { background: var(--surface, #fff); border-radius: 8px; padding: 22px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
         .fld { margin-bottom: 18px; }
-        .fld label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
-        .fld .hint, .hint { font-size: 12px; color: var(--text-dim, #888); margin-bottom: 6px; line-height: 1.5; }
+        .fld label { display: block; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
+        .fld .hint, .hint { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-bottom: 6px; line-height: 1.5; }
         .fld input[type=text], .fld input[type=password], .fld input[type=number], .fld select {
-            width: 100%; box-sizing: border-box; padding: 9px 11px; font-size: 13px;
+            width: 100%; box-sizing: border-box; padding: 9px 11px; font-size: var(--font-size-md, 13px);
             border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
         .fld-row { display: flex; gap: 10px; flex-wrap: wrap; }
         .fld-row > * { flex: 1; min-width: 160px; }
-        .chk { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text, #333); font-weight: 600; }
+        .chk { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-md, 13px); color: var(--text, #333); font-weight: 600; }
         .chk input { width: auto; }
-        .radio { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text, #333); margin: 6px 0; cursor: pointer; }
+        .radio { display: flex; align-items: flex-start; gap: 8px; font-size: var(--font-size-md, 13px); color: var(--text, #333); margin: 6px 0; cursor: pointer; }
         .radio input { margin-top: 2px; }
-        .result { margin-top: 8px; font-size: 12px; padding: 9px 11px; border-radius: 6px; display: none; white-space: pre-wrap; line-height: 1.5; }
+        .result { margin-top: 8px; font-size: var(--font-size-sm, 12px); padding: 9px 11px; border-radius: 6px; display: none; white-space: pre-wrap; line-height: 1.5; }
         .result.ok   { display: block; background: #e8f5e9; color: #2e7d32; }
         .result.err  { display: block; background: #ffebee; color: #c62828; }
         .result.warn { display: block; background: #fff4ce; color: #6b5900; }
         [data-theme-mode="dark"] .result.ok   { background: #16331f; color: #86efac; }
         [data-theme-mode="dark"] .result.err  { background: #3a1b1e; color: #fca5a5; }
         [data-theme-mode="dark"] .result.warn { background: #3a3218; color: #fde68a; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-size: var(--font-size-md, 13px); font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-test { background: var(--surface, #fff); color: var(--sys-accent, #546e7a); border: 1px solid var(--border, #cfd8dc); }
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-sm { padding: 6px 12px; font-size: var(--font-size-sm, 12px); }
         .btn:disabled { opacity: .5; cursor: not-allowed; }
         .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
         .save-bar { position: sticky; bottom: 0; z-index: 5; margin: 20px -32px 0; padding: 14px 32px; background: var(--app-bg, #f5f5f5);
@@ -147,14 +147,14 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         /* The group picker: what is chosen, then a search to choose more. */
         .picker { border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 10px; background: var(--surface, #fff); margin-top: 8px; }
         .chosen { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-        .gchip { display: inline-flex; align-items: center; gap: 6px; background: var(--app-bg, #eef1f3); border-radius: 14px; padding: 4px 6px 4px 12px; font-size: 12px; color: var(--text, #333); }
+        .gchip { display: inline-flex; align-items: center; gap: 6px; background: var(--app-bg, #eef1f3); border-radius: 14px; padding: 4px 6px 4px 12px; font-size: var(--font-size-sm, 12px); color: var(--text, #333); }
         .gchip.missing { background: #ffebee; color: #c62828; }
-        .gchip button { border: none; background: none; cursor: pointer; color: inherit; font-size: 14px; line-height: 1; padding: 0 4px; }
+        .gchip button { border: none; background: none; cursor: pointer; color: inherit; font-size: var(--font-size-lg, 14px); line-height: 1; padding: 0 4px; }
         .picker-results { max-height: 260px; overflow-y: auto; margin-top: 8px; }
         .picker-row { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: 12.5px; }
         .picker-row .nm { flex: 1 1 auto; color: var(--text, #333); }
         .picker-row .nm small { display: block; color: var(--text-dim, #999); }
-        .kind { font-size: 11px; color: var(--text-dim, #888); white-space: nowrap; }
+        .kind { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); white-space: nowrap; }
         table.runs, table.people { width: 100%; border-collapse: collapse; font-size: 12.5px; }
         table.runs th, table.people th { text-align: left; padding: 7px 9px; color: var(--text-dim, #888); font-weight: 600; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
         table.runs td, table.people td { padding: 7px 9px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); vertical-align: top; }
@@ -163,7 +163,7 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         td.run-msg { white-space: normal; color: var(--text-muted, #666); font-size: 11.5px; padding-bottom: 12px; }
         table.runs tbody tr.clickable { cursor: pointer; }
         table.runs tbody tr.clickable:hover td { background: var(--surface-hover, rgba(127,127,127,0.07)); }
-        .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+        .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 700; }
         .pill.ok { background: #e8f5e9; color: #2e7d32; }
         .pill.stopped { background: #fff4ce; color: #6b5900; }
         .pill.failed, .pill.running, .pill.off { background: #ffebee; color: #c62828; }
@@ -177,7 +177,7 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         /* Full-bleed sticky bar: the negative margin undoes the standard body's
            24px padding so the bar still runs edge to edge and sticks to the top. */
         .run-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: -24px -24px 0; padding: 12px 24px; border-bottom: 1px solid var(--border-soft, #f0f0f0); position: sticky; top: -24px; background: var(--surface, #fff); z-index: 2; }
-        .chip { border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text-muted, #555); border-radius: 20px; padding: 5px 13px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .chip { border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text-muted, #555); border-radius: 20px; padding: 5px 13px; font-size: var(--font-size-sm, 12px); font-weight: 600; cursor: pointer; }
         .chip.on { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border-color: var(--sys-accent, #546e7a); }
         .chip .n { opacity: .7; margin-left: 5px; font-weight: 400; }
         .run-search { margin-left: auto; flex: 0 1 240px; padding: 7px 11px; font-size: 12.5px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
@@ -190,11 +190,11 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         .act.group_leave { background: #fce4ec; color: #ad1457; }
         .act.deactivate, .act.skip, .act.unchanged { background: var(--app-bg, #eee); color: var(--text-dim, #777); }
         .act.conflict, .act.error { background: #ffebee; color: #c62828; }
-        .run-empty { padding: 40px 24px; text-align: center; color: var(--text-dim, #999); font-size: 13px; }
+        .run-empty { padding: 40px 24px; text-align: center; color: var(--text-dim, #999); font-size: var(--font-size-md, 13px); }
         .preview-banner { background: #fff4ce; color: #6b5900; padding: 10px 24px; font-size: 12.5px; font-weight: 600; }
         [data-theme-mode="dark"] .preview-banner { background: #3a3218; color: #fde68a; }
         /* The field mapping table - the same look as the LDAP provider's (provider.php). */
-        table.map { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        table.map { width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px); table-layout: fixed; }
         table.map th, table.map td { text-align: left; padding: 8px 10px; vertical-align: top; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
         table.map thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); border-bottom: 1px solid var(--border, #e0e0e0); }
         table.map tbody th { font-weight: 600; color: var(--text, #333); }
@@ -209,12 +209,12 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         td.map-sample.missing { color: #c62828; font-style: italic; }
         [data-theme-mode="dark"] td.map-sample.filled { color: #86efac; }
         [data-theme-mode="dark"] td.map-sample.missing { color: #fca5a5; }
-        .avail { margin-top: 12px; font-size: 12px; color: var(--text-dim, #888); }
+        .avail { margin-top: 12px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); }
         .avail summary { cursor: pointer; font-weight: 600; color: var(--sys-accent, #546e7a); }
         .avail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 3px 18px; margin-top: 10px; }
         .avail-grid code { font-family: ui-monospace, Consolas, monospace; color: var(--text, #444); }
         .avail-grid span { color: var(--text-dim, #999); }
-        .back-link { font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; }
+        .back-link { font-size: var(--font-size-md, 13px); color: var(--sys-accent, #546e7a); text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
         @media (max-width: 700px) { .prov-wrap.sys-page { padding: 14px 12px 50px; } }
     </style>

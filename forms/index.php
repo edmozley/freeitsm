@@ -77,7 +77,7 @@ $translationNamespaces = ['common', 'forms'];
             padding: 8px 12px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             min-width: 260px;
             background: var(--surface, #fff);
             color: var(--text, #333);
@@ -89,7 +89,7 @@ $translationNamespaces = ['common', 'forms'];
             padding: 9px 16px;
             border: none;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             font-weight: 500;
             cursor: pointer;
             text-decoration: none;
@@ -119,7 +119,7 @@ $translationNamespaces = ['common', 'forms'];
         .forms-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .forms-table thead th {
             position: sticky;
@@ -130,7 +130,7 @@ $translationNamespaces = ['common', 'forms'];
             color: var(--text-muted, #666);
             padding: 12px 14px;
             border-bottom: 1px solid var(--border, #e0e0e0);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             text-transform: uppercase;
             letter-spacing: 0.3px;
             cursor: pointer;
@@ -162,12 +162,12 @@ $translationNamespaces = ['common', 'forms'];
         .forms-table td.col-title strong {
             display: block;
             color: var(--text, #111);
-            font-size: 14px;
+            font-size: var(--font-size-lg, 14px);
         }
         .forms-table td.col-title small {
             display: block;
             color: var(--text-dim, #888);
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             margin-top: 2px;
             max-width: 480px;
             overflow: hidden;
@@ -197,12 +197,12 @@ $translationNamespaces = ['common', 'forms'];
             display: inline-block;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             font-weight: 600;
         }
         .ft-pill.active    { background: var(--forms-accent-soft, #e0f2f1); color: var(--forms-accent-hover, #00695c); }
         .ft-pill.inactive  { background: var(--surface-2, #fafafa); color: var(--text-faint, #999); }
-        .ft-pill.version   { background: var(--forms-accent, #00897b); color: white; font-size: 11px; }
+        .ft-pill.version   { background: var(--forms-accent, #00897b); color: white; font-size: var(--font-size-xs, 11px); }
 
         /* Icon-only row actions — matches the canonical settings table
            pattern from #401 / #403 / etc. */
@@ -239,11 +239,11 @@ $translationNamespaces = ['common', 'forms'];
             color: var(--text-muted, #555);
             font-weight: 600;
             margin: 0 0 6px;
-            font-size: 16px;
+            font-size: var(--font-size-xl, 16px);
         }
         .forms-empty p {
             margin: 0 0 16px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
         }
 
         /* Delete confirmation overlay */
@@ -265,7 +265,7 @@ $translationNamespaces = ['common', 'forms'];
             box-shadow: 0 10px 40px rgba(0,0,0,0.25);
         }
         .confirm-box h3 { margin: 0 0 8px; font-size: 17px; color: var(--text, #333); }
-        .confirm-box p { margin: 0 0 18px; color: var(--text-muted, #666); font-size: 14px; line-height: 1.5; }
+        .confirm-box p { margin: 0 0 18px; color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); line-height: 1.5; }
         .confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
     </style>
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
@@ -312,22 +312,22 @@ $translationNamespaces = ['common', 'forms'];
         .ca-modal-box { background: var(--surface, #fff); color: var(--text, #333); border-radius: 8px; width: 90%; max-width: 480px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); overflow: hidden; }
         .ca-modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border, #e0e0e0); font-size: 17px; font-weight: 600; }
         .ca-modal-body { padding: 20px 22px; }
-        .ca-modal-intro { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); }
-        .ca-check { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 500; cursor: pointer; }
+        .ca-modal-intro { margin: 0 0 16px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); }
+        .ca-check { display: flex; align-items: center; gap: 9px; font-size: var(--font-size-lg, 14px); font-weight: 500; cursor: pointer; }
         .ca-check input { width: auto; margin: 0; }
         .ca-field { margin-top: 16px; }
-        .ca-field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
-        .ca-field select { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
-        .ca-hint { display: block; margin-top: 6px; font-size: 12px; color: var(--text-faint, #999); }
+        .ca-field label { display: block; margin-bottom: 6px; font-size: var(--font-size-md, 13px); font-weight: 500; }
+        .ca-field select { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
+        .ca-hint { display: block; margin-top: 6px; font-size: var(--font-size-sm, 12px); color: var(--text-faint, #999); }
         /* Who decides (GH #220): the person / team choice, and the team's two numbers. */
         .ca-field .ca-check { display: flex; margin-bottom: 0; font-weight: 400; }
         .ca-mode { display: flex; gap: 22px; }
         .ca-numbers { display: flex; gap: 14px; margin-top: 12px; }
         .ca-numbers label { flex: 1; }
-        .ca-numbers input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .ca-numbers input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .ca-note { margin: 14px 0 0; padding: 9px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
         .ca-modal-footer { padding: 14px 22px; border-top: 1px solid var(--border, #e0e0e0); display: flex; gap: 10px; justify-content: flex-end; }
-        .ca-btn { padding: 9px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .ca-btn { padding: 9px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: var(--font-size-md, 13px); font-weight: 500; }
         .ca-btn-secondary { background: var(--surface-2, #eee); color: var(--text, #333); border: 1px solid var(--border, #ddd); }
         .ca-btn-primary { background: var(--accent, #0078d4); color: var(--on-accent, #fff); }
         .ca-btn:disabled { opacity: 0.5; cursor: not-allowed; }

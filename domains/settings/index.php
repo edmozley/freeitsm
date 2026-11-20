@@ -56,15 +56,15 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
         .set-row { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--border-soft, #eee); }
         .set-row:last-of-type { border-bottom: none; }
-        .set-row .lbl { font-weight: 600; font-size: 14px; color: var(--text, #333); }
+        .set-row .lbl { font-weight: 600; font-size: var(--font-size-lg, 14px); color: var(--text, #333); }
         .set-row .desc { font-size: 12.5px; color: var(--text-dim, #888); margin-top: 4px; line-height: 1.5; }
         .set-row select, .set-row input[type="text"], .set-row input[type="number"], .set-row textarea {
-            padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 14px; width: 100%; max-width: 460px;
+            padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-lg, 14px); width: 100%; max-width: 460px;
             background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; font-family: inherit;
         }
         .set-row .dflt { font-size: 11.5px; color: var(--text-dim, #999); margin-top: 5px; }
         .set-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
-        .set-box { background: var(--surface-2, #f8fafc); border: 1px solid var(--border-soft, #e5e7eb); border-radius: 8px; padding: 14px 16px; font-size: 13px; margin: 6px 0 16px; line-height: 1.55; }
+        .set-box { background: var(--surface-2, #f8fafc); border: 1px solid var(--border-soft, #e5e7eb); border-radius: 8px; padding: 14px 16px; font-size: var(--font-size-md, 13px); margin: 6px 0 16px; line-height: 1.55; }
         .set-box code { word-break: break-all; }
         .st-list .action-btn { background: none; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); cursor: pointer; padding: 6px; margin-right: 4px; border-radius: 4px; display: inline-flex; }
         .st-list .action-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -84,7 +84,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         <?php if (settingsTabVisible($visibleTabs, 'statuses')): ?>
         <div class="tab-content<?php echo $activeTabId === 'statuses' ? ' active' : ''; ?>" id="statuses-tab" data-capability="<?php echo capKey(Cap::DOMAINS_STATUSES); ?>">
             <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                <div><h2 style="margin:0;font-size:18px"><?php echo $tt('statuses_title'); ?></h2><div class="dom-hint" style="font-size:13px"><?php echo $tt('statuses_intro'); ?></div></div>
+                <div><h2 style="margin:0;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('statuses_title'); ?></h2><div class="dom-hint" style="font-size:var(--font-size-md, 13px)"><?php echo $tt('statuses_intro'); ?></div></div>
                 <button type="button" class="dom-btn primary" id="stAdd"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <table class="st-list"><thead><tr>
@@ -96,7 +96,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         <?php if (settingsTabVisible($visibleTabs, 'cert-types')): ?>
         <div class="tab-content<?php echo $activeTabId === 'cert-types' ? ' active' : ''; ?>" id="cert-types-tab" data-capability="<?php echo capKey(Cap::DOMAINS_CERT_TYPES); ?>">
             <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                <div><h2 style="margin:0;font-size:18px"><?php echo $tt('ct_title'); ?></h2><div class="dom-hint" style="font-size:13px"><?php echo $tt('ct_intro'); ?></div></div>
+                <div><h2 style="margin:0;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('ct_title'); ?></h2><div class="dom-hint" style="font-size:var(--font-size-md, 13px)"><?php echo $tt('ct_intro'); ?></div></div>
                 <button type="button" class="dom-btn primary" id="ctAdd"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <table class="st-list"><thead><tr>
@@ -107,7 +107,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
 
         <?php if (settingsTabVisible($visibleTabs, 'alerts')): ?>
         <div class="tab-content<?php echo $activeTabId === 'alerts' ? ' active' : ''; ?>" id="alerts-tab" data-capability="<?php echo capKey(Cap::DOMAINS_ALERTS); ?>" data-settings-tab="alerts">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('alerts_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('alerts_title'); ?></h2>
             <div class="set-box" id="alertsState"></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('alerts_enabled'); ?></div><div class="desc"><?php echo $tt('alerts_enabled_desc'); ?></div></div>
                 <div><label class="toggle-label"><span class="toggle-switch"><input type="checkbox" data-k="domain_alerts_enabled"><span class="toggle-slider"></span></span></label><div class="dflt" data-d="domain_alerts_enabled"></div></div></div>
@@ -150,14 +150,14 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
             <div class="set-actions">
                 <button type="button" class="dom-btn primary" data-save="alerts"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 <button type="button" class="dom-btn" id="btnPreview"><?php echo $tt('preview'); ?></button>
-                <span id="previewOut" class="dom-hint" style="font-size:13px"></span>
+                <span id="previewOut" class="dom-hint" style="font-size:var(--font-size-md, 13px)"></span>
             </div>
         </div>
         <?php endif; ?>
 
         <?php if (settingsTabVisible($visibleTabs, 'monitoring')): ?>
         <div class="tab-content<?php echo $activeTabId === 'monitoring' ? ' active' : ''; ?>" id="monitoring-tab" data-capability="<?php echo capKey(Cap::DOMAINS_MONITORING); ?>" data-settings-tab="monitoring">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('monitoring_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('monitoring_title'); ?></h2>
             <div class="set-box" id="schedState"></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('lookup_mode'); ?></div><div class="desc"><?php echo $tt('lookup_mode_desc'); ?></div></div>
                 <div><select data-k="domain_lookup_mode">
@@ -191,7 +191,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
             <div class="set-actions">
                 <button type="button" class="dom-btn primary" data-save="monitoring"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 <button type="button" class="dom-btn" id="btnRunNow"><?php echo $tt('run_now'); ?></button>
-                <span id="runOut" class="dom-hint" style="font-size:13px"></span>
+                <span id="runOut" class="dom-hint" style="font-size:var(--font-size-md, 13px)"></span>
             </div>
         </div>
         <?php endif; ?>
@@ -202,7 +202,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
             try { $ssLevels = connectToDatabase()->query("SELECT id, name FROM service_impact_levels WHERE is_active = 1 ORDER BY severity_order, display_order, id")->fetchAll(PDO::FETCH_ASSOC); } catch (Throwable $e) {}
         ?>
         <div class="tab-content<?php echo $activeTabId === 'service-status' ? ' active' : ''; ?>" id="service-status-tab" data-capability="<?php echo capKey(Cap::DOMAINS_SERVICE_STATUS); ?>" data-settings-tab="service-status">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('ss_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('ss_title'); ?></h2>
             <div class="set-box"><?php echo $tt('ss_intro'); ?></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('ss_mode'); ?></div><div class="desc"><?php echo $tt('ss_mode_desc'); ?></div></div>
                 <div><select data-k="domain_status_mode">
@@ -231,7 +231,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         <?php /* GH #203 slice 2: where FreeITSM may connect to check internal certificates. The ticks
                  and the "other" boxes are folded into the two hidden settings before saving. */ ?>
         <div class="tab-content<?php echo $activeTabId === 'internal' ? ' active' : ''; ?>" id="internal-tab" data-capability="<?php echo capKey(Cap::DOMAINS_INTERNAL); ?>" data-settings-tab="internal">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('internal_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('internal_title'); ?></h2>
             <div class="set-box"><?php echo $tt('internal_intro'); ?></div>
             <input type="hidden" data-k="domain_internal_networks" id="intNetworks">
             <input type="hidden" data-k="domain_internal_ports" id="intPorts">
@@ -240,7 +240,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
                     <?php foreach (['10.0.0.0/8' => 'net_10', '172.16.0.0/12' => 'net_172', '192.168.0.0/16' => 'net_192', 'fc00::/7' => 'net_fc'] as $cidr => $key): ?>
                     <label style="display:block;margin:2px 0"><input type="checkbox" class="int-net" value="<?php echo htmlspecialchars($cidr); ?>"> <?php echo $tt($key); ?></label>
                     <?php endforeach; ?>
-                    <label for="intNetOther" style="display:block;margin-top:8px;font-size:13px"><?php echo $tt('networks_other'); ?></label>
+                    <label for="intNetOther" style="display:block;margin-top:8px;font-size:var(--font-size-md, 13px)"><?php echo $tt('networks_other'); ?></label>
                     <textarea id="intNetOther" rows="2" style="width:100%;max-width:320px" placeholder="<?php echo htmlspecialchars(t('domains.settings.networks_other_ph')); ?>"></textarea>
                 </div></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('ports'); ?></div><div class="desc"><?php echo $tt('ports_desc'); ?></div></div>
@@ -248,13 +248,13 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
                     <?php foreach (DOMAIN_COMMON_TLS_PORTS as $p): ?>
                     <label style="display:block;margin:2px 0"><input type="checkbox" class="int-port" value="<?php echo $p; ?>"> <?php echo $tt('port_' . $p); ?></label>
                     <?php endforeach; ?>
-                    <label for="intPortOther" style="display:block;margin-top:8px;font-size:13px"><?php echo $tt('ports_other'); ?></label>
+                    <label for="intPortOther" style="display:block;margin-top:8px;font-size:var(--font-size-md, 13px)"><?php echo $tt('ports_other'); ?></label>
                     <input type="text" id="intPortOther" style="width:160px" placeholder="<?php echo htmlspecialchars(t('domains.settings.ports_other_ph')); ?>">
                     <div class="dflt" data-d="domain_internal_ports"></div>
                 </div></div>
             <div class="set-actions"><button type="button" class="dom-btn primary" data-save="internal"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
 
-            <h2 style="margin:28px 0 4px;font-size:18px"><?php echo $tt('tp_title'); ?></h2>
+            <h2 style="margin:28px 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('tp_title'); ?></h2>
             <p class="dom-hint" style="margin:0 0 10px"><?php echo $tt('tp_intro'); ?></p>
             <div style="margin-bottom:10px"><button type="button" class="dom-btn" id="tpAdd"><?php echo $tt('tp_add'); ?></button></div>
             <table class="st-list"><thead><tr>
@@ -265,7 +265,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
 
         <?php if (settingsTabVisible($visibleTabs, 'auth-codes')): ?>
         <div class="tab-content<?php echo $activeTabId === 'auth-codes' ? ' active' : ''; ?>" id="auth-codes-tab" data-capability="<?php echo capKey(Cap::DOMAINS_AUTH_CODES); ?>" data-settings-tab="auth-codes">
-            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('codes_title'); ?></h2>
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('codes_title'); ?></h2>
             <div class="set-box"><?php echo $tt('codes_intro'); ?></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('code_audit'); ?></div><div class="desc"><?php echo $tt('code_audit_desc'); ?></div></div>
                 <div><label class="toggle-label"><span class="toggle-switch"><input type="checkbox" data-k="domain_auth_code_audit"><span class="toggle-slider"></span></span></label><div class="dflt" data-d="domain_auth_code_audit"></div></div></div>
@@ -299,7 +299,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
             <div class="modal-body">
                 <div class="form-group"><label for="tpName"><?php echo $tt('tp_name'); ?></label><input type="text" id="tpName" maxlength="100"></div>
                 <div class="form-group"><label for="tpPem"><?php echo $tt('tp_pem'); ?></label>
-                    <textarea id="tpPem" rows="10" style="width:100%;font-family:monospace;font-size:12px" placeholder="<?php echo htmlspecialchars(t('domains.settings.tp_pem_ph')); ?>" spellcheck="false"></textarea>
+                    <textarea id="tpPem" rows="10" style="width:100%;font-family:monospace;font-size:var(--font-size-sm, 12px)" placeholder="<?php echo htmlspecialchars(t('domains.settings.tp_pem_ph')); ?>" spellcheck="false"></textarea>
                     <div class="dom-hint"><?php echo $tt('tp_pem_hint'); ?></div></div>
             </div>
             <div class="modal-footer">

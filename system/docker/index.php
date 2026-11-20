@@ -91,7 +91,7 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
             padding: 24px;
             box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
             margin-bottom: 24px;
-            font-size: 13px;
+            font-size: var(--font-size-md, 13px);
             color: var(--text-muted, #555);
             line-height: 1.6;
         }
@@ -105,7 +105,7 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
 
         code, .code-block {
             font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 12px;
+            font-size: var(--font-size-sm, 12px);
             background: var(--surface-hover, #f0f0f0);
             border-radius: 3px;
         }
@@ -121,11 +121,11 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         .status-card.is-on      { border-left-color: #107c10; }
         .status-card.is-restart { border-left-color: #ca5010; }
         .status-card.is-off     { border-left-color: #90a4ae; }
-        .status-title { font-size: 16px; font-weight: 600; color: var(--text, #333); margin-bottom: 6px; }
+        .status-title { font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); margin-bottom: 6px; }
 
         .notice {
             border-radius: 6px; padding: 14px 16px; margin-bottom: 24px;
-            font-size: 13px; line-height: 1.6;
+            font-size: var(--font-size-md, 13px); line-height: 1.6;
             background: #fff8e1; border: 1px solid #ffe082; color: #6d4c00;
         }
         .notice strong { display: block; margin-bottom: 4px; }
@@ -135,13 +135,13 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         .tls-field label { display: block; font-weight: 600; color: var(--text, #333); margin-bottom: 6px; }
         .tls-field input {
             width: 100%; max-width: 360px; box-sizing: border-box;
-            padding: 9px 12px; font-size: 14px;
+            padding: 9px 12px; font-size: var(--font-size-lg, 14px);
             border: 1px solid var(--border, #ccc); border-radius: 6px;
             background: var(--surface, #fff); color: var(--text, #333);
         }
         .tls-field input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
-        .form-help { font-size: 12px; color: var(--text-dim, #888); margin-top: 5px; }
-        .form-warn { font-size: 12px; color: #b45309; margin-top: 5px; display: none; }
+        .form-help { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 5px; }
+        .form-warn { font-size: var(--font-size-sm, 12px); color: #b45309; margin-top: 5px; display: none; }
         .form-error { color: #d32f2f; margin-top: 10px; display: none; }
 
         /* Behind a reverse proxy (GH #410). The danger box is always shown: the point is
@@ -156,13 +156,13 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         .proxy-result p { margin: 0 0 8px; }
         .proxy-result p:last-child { margin-bottom: 0; }
         .proxy-result .proxy-ip { font-family: 'Consolas', 'Courier New', monospace; font-weight: 600; }
-        .proxy-headers { font-size: 12px; color: var(--text-muted, #555); }
+        .proxy-headers { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #555); }
         :root[data-theme="dark"] .notice.is-danger, :root[data-theme-mode="dark"] .notice.is-danger { background: #3b1715; border-color: #6b2a25; color: #f6c7c3; }
 
         .btn {
             display: inline-flex; align-items: center; gap: 8px;
             padding: 10px 20px; border-radius: 6px;
-            font-size: 13px; font-weight: 600;
+            font-size: var(--font-size-md, 13px); font-weight: 600;
             border: none; cursor: pointer; text-decoration: none;
         }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
@@ -179,11 +179,11 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
             position: absolute; left: 0; top: 0;
             width: 26px; height: 26px; border-radius: 50%;
             background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff);
-            font-weight: 700; font-size: 13px;
+            font-weight: 700; font-size: var(--font-size-md, 13px);
             display: flex; align-items: center; justify-content: center;
         }
         .steps > li.is-done::before { content: '\2713'; background: #107c10; color: #fff; }
-        .step-title { font-weight: 600; color: var(--text, #333); margin-bottom: 4px; font-size: 14px; }
+        .step-title { font-weight: 600; color: var(--text, #333); margin-bottom: 4px; font-size: var(--font-size-lg, 14px); }
         .steps ul { margin: 6px 0 10px; padding-left: 18px; }
         .steps ul li { margin-bottom: 6px; }
         .steps a:not(.btn) { color: var(--sys-accent, #546e7a); font-weight: 600; }

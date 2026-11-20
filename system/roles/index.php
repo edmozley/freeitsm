@@ -72,14 +72,14 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
         /* Capability + assignment pickers inside the modal. Box, head, body and
            footer: the System modal (system-page.css). */
         .rl-section { margin-top: 18px; }
-        .rl-section > h4 { margin: 0 0 4px; font-size: 13px; }
-        .rl-section > p { margin: 0 0 10px; font-size: 12px; color: var(--text-muted, #6b7280); line-height: 1.5; }
+        .rl-section > h4 { margin: 0 0 4px; font-size: var(--font-size-md, 13px); }
+        .rl-section > p { margin: 0 0 10px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); line-height: 1.5; }
         .rl-cap-group { border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; background: var(--surface, #fff); }
-        .rl-cap-group h5 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim, #9aa); }
+        .rl-cap-group h5 { margin: 0 0 8px; font-size: var(--font-size-sm, 12px); text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim, #9aa); }
         .rl-check { display: flex; align-items: flex-start; gap: 9px; padding: 5px 0; font-size: 13.5px; color: var(--text, #374151); line-height: 1.45; }
         .rl-check input { margin-top: 2px; flex-shrink: 0; }
         /* The umbrella ("manage everything in this module") reads as the headline choice. */
-        .rl-cap-subhead { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted, #6b7280); margin: 8px 0 2px; }
+        .rl-cap-subhead { font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted, #6b7280); margin: 8px 0 2px; }
         .rl-cap-umbrella { font-weight: 600; padding-bottom: 7px; margin-bottom: 3px; border-bottom: 1px dashed var(--border, #e5e7eb); }
         /* Sensitive = reaches credentials, email or money. Badge it; granting it should make you pause. */
         .rl-cap-sensitive { display: inline-block; margin-left: 5px; padding: 1px 6px; border-radius: 9px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; vertical-align: 1px;

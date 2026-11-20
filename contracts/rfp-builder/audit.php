@@ -40,7 +40,7 @@ $translationNamespaces = ['common', 'contracts'];
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb { font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); margin-bottom: 8px; }
         .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
         .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
         .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
@@ -53,7 +53,7 @@ $translationNamespaces = ['common', 'contracts'];
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; font-size: 14px; font-weight: 500;
+            padding: 8px 16px; font-size: var(--font-size-lg, 14px); font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
@@ -76,8 +76,8 @@ $translationNamespaces = ['common', 'contracts'];
         .stat-card.tin    { border-left-color: #3b82f6; }
         .stat-card.tout   { border-left-color: #8b5cf6; }
         .stat-card.cache  { border-left-color: #f59e0b; }
-        .stat-card .stat-value { font-size: 18px; font-weight: 700; color: var(--text, #222); line-height: 1; font-variant-numeric: tabular-nums; }
-        .stat-card .stat-label { font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 5px; }
+        .stat-card .stat-value { font-size: var(--font-size-2xl, 18px); font-weight: 700; color: var(--text, #222); line-height: 1; font-variant-numeric: tabular-nums; }
+        .stat-card .stat-label { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 5px; }
 
         .filter-card {
             background: var(--surface, #fff); border-radius: 10px; padding: 12px 18px;
@@ -86,21 +86,21 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .filter-card .field { display: flex; flex-direction: column; }
         .filter-card label {
-            font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
+            font-size: var(--font-size-xs, 11px); font-weight: 600; color: var(--text-muted, #555);
             margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .filter-card select, .filter-card input[type="text"] {
-            padding: 6px 10px; font-size: 13px;
+            padding: 6px 10px; font-size: var(--font-size-md, 13px);
             border: 1px solid var(--border, #d1d5db); border-radius: 5px;
             font-family: inherit; min-width: 160px;
         }
         .filter-card .clear-link {
-            font-size: 13px; color: var(--text-dim, #888); cursor: pointer;
+            font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); cursor: pointer;
             padding: 8px 0;
         }
         .filter-card .clear-link:hover { color: var(--con-accent, #f59e0b); }
         .filter-card .row-count {
-            font-size: 12px; color: var(--text-muted, #666);
+            font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666);
             margin-left: auto;
         }
 
@@ -109,12 +109,12 @@ $translationNamespaces = ['common', 'contracts'];
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
         }
         .audit-table {
-            width: 100%; border-collapse: collapse; font-size: 13px;
+            width: 100%; border-collapse: collapse; font-size: var(--font-size-md, 13px);
         }
         .audit-table thead th {
             text-align: left; padding: 10px 14px; font-weight: 600;
             color: var(--text-dim, #888); border-bottom: 1px solid var(--border-soft, #eee);
-            text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;
+            text-transform: uppercase; font-size: var(--font-size-xs, 11px); letter-spacing: 0.5px;
             background: var(--surface-2, #fafbfc);
             position: sticky; top: 0;
         }
@@ -126,22 +126,22 @@ $translationNamespaces = ['common', 'contracts'];
         .audit-table .num { text-align: right; font-variant-numeric: tabular-nums; }
         .audit-table .target em { color: var(--text-dim, #999); font-style: normal; }
         .audit-table .err {
-            color: #b91c1c; font-size: 12px; margin-top: 3px;
+            color: #b91c1c; font-size: var(--font-size-sm, 12px); margin-top: 3px;
             white-space: normal; overflow-wrap: anywhere;
         }
         .status-pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .status-pill.success { background: #d1fae5; color: #065f46; }
         .status-pill.error   { background: #fee2e2; color: #991b1b; }
         .action-pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
             background: var(--surface-3, #e5e7eb); color: var(--text-muted, #374151);
-            font-size: 11px; font-weight: 500;
+            font-size: var(--font-size-xs, 11px); font-weight: 500;
         }
         .empty-state {
-            padding: 40px; text-align: center; color: var(--text-dim, #999); font-size: 13px;
+            padding: 40px; text-align: center; color: var(--text-dim, #999); font-size: var(--font-size-md, 13px);
         }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->

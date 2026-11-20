@@ -63,7 +63,7 @@ $translationNamespaces = ['common', 'watchtower'];
         }
         .wt-help-card-diagram-left { display: flex; align-items: center; gap: 8px; }
         .wt-help-card-diagram-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--accent); }
-        .wt-help-card-diagram-name { font-size: 13px; font-weight: 600; color: var(--text, #334155); }
+        .wt-help-card-diagram-name { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #334155); }
         .wt-help-card-diagram-dot {
             width: 10px;
             height: 10px;
@@ -74,7 +74,7 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-card-diagram-body { padding: 10px 14px 14px; }
         .wt-help-card-diagram-metrics { display: flex; gap: 16px; margin-bottom: 8px; }
         .wt-help-card-diagram-metric { text-align: center; }
-        .wt-help-card-diagram-metric-value { font-size: 18px; font-weight: 700; color: var(--text, #334155); }
+        .wt-help-card-diagram-metric-value { font-size: var(--font-size-2xl, 18px); font-weight: 700; color: var(--text, #334155); }
         .wt-help-card-diagram-metric-label { font-size: 10px; color: var(--text-dim, #94a3b8); text-transform: uppercase; }
         .wt-help-card-diagram-attention {
             display: flex;
@@ -82,15 +82,15 @@ $translationNamespaces = ['common', 'watchtower'];
             gap: 6px;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: var(--font-size-xs, 11px);
             background: var(--success-bg, #f0fdf4);
             color: var(--success-text, #166534);
         }
         .wt-help-card-diagram-attention-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--success-accent, #22c55e); }
 
         /* The worked examples under each status card. */
-        .wt-help-status-examples { font-size: 12px; color: var(--text-dim, #888); font-style: italic; margin-top: 6px; }
-        .wt-help-module-triggers { font-size: 12px; color: var(--text-dim, #888); margin-top: 6px; }
+        .wt-help-status-examples { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); font-style: italic; margin-top: 6px; }
+        .wt-help-module-triggers { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #888); margin-top: 6px; }
 
         /* The green/amber/red dots carry the meaning the section is about, so
            they keep their colour — from the theme's semantic tokens. */

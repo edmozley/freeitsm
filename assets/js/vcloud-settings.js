@@ -40,9 +40,9 @@
             body.innerHTML = servers.map(s => `
                 <tr>
                     <td><strong>${escapeHtml(s.name)}</strong>${s.is_active ? '' : ` <span class="status-badge status-inactive">${escapeHtml(T('inactive'))}</span>`}</td>
-                    <td><code style="font-size:12px;">${escapeHtml(s.host)}</code></td>
+                    <td><code style="font-size:var(--font-size-sm, 12px);">${escapeHtml(s.host)}</code></td>
                     <td>${s.last_sync_datetime ? escapeHtml(s.last_sync_datetime) : '—'}</td>
-                    <td>${statusBadge(s.last_sync_status)}<div style="font-size:12px;color:var(--text-muted, #666);margin-top:3px;">${escapeHtml(s.last_sync_message || '')}</div></td>
+                    <td>${statusBadge(s.last_sync_status)}<div style="font-size:var(--font-size-sm, 12px);color:var(--text-muted, #666);margin-top:3px;">${escapeHtml(s.last_sync_message || '')}</div></td>
                     <td style="white-space:nowrap;">
                         <button class="btn btn-secondary" onclick="vcloudTest(${s.id}, this)">${escapeHtml(T('test'))}</button>
                         <button class="btn btn-secondary" onclick="vcloudSync(${s.id}, this)">${escapeHtml(T('sync_now'))}</button>
@@ -160,7 +160,7 @@
                 <td>${escapeHtml(v.org_vdc || '')}</td>
                 <td>${escapeHtml(v.status || '')}</td>
                 <td>${escapeHtml(String(v.vcpus || 0))} vCPU · ${escapeHtml(String(v.memory_mb || 0))} MB · ${escapeHtml(String(v.disk_gb || 0))} GB</td>
-                <td style="font-size:12px;">${escapeHtml(v.ip_addresses || '—')}<br><span style="color:var(--text-muted, #666);">${escapeHtml(v.mac_addresses || '')}</span></td>
+                <td style="font-size:var(--font-size-sm, 12px);">${escapeHtml(v.ip_addresses || '—')}<br><span style="color:var(--text-muted, #666);">${escapeHtml(v.mac_addresses || '')}</span></td>
             </tr>`).join('');
         renderEdges(data.edges);
     };
@@ -178,7 +178,7 @@
                 <td>${escapeHtml(e.name || '')}</td>
                 <td>${escapeHtml(e.org_vdc || '')}</td>
                 <td>${escapeHtml(e.status || '')}</td>
-                <td style="font-size:12px;">${escapeHtml(e.uplink_ips || '—')}</td>
+                <td style="font-size:var(--font-size-sm, 12px);">${escapeHtml(e.uplink_ips || '—')}</td>
             </tr>`).join('');
     }
 
