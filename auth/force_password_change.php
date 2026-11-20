@@ -37,12 +37,18 @@ $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
         }
 
         .change-container {
-            background: white;
+            background: var(--surface, #fff);
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            width: 100%;
+            border-radius: var(--radius-xl, 10px);
+            box-shadow: var(--shadow-3, 0 10px 40px rgba(0, 0, 0, 0.2));
+            /* Full width less a margin each side, so on a phone the card never
+               touches the screen edges. */
+            width: calc(100% - 2 * var(--space-5, 20px));
             max-width: 420px;
+        }
+        /* On a phone the 40px padding leaves the fields a narrow column. */
+        @media (max-width: 480px) {
+            .change-container { padding: var(--space-6, 24px) var(--space-5, 20px); }
         }
 
         .change-header {
