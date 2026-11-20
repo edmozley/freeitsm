@@ -802,6 +802,6 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-timeline.js?v=4"></script>
     <script src="../assets/js/projects-view.js?v=36"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

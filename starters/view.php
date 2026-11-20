@@ -73,6 +73,6 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.' . $k));
     <script src="../assets/js/starters.js?v=2"></script>
     <script src="../assets/js/starters-view.js?v=5"></script>
     <?php documentsPanelAssets('../'); ?>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -1405,6 +1405,6 @@ try {
     // Auto-refresh every 5 minutes
     refreshTimer = setInterval(loadDashboard, 5 * 60 * 1000);
     </script>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

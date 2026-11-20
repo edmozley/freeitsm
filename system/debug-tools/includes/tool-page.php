@@ -282,6 +282,6 @@ $toolRunner = !empty($tool['runner']) ? preg_replace('/[^a-z0-9-]/', '', (string
     })();
     </script>
     <?php endif; ?>
-    <script src="../../../assets/js/mobile.js?v=83"></script>
+    <script src="../../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -412,6 +412,6 @@ $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_i
     <script src="browse.js?v=7"></script>
     <!-- The mobile layer's JS. Without it the module nav has no hamburger and
          sits off-screen — a CSS-only opt-in is not an opt-in (Techniques §25). -->
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

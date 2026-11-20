@@ -10399,6 +10399,6 @@ function renderOversizeFields(string $px, bool $withLimits): void
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/ticket-type-rules.js?v=2"></script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -130,6 +130,6 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-accounts.js?v=1"></script>
     <script src="../assets/js/projects-portfolio.js?v=15"></script>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

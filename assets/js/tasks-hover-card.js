@@ -64,12 +64,19 @@
         return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
     }
 
-    /** Plain text from the (HTML) description, shortened. */
+    /**
+     * Plain text from the (HTML) description, shortened.
+     *
+     * TRAP: parse with DOMParser, never innerHTML on an element of this page. An
+     * element made by document.createElement belongs to the live document, so
+     * even detached it loads <img src> and fires onerror - a description holding
+     * one would run script on hover. DOMParser's document is inert: nothing loads
+     * or runs. (Descriptions are sanitised on save; this must not depend on it.)
+     */
     function excerpt(html, max) {
         if (!html) return '';
-        const div = document.createElement('div');
-        div.innerHTML = String(html).replace(/<(br|\/p|\/div|\/li)[^>]*>/gi, ' ');
-        const txt = (div.textContent || '').replace(/\s+/g, ' ').trim();
+        const doc = new DOMParser().parseFromString(String(html).replace(/<(br|\/p|\/div|\/li)[^>]*>/gi, ' '), 'text/html');
+        const txt = ((doc.body && doc.body.textContent) || '').replace(/\s+/g, ' ').trim();
         return txt.length > max ? txt.slice(0, max).replace(/\s+\S*$/, '') + '…' : txt;
     }
 

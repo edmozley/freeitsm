@@ -76,6 +76,6 @@ $translationNamespaces = ['common', 'asset-management'];
         'contracts' => moduleIsEnabled($conn, 'contracts'),   // GH #217: no contract picker or link while Contracts is switched off
     ]); ?>;</script>
     <script src="../../assets/js/leases.js?v=3"></script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

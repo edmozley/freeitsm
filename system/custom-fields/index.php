@@ -300,6 +300,6 @@ $e = fn(string $k, array $p = []) => htmlspecialchars(t('system.custom_fields.' 
         load();
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -122,6 +122,6 @@ $translationNamespaces = ['common', 'reporting'];
 
     <script>window.RP_API = '../../api/reporting/packs/';</script>
     <script src="../../assets/js/report-packs/list.js?v=1"></script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

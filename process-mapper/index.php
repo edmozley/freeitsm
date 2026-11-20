@@ -510,6 +510,6 @@ try {
     <script src="../assets/js/pdf-writer.js?v=2"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/hover-preview.js?v=1"></script>
     <script src="../assets/js/process-mapper.js?v=21"></script>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

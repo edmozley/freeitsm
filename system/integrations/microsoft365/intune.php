@@ -234,6 +234,6 @@ $assetsOn = moduleIsEnabled(connectToDatabase(), 'assets');
             else { input.type = 'password'; btn.textContent = window.t('asset-management.settings.show'); }
         }
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=87"></script>
 </body>
 </html>

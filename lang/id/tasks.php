@@ -109,7 +109,14 @@ return [
         'col_team' => 'Tim',
         'col_due' => 'Jatuh tempo',
         'col_subtasks' => 'Subtugas',
+        'col_id' => 'ID',   // GH #405
         'no_tasks' => 'Tidak ada tugas ditemukan',
+    ],
+
+    // GH #405: the details card on hovering a task (Calendar, Timeline).
+    'hover' => [
+        'subtask_of' => 'Subtugas dari',
+        'repeating'  => 'Berulang',
     ],
     'detail' => [
         'heading' => 'Detail Tugas',
@@ -919,12 +926,14 @@ Tetap selesaikan tugas? Hal ini akan dicatat dalam riwayat tugas.',
         'list_heading' => 'Tampilan daftar',
         'list_intro' => 'Daftar adalah kembaran data papan &mdash; tugas yang sama sebagai tabel yang dapat diurutkan. Beralihlah ke sana dengan tombol Tampilan di bilah samping.',
         'list_body' => 'Klik header kolom mana pun &mdash; Judul, Status, Prioritas, Ditugaskan ke, Tim, Jatuh tempo &mdash; untuk mengurutkan menurutnya; klik lagi untuk membalik arah. Pencarian dan filter bilah samping bekerja persis seperti di papan, sehingga Anda dapat mempersempit daftar lalu mengurutkan sisanya. Klik baris untuk membuka tugas.',
+        'list_id' => 'Kolom pertama adalah <strong>ID</strong> tugas, nomor yang sama yang ditampilkan sebagai #ID di setiap kartu papan. Urutkan berdasarkan kolom ini untuk melihat tugas terbaru lebih dulu.',   // GH #405
         'list_tip' => 'Daftar adalah tempat untuk menemukan tugas yang statusnya tidak memiliki kolom papan (misalnya status kustom "Icebox") &mdash; daftar menampilkan setiap tugas apa pun statusnya.',
         'calendar_heading' => 'Tampilan kalender',
         'calendar_intro' => 'Kalender menempatkan tugas pada kisi tanggal sehingga Anda dapat melihat tenggat dan beban kerja sekilas. Tugas diberi warna menurut statusnya.',
         'calendar_body' => 'Bilah alat memiliki <strong>Hari ini</strong>, sebelumnya / berikutnya, dan tombol tampilan <strong>Bulan / Minggu / Hari</strong> di sebelah kanan. <em>Bulan</em> adalah kisi 4&ndash;6 minggu yang familier; <em>Minggu</em> memperbesar ke satu baris tujuh hari yang direntangkan memenuhi layar; <em>Hari</em> turun ke satu tanggal dan mencantumkan setiap tugas pada tanggal itu sebagai baris kartu. Sebelumnya / berikutnya melangkah per bulan, minggu, atau hari sesuai tampilan yang aktif.',
         'calendar_sidebar' => 'Bilah samping menampilkan legenda warna, filter Saya / Semua / Tim / Analis yang sama seperti papan, dan panel <strong>Mode rentang</strong> dengan tautan Ubah langsung ke pengaturan Kalender.',
         'calendar_click_heading' => 'Mengklik tugas',
+        'calendar_hover_body' => 'Diamkan penunjuk di atas tugas pada tampilan Bulan atau Minggu dan sebuah kartu menampilkan detailnya: nomor, status, prioritas, penanggung jawab, tim, proyek, tanggal (dengan Terlambat bila sudah lewat), subtugas, tag, dan awal deskripsi. Kartu selalu tetap berada di dalam jendela.',   // GH #405
         'calendar_click_body' => 'Mengklik chip, bilah, atau baris tampilan hari sebuah tugas membuka <strong>panel cepat</strong> geser masuk di sisi kanan kalender &mdash; Anda tetap di tempat. Judul, status, prioritas, penerima tugas, tim, dan tanggal semuanya dapat diedit di panel; ikon luncur di bagian atas membuka editor lengkap dasbor saat Anda membutuhkan deskripsi teks kaya, subtugas, atau komentar.',
         'calendar_multiday_heading' => 'Cara tugas multi-hari digambar',
         'calendar_multiday_body' => 'Tugas dengan tanggal mulai lebih awal dari tanggal jatuh tempo mencakup rentang hari. Cara rentang itu ditampilkan diatur satu kali, per instalasi, di Pengaturan &rarr; Kalender:',
@@ -944,6 +953,7 @@ Tetap selesaikan tugas? Hal ini akan dicatat dalam riwayat tugas.',
         'timeline_rightclick_heading' => 'Klik kanan untuk tindakan cepat',
         'timeline_rightclick_body' => 'Klik kanan bilah mana pun untuk menu konteks yang sama seperti di papan &mdash; <strong>Tugaskan analis</strong>, <strong>Tugaskan tim</strong>, <strong>Ubah status</strong>, <strong>Ubah prioritas</strong> &mdash; tanpa membuka apa pun. Setiap submenu menandai nilai tugas saat ini dengan tanda centang.',
         'timeline_click_heading' => 'Mengklik bilah',
+        'timeline_hover_body' => 'Diamkan penunjuk di atas bilah atau nama tugas untuk melihat kartu detail yang sama seperti di kalender. Kartu tidak ditampilkan saat Anda menyeret bilah.',   // GH #405
         'timeline_click_body' => 'Klik biasa pada bilah (atau pada kolom nama tugas di kiri) membuka panel cepat geser masuk yang sama seperti di kalender, di sisi kanan linimasa. Edit kolom sehari-hari di tempat, atau klik ikon luncur di bagian atas panel untuk melompat ke editor lengkap dasbor.',
         'table_heading' => 'Tampilan tabel',
         'table_intro' => 'Tampilan Tabel adalah kisi layar penuh bergaya Excel &mdash; satu baris per tugas, dengan sel yang dapat diedit. Ini tempat tercepat untuk memilah daftar, mengubah banyak kolom sekaligus, atau menyusun tata letak kolom persis seperti yang Anda inginkan.',
@@ -956,6 +966,7 @@ Tetap selesaikan tugas? Hal ini akan dicatat dalam riwayat tugas.',
         'table_views_remember'     => 'Tabel mengingat tampilan yang terakhir Anda pilih dan membukanya lagi lain kali, di browser mana pun &mdash; sampai Anda memilih yang lain atau menggunakan <strong>Atur ulang</strong>, setelah itu tabel kembali dibuka dengan tampilan default Anda.',   // GH #408
         'table_views_note' => 'Kolom, urutan, dan filter disimpan; kotak pencarian sengaja tidak, karena pencarian adalah pertanyaan yang Anda ajukan sekali, bukan cara Anda suka melihat sesuatu. Tampilan yang sama ada di tabel Aset, Kalender, dan Manajemen Perubahan, masing-masing menyimpan miliknya sendiri.',
         'table_columns_heading' => 'Kolom: tampilkan, sembunyikan, atur urutan',
+        'table_columns_extra' => 'Selain kolom yang ditampilkan di awal, laci menawarkan Mulai, Dibuat, Subtugas, <strong>ID</strong> (nomor tugas yang ditampilkan sebagai #ID di kartu papan) dan <strong>Perusahaan</strong>.',   // GH #405
         'table_columns_body' => 'Klik tombol <strong>Kolom</strong> di bilah alat untuk membuka laci berisi setiap kolom yang dikenal tabel. Centang yang ingin ditampilkan; seret baris untuk mengatur ulang urutan. Gagang seret pada header kolom juga mengatur ulang urutan kolom secara langsung. Visibilitas dan urutan Anda disimpan ke akun Anda, sehingga saat berikutnya Anda membuka tabel, tampilannya seperti yang Anda tinggalkan.',
         'table_sort_heading' => 'Urutkan, saring, cari',
         'table_field_sort' => '<strong>Urutkan</strong> &mdash; klik header kolom mana pun untuk mengurutkan menurutnya. Klik lagi untuk membalik arah. Urutan aktif disimpan per analis bersama tata letak kolom.',

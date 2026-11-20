@@ -67,6 +67,6 @@ $translationNamespaces = ['common', 'asset-management'];
     ]); ?>;</script>
     <script src="../../assets/js/leases.js?v=3"></script>
     <?php endif; ?>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

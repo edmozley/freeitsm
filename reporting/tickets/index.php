@@ -83,6 +83,6 @@ $translationNamespaces = ['common', 'reporting'];
             <p><?php echo htmlspecialchars(t('reporting.tickets.coming_soon')); ?></p>
         </div>
     </div>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

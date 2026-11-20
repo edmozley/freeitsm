@@ -109,7 +109,14 @@ return [
         'col_team' => 'Équipe',
         'col_due' => 'Échéance',
         'col_subtasks' => 'Sous-tâches',
+        'col_id' => 'ID',   // GH #405
         'no_tasks' => 'Aucune tâche trouvée',
+    ],
+
+    // GH #405: the details card on hovering a task (Calendar, Timeline).
+    'hover' => [
+        'subtask_of' => 'Sous-tâche de',
+        'repeating'  => 'Se répète',
     ],
     'detail' => [
         'heading' => 'Détails de la tâche',
@@ -919,12 +926,14 @@ Terminer la tâche malgré tout ? Cela sera consigné dans l\'historique de la t
         'list_heading' => 'Vue en liste',
         'list_intro' => 'La liste est le jumeau de données du tableau &mdash; les mêmes tâches sous forme de tableau triable. Basculez vers elle avec le sélecteur de vue dans le panneau latéral.',
         'list_body' => 'Cliquez sur un en-tête de colonne &mdash; Titre, Statut, Priorité, Assigné, Équipe, Échéance &mdash; pour trier selon celui-ci ; cliquez à nouveau pour inverser le sens. La recherche et les filtres du panneau latéral fonctionnent exactement comme sur le tableau, ce qui vous permet de réduire la liste puis de trier ce qui reste. Cliquez sur une ligne pour ouvrir la tâche.',
+        'list_id' => 'La première colonne est l\'<strong>ID</strong> de la tâche, le même numéro qu\'affiche #ID sur chaque carte du tableau. Triez dessus pour voir les tâches les plus récentes en premier.',   // GH #405
         'list_tip' => 'La liste est l\'endroit où trouver une tâche dont le statut n\'a pas de colonne sur le tableau (par exemple un statut personnalisé « Icebox ») &mdash; la liste affiche toutes les tâches quel que soit leur statut.',
         'calendar_heading' => 'Vue Calendrier',
         'calendar_intro' => 'Le calendrier place les tâches sur une grille de dates afin de voir les échéances et la charge de travail en un coup d\'œil. Les tâches sont colorées selon leur statut.',
         'calendar_body' => 'La barre d\'outils comporte <strong>Aujourd\'hui</strong>, précédent / suivant, et un sélecteur de vue <strong>Mois / Semaine / Jour</strong> à droite. <em>Mois</em> est la grille habituelle de 4&ndash;6 semaines ; <em>Semaine</em> zoome sur une seule ligne de sept jours qui s\'étire pour remplir l\'écran ; <em>Jour</em> se limite à une seule date et liste chaque tâche qui s\'y trouve sous forme de ligne-carte. Précédent / suivant avance par mois, semaine ou jour selon la vue active.',
         'calendar_sidebar' => 'Le panneau latéral affiche une légende de couleurs, les mêmes filtres Mes / Toutes / Équipe / Analyste que le tableau, et un panneau <strong>Mode d\'étalement</strong> avec un lien Modifier menant directement aux paramètres du calendrier.',
         'calendar_click_heading' => 'Cliquer sur une tâche',
+        'calendar_hover_body' => 'Laissez le pointeur sur une tâche dans la vue Mois ou Semaine et une carte affiche ses détails : numéro, statut, priorité, responsable, équipe, projet, dates (avec En retard quand elle l\'est), sous-tâches, étiquettes et le début de la description. La carte reste toujours dans la fenêtre.',   // GH #405
         'calendar_click_body' => 'Cliquer sur une puce, une barre ou une ligne de la vue jour ouvre un <strong>panneau rapide</strong> coulissant à droite du calendrier &mdash; vous restez où vous êtes. Le titre, le statut, la priorité, l\'assigné, l\'équipe et les dates sont tous modifiables dans le panneau ; l\'icône de lancement en haut ouvre l\'éditeur complet du tableau de bord lorsque vous avez besoin de la description en texte enrichi, des sous-tâches ou des commentaires.',
         'calendar_multiday_heading' => 'Comment les tâches sur plusieurs jours sont affichées',
         'calendar_multiday_body' => 'Une tâche dont la date de début est antérieure à sa date d\'échéance couvre une plage de jours. La façon dont cette plage est affichée est définie une fois, par installation, dans Paramètres &rarr; Calendrier :',
@@ -944,6 +953,7 @@ Terminer la tâche malgré tout ? Cela sera consigné dans l\'historique de la t
         'timeline_rightclick_heading' => 'Clic droit pour les actions rapides',
         'timeline_rightclick_body' => 'Faites un clic droit sur une barre pour obtenir le même menu contextuel que le tableau &mdash; <strong>Attribuer un analyste</strong>, <strong>Attribuer une équipe</strong>, <strong>Changer le statut</strong>, <strong>Changer la priorité</strong> &mdash; sans rien ouvrir. Chaque sous-menu marque d\'une coche la valeur actuelle de la tâche.',
         'timeline_click_heading' => 'Cliquer sur une barre',
+        'timeline_hover_body' => 'Laissez le pointeur sur une barre ou un nom de tâche pour voir la même carte de détails que dans le calendrier. Elle n\'apparaît pas pendant que vous faites glisser une barre.',   // GH #405
         'timeline_click_body' => 'Un clic normal sur une barre (ou sur la colonne des noms de tâches à gauche) ouvre le même panneau rapide coulissant que le calendrier, à droite de la chronologie. Modifiez les champs courants sur place, ou cliquez sur l\'icône de lancement en haut du panneau pour accéder à l\'éditeur complet du tableau de bord.',
         'table_heading' => 'Vue Grille',
         'table_intro' => 'La vue Grille est une grille façon Excel en plein écran &mdash; une ligne par tâche, avec des cellules modifiables. C\'est l\'endroit le plus rapide pour trier une liste, ajuster des champs en masse, ou construire exactement la disposition de colonnes dans laquelle vous voulez travailler.',
@@ -956,6 +966,7 @@ Terminer la tâche malgré tout ? Cela sera consigné dans l\'historique de la t
         'table_views_remember'     => 'Le tableau retient la dernière vue choisie et s\'ouvre avec elle la fois suivante, dans n\'importe quel navigateur &mdash; jusqu\'à ce que vous en choisissiez une autre ou utilisiez <strong>Réinitialiser</strong> ; il s\'ouvre alors de nouveau avec votre vue par défaut.',   // GH #408
         'table_views_note' => 'Les colonnes, le tri et les filtres sont enregistrés ; la zone de recherche ne l\'est délibérément pas, car une recherche est une question posée une fois plutôt qu\'une façon habituelle de voir les choses. Les mêmes vues existent sur les grilles Actifs, Calendrier et Gestion des changements, chacune conservant les siennes.',
         'table_columns_heading' => 'Colonnes : afficher, masquer, réorganiser',
+        'table_columns_extra' => 'En plus des colonnes affichées au départ, le panneau propose Début, Créée, Sous-tâches, <strong>ID</strong> (le numéro de tâche affiché en #ID sur les cartes du tableau) et <strong>Entreprise</strong>.',   // GH #405
         'table_columns_body' => 'Cliquez sur le bouton <strong>Colonnes</strong> de la barre d\'outils pour ouvrir un panneau listant toutes les colonnes connues de la grille. Cochez celles que vous voulez voir ; faites glisser les lignes pour les réorganiser. La poignée de glissement sur un en-tête de colonne permet aussi de réorganiser directement les colonnes. Votre visibilité et votre ordre sont enregistrés dans votre compte, de sorte que la prochaine fois que vous ouvrez la grille, elle est telle que vous l\'avez laissée.',
         'table_sort_heading' => 'Trier, filtrer, rechercher',
         'table_field_sort' => '<strong>Trier</strong> &mdash; cliquez sur un en-tête de colonne pour trier selon celui-ci. Cliquez à nouveau pour inverser le sens. Le tri actif est enregistré par analyste, avec la disposition des colonnes.',

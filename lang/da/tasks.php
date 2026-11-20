@@ -109,7 +109,14 @@ return [
         'col_team' => 'Team',
         'col_due' => 'Frist',
         'col_subtasks' => 'Delopgaver',
+        'col_id' => 'ID',   // GH #405
         'no_tasks' => 'Ingen opgaver fundet',
+    ],
+
+    // GH #405: the details card on hovering a task (Calendar, Timeline).
+    'hover' => [
+        'subtask_of' => 'Underopgave af',
+        'repeating'  => 'Gentages',
     ],
     'detail' => [
         'heading' => 'Opgavedetaljer',
@@ -919,12 +926,14 @@ Gennemfør opgaven alligevel? Det registreres i opgavens historik.',
         'list_heading' => 'Listevisning',
         'list_intro' => 'Listen er tavlens datatvilling &mdash; de samme opgaver som en sorterbar tabel. Skift til den med visningsknappen i sidepanelet.',
         'list_body' => 'Klik på en kolonneoverskrift &mdash; Titel, Status, Prioritet, Tildelt, Team, Frist &mdash; for at sortere efter den; klik igen for at vende retningen. Søgning og filtre i sidepanelet virker præcis som på tavlen, så du kan indsnævre listen og derefter sortere det, der er tilbage. Klik på en række for at åbne opgaven.',
+        'list_id' => 'Første kolonne er opgavens <strong>ID</strong>, det samme nummer, der vises som #ID på hvert tavlekort. Sorter efter den for at se de nyeste opgaver først.',   // GH #405
         'list_tip' => 'Listen er stedet at finde en opgave, hvis status ikke har en kolonne på tavlen (for eksempel en brugerdefineret status som "Isskab") &mdash; listen viser alle opgaver uanset status.',
         'calendar_heading' => 'Kalendervisning',
         'calendar_intro' => 'Kalenderen placerer opgaver på et datogitter, så du kan se frister og arbejdsbyrde på et øjeblik. Opgaver er farvet efter deres status.',
         'calendar_body' => 'Værktøjslinjen har <strong>I dag</strong>, forrige/næste og en <strong>Måned/Uge/Dag</strong>-visningsknap til højre. <em>Måned</em> er det velkendte gitter med 4&ndash;6 uger; <em>Uge</em> zoomer ind på en enkelt syv-dages række, der strækker sig ud til at fylde skærmen; <em>Dag</em> går ned til én dato og lister hver opgave, der falder på den, som en kortrække. Forrige/næste springer efter måned, uge eller dag, alt efter hvilken visning der er aktiv.',
         'calendar_sidebar' => 'Sidepanelet viser en farveforklaring, de samme Mine/Alle/Team/Medarbejder-filtre som tavlen, og et panel til <strong>periodetilstand</strong> med et Skift-link direkte til kalenderindstillingerne.',
         'calendar_click_heading' => 'At klikke på en opgave',
+        'calendar_hover_body' => 'Hvil markøren på en opgave i måneds- eller ugevisningen, så viser et kort dens detaljer: nummer, status, prioritet, ansvarlig, team, projekt, datoer (med Forsinket, når den er for sent), underopgaver, tags og starten af beskrivelsen. Kortet bliver altid inden for vinduet.',   // GH #405
         'calendar_click_body' => 'Et klik på et opgavemærkat, en bjælke eller en dagsvisningsrække åbner et <strong>hurtigpanel</strong>, der glider ind til højre for kalenderen &mdash; du bliver, hvor du er. Titel, status, prioritet, tildelt, team og datoer kan alle redigeres i panelet; startikonet øverst åbner dashboardets fulde editor, når du har brug for formateret beskrivelse, delopgaver eller kommentarer.',
         'calendar_multiday_heading' => 'Sådan tegnes flerdages-opgaver',
         'calendar_multiday_body' => 'En opgave med en startdato, der ligger før dens frist, dækker en periode af dage. Hvordan den periode vises, sættes én gang, pr. installation, under Indstillinger &rarr; Kalender:',
@@ -944,6 +953,7 @@ Gennemfør opgaven alligevel? Det registreres i opgavens historik.',
         'timeline_rightclick_heading' => 'Højreklik for hurtige handlinger',
         'timeline_rightclick_body' => 'Højreklik på en bjælke for den samme kontekstmenu, som tavlen bruger &mdash; <strong>Tildel medarbejder</strong>, <strong>Tildel team</strong>, <strong>Skift status</strong>, <strong>Skift prioritet</strong> &mdash; uden at åbne noget. Hver undermenu markerer opgavens nuværende værdi med et flueben.',
         'timeline_click_heading' => 'At klikke på en bjælke',
+        'timeline_hover_body' => 'Hvil markøren på en bjælke eller et opgavenavn for at se det samme detaljekort som i kalenderen. Det vises ikke, mens du trækker en bjælke.',   // GH #405
         'timeline_click_body' => 'Et almindeligt klik på en bjælke (eller på kolonnen med opgavenavn til venstre) åbner det samme hurtigpanel, som kalenderen bruger, til højre for tidslinjen. Redigér de daglige felter direkte, eller tryk på startikonet øverst i panelet for at springe til dashboardets fulde editor.',
         'table_heading' => 'Tabelvisning',
         'table_intro' => 'Tabelvisningen er et fuldskærms Excel-lignende gitter &mdash; én række pr. opgave, med redigerbare celler. Det er det hurtigste sted at triagere en liste, masseændre felter eller bygge præcis det kolonnelayout, du vil bo i.',
@@ -956,6 +966,7 @@ Gennemfør opgaven alligevel? Det registreres i opgavens historik.',
         'table_views_remember'     => 'Tabellen husker den visning, du sidst valgte, og åbner med den næste gang, i enhver browser &mdash; indtil du vælger en anden eller bruger <strong>Nulstil</strong>, hvorefter den igen åbner med din standardvisning.',   // GH #408
         'table_views_note' => 'Kolonner, sortering og filtre gemmes; søgefeltet gør det bevidst ikke, for en søgning er et spørgsmål, du stillede én gang, og ikke en måde, du kan lide at se tingene på. De samme visninger findes i tabellerne for Udstyr, Kalender og Ændringsstyring, hver med sine egne.',
         'table_columns_heading' => 'Kolonner: vis, skjul, omarrangér',
+        'table_columns_extra' => 'Ud over de kolonner, der vises fra start, tilbyder skuffen Start, Oprettet, Underopgaver, <strong>ID</strong> (opgavenummeret, der vises som #ID på tavlekort) og <strong>Virksomhed</strong>.',   // GH #405
         'table_columns_body' => 'Klik på knappen <strong>Kolonner</strong> på værktøjslinjen for at åbne en skuffe med alle de kolonner, tabellen kender. Sæt flueben ved dem, du vil have synlige; træk rækkerne for at omarrangere. Trækhåndtaget på en kolonneoverskrift omarrangerer også kolonner direkte. Din synlighed og rækkefølge gemmes på din konto, så tabellen er, som du forlod den, næste gang du åbner den.',
         'table_sort_heading' => 'Sortér, filtrér, søg',
         'table_field_sort' => '<strong>Sortér</strong> &mdash; klik på en kolonneoverskrift for at sortere efter den. Klik igen for at vende retningen. Den aktive sortering gemmes pr. medarbejder sammen med kolonnelayoutet.',

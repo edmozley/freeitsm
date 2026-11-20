@@ -568,6 +568,6 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         document.addEventListener('DOMContentLoaded', () => { loadSettings().then(paintInternal).catch(e => showToast(e.message, 'error')); loadStatuses().catch(() => {}); loadCertTypes().catch(() => {}); loadProfiles().catch(() => {}); });
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

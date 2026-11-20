@@ -84,6 +84,6 @@ $lT = fn(string $k) => t('system.locations.' . $k);
         document.getElementById('lcAddBtn').addEventListener('click', function () { tree.add(); });
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

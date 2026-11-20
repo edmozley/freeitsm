@@ -5579,6 +5579,6 @@ $translationNamespaces = ['common', 'asset-management'];
     window.APP_BASE = window.APP_BASE || <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/ci-asset-link.js?v=6"></script>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

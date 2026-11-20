@@ -1476,6 +1476,6 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
     <script>window.CT_SHOW_DOMAINS = <?php echo $ctShowDomains ? 'true' : 'false'; ?>; window.CT_SHOW_PROJECTS = <?php echo $ctShowProjects ? 'true' : 'false'; ?>; /* GH #217 */ window.CT_SHOW_ASSETS = <?php echo $ctShowAssets ? 'true' : 'false'; ?>; window.CT_SHOW_TASKS = <?php echo $ctShowTasks ? 'true' : 'false'; ?>; window.CT_SHOW_CALENDAR = <?php echo $ctShowCalendar ? 'true' : 'false'; ?>; window.CT_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

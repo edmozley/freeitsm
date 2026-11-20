@@ -202,6 +202,6 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         if (pick.value) show();
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

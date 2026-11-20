@@ -821,6 +821,6 @@ const START_TAB = <?php echo json_encode($activeTab); ?>;
 if (START_TAB === 'history') loadRuns();
 if (START_TAB === 'groups') loadGroups();
 </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

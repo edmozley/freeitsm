@@ -1129,6 +1129,6 @@ if (<?php echo json_encode($activeTab); ?> === 'history') loadRuns();
 // The typed-DN warning must be right on arrival, not only after a click.
 ouManualNote();
 </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -562,6 +562,6 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         loadUnanswered('new');
     </script>
     <script src="../../assets/js/ai-settings.js?v=4"></script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

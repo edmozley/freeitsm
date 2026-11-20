@@ -310,6 +310,6 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
         btn.disabled = false;
     });
     </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -966,6 +966,6 @@ if ($showDomains) $translationNamespaces[] = 'domains';
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/ci-asset-link.js?v=6"></script>
     <script src="object.js?v=20"></script>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

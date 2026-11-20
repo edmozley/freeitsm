@@ -234,7 +234,7 @@ $translationNamespaces = ['common', 'forms'];
         </div>
     </div>
 
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
     <script>
         const API_BASE = '<?php echo defined('BASE_URL') ? BASE_URL : '../'; ?>api/forms/';
         const LOGO_URL = <?php echo json_encode(brandingLogoUrl()); ?>;

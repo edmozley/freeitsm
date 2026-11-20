@@ -59,6 +59,6 @@ $translationNamespaces = ['common', 'calendar'];
 
     <script src="../../assets/js/data-table.js?v=11"></script>
     <script src="../../assets/js/calendar-table.js?v=3"></script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

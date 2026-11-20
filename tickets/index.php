@@ -1203,7 +1203,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/ticket-watchers.js?v=2"></script>
     <script src="../assets/js/ticket-forms.js?v=5"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>
-    <script src="../assets/js/mobile.js?v=85"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
     <script>
     // Auto-check mailboxes every 60 seconds - and refresh the inbox whenever
     // ANYTHING new has arrived, however it came in.

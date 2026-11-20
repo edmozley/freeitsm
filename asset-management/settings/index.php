@@ -4898,7 +4898,7 @@ $translationNamespaces = ['common', 'asset-management'];
     <script src="../../assets/js/asset-labels/designs-admin.js?v=3"></script>
     <?php endif; endif; ?>
     <script>window.ASSET_LAYOUT = <?php echo json_encode(['defaults' => AssetTypeLayout::defaults(), 'presets' => AssetTypeLayout::PRESETS], JSON_HEX_TAG | JSON_HEX_AMP); ?>;</script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
     <?php if (settingsTabVisible($visibleTabs, 'hyperv')): ?><script src="hyperv.js?v=3"></script><?php endif; ?>
 </body>
 </html>

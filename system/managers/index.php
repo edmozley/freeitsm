@@ -303,6 +303,6 @@ $m = fn(string $k) => t('system.managers.' . $k);
         loadOverview();
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

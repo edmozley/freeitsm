@@ -705,6 +705,6 @@ $translationNamespaces = ['common', 'cmdb'];
     <script src="../options-editor.js?v=3"></script>
     <script src="../../assets/js/cmdb-schema-preview.js?v=1"></script>
     <script src="settings.js?v=13"></script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

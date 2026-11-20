@@ -123,6 +123,6 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
             <p class="ium-note"><?php echo $total > count($rows) ? $e('more', ['n' => count($rows), 'total' => $total]) : $e('count', ['n' => $total]); ?></p>
         <?php endif; ?>
     </div>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

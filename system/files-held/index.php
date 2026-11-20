@@ -145,6 +145,6 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
             <p class="fh-note"><?php echo $e('count', ['n' => count($rows)]); ?></p>
         <?php endif; ?>
     </div>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

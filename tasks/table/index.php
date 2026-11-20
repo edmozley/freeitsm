@@ -128,6 +128,6 @@ $translationNamespaces = ['common', 'tasks'];
     <script src="../../assets/js/safe-html.js?v=4"></script>
     <script src="../../assets/js/tasks-quick-panel.js?v=5"></script>
     <script src="../../assets/js/tasks-table.js?v=7"></script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

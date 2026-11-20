@@ -893,6 +893,6 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
     loadKeys().then(() => { const tb = new URLSearchParams(location.search).get('tab'); if (tb === 'threats' || tb === 'activity' || tb === 'scripts') showTab(tb); });
     </script>
     <script src="../../assets/js/api-scripts.js?v=1"></script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

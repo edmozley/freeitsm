@@ -237,6 +237,6 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         if (!rows.length) finishOne(); else for (let i = 0; i < 3; i++) worker();
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=83"></script>
+    <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -673,12 +673,14 @@
             /* The card shows an EXCERPT, never the stored markup. Assigning it
                through textContent means no author-written HTML is ever parsed
                into this page, so the card needs no sanitiser — see the
-               safe-html rule. `innerHTML` on a detached div is only used to
-               let the browser do entity decoding and tag stripping for us. */
+               safe-html rule. The browser does the entity decoding and tag
+               stripping for us.
+               TRAP: parse with DOMParser, never innerHTML on an element of this
+               page: even detached, it loads <img src> and fires onerror. A
+               DOMParser document is inert. */
             function excerpt(html) {
-                var box = document.createElement('div');
-                box.innerHTML = html || '';
-                var text = (box.textContent || '').replace(/\s+/g, ' ').trim();
+                var doc = new DOMParser().parseFromString(html || '', 'text/html');
+                var text = ((doc.body && doc.body.textContent) || '').replace(/\s+/g, ' ').trim();
                 return text.length > 140 ? text.slice(0, 140) + '…' : text;
             }
 

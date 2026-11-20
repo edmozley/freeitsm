@@ -109,7 +109,14 @@ return [
         'col_team' => 'Team',
         'col_due' => 'Fällig',
         'col_subtasks' => 'Teilaufgaben',
+        'col_id' => 'ID',   // GH #405
         'no_tasks' => 'Keine Aufgaben gefunden',
+    ],
+
+    // GH #405: the details card on hovering a task (Calendar, Timeline).
+    'hover' => [
+        'subtask_of' => 'Unteraufgabe von',
+        'repeating'  => 'Wiederholt sich',
     ],
     'detail' => [
         'heading' => 'Aufgabendetails',
@@ -919,12 +926,14 @@ Aufgabe trotzdem abschließen? Dies wird im Verlauf der Aufgabe festgehalten.',
         'list_heading' => 'Listenansicht',
         'list_intro' => 'Die Liste ist das Datenpendant des Boards &mdash; dieselben Aufgaben als sortierbare Tabelle. Wechseln Sie mit dem Ansicht-Umschalter in der Seitenleiste dorthin.',
         'list_body' => 'Klicken Sie auf eine Spaltenüberschrift &mdash; Titel, Status, Priorität, Zugewiesen an, Team, Fällig &mdash;, um danach zu sortieren; klicken Sie erneut, um die Richtung umzukehren. Suche und Seitenleisten-Filter funktionieren genau wie beim Board, sodass Sie die Liste eingrenzen und dann das Übrige sortieren können. Klicken Sie auf eine Zeile, um die Aufgabe zu öffnen.',
+        'list_id' => 'Die erste Spalte ist die <strong>ID</strong> der Aufgabe, dieselbe Nummer, die auf jeder Board-Karte als #ID steht. Sortieren Sie danach, um die neuesten Aufgaben zuerst zu sehen.',   // GH #405
         'list_tip' => 'Die Liste ist der richtige Ort, um eine Aufgabe zu finden, deren Status keine Board-Spalte hat (zum Beispiel ein eigener Status „Icebox“) &mdash; die Liste zeigt jede Aufgabe unabhängig vom Status.',
         'calendar_heading' => 'Kalenderansicht',
         'calendar_intro' => 'Der Kalender ordnet Aufgaben in einem Datumsraster an, damit Sie Fristen und Arbeitsaufkommen auf einen Blick sehen. Aufgaben sind entsprechend ihrem Status eingefärbt.',
         'calendar_body' => 'Die Symbolleiste enthält <strong>Heute</strong>, Zurück/Weiter sowie rechts einen Umschalter <strong>Monat / Woche / Tag</strong>. <em>Monat</em> ist das vertraute Raster mit 4&ndash;6 Wochen; <em>Woche</em> zoomt auf eine einzelne Sieben-Tage-Zeile, die den Bildschirm ausfüllt; <em>Tag</em> springt auf ein einzelnes Datum und listet jede an diesem Tag anfallende Aufgabe als Kartenzeile auf. Zurück/Weiter springt je nach aktiver Ansicht um einen Monat, eine Woche oder einen Tag.',
         'calendar_sidebar' => 'Die Seitenleiste zeigt eine Farblegende, dieselben Filter Meine/Alle/Team/Analyst wie das Board sowie ein Panel <strong>Anzeigemodus</strong> mit einem Ändern-Link direkt zu den Kalendereinstellungen.',
         'calendar_click_heading' => 'Auf eine Aufgabe klicken',
+        'calendar_hover_body' => 'Bleiben Sie in der Monats- oder Wochenansicht mit dem Mauszeiger auf einer Aufgabe, zeigt eine Karte ihre Details: Nummer, Status, Priorität, Zuständige Person, Team, Projekt, Termine (mit Überfällig, wenn sie zu spät ist), Unteraufgaben, Tags und den Anfang der Beschreibung. Die Karte bleibt immer im Fenster.',   // GH #405
         'calendar_click_body' => 'Ein Klick auf einen Aufgaben-Chip, einen Balken oder eine Zeile der Tagesansicht öffnet rechts im Kalender ein seitlich einblendendes <strong>Schnellpanel</strong> &mdash; Sie bleiben, wo Sie sind. Titel, Status, Priorität, Zugewiesen an, Team und Termine sind alle im Panel bearbeitbar; das Öffnen-Symbol oben öffnet den vollständigen Editor im Dashboard, wenn Sie eine Rich-Text-Beschreibung, Teilaufgaben oder Kommentare benötigen.',
         'calendar_multiday_heading' => 'Wie mehrtägige Aufgaben dargestellt werden',
         'calendar_multiday_body' => 'Eine Aufgabe, deren Startdatum vor dem Fälligkeitsdatum liegt, erstreckt sich über mehrere Tage. Wie dieser Zeitraum angezeigt wird, wird einmal für die gesamte Installation unter Einstellungen &rarr; Kalender festgelegt:',
@@ -944,6 +953,7 @@ Aufgabe trotzdem abschließen? Dies wird im Verlauf der Aufgabe festgehalten.',
         'timeline_rightclick_heading' => 'Rechtsklick für Schnellaktionen',
         'timeline_rightclick_body' => 'Rechtsklicken Sie einen beliebigen Balken für dasselbe Kontextmenü wie beim Board &mdash; <strong>Analyst zuweisen</strong>, <strong>Team zuweisen</strong>, <strong>Status ändern</strong>, <strong>Priorität ändern</strong> &mdash;, ohne etwas zu öffnen. Jedes Untermenü markiert den aktuellen Wert der Aufgabe mit einem Häkchen.',
         'timeline_click_heading' => 'Auf einen Balken klicken',
+        'timeline_hover_body' => 'Bleiben Sie mit dem Mauszeiger auf einem Balken oder einem Aufgabennamen, um dieselbe Detailkarte wie im Kalender zu sehen. Während Sie einen Balken ziehen, erscheint sie nicht.',   // GH #405
         'timeline_click_body' => 'Ein einfacher Klick auf einen Balken (oder auf die Spalte mit dem Aufgabennamen links) öffnet rechts in der Zeitleiste dasselbe seitlich einblendende Schnellpanel wie im Kalender. Bearbeiten Sie die gängigen Felder direkt dort, oder klicken Sie auf das Öffnen-Symbol oben im Panel, um zum vollständigen Editor im Dashboard zu wechseln.',
         'table_heading' => 'Tabellenansicht',
         'table_intro' => 'Die Tabellenansicht ist ein vollbildschirmfüllendes, Excel-artiges Raster &mdash; eine Zeile je Aufgabe, mit bearbeitbaren Zellen. Hier lässt sich am schnellsten eine Liste sichten, Felder in großer Zahl anpassen oder genau das Spaltenlayout aufbauen, in dem Sie arbeiten möchten.',
@@ -956,6 +966,7 @@ Aufgabe trotzdem abschließen? Dies wird im Verlauf der Aufgabe festgehalten.',
         'table_views_remember'     => 'Die Tabelle merkt sich die zuletzt gewählte Ansicht und öffnet beim nächsten Mal damit, in jedem Browser &mdash; bis Sie eine andere wählen oder <strong>Zurücksetzen</strong> nutzen; danach öffnet sie wieder mit Ihrer Standardansicht.',   // GH #408
         'table_views_note' => 'Spalten, Sortierung und Filter werden gespeichert, das Suchfeld bewusst nicht: Eine Suche ist eine einmal gestellte Frage und keine Art, Dinge anzusehen. Dieselben Ansichten gibt es in den Tabellen von Geräte, Kalender und Änderungsmanagement, jede mit ihren eigenen.',
         'table_columns_heading' => 'Spalten: anzeigen, ausblenden, neu anordnen',
+        'table_columns_extra' => 'Neben den anfangs gezeigten Spalten bietet die Leiste Start, Erstellt, Unteraufgaben, <strong>ID</strong> (die Aufgabennummer, die auf Board-Karten als #ID steht) und <strong>Unternehmen</strong>.',   // GH #405
         'table_columns_body' => 'Klicken Sie auf die Schaltfläche <strong>Spalten</strong> in der Symbolleiste, um ein Fenster mit allen Spalten zu öffnen, die die Tabelle kennt. Setzen Sie ein Häkchen bei den Spalten, die sichtbar sein sollen; ziehen Sie die Zeilen, um sie neu anzuordnen. Der Griff in einer Spaltenüberschrift ordnet die Spalten ebenfalls direkt neu. Sichtbarkeit und Reihenfolge werden in Ihrem Konto gespeichert, sodass die Tabelle beim nächsten Öffnen so aussieht, wie Sie sie verlassen haben.',
         'table_sort_heading' => 'Sortieren, filtern, suchen',
         'table_field_sort' => '<strong>Sortieren</strong> &mdash; klicken Sie auf eine Spaltenüberschrift, um danach zu sortieren. Klicken Sie erneut, um die Richtung umzukehren. Die aktive Sortierung wird zusammen mit dem Spaltenlayout je Analyst gespeichert.',

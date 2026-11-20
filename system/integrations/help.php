@@ -513,6 +513,6 @@ $sections = $isMs365 ? [
             });
         });
     </script>
-    <script src="<?php echo $assetBase; ?>assets/js/mobile.js?v=83"></script>
+    <script src="<?php echo $assetBase; ?>assets/js/mobile.js?v=87"></script>
 </body>
 </html>

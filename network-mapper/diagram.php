@@ -1719,6 +1719,6 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     </script>
     <!-- After network-mapper.js, so mobile.js can read/wrap the globals it
          exposes rather than edit it (Techniques §1). -->
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

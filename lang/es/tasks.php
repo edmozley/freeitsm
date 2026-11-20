@@ -109,7 +109,14 @@ return [
         'col_team' => 'Equipo',
         'col_due' => 'Vencimiento',
         'col_subtasks' => 'Subtareas',
+        'col_id' => 'ID',   // GH #405
         'no_tasks' => 'No se encontraron tareas',
+    ],
+
+    // GH #405: the details card on hovering a task (Calendar, Timeline).
+    'hover' => [
+        'subtask_of' => 'Subtarea de',
+        'repeating'  => 'Se repite',
     ],
     'detail' => [
         'heading' => 'Detalles de la tarea',
@@ -919,12 +926,14 @@ return [
         'list_heading' => 'Vista de lista',
         'list_intro' => 'La lista es el gemelo de datos del tablero &mdash; las mismas tareas en forma de tabla ordenable. Cambie a ella con el interruptor de Vista en la barra lateral.',
         'list_body' => 'Haga clic en cualquier cabecera de columna &mdash; Título, Estado, Prioridad, Asignado, Equipo, Vencimiento &mdash; para ordenar por ella; haga clic de nuevo para invertir la dirección. La búsqueda y los filtros de la barra lateral funcionan exactamente igual que en el tablero, así que puede acotar la lista y luego ordenar lo que quede. Haga clic en una fila para abrir la tarea.',
+        'list_id' => 'La primera columna es el <strong>ID</strong> de la tarea, el mismo número que aparece como #ID en cada tarjeta del tablero. Ordena por ella para ver primero las tareas más recientes.',   // GH #405
         'list_tip' => 'La lista es el lugar para encontrar una tarea cuyo estado no tiene columna en el tablero (por ejemplo, un estado personalizado «Icebox») &mdash; la lista muestra todas las tareas sin importar el estado.',
         'calendar_heading' => 'Vista de calendario',
         'calendar_intro' => 'El calendario coloca las tareas en una cuadrícula de fechas para que pueda ver los plazos y la carga de trabajo de un vistazo. Las tareas se colorean según su estado.',
         'calendar_body' => 'La barra de herramientas tiene <strong>Hoy</strong>, anterior / siguiente, y un selector de vista <strong>Mes / Semana / Día</strong> a la derecha. <em>Mes</em> es la cuadrícula habitual de 4&ndash;6 semanas; <em>Semana</em> se centra en una única fila de siete días que se estira para llenar la pantalla; <em>Día</em> baja a una sola fecha y enumera cada tarea que cae en ella como una fila de tarjeta. Anterior / siguiente avanza por mes, semana o día según la vista activa.',
         'calendar_sidebar' => 'La barra lateral muestra una leyenda de colores, los mismos filtros Mío / Todos / Equipo / Analista que el tablero, y un panel de <strong>Modo de varios días</strong> con un enlace Cambiar directo a los ajustes de Calendario.',
         'calendar_click_heading' => 'Hacer clic en una tarea',
+        'calendar_hover_body' => 'Deja el puntero sobre una tarea en la vista Mes o Semana y una tarjeta muestra sus detalles: número, estado, prioridad, responsable, equipo, proyecto, fechas (con Vencida cuando va tarde), subtareas, etiquetas y el comienzo de la descripción. La tarjeta siempre queda dentro de la ventana.',   // GH #405
         'calendar_click_body' => 'Hacer clic en una marca, barra o fila de tarea de la vista diaria abre un <strong>panel rápido</strong> deslizante a la derecha del calendario &mdash; usted se queda donde está. El título, el estado, la prioridad, el asignado, el equipo y las fechas son editables en el panel; el icono de apertura en la parte superior abre el editor completo del tablero cuando necesita descripción con formato, subtareas o comentarios.',
         'calendar_multiday_heading' => 'Cómo se dibujan las tareas de varios días',
         'calendar_multiday_body' => 'Una tarea cuya fecha de inicio es anterior a la de vencimiento cubre un rango de días. Cómo se muestra ese rango se define una sola vez, por instalación, en Ajustes &rarr; Calendario:',
@@ -944,6 +953,7 @@ return [
         'timeline_rightclick_heading' => 'Clic derecho para acciones rápidas',
         'timeline_rightclick_body' => 'Haga clic con el botón derecho en cualquier barra para obtener el mismo menú contextual que usa el tablero &mdash; <strong>Asignar analista</strong>, <strong>Asignar equipo</strong>, <strong>Cambiar estado</strong>, <strong>Cambiar prioridad</strong> &mdash; sin abrir nada. Cada submenú marca con una marca de verificación el valor actual de la tarea.',
         'timeline_click_heading' => 'Hacer clic en una barra',
+        'timeline_hover_body' => 'Deja el puntero sobre una barra o el nombre de una tarea para ver la misma tarjeta de detalles que en el calendario. No aparece mientras arrastras una barra.',   // GH #405
         'timeline_click_body' => 'Un clic normal sobre una barra (o sobre la columna de nombre de tarea de la izquierda) abre el mismo panel rápido deslizante que usa el calendario, a la derecha de la cronología. Edite los campos habituales directamente ahí, o pulse el icono de apertura en la parte superior del panel para saltar al editor completo del tablero.',
         'table_heading' => 'Vista de tabla',
         'table_intro' => 'La vista de tabla es una cuadrícula de estilo Excel a pantalla completa &mdash; una fila por tarea, con celdas editables. Es el lugar más rápido para triar una lista, ajustar campos en bloque, o construir exactamente el diseño de columnas en el que quiere vivir.',
@@ -956,6 +966,7 @@ return [
         'table_views_remember'     => 'La tabla recuerda la última vista que elegiste y se abre con ella la próxima vez, en cualquier navegador &mdash; hasta que elijas otra o uses <strong>Restablecer</strong>; después vuelve a abrirse con tu vista predeterminada.',   // GH #408
         'table_views_note' => 'Las columnas, el orden y los filtros se guardan; el cuadro de búsqueda deliberadamente no, porque una búsqueda es una pregunta que hizo una vez, no una forma en la que le gusta ver las cosas. Las mismas vistas existen en las tablas de Activos, Calendario y Gestión de cambios, cada una con las suyas propias.',
         'table_columns_heading' => 'Columnas: mostrar, ocultar, reordenar',
+        'table_columns_extra' => 'Además de las columnas que se muestran al principio, el panel ofrece Inicio, Creada, Subtareas, <strong>ID</strong> (el número de tarea que aparece como #ID en las tarjetas del tablero) y <strong>Empresa</strong>.',   // GH #405
         'table_columns_body' => 'Haga clic en el botón <strong>Columnas</strong> de la barra de herramientas para abrir un panel con todas las columnas que conoce la tabla. Marque las que quiera visibles; arrastre las filas para reordenarlas. El asa de arrastre de una cabecera de columna también reordena las columnas directamente. Su visibilidad y orden se guardan en su cuenta, así que la próxima vez que abra la tabla estará como la dejó.',
         'table_sort_heading' => 'Ordenar, filtrar, buscar',
         'table_field_sort' => '<strong>Ordenar</strong> &mdash; haga clic en cualquier cabecera de columna para ordenar por ella. Haga clic de nuevo para invertir la dirección. El orden activo se guarda por analista junto con el diseño de columnas.',

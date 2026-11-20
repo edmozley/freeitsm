@@ -369,6 +369,6 @@ $translationNamespaces = ['common', 'calendar'];
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=83"></script>
+    <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -265,6 +265,6 @@ $translationNamespaces = ['common', 'problem-management'];
     window.PM_SHOW_CHANGES = <?php echo moduleIsEnabled(connectToDatabase(), 'changes') ? 'true' : 'false'; ?>; window.PM_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="<?php echo BASE_URL; ?>assets/js/project-links.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=24"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=87"></script>
 </body>
 </html>

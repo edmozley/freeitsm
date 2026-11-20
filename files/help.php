@@ -150,6 +150,6 @@ $para = fn(string $k) => preg_replace(['/\*\*([^*]+)\*\*/', '/`([^`]+)`/'], ['<s
         if (location.hash) goTo(location.hash.slice(1), 'auto');
         window.addEventListener('hashchange', () => goTo(location.hash.slice(1), 'smooth'));
     </script>
-    <?php if (!$embed): ?><script src="../assets/js/mobile.js?v=83"></script><?php endif; ?>
+    <?php if (!$embed): ?><script src="../assets/js/mobile.js?v=87"></script><?php endif; ?>
 </body>
 </html>

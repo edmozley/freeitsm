@@ -109,7 +109,14 @@ return [
         'col_team' => 'Zespół',
         'col_due' => 'Termin',
         'col_subtasks' => 'Podzadania',
+        'col_id' => 'ID',   // GH #405
         'no_tasks' => 'Nie znaleziono zadań',
+    ],
+
+    // GH #405: the details card on hovering a task (Calendar, Timeline).
+    'hover' => [
+        'subtask_of' => 'Podzadanie zadania',
+        'repeating'  => 'Powtarza się',
     ],
     'detail' => [
         'heading' => 'Szczegóły zadania',
@@ -919,12 +926,14 @@ Ukończyć zadanie mimo to? Zostanie to zapisane w historii zadania.',
         'list_heading' => 'Widok listy',
         'list_intro' => 'Lista to bliźniak danych tablicy &mdash; te same zadania jako sortowalna tabela. Przełącz się na nią za pomocą przełącznika Widok na pasku bocznym.',
         'list_body' => 'Kliknij dowolny nagłówek kolumny &mdash; Tytuł, Status, Priorytet, Przypisany, Zespół, Termin &mdash; aby sortować według niego; kliknij ponownie, aby odwrócić kierunek. Wyszukiwanie i filtry na pasku bocznym działają dokładnie tak samo jak na tablicy, więc możesz zawęzić listę, a potem posortować to, co zostało. Kliknij wiersz, aby otworzyć zadanie.',
+        'list_id' => 'Pierwsza kolumna to <strong>ID</strong> zadania, ten sam numer, który widać jako #ID na każdej karcie tablicy. Posortuj według niej, aby zobaczyć najnowsze zadania na początku.',   // GH #405
         'list_tip' => 'Lista to miejsce, w którym znajdziesz zadanie, którego status nie ma kolumny na tablicy (na przykład niestandardowy status „Icebox”) &mdash; lista pokazuje każde zadanie niezależnie od statusu.',
         'calendar_heading' => 'Widok kalendarza',
         'calendar_intro' => 'Kalendarz rozmieszcza zadania na siatce dat, dzięki czemu terminy i obciążenie pracą widać na pierwszy rzut oka. Zadania są kolorowane według statusu.',
         'calendar_body' => 'Pasek narzędzi zawiera przycisk <strong>Dziś</strong>, strzałki wstecz/dalej oraz przełącznik widoku <strong>Miesiąc / Tydzień / Dzień</strong> po prawej stronie. <em>Miesiąc</em> to znana siatka 4&ndash;6 tygodni; <em>Tydzień</em> przybliża pojedynczy siedmiodniowy wiersz rozciągnięty na cały ekran; <em>Dzień</em> zawęża widok do jednej daty i wyświetla każde przypadające na nią zadanie jako wiersz karty. Strzałki wstecz/dalej przesuwają widok o miesiąc, tydzień lub dzień, zależnie od aktywnego widoku.',
         'calendar_sidebar' => 'Pasek boczny pokazuje legendę kolorów, te same filtry Moje / Wszystkie / Zespół / Analityk co na tablicy, oraz panel <strong>Tryb rozciągania</strong> z linkiem Zmień prowadzącym bezpośrednio do ustawień kalendarza.',
         'calendar_click_heading' => 'Kliknięcie zadania',
+        'calendar_hover_body' => 'Zatrzymaj wskaźnik na zadaniu w widoku Miesiąc lub Tydzień, a karta pokaże jego szczegóły: numer, status, priorytet, osobę przypisaną, zespół, projekt, daty (z oznaczeniem Po terminie, gdy jest spóźnione), podzadania, tagi i początek opisu. Karta zawsze mieści się w oknie.',   // GH #405
         'calendar_click_body' => 'Kliknięcie plakietki zadania, paska lub wiersza w widoku dnia otwiera wysuwany <strong>panel szybki</strong> po prawej stronie kalendarza &mdash; bez opuszczania bieżącego widoku. Tytuł, status, priorytet, przypisana osoba, zespół i daty można edytować bezpośrednio w panelu; ikona uruchamiania na górze otwiera pełny edytor pulpitu, gdy potrzebny jest opis w formacie tekstu sformatowanego, podzadania lub komentarze.',
         'calendar_multiday_heading' => 'Jak rysowane są zadania wielodniowe',
         'calendar_multiday_body' => 'Zadanie z datą rozpoczęcia wcześniejszą niż termin obejmuje zakres dni. Sposób pokazywania tego zakresu ustawia się raz, dla całej instalacji, w Ustawienia &rarr; Kalendarz:',
@@ -944,6 +953,7 @@ Ukończyć zadanie mimo to? Zostanie to zapisane w historii zadania.',
         'timeline_rightclick_heading' => 'Prawy przycisk myszy dla szybkich akcji',
         'timeline_rightclick_body' => 'Kliknij dowolny pasek prawym przyciskiem myszy, aby otworzyć to samo menu kontekstowe co na tablicy &mdash; <strong>Przypisz analityka</strong>, <strong>Przypisz zespół</strong>, <strong>Zmień status</strong>, <strong>Zmień priorytet</strong> &mdash; bez otwierania czegokolwiek. Każde podmenu oznacza znacznikiem bieżącą wartość zadania.',
         'timeline_click_heading' => 'Kliknięcie paska',
+        'timeline_hover_body' => 'Zatrzymaj wskaźnik na pasku lub nazwie zadania, aby zobaczyć tę samą kartę szczegółów co w kalendarzu. Nie pojawia się, gdy przeciągasz pasek.',   // GH #405
         'timeline_click_body' => 'Zwykłe kliknięcie paska (lub kolumny z nazwą zadania po lewej stronie) otwiera ten sam wysuwany panel szybki co w kalendarzu, po prawej stronie osi czasu. Edytuj podstawowe pola na miejscu albo kliknij ikonę uruchamiania na górze panelu, aby przejść do pełnego edytora pulpitu.',
         'table_heading' => 'Widok tabeli',
         'table_intro' => 'Widok tabeli to pełnoekranowa siatka w stylu Excela &mdash; jeden wiersz na zadanie, z edytowalnymi komórkami. To najszybsze miejsce, aby posegregować listę, zbiorczo zmienić pola lub zbudować dokładnie taki układ kolumn, w jakim chcesz pracować.',
@@ -956,6 +966,7 @@ Ukończyć zadanie mimo to? Zostanie to zapisane w historii zadania.',
         'table_views_remember'     => 'Tabela pamięta ostatnio wybrany widok i następnym razem otwiera się z nim, w każdej przeglądarce &mdash; dopóki nie wybierzesz innego albo nie użyjesz <strong>Resetuj</strong>; potem znów otwiera się z Twoim widokiem domyślnym.',   // GH #408
         'table_views_note' => 'Kolumny, sortowanie i filtry są zapisywane; pole wyszukiwania celowo nie jest zapisywane, ponieważ wyszukiwanie to pytanie zadane raz, a nie sposób patrzenia na dane, który chcesz zachować. Te same widoki istnieją w tabelach Zasobów, Kalendarza i Zarządzania zmianą, każda z nich zachowuje własne.',
         'table_columns_heading' => 'Kolumny: pokazywanie, ukrywanie, zmiana kolejności',
+        'table_columns_extra' => 'Oprócz kolumn widocznych na początku panel oferuje Początek, Utworzono, Podzadania, <strong>ID</strong> (numer zadania widoczny jako #ID na kartach tablicy) i <strong>Firma</strong>.',   // GH #405
         'table_columns_body' => 'Kliknij przycisk <strong>Kolumny</strong> na pasku narzędzi, aby otworzyć panel ze wszystkimi kolumnami, jakie zna tabela. Zaznacz te, które mają być widoczne; przeciągaj wiersze, aby zmienić kolejność. Uchwyt przeciągania na nagłówku kolumny również pozwala zmienić kolejność kolumn bezpośrednio. Widoczność i kolejność są zapisywane na koncie, więc przy następnym otwarciu tabela wygląda tak, jak ją zostawiono.',
         'table_sort_heading' => 'Sortowanie, filtrowanie, wyszukiwanie',
         'table_field_sort' => '<strong>Sortowanie</strong> &mdash; kliknij dowolny nagłówek kolumny, aby sortować według niego. Kliknij ponownie, aby odwrócić kierunek. Aktywne sortowanie jest zapisywane osobno dla każdego analityka razem z układem kolumn.',
