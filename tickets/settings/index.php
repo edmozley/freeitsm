@@ -703,6 +703,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
             .activity-modal-content { width: 100%; max-width: none; }
             .activity-log-pane { max-height: calc(100vh - 260px); }
         }
+        /* One h2 per panel, naming its tab (Ed 2026-11-20: Checklists opened straight into
+           "Closing a ticket with steps outstanding"). Further sections are h3.ts-sub. */
+        .ts-sub { font-size: 17px; font-weight: 600; margin: 0 0 10px; color: var(--text, #333); }
+        .section-header > .ts-sub { margin: 0; }
     </style>
     <!-- Mobile: LAYER 15e (container, tab strip, fields, all tables scroll).
          data-mobile-shell="own" opts OUT of LAYER 2's flex body — this page
@@ -771,7 +775,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                      assets/js/ticket-type-rules.js from api/tickets/ticket_type_rules.php. */ ?>
             <div class="ttr" id="ttrSection">
                 <div class="section-header" style="margin-top:36px;">
-                    <h2><?php echo htmlspecialchars(t('tickets.type_rules.title')); ?></h2>
+                    <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.type_rules.title')); ?></h3>
                 </div>
                 <p class="ttr-intro"><?php echo t('tickets.type_rules.intro'); ?></p>
                 <div id="ttrBody"><p class="ttr-hint"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></p></div>
@@ -972,8 +976,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
              the tab button and an empty panel. -->
         <div class="tab-content<?php echo $activeTabId === 'checklists' ? ' active' : ''; ?>" id="checklists-tab" data-capability="<?php echo capKey(Cap::TICKETS_CHECKLISTS); ?>">
             <div class="section-header">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.checklists')); ?></h2>
+                <h2><?php echo htmlspecialchars(t('tickets.settings.tabs.checklists')); ?></h2>
             </div>
+            <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.headings.checklists')); ?></h3>
             <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.checklists'); ?></p>
 
             <div style="display: flex; flex-direction: column; gap: 14px; max-width: 720px;">
@@ -998,7 +1003,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             </p>
             <div style="margin-top: 32px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 24px;">
                 <div class="section-header">
-                    <h2><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_section_title')); ?></h2>
+                    <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_section_title')); ?></h3>
                 </div>
                 <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_section_desc')); ?></p>
 
@@ -1029,7 +1034,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
             <div style="margin-top: 32px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 24px;">
                 <div class="section-header">
-                    <h2><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_section_title')); ?></h2>
+                    <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_section_title')); ?></h3>
                 </div>
                 <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; max-width: 720px;">
                     <input type="checkbox" id="chkFormsEnabled" style="margin-top: 3px;"<?php echo $ticketFormsEnabled ? ' checked' : ''; ?>>
@@ -1053,8 +1058,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
              the stored values, so there is nothing to load - only to save. -->
         <div class="tab-content<?php echo $activeTabId === 'mandatory-fields' ? ' active' : ''; ?>" id="mandatory-fields-tab" data-capability="<?php echo capKey(Cap::TICKETS_MANDATORY_FIELDS); ?>">
             <div class="section-header">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.mandatory_fields')); ?></h2>
+                <h2><?php echo htmlspecialchars(t('tickets.settings.tabs.mandatory_fields')); ?></h2>
             </div>
+            <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.headings.mandatory_fields')); ?></h3>
             <p style="margin-bottom: 20px; color: var(--text-muted, #666); max-width: 720px;"><?php echo htmlspecialchars(t('tickets.settings.intros.mandatory_fields')); ?></p>
 
             <h3 style="font-size: 14px; margin: 0 0 10px; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.when_heading')); ?></h3>
@@ -1586,7 +1592,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
         <?php if (settingsTabVisible($visibleTabs, 'messaging')): ?>
         <div class="tab-content<?php echo $activeTabId === 'messaging' ? ' active' : ''; ?>" id="messaging-tab" data-capability="<?php echo capKey(Cap::TICKETS_MESSAGING); ?>">
             <div class="section-header">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.messaging.channels_heading')); ?></h2>
+                <h2><?php echo htmlspecialchars(t('tickets.settings.tab_messaging')); ?></h2>
+            </div>
+            <div class="section-header">
+                <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.messaging.channels_heading')); ?></h3>
                 <button class="add-btn" onclick="openChannelModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <p>
@@ -1619,7 +1628,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             </table>
 
             <div class="section-header" style="margin-top:32px;">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.messaging.templates_heading')); ?></h2>
+                <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.messaging.templates_heading')); ?></h3>
                 <button class="add-btn" onclick="openMsgTemplateModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <p>
@@ -1886,7 +1895,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
         <?php if (settingsTabVisible($visibleTabs, 'rota')): ?>
         <div class="tab-content<?php echo $activeTabId === 'rota' ? ' active' : ''; ?>" id="rota-tab" data-capability="<?php echo capKey(Cap::TICKETS_ROTA); ?>">
             <div class="section-header">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.rota_shifts')); ?></h2>
+                <h2><?php echo htmlspecialchars(t('tickets.settings.tabs.rota')); ?></h2>
+            </div>
+            <div class="section-header">
+                <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.headings.rota_shifts')); ?></h3>
                 <button class="add-btn" onclick="openRotaShiftModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.rota_shifts'); ?></p>
@@ -1906,7 +1918,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 </tbody>
             </table>
             <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-                <h2 style="font-size: 16px; margin-bottom: 12px;"><?php echo htmlspecialchars(t('tickets.settings.headings.rota_settings')); ?></h2>
+                <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.headings.rota_settings')); ?></h3>
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                     <input type="checkbox" id="rotaIncludeWeekends" onchange="saveRotaWeekendSetting()">
                     <?php echo htmlspecialchars(t('tickets.settings.rota_weekends')); ?>
@@ -2001,7 +2013,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                      MIGRATION tool, not part of choosing a format. */ ?>
             <hr style="margin:32px 0;border:0;border-top:1px solid var(--border, #e0e0e0);">
             <div class="section-header">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.numbering.renumber_heading')); ?></h2>
+                <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.numbering.renumber_heading')); ?></h3>
             </div>
             <p style="margin-bottom: 16px; color: var(--text-muted, #666); max-width:700px;"><?php echo t('tickets.settings.numbering.renumber_intro'); ?></p>
 
@@ -2557,8 +2569,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
              one administrative control inside is gated separately, below. -->
         <div class="tab-content<?php echo $activeTabId === 'row-display' ? ' active' : ''; ?>" id="row-display-tab">
             <div class="section-header">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.row_display')); ?></h2>
+                <h2><?php echo htmlspecialchars(t('tickets.settings.tabs.row_display')); ?></h2>
             </div>
+            <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.headings.row_display')); ?></h3>
             <p style="color: var(--text-muted, #555);">
                 <?php echo htmlspecialchars(t('tickets.settings.row_display.intro')); ?>
             </p>
