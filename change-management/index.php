@@ -24,7 +24,7 @@ $translationNamespaces = ['common', 'change-management'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=14">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>

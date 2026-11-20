@@ -1835,6 +1835,7 @@ return [
 
         'panels_heading' => 'Left panels',
         'panels_desc'    => 'Choose, per module, whether the left panel stays pinned open or collapses to a thin strip that expands on hover. Tickets can also open it with a click (or the [ key). Modules with a settings page also offer this on their own Left panel tab.',
+        'panels_narrow'  => 'In a window 1100px wide or less, the Tickets folders start as the strip even on Always visible, so the ticket you are reading has room. They come back when the window is wider.',   // GH #413
         'panel_tickets'           => 'Tickets - folders',
         'panel_knowledge'         => 'Knowledge',
         'panel_process_mapper'    => 'Process Mapper',

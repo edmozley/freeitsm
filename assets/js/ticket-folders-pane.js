@@ -11,6 +11,12 @@
  * strip -> open or closed. Picking a folder, Esc or a click elsewhere closes an
  * open strip. Desktop only: every rule is in a min-width media query in inbox.css,
  * so on a phone the classes do nothing and [ is ignored.
+ *
+ * GH #413 (5.8.0): "Always" means "always, when there's room". Between the phone
+ * layout and 1100px the three columns left the reading pane 120-420px wide, so with
+ * the preference on Always the folders start as a strip there and come back when the
+ * window is wider. [ and the buttons still switch it for this visit; crossing 1100px
+ * again hands it back to the width.
  */
 (function () {
     'use strict';
@@ -21,6 +27,9 @@
     var pref = mc.getAttribute('data-folders-mode') || 'always';
     var mode = pref;                       // how it behaves right now
     var desktop = window.matchMedia('(min-width: 769px)');
+    // TRAP: keep 1100px in step with the list's shrink rule in inbox.css (GH #413).
+    var narrow = window.matchMedia('(min-width: 769px) and (max-width: 1100px)');
+    if (pref === 'always' && narrow.matches) mode = 'click';
 
     function apply() {
         mc.classList.toggle('folders-collapsed', mode !== 'always');
@@ -73,6 +82,16 @@
         e.preventDefault();
         toggle();
     });
+
+    // Only an Always preference follows the width; Click and Hover are a strip anyway.
+    function onWidth() {
+        if (pref !== 'always') return;
+        mc.classList.remove('folders-open');
+        mode = narrow.matches ? 'click' : 'always';
+        apply();
+    }
+    if (narrow.addEventListener) narrow.addEventListener('change', onWidth);
+    else if (narrow.addListener) narrow.addListener(onWidth);   // Safari before 14
 
     apply();
 })();

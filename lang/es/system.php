@@ -1623,6 +1623,7 @@ return [
         'anim_fade' => 'Desvanecer',
         'panels_heading' => 'Paneles izquierdos',
         'panels_desc' => 'Elige, por módulo, si el panel izquierdo permanece fijo y abierto o se contrae en una franja delgada que se expande al pasar el cursor. En Tickets también se puede abrir con un clic (o con la tecla [). Los módulos con página de configuración también ofrecen esto en su propia pestaña Panel izquierdo.',
+        'panels_narrow'  => 'En una ventana de 1100 px de ancho o menos, las carpetas de Tickets empiezan como la franja incluso con Siempre visible, para que el ticket que estás leyendo tenga espacio. Vuelven cuando la ventana es más ancha.',   // GH #413
         'panel_tickets' => 'Tickets - carpetas',
         'panel_knowledge' => 'Conocimiento',
         'panel_process_mapper' => 'Mapeador de procesos',

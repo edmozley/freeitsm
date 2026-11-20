@@ -1623,6 +1623,7 @@ return [
         'anim_fade' => 'Pudar',
         'panels_heading' => 'Panel kiri',
         'panels_desc' => 'Pilih, per modul, apakah panel kiri tetap terbuka atau diciutkan menjadi strip tipis yang meluas saat ditunjuk. Pada Tiket, panel juga dapat dibuka dengan klik (atau tombol [). Modul yang memiliki halaman pengaturan juga menawarkan opsi ini di tab Panel kiri miliknya sendiri.',
+        'panels_narrow'  => 'Di jendela selebar 1100px atau kurang, folder Tiket dimulai sebagai strip meskipun disetel Selalu terlihat, agar tiket yang Anda baca punya ruang. Folder kembali saat jendela lebih lebar.',   // GH #413
         'panel_tickets' => 'Tiket - folder',
         'panel_knowledge' => 'Pengetahuan',
         'panel_process_mapper' => 'Pemeta Proses',

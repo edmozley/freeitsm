@@ -34,7 +34,7 @@ $translationNamespaces = ['common', 'calendar'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('calendar', t('calendar.nav.table'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../../assets/css/calendar-grid.css?v=1">
     <link rel="stylesheet" href="../../assets/css/itsm_calendar.css?v=11">
     <link rel="stylesheet" href="../../assets/css/data-table.css?v=7">

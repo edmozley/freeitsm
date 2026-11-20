@@ -47,7 +47,7 @@ $startPage = 'handbook/start';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.engineering_wiki.heading'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../../assets/css/engineering-wiki.css?v=5">
     <style>
         /* System module accent (blue-grey), as on every System page. */

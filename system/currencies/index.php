@@ -65,7 +65,7 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.currencies.title'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
     <style>
         body {
             /* System's DARK accent is a LIGHT colour, so --on-accent is pinned with it (as the other System pages). */

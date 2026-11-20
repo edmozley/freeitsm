@@ -1623,6 +1623,7 @@ return [
         'anim_fade' => 'Überblenden',
         'panels_heading' => 'Linke Leisten',
         'panels_desc' => 'Legen Sie pro Modul fest, ob die linke Leiste dauerhaft geöffnet bleibt oder zu einem dünnen Streifen eingeklappt wird, der sich beim Überfahren mit dem Mauszeiger ausklappt. Bei Tickets lässt sie sich auch per Klick (oder mit der Taste [) öffnen. Module mit einer Einstellungsseite bieten dies auch auf ihrem eigenen Tab Linke Leiste an.',
+        'panels_narrow'  => 'In einem Fenster bis 1100 px Breite starten die Ordner in Tickets als Leiste, auch bei „Immer sichtbar“, damit das geöffnete Ticket Platz hat. Bei einem breiteren Fenster kommen sie zurück.',   // GH #413
         'panel_tickets' => 'Tickets - Ordner',
         'panel_knowledge' => 'Wissensdatenbank',
         'panel_process_mapper' => 'Process Mapper',

@@ -1623,6 +1623,7 @@ return [
         'anim_fade' => 'Ton',
         'panels_heading' => 'Venstre paneler',
         'panels_desc' => 'Vælg pr. modul, om venstre panel forbliver fastgjort åbent eller klappes sammen til en tynd stribe, der udvides ved markørover. Sager kan også åbne det med et klik (eller tasten [). Moduler med en indstillingsside tilbyder også dette under deres egen fane Venstre panel.',
+        'panels_narrow'  => 'I et vindue på 1100 px eller smallere starter mapperne i Sager som strimlen, også ved Altid synligt, så sagen du læser har plads. De kommer tilbage, når vinduet er bredere.',   // GH #413
         'panel_tickets' => 'Sager - mapper',
         'panel_knowledge' => 'Viden',
         'panel_process_mapper' => 'Processer',

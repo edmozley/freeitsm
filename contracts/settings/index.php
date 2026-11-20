@@ -36,7 +36,7 @@ $translationNamespaces = ['common', 'contracts'];
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
     <style>
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
 

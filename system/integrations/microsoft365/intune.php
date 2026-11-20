@@ -53,7 +53,7 @@ $assetsOn = moduleIsEnabled(connectToDatabase(), 'assets');
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/integrations.css?v=3">
     <style>
         body {

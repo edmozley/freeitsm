@@ -199,7 +199,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.preferences.title'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../../assets/css/subscribe.css?v=1">
     <style>
         body {
@@ -1076,6 +1076,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             <div class="pref-section">
                 <h3 id="left-panels"><?php echo htmlspecialchars(t('system.preferences.panels_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.panels_desc')); ?></p>
+                <p><?php echo htmlspecialchars(t('system.preferences.panels_narrow')); ?></p>   <!-- GH #413 -->
                 <!-- One row per module that has a left panel. Rows are built
                      in JS from SIDEBAR_PANELS so adding a module is a one-line
                      change here + a default in $prefDefaults above. -->

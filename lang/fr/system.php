@@ -1623,6 +1623,7 @@ return [
         'anim_fade' => 'Fondu',
         'panels_heading' => 'Panneaux gauches',
         'panels_desc' => 'Choisissez, module par module, si le panneau gauche reste épinglé ouvert ou se réduit en une fine bande qui se déploie au survol. Pour Tickets, il peut aussi s\'ouvrir par un clic (ou avec la touche [). Les modules dotés d\'une page de paramètres proposent aussi ce choix dans leur propre onglet Panneau gauche.',
+        'panels_narrow'  => 'Dans une fenêtre de 1100 px de large ou moins, les dossiers des Tickets démarrent en bandeau même sur Toujours visible, pour laisser de la place au ticket que vous lisez. Ils reviennent quand la fenêtre est plus large.',   // GH #413
         'panel_tickets' => 'Tickets - dossiers',
         'panel_knowledge' => 'Connaissances',
         'panel_process_mapper' => 'Process Mapper',

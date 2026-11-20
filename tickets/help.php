@@ -39,7 +39,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.help'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../assets/css/help.css?v=6">
     <style>
         /* Tickets is the one module with no accent of its own — it uses the
@@ -201,6 +201,7 @@ try {
                     <p><?php echo t('tickets.help.inbox.switch_body'); ?></p>
                     <!-- Discussion #292: hiding the folder panel. -->
                     <p><?php echo t('tickets.help.inbox.folders_hide'); ?></p>
+                    <p><?php echo t('tickets.help.inbox.folders_narrow'); ?></p>   <!-- GH #413 -->
 
                     <p><?php echo t('tickets.help.inbox.p_actions'); ?></p>
                     <p><?php echo t('tickets.help.inbox.filter_body'); ?></p>

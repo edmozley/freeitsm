@@ -35,7 +35,7 @@ $translationNamespaces = ['common', 'lms'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('lms')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../assets/css/lms.css?v=11">
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">

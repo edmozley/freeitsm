@@ -1623,6 +1623,7 @@ return [
         'anim_fade' => 'Zanikanie',
         'panels_heading' => 'Panele boczne',
         'panels_desc' => 'Wybierz dla każdego modułu, czy lewy panel pozostaje przypięty i otwarty, czy zwija się do wąskiego paska, który rozwija się po najechaniu. W Zgłoszeniach można go też otworzyć kliknięciem (lub klawiszem [). Moduły ze stroną ustawień oferują to również na własnej karcie Lewy panel.',
+        'panels_narrow'  => 'W oknie o szerokości 1100 px lub mniejszej foldery Zgłoszeń zaczynają jako pasek nawet przy ustawieniu Zawsze widoczny, aby czytane zgłoszenie miało miejsce. Wracają, gdy okno jest szersze.',   // GH #413
         'panel_tickets' => 'Zgłoszenia - foldery',
         'panel_knowledge' => 'Wiedza',
         'panel_process_mapper' => 'Procesy',

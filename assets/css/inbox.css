@@ -5156,6 +5156,15 @@ body .tox-tinymce-aux {
         background: var(--surface-2, #f3f3f3); border-color: var(--border, #ddd); color: var(--text, #333);
     }
 
+    /* GH #413: between the phone layout and 1100px the list narrows with the window,
+       400px at 1100px down to 300px at 1000px and below, so the reading pane keeps the
+       room (flex-shrink alone does nothing once the folders are a strip - the row no
+       longer overflows). TRAP: 1100px matches the narrow query in
+       ticket-folders-pane.js, which folds the folders to a strip there. */
+    @media (max-width: 1100px) {
+        .email-list-container { width: clamp(300px, 100vw - 700px, 400px); }
+    }
+
     .main-container.folders-collapsed { padding-left: 28px; }
     .main-container.folders-hover { padding-left: 16px; }
     .main-container.folders-collapsed .folder-container {

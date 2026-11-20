@@ -37,7 +37,7 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('starters.' . $k, $p));
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=28">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=96">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../assets/css/starters.css?v=7">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
 </head>
