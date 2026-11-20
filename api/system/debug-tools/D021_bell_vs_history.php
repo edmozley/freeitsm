@@ -220,8 +220,9 @@ d021_section($sections, 'WORKFLOWS THAT RAN ON THIS TICKET', $w);
 
 // ---- 5. Pair each bell change with its history -----------------------------------------
 
-$fieldFor = ['ticket.team_assigned' => 'team', 'ticket.assigned' => 'owner', 'ticket.reassigned' => 'owner',
-    'ticket.status_changed' => 'status', 'ticket.priority_changed' => 'priority', 'ticket.created' => 'ticket created'];
+// The SAME matching the bell's (i) panel uses (includes/notification_explain.php), so the
+// tool and the panel can never give different answers about one row.
+require_once __DIR__ . '/../../../includes/notification_explain.php';
 $usedAudit = [];
 $verdicts = ['MATCH' => 0, 'MISMATCH' => 0, 'AUTOMATIC CREDITED TO A PERSON' => 0, 'NOT FOUND' => 0, 'NOT CHECKED' => 0];
 $p = [];
@@ -230,41 +231,20 @@ foreach ($changes as $i => $c) {
     $label = sprintf('#%d %s (%s)', $i + 1, $c['event_type'], $c['grouped'] ? $c['updated'] . ', the latest of a grouped row' : $c['time']);
     $evidence = null; $actual = null; $isSystem = false; $gap = null;
 
-    if (isset($fieldFor[$c['event_type']])) {
-        $best = null;
-        foreach ($audit as $k => $a) {
-            if (isset($usedAudit[$k]) || mb_strtolower((string)$a['field_name']) !== $fieldFor[$c['event_type']]) continue;
-            $d = abs(strtotime($a['created_datetime'] . ' UTC') - $ts);
-            if ($d <= D021_WINDOW && ($best === null || $d < $best[1])) $best = [$k, $d];
-        }
-        if ($best) {
-            $usedAudit[$best[0]] = true;
-            $a = $audit[$best[0]];
-            $isSystem = $a['analyst_id'] === null;
-            $actual = $who($a); $gap = $best[1];
-            $evidence = "history line {$a['created_datetime']} {$a['field_name']} -> " . ($a['new_value'] ?? '-');
-        }
-    } elseif ($c['event_type'] === 'ticket.note_added') {
-        $n = $conn->prepare('SELECT analyst_id, created_datetime FROM ticket_notes WHERE ticket_id = ? AND ABS(TIMESTAMPDIFF(SECOND, created_datetime, ?)) <= ? ORDER BY ABS(TIMESTAMPDIFF(SECOND, created_datetime, ?)) LIMIT 1');
-        $n->execute([$tid, gmdate('Y-m-d H:i:s', $ts), D021_WINDOW, gmdate('Y-m-d H:i:s', $ts)]);
-        if ($row = $n->fetch(PDO::FETCH_ASSOC)) {
-            $isSystem = $row['analyst_id'] === null;
-            $actual = $isSystem ? 'System (a note added by a workflow)' : $name((int)$row['analyst_id']);
-            $gap = abs(strtotime($row['created_datetime'] . ' UTC') - $ts);
-            $evidence = "note written {$row['created_datetime']}";
-        }
-    } elseif ($c['event_type'] === 'ticket.reply_received') {
-        $m = $conn->prepare('SELECT from_name, from_address, received_datetime FROM emails WHERE ticket_id = ? AND ABS(TIMESTAMPDIFF(SECOND, received_datetime, ?)) <= 86400 ORDER BY ABS(TIMESTAMPDIFF(SECOND, received_datetime, ?)) LIMIT 1');
-        $m->execute([$tid, gmdate('Y-m-d H:i:s', $ts), gmdate('Y-m-d H:i:s', $ts)]);
-        if ($row = $m->fetch(PDO::FETCH_ASSOC)) {
-            $actual = trim(($row['from_name'] ?? '') . ' <' . ($row['from_address'] ?? '') . '>');
-            $gap = abs(strtotime($row['received_datetime'] . ' UTC') - $ts);
-            $evidence = "email received {$row['received_datetime']} (a reply is announced when it is fetched, so a gap is normal)";
-        }
-    } else {
+    $m = notificationHistoryMatch($conn, $tid, (string)$c['event_type'], $ts, $usedAudit);
+    if ($m !== null && $m['kind'] === 'none') {
         $verdicts['NOT CHECKED']++;
         $p[] = "{$label}\n     NOT CHECKED - nothing in the ticket history records this kind of event.";
         continue;
+    }
+    if ($m !== null) {
+        if ($m['kind'] === 'audit') $usedAudit[$m['id']] = true;
+        $isSystem = $m['by_kind'] === 'system';
+        $actual = $m['by_kind'] === 'system' ? ($m['kind'] === 'note' ? 'System (a note added by a workflow)' : 'System (automatic - a workflow or the system)')
+                : ($m['by_kind'] === 'former' ? '(former analyst)' : (string)$m['by_name']);
+        $gap = $m['gap'];
+        $evidence = $m['kind'] === 'audit' ? "history line {$m['time']} {$m['field']} -> " . ($m['new'] ?? '-')
+                  : ($m['kind'] === 'note' ? "note written {$m['time']}" : "email received {$m['time']} (a reply is announced when it is fetched, so a gap is normal)");
     }
 
     if ($evidence === null) {

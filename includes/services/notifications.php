@@ -361,6 +361,8 @@ class NotificationsService
         // NotificationActor array from the router; a direct caller that sends only actor_id
         // is a person. Written only once Database Verification has added the columns.
         $detail = (!$isPortal && self::actorColumnsReady($conn)) ? self::actorDetail($in) : null;
+        // And why THIS person is told (the bell's "Why you"), known only now.
+        $reason = (!$isPortal && self::reasonColumnReady($conn) && isset($in['reason']) && $in['reason'] !== '') ? substr((string)$in['reason'], 0, 24) : null;
 
         // ── Rule 3: coalesce ──────────────────────────────────────────────────
         // Same analyst, same object, still unread, within the window → bump the
@@ -400,6 +402,7 @@ class NotificationsService
                     $conn->prepare("UPDATE $table SET actor_kind = ?, actor_analyst_id = ?, source = ?, workflow_id = ?, api_key_id = ? WHERE id = ?")
                          ->execute([...array_values($detail), (int)$existingId]);
                 }
+                if ($reason !== null) $conn->prepare("UPDATE $table SET reason = ? WHERE id = ?")->execute([$reason, (int)$existingId]);
                 return (int)$existingId;
             }
 
@@ -415,6 +418,7 @@ class NotificationsService
                 $conn->prepare("UPDATE $table SET actor_kind = ?, actor_analyst_id = ?, source = ?, workflow_id = ?, api_key_id = ? WHERE id = ?")
                      ->execute([...array_values($detail), $newId]);
             }
+            if ($reason !== null) $conn->prepare("UPDATE $table SET reason = ? WHERE id = ?")->execute([$reason, $newId]);
             return $newId;
         } catch (Exception $e) {
             // A notification is never worth failing the thing that caused it.
@@ -426,6 +430,17 @@ class NotificationsService
     /**
      * Has Database Verification added the actor columns (GH #365, 5.8.0)?
      */
+    /** Has Database Verification added notifications.reason (5.8.0)? */
+    private static function reasonColumnReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $ready = (bool)$conn->query("SHOW COLUMNS FROM notifications LIKE 'reason'")->fetch(); }
+            catch (Throwable) { $ready = false; }
+        }
+        return $ready;
+    }
+
     private static function actorColumnsReady(PDO $conn): bool
     {
         static $ready = null;

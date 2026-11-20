@@ -3710,6 +3710,7 @@ return [
         'source'           => 'VARCHAR(16) NULL',
         'workflow_id'      => 'INT NULL',
         'api_key_id'       => 'INT NULL',
+        'reason'           => 'VARCHAR(24) NULL',   // why this person was told - the bell's "Why you"
         'event_count'      => 'INT NOT NULL DEFAULT 1',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',

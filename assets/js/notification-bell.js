@@ -29,6 +29,7 @@ window.NotificationBell = {
         const COUNT  = cfg.list + (cfg.list.indexOf('?') === -1 ? '?' : '&') + 'count_only=1';
         const MARK   = cfg.markRead;
         const CLEAR  = cfg.clear;
+        const EXPLAIN = cfg.explain || null;   // the (i) panel, analyst bell only (5.8.0)
         const PREFIX = cfg.linkPrefix || '';
         const btn   = document.getElementById('nbBtn');
         const panel = document.getElementById('nbPanel');
@@ -102,9 +103,12 @@ window.NotificationBell = {
                            data-id="${n.id}">
                     <div class="nb-item-top">
                         <span class="nb-item-ref">${ref}${count}</span>
+                        ${EXPLAIN ? `<span class="nb-info" role="button" tabindex="0" aria-expanded="false"
+                              title="${esc(window.t('common.notifications.explain.info'))}"
+                              aria-label="${esc(window.t('common.notifications.explain.info'))}">i</span>` : ''}
                         <span class="nb-clear" role="button" tabindex="0"
                               title="${esc(window.t('common.notifications.clear_one'))}"
-                              aria-label="${esc(window.t('common.notifications.clear_one'))}">&times;</span>
+                              aria-label="${esc(window.t('common.notifications.clear_one'))}"><svg viewBox="0 0 10 10" width="8" height="8" aria-hidden="true" focusable="false"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
                     </div>
                     <div class="nb-item-title">${esc(n.title || '')}</div>
                     <div class="nb-item-bottom">
@@ -261,6 +265,12 @@ window.NotificationBell = {
                 if (id) clearOne(id, item);
                 return;
             }
+            if (e.target.closest('.nb-info')) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (id) toggleExplain(id, item);
+                return;
+            }
 
             if (id) {
                 fetch(MARK, {
@@ -274,6 +284,14 @@ window.NotificationBell = {
         // an anchor, so Enter would otherwise follow the link instead.
         list.addEventListener('keydown', function (e) {
             if (e.key !== 'Enter' && e.key !== ' ') return;
+            const info = e.target.closest('.nb-info');
+            if (info) {
+                const row = info.closest('.nb-item');
+                e.preventDefault();
+                e.stopPropagation();
+                if (row) toggleExplain(parseInt(row.dataset.id, 10), row);
+                return;
+            }
             const btn = e.target.closest('.nb-clear');
             if (!btn) return;
             const item = btn.closest('.nb-item');
@@ -283,6 +301,75 @@ window.NotificationBell = {
             if (id) clearOne(id, item);
         });
 
+        /**
+         * "Why is this here?" (5.8.0): what made the change, how, why you were told, and the
+         * ticket's own history line beside it - the same answer debug tool D021 gives, from
+         * the same code (includes/notification_explain.php). Opens under the row, outside
+         * its link, so clicking inside never navigates. Built with textContent only.
+         */
+        async function toggleExplain(id, item) {
+            const open = item.nextElementSibling && item.nextElementSibling.classList.contains('nb-explain') ? item.nextElementSibling : null;
+            const btn = item.querySelector('.nb-info');
+            if (open) { open.remove(); if (btn) btn.setAttribute('aria-expanded', 'false'); return; }
+            const box = document.createElement('div');
+            box.className = 'nb-explain';
+            const X = (k, p) => window.t('common.notifications.explain.' + k, p);
+            box.textContent = X('loading');
+            item.after(box);
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+            let x;
+            try {
+                const d = await (await fetch(EXPLAIN + (EXPLAIN.indexOf('?') === -1 ? '?' : '&') + 'id=' + encodeURIComponent(id), { credentials: 'same-origin' })).json();
+                if (!d.success) throw new Error();
+                x = d.explain;
+            } catch (e) {
+                box.textContent = X('failed');
+                return;
+            }
+            box.textContent = '';
+            const when = s => { const d = new Date(s); return isNaN(d) ? s : d.toLocaleString(); };
+            const row = (label, value, cls) => {
+                const r = document.createElement('div'); r.className = 'nb-ex-row' + (cls ? ' ' + cls : '');
+                const l = document.createElement('span'); l.className = 'nb-ex-label'; l.textContent = label;
+                const v = document.createElement('span'); v.className = 'nb-ex-value'; v.textContent = value;
+                r.append(l, v); box.appendChild(r); return r;
+            };
+            const h = document.createElement('div'); h.className = 'nb-ex-title'; h.textContent = X('title'); box.appendChild(h);
+
+            // Who or what did it.
+            const a = x.actor || {};
+            let who = actorLabel({ actor_kind: a.kind, actor_name: a.name, source: a.source });
+            if (a.kind === 'workflow' || a.kind === 'system') who += ' (' + X('auto') + ')';
+            if (a.via_api) who += ' - ' + X('via_api');
+            row(X('by'), who);
+            if (a.source) row(X('how'), X('source.' + a.source));
+            row(X('when'), when(x.time));
+            row(X('why'), X('reason.' + (x.reason || 'unknown')));
+
+            // The ticket's own record, and whether it agrees.
+            const hist = x.history;
+            const byWho = hh => hh.by_kind === 'system' ? X('by_system') : hh.by_kind === 'former' ? X('by_former') : (hh.by_name || '');
+            if (hist) {
+                const change = hist.kind === 'audit'
+                    ? hist.field + ': ' + (hist.old || '-') + ' \u2192 ' + (hist.new || '-')
+                    : X('hist_' + hist.kind);
+                row(X('history'), change + ', ' + X('hist_by', { who: byWho(hist) }) + ' (' + when(hist.time) + ')');
+                const auto = a.kind === 'workflow' || a.kind === 'system';
+                const agrees = hist.by_kind === 'system' ? (auto || !a.kind && !a.name)
+                             : hist.by_kind === 'analyst' ? (!auto && (a.name || '').toLowerCase() === (hist.by_name || '').toLowerCase())
+                             : true;
+                const v = row('', agrees ? '\u2713 ' + X('agrees') : '\u26A0 ' + X('differs', { who: byWho(hist) }), agrees ? 'nb-ex-ok' : 'nb-ex-warn');
+                v.querySelector('.nb-ex-label').remove();
+            } else if (x.history_note && x.history_note !== 'not_ticket') {
+                row(X('history'), X('hist_notes.' + x.history_note));
+            }
+            if (x.workflow_runs && x.workflow_runs.length) {
+                row(X('workflows'), x.workflow_runs.map(r => '"' + r.name + '" ' + when(r.time)).join('; '));
+            }
+            const note = t => { const p = document.createElement('div'); p.className = 'nb-ex-note'; p.textContent = t; box.appendChild(p); };
+            if (x.grouped) note(X('grouped', { n: x.event_count }));
+            if (!x.recorded) note(X('old_row'));
+        }
         // Awaited, unlike mark-read: this one removes something from the screen,
         // so a row must not vanish before the server has agreed that it is gone.
         async function clearOne(id, item) {

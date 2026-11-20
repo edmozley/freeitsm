@@ -407,6 +407,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
     `source`            VARCHAR(16) NULL,         -- screen / portal / api / workflow / mail_import / scheduled
     `workflow_id`       INT NULL,                 -- which workflow, when one did it
     `api_key_id`        INT NULL,                 -- which API key, when it came through the REST API
+    `reason`            VARCHAR(24) NULL,         -- why THIS person was told: team_member, watcher, ticket_owner... (the bell's "Why you")
     `event_count`       INT NOT NULL DEFAULT 1,   -- >1 once coalesced
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

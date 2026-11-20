@@ -85,6 +85,32 @@
    exist as a token, so this is the literal confirm.js value. */
 .nb-clear:hover { background: #c62828; border-color: #c62828; color: #fff; }
 .nb-clear:focus-visible { outline: 2px solid var(--accent, #0078d4); outline-offset: 1px; }
+/* A drawn cross, not the &times; glyph: fonts place that low and off-centre, so it never sat
+   true in the circle (Ed spotted it, 20 Nov 2026). The SVG is centred by the flex box exactly. */
+.nb-clear svg { display: block; }
+/* (i) - "why is this here?" (5.8.0). The same circle as the x, so the pair reads as
+   two controls, but accent-coloured on hover rather than red: it opens, it never removes. */
+.nb-info {
+    flex: none; display: flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; margin: -1px 6px -1px auto;
+    border: 1px solid var(--border, #e0e0e0); border-radius: 50%;
+    background: var(--surface-2, #fafafa); color: var(--text-muted, #666);
+    font: italic 600 12px/1 Georgia, 'Times New Roman', serif; cursor: pointer;
+    transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+.nb-info:hover, .nb-info[aria-expanded="true"] { border-color: var(--accent, #0078d4); color: var(--accent, #0078d4); }
+.nb-info:focus-visible { outline: 2px solid var(--accent, #0078d4); outline-offset: 1px; }
+.nb-info + .nb-clear { margin-left: 0; }
+/* The explanation opens under its row, outside the row's link. */
+.nb-explain { padding: 10px 14px 12px; border-bottom: 1px solid var(--border, #e0e0e0); background: var(--surface-2, #fafafa); font-size: 12px; color: var(--text, #333); }
+.nb-ex-title { font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+.nb-ex-row { display: grid; grid-template-columns: 92px 1fr; gap: 8px; padding: 2px 0; }
+.nb-ex-label { color: var(--text-dim, #888); }
+.nb-ex-value { overflow-wrap: anywhere; }
+.nb-ex-ok, .nb-ex-warn { grid-template-columns: 1fr; margin-top: 4px; font-weight: 600; }
+.nb-ex-ok { color: var(--success-text, #2e7d32); }
+.nb-ex-warn { color: var(--warning-text, #92400e); }
+.nb-ex-note { margin-top: 6px; color: var(--text-dim, #888); font-style: italic; }
 .nb-item-title { font-size: 13px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
 .nb-item-body { flex: 1; min-width: 0; font-size: 12px; line-height: 1.4; color: var(--text-muted, #555); overflow-wrap: anywhere; }
 .nb-badge-count {
@@ -100,4 +126,7 @@
     .nb-btn { padding: 8px; }
     /* Same button, sized as a real tap target. */
     .nb-clear { width: 28px; height: 28px; margin: -4px -4px -4px 0; font-size: 16px; }
+    .nb-clear svg { width: 10px; height: 10px; }
+    .nb-info { width: 28px; height: 28px; margin: -4px 8px -4px auto; font-size: 15px; }
+    .nb-ex-row { grid-template-columns: 84px 1fr; }
 }

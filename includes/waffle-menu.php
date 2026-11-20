@@ -1381,6 +1381,7 @@ function renderNotificationBell($path_prefix) {
         'list'       => $url . 'api/notifications/get_notifications.php',
         'markRead'   => $url . 'api/notifications/mark_read.php',
         'clear'      => $url . 'api/notifications/clear.php',
+        'explain'    => $url . 'api/notifications/explain.php',   // the (i) panel (5.8.0); the portal bell has none
         'linkPrefix' => $url,
         'seenKey'    => 'nbSeenUnread',
         'schedulerTick' => $url . 'api/reporting/scheduler_fallback.php',   // #233 fallback; the portal bell has none

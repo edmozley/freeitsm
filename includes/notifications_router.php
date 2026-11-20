@@ -121,6 +121,7 @@ function notificationsHandleEvent(string $event, array $payload): void
                 'actor_id'    => $actorId,
                 'actor_name'  => $actorName,
                 'actor'       => $actor,
+                'reason'      => notificationsReasonFor($conn, $event, $payload, $recipientId),   // "why you" (5.8.0)
             ]);
         }
     } catch (Throwable $e) {
@@ -233,6 +234,39 @@ function notificationsAudienceFor(PDO $conn, string $event, array $payload): arr
         $ids = array_merge($ids, TicketWatchers::audience($conn, $event, $ticketId));
     }
     return array_values(array_unique(array_filter($ids)));
+}
+
+/**
+ * WHY this person is told - the bell's "Why you" (5.8.0). Follows the same rules as
+ * notificationsAudienceFor(), so it can only ever name a reason that put them there.
+ * Stored on the row (notifications.reason) because it is known only now: by the time
+ * somebody asks, they may have left the team or stopped watching.
+ *
+ * Returns a stable key the bell translates: new_owner, ticket_owner, team_member,
+ * watcher, task_owner, task_involved, project, domain_owner, owner - or null.
+ *
+ * @param string $event  the workflow event name
+ * @param array $payload  the event's dispatch payload
+ * @param int $recipientId  the analyst being told
+ */
+function notificationsReasonFor(PDO $conn, string $event, array $payload, int $recipientId): ?string
+{
+    if (str_starts_with($event, 'project.') && array_key_exists('notify_ids', $payload)) return 'project';
+    if ($event === 'ticket.team_assigned') return 'team_member';
+    if (in_array($event, ['task.completed', 'task.comment_added', 'task.status_changed', 'task.due_date_changed'], true)) {
+        return (isset($payload['task']['assignee_id']) && (int)$payload['task']['assignee_id'] === $recipientId) ? 'task_owner' : 'task_involved';
+    }
+    $one = notificationsRecipientFor($event, $payload);
+    if ($one > 0 && $one === $recipientId) {
+        if ($event === 'ticket.assigned') return 'new_owner';
+        if (str_starts_with($event, 'ticket.')) return 'ticket_owner';
+        if ($event === 'task.collaborator_added' || $event === 'task.collaborator_removed') return 'task_involved';
+        if (str_starts_with($event, 'task.')) return 'task_owner';
+        if (str_starts_with($event, 'domain.')) return 'domain_owner';
+        return 'owner';
+    }
+    if (in_array($event, TicketWatchers::EVENTS, true)) return 'watcher';   // the only other way onto a ticket event
+    return null;
 }
 
 /**
