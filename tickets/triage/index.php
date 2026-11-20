@@ -26,7 +26,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.triage.title'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
     <style>
         /* 🔴 flex:1 only gives the container a height inside a flex column.
            inbox.css makes body 100vh + overflow:hidden but leaves it a block, so

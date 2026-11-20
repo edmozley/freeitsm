@@ -39,7 +39,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.help'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=95">
     <link rel="stylesheet" href="../assets/css/help.css?v=6">
     <style>
         /* Tickets is the one module with no accent of its own — it uses the

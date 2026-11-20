@@ -10,8 +10,9 @@
 body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
 :root[data-theme="dark"] body, :root[data-theme-mode="dark"] body { --ppl-accent: #e879f9; --ppl-accent-soft: rgba(232, 121, 249, .14); }
 
-/* The header nav, as every module has it (the shared rule lives in inbox.css). */
-.people-header .header-nav { flex: 1; justify-content: center; margin-left: 0; }
+/* The header nav, as every module has it (the shared rule lives in inbox.css,
+   which explains the "safe" centring). */
+.people-header .header-nav { flex: 1; justify-content: center; justify-content: safe center; margin-left: 0; }
 .people-header .header-nav .nav-btn { min-width: 130px; justify-content: center; }
 
 /* ---------- list page shell ----------------------------------------------- */

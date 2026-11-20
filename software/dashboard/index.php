@@ -31,7 +31,7 @@ $translationNamespaces = ['common', 'software'];
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
     <style>
         /* Module accent (indigo) — primary button, focus rings, drag target. */
         body { --accent: var(--sw-accent, #5c6bc0); --accent-hover: var(--sw-accent-hover, #3f51b5); }

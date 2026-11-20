@@ -39,7 +39,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=28">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
     <link rel="stylesheet" href="../../assets/css/starters.css?v=8">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>

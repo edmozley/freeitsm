@@ -113,6 +113,11 @@ body {
    waffle/title and the avatar. The min-width is picked per-module
    to comfortably fit that module's longest label without padding
    short labels excessively.
+   Centring is "safe": once the buttons are wider than the nav
+   (header-fit-icons scrolls them sideways) they start at its left
+   edge instead of spilling past both edges, where the first ones
+   could not be scrolled back into view. A browser without "safe"
+   keeps the plain centre from the line above it.
    --------------------------------------------------------------- */
 .assets-header .header-nav,
 .calendar-header .header-nav,
@@ -142,6 +147,7 @@ body {
 .workflow-header .header-nav {
     flex: 1;
     justify-content: center;
+    justify-content: safe center;
     margin-left: 0;
 }
 
@@ -192,7 +198,7 @@ body {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: var(--space-5, 20px);
 }
 
 /* ---------------------------------------------------------------
@@ -211,14 +217,14 @@ body {
     .header > .waffle-menu-container,
     .header > .header-right { flex-shrink: 0; }
 
-    .header.header-fit-tight .header-nav { gap: 4px; }
+    .header.header-fit-tight .header-nav { gap: var(--space-1, 4px); }
     .header.header-fit-tight .header-nav .nav-btn {
         min-width: 0;
         padding: 8px 10px;
         white-space: nowrap;
     }
-    .header.header-fit-tight .header-right { gap: 12px; }
-    .header.header-fit-tight .tenant-switcher { margin-right: 4px; }
+    .header.header-fit-tight .header-right { gap: var(--space-3, 12px); }
+    .header.header-fit-tight .tenant-switcher { margin-right: var(--space-1, 4px); }
     .header.header-fit-tight .tenant-switcher-btn { max-width: 170px; }
 
     .header.header-fit-icons .header-nav {
@@ -230,8 +236,8 @@ body {
     .header.header-fit-icons .header-nav .nav-btn {
         flex-shrink: 0;
         width: 38px;
-        padding: 8px;
-        gap: 16px;
+        padding: var(--space-2, 8px);
+        gap: var(--space-4, 16px);
         justify-content: flex-start;
         overflow: hidden;
     }

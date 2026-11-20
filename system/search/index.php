@@ -43,7 +43,7 @@ if (!isset($_SESSION['analyst_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.search.heading'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
     <style>
         /* System module accent — same pinning as the other System screens, and
            for the same reason: System's dark accent is a LIGHT colour, so

@@ -19,7 +19,7 @@ $helpNav   = $helpNav  ?? ($helpTopic['sections'] ?? []);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', 'Help', $helpHero)); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
     <link rel="stylesheet" href="../../assets/css/help.css?v=6">
     <style>
         /* The only thing a help page should say for itself: its colour.

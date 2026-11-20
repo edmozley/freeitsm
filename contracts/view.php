@@ -58,7 +58,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=95">
     <link rel="stylesheet" href="../assets/css/domain-links.css?v=1">
     <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
     <style>

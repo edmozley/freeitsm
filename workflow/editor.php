@@ -134,7 +134,7 @@ if ($wfCompanyPicker) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('workflow', $id ? t('workflow.editor.edit_title') : t('workflow.editor.new_title'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=95">
     <link rel="stylesheet" href="../assets/css/workflow.css?v=12">
     <!-- Mobile layer LAST, after workflow.css (Techniques §9). -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">

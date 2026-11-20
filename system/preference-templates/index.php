@@ -36,7 +36,7 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
     <style>
         body {
             --accent: var(--sys-accent, #546e7a);

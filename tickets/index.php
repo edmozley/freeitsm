@@ -64,7 +64,7 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=94">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=95">
     <link rel="stylesheet" href="../assets/css/address-suggest.css?v=1">   <!-- GH #307 -->
     <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
