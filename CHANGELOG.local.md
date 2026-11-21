@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3104 | i18n | Improvement | Hindi (hi) brought to 100% - 6,069 strings translated. |
 | 3103 | i18n | Improvement | Gujarati (gu) brought to 100% - 6,069 strings translated. |
 | 3102 | i18n | Improvement | Bengali (bn) brought to 100% - 5,513 strings translated. |
 | 3101 | i18n | Improvement | Malay (ms) brought to 100% - 6,069 strings translated, checked free of Indonesian forms. |

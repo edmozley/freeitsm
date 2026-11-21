@@ -33,8 +33,17 @@ return [
     ],
     'sidebar' => [
         'new_process' => '+ नई प्रक्रिया',
+        'new_process_tip' => 'नई प्रक्रिया',
         'search_placeholder' => 'प्रक्रियाएँ खोजें…',
         'no_processes_yet' => 'अभी कोई प्रक्रिया नहीं',
+        'search_key_tip' => 'पेज पर कहीं से भी प्रक्रियाएँ खोजने के लिए / या Alt+Shift+O दबाएँ',
+    ],
+    'preview' => [
+        'steps' => 'स्टेप',
+        'lanes' => 'लेन',
+        'created_by' => 'बनाने वाला',
+        'created' => 'बनाया गया',
+        'updated' => 'अंतिम बार अपडेट किया गया',
     ],
     'new_modal' => [
         'title' => 'नई प्रक्रिया',

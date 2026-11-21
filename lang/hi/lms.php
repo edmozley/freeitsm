@@ -47,6 +47,7 @@ return [
         'heading' => 'कोर्स',
         'upload' => 'अपलोड',
         'create' => 'बनाएँ',
+        'new_tip' => 'नया कोर्स',
         'col_title' => 'शीर्षक',
         'col_version' => 'SCORM संस्करण',
         'col_uploaded' => 'अपलोड किया गया',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'लर्निंग समूह',
         'new' => 'नया',
+        'new_tip' => 'नया समूह',
         'col_name' => 'नाम',
         'col_description' => 'विवरण',
         'col_members' => 'सदस्य',
