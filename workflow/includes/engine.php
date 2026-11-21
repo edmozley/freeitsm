@@ -897,7 +897,44 @@ class WorkflowEngine
         $payload = self::enrichWithLookupNames($conn, $payload);
         $payload = self::enrichWithReferences($conn, $payload);
         $payload = self::enrichWithTaskTicket($conn, $payload);
+        $payload = self::enrichWithTicketCustom($conn, $payload);
         return self::enrichWithLinks($conn, $payload);
+    }
+
+    /**
+     * Discussion #304 (slice 5 of wiki Workflow-Order-Design): the ticket's custom fields as
+     * {{ticket.custom.<field name>}} - by the field's NAME as people see it ("Start date"),
+     * the way a form's answers are {{submission.fields.<label>}} - so a child ticket's
+     * description can say "New starter: {{ticket.custom.Start date}}". The value is the one
+     * a person reads (TicketFieldsService::displayValue(): "Yes", "2026-12-01"). Only the
+     * fields the ticket has (its company and type); a field left empty is an empty string, so
+     * the code never shows as itself. Never clobbers; a failure adds nothing.
+     *
+     * @param array $payload  the event payload
+     */
+    public static function enrichWithTicketCustom(PDO $conn, array $payload): array
+    {
+        $id = self::dotGet($payload, 'ticket.id');
+        if ($id === null || $id === '' || !is_numeric($id) || self::dotGet($payload, 'ticket.custom') !== null) return $payload;
+        try {
+            require_once dirname(__DIR__, 2) . '/includes/services/ticket_fields.php';
+            if (!TicketFieldsService::schemaReady($conn)) return $payload;
+            $st = $conn->prepare("SELECT id, tenant_id, ticket_type_id FROM tickets WHERE id = ?");
+            $st->execute([(int)$id]);
+            $row = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$row) return $payload;
+            $defs = TicketFieldsService::fieldsForTicket($conn, $row);
+            if (!$defs) return $payload;
+            $values = TicketFieldsService::values($conn, (int)$id, $defs);
+            $custom = [];
+            foreach ($defs as $key => $d) {
+                $custom[(string)$d['label']] = (string)(TicketFieldsService::displayValue($d, $values[$key] ?? null) ?? '');
+            }
+            self::dotSet($payload, 'ticket.custom', $custom);
+        } catch (Throwable $e) {
+            error_log('workflow ticket.custom: ' . $e->getMessage());
+        }
+        return $payload;
     }
 
     /**
@@ -1178,6 +1215,15 @@ class WorkflowEngine
             'note'  => 'The action immediately before this one, e.g. {{last.ticket_id}} after "Create a ticket". Use {{steps.1.ticket_id}} to reach a specific action by its number instead.',
         ];
 
+        // Discussion #304: a ticket's custom fields, by name (enrichWithTicketCustom()).
+        if (in_array('ticket.id', $fields, true)) {
+            $vars[] = [
+                'path'  => 'ticket.custom.Your field name',
+                'label' => 'Ticket · any custom field, by name',
+                'note'  => 'Replace "Your field name" with the custom field\'s name exactly as it appears on the ticket, e.g. {{ticket.custom.Start date}}. Empty when the field is not filled in.',
+            ];
+        }
+
         // A form's answers are keyed by the labels the form author chose, so
         // they can't be enumerated ahead of time. Advertise the shape instead.
         if (in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)) {
@@ -1208,6 +1254,10 @@ class WorkflowEngine
 
         if (in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)) {
             $prefixes[] = 'submission.fields.';
+        }
+        // Discussion #304: {{ticket.custom.<field name>}} wherever the trigger carries a ticket.
+        if (in_array('ticket.id', self::availableFields($trigger), true)) {
+            $prefixes[] = 'ticket.custom.';
         }
         return $prefixes;
     }

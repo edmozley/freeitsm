@@ -65,6 +65,8 @@ function personEditorRender(): void
         'edit_title'         => $m('edit_title'),
         'company_auto'       => $m('company_auto'),
         'company_none'       => $m('company_none'),
+        'company_new'        => $m('company_new'),        // GH #398
+        'company_new_failed' => $m('company_new_failed'),
         'cost_centre_none'   => $m('cost_centre_none'),
         'location_none'      => $m('location_none'),
         'cost_centre_inactive' => $m('cost_centre_inactive'),
@@ -177,6 +179,15 @@ function personEditorRender(): void
                     <div class="form-group" id="peCompanyGroup" hidden>
                         <label for="peCompany"><?php echo htmlspecialchars($m('company')); ?></label>
                         <select id="peCompany"></select>
+                        <?php /* GH #398: a company that does not exist yet, made here - administrators only,
+                                 as on System -> Companies (save_tenant.php refuses anybody else). */ ?>
+                        <?php if (sessionIsAdmin()): ?>
+                        <div class="pe-newco" id="peNewCo" hidden>
+                            <input type="text" id="peNewCoName" maxlength="150" autocomplete="off" placeholder="<?php echo htmlspecialchars($m('company_new_name')); ?>" aria-label="<?php echo htmlspecialchars($m('company_new_name')); ?>">
+                            <button type="button" class="btn btn-primary" id="peNewCoAdd"><?php echo htmlspecialchars(t('common.add')); ?></button>
+                            <button type="button" class="btn btn-secondary" id="peNewCoCancel"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                        </div>
+                        <?php endif; ?>
                         <small class="pe-help"><?php echo htmlspecialchars($m('company_help')); ?></small>
                     </div>
 
@@ -254,9 +265,42 @@ function personEditorRender(): void
                 if (!c.is_active && String(c.id) !== String(tenantId)) return;   // retired, unless already filed there
                 html += '<option value="' + c.id + '">' + esc(c.name) + '</option>';
             });
+            // GH #398: an administrator can add the company from here (the box below the list).
+            if ($('peNewCo')) html += '<option value="__new">' + esc(T.company_new) + '</option>';
             sel.innerHTML = html;
             sel.value = (tenantId === null || tenantId === undefined) ? '' : String(tenantId);
+            sel.dataset.was = sel.value;
             group.hidden = false;
+        }
+
+        // GH #398: "+ New company..." - a name, then the company is made (save_tenant.php, the
+        // same rules as System -> Companies) and chosen, which refills the lists that depend on it.
+        if ($('peNewCo')) {
+            $('peCompany').addEventListener('change', e => {
+                if ($('peCompany').value !== '__new') { $('peCompany').dataset.was = $('peCompany').value; return; }
+                e.stopImmediatePropagation();
+                $('peNewCo').hidden = false;
+                $('peNewCoName').value = '';
+                $('peNewCoName').focus();
+            }, true);
+            const cancelNew = () => { $('peNewCo').hidden = true; $('peCompany').value = $('peCompany').dataset.was || ''; };
+            $('peNewCoCancel').addEventListener('click', cancelNew);
+            $('peNewCoName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('peNewCoAdd').click(); } if (e.key === 'Escape') { e.stopPropagation(); cancelNew(); } });
+            $('peNewCoAdd').addEventListener('click', async () => {
+                const name = $('peNewCoName').value.trim();
+                if (!name) { $('peNewCoName').focus(); return; }
+                let d = null;
+                try {
+                    const r = await fetch(API + 'system/save_tenant.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, is_active: 1 }) });
+                    d = await r.json();
+                } catch (e) { d = null; }
+                if (!d || !d.success) { toast((d && d.error) || T.company_new_failed, 'error'); return; }
+                companies = null;
+                await loadCompanies();
+                paintCompanies(d.id);
+                $('peNewCo').hidden = true;
+                $('peCompany').dispatchEvent(new Event('change'));
+            });
         }
 
         // ── Cost centre (GH #160) ───────────────────────────────────────────
