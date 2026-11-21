@@ -220,3 +220,7 @@ tests/azure-openai/last-request.json
 # Your own additions that no release ships or overwrites (e.g. Feature Bingo cards in local/feature_bingo/).
 local/
 tests/ai-compatible/last-request.json
+
+# Script library: a key put beside a script to try it, and Python bytecode - never committed
+script-library/**/api-key.txt
+__pycache__/
