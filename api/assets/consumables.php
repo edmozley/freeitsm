@@ -10,8 +10,10 @@
  *   GET  ?action=people&q=                                 people to issue to (the analyst's companies)
  *   GET  ?action=counts | count&id=N | differences&months=N   stock takes and the differences report
  *   GET  ?action=verify                                    items whose stock and ledger disagree (should be none)
+ *   GET  ?action=deliveries&q= | delivery&id=N               deliveries: one order, its lines and documents
  *
- *   POST {action: save_item | save_type | move | reverse | count_start | count_line | count_finish | count_cancel, ...}
+ *   POST {action: save_item | save_type | move | reverse | count_start | count_line | count_finish | count_cancel
+ *               | receive_delivery | save_delivery | reverse_delivery, ...}
  *
  * Reading needs Assets. Writing needs WRITE access to Assets (read-only Assets sees stock
  * and cannot move it); types need the Consumables settings permission; adjusting and
@@ -92,6 +94,12 @@ try {
             case 'differences':
                 $out = ['report' => ConsumablesService::differences($conn, $ctx, $int('months') ?: 12)];
                 break;
+            case 'deliveries':
+                $out = ['deliveries' => ConsumablesService::deliveries($conn, $ctx, ['q' => $str('q')])];
+                break;
+            case 'delivery':
+                $out = ['delivery' => ConsumablesService::getDelivery($conn, $ctx, $int('id'))];
+                break;
             case 'verify':
                 $out = ['mismatches' => ConsumablesService::verify($conn)];
                 break;
@@ -116,7 +124,18 @@ try {
             $out = ['id' => ConsumablesService::saveType($conn, $ctx, (array)($in['type'] ?? []))];
             break;
         case 'move':
+            unset($in['delivery_id']);   // a receipt joins a delivery only through receive_delivery
             $out = ConsumablesService::move($conn, $ctx, (string)($in['kind'] ?? ''), (int)($in['item_id'] ?? 0), $in);
+            break;
+        case 'receive_delivery':
+            $out = ConsumablesService::receiveDelivery($conn, $ctx, (array)($in['delivery'] ?? []));
+            break;
+        case 'save_delivery':
+            ConsumablesService::saveDelivery($conn, $ctx, (int)($in['id'] ?? 0), (array)($in['delivery'] ?? []));
+            $out = [];
+            break;
+        case 'reverse_delivery':
+            $out = ['undone' => ConsumablesService::reverseDelivery($conn, $ctx, (int)($in['id'] ?? 0), (string)($in['reason'] ?? ''))];
             break;
         case 'reverse':
             $out = ConsumablesService::reverse($conn, $ctx, (int)($in['movement_id'] ?? 0), (string)($in['reason'] ?? ''));

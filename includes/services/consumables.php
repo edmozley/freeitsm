@@ -16,6 +16,10 @@
  *    movement explaining it, with the stock row locked - verify() checks they agree.
  *  - Never below zero (Ed): an issue bigger than what is there is refused.
  *  - Value is fixed when it happens: every movement stores its unit cost.
+ *  - Every receipt belongs to a DELIVERY (Ed, 2026-11-21): one order - supplier, order
+ *    number (optional), invoice, documents - with a line per item. receiveDelivery() books
+ *    several items at once; a single Receive on an item makes a one-line delivery, so every
+ *    receipt has one place for its paperwork.
  *  - A store on every row: one per company today (storeFor() makes it), so more
  *    stores later is screens and a transfer, not a migration.
  *  - Who: anyone with write access to Assets receives, issues and returns (the API
@@ -105,9 +109,9 @@ final class ConsumablesService
         $new = $new === null || $new === '' ? null : mb_substr((string)$new, 0, 1000);
         if ($old === $new) return;
         $conn->prepare(
-            "INSERT INTO consumable_audit (item_id, type_id, count_id, analyst_id, field_name, old_value, new_value, source, created_datetime)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([$at['item'] ?? null, $at['type'] ?? null, $at['count'] ?? null,
+            "INSERT INTO consumable_audit (item_id, type_id, count_id, delivery_id, analyst_id, field_name, old_value, new_value, source, created_datetime)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
+        )->execute([$at['item'] ?? null, $at['type'] ?? null, $at['count'] ?? null, $at['delivery'] ?? null,
                     $ctx->actorId > 0 ? $ctx->actorId : null, $field, $old, $new, self::source($ctx)]);
     }
 
@@ -409,7 +413,8 @@ final class ConsumablesService
      *
      * @param string $kind  'receive' | 'issue' | 'return' | 'adjust'
      * @param array $in  quantity (a whole number; adjust: signed, never 0), unit_cost, supplier_id,
-     *                   invoice_ref, invoice_date (Y-m-d), ticket_id, recipient_user_id, reason
+     *                   invoice_ref, invoice_date (Y-m-d), order_ref, received_date, ticket_id, recipient_user_id, reason;
+     *                   delivery_id - receive only, from receiveDelivery() (otherwise a one-line delivery is made)
      * @return array {movement_id, on_hand, status}
      */
     public static function move(PDO $conn, ActorContext $ctx, string $kind, int $itemId, array $in): array
@@ -467,11 +472,19 @@ final class ConsumablesService
             if ($after < 0) {
                 throw new ServiceError('conflict', 'not_enough', 'Only ' . (int)$s['on_hand'] . ' in stock.');
             }
+            $deliveryId = null;
+            if ($kind === 'receive') {
+                $deliveryId = !empty($in['delivery_id']) ? (int)$in['delivery_id']
+                    : self::newDelivery($conn, $ctx, $store, (int)$item['tenant_id'] ?: getDefaultTenantId($conn), [
+                        'supplier_id' => $supplierId, 'order_ref' => $in['order_ref'] ?? null, 'invoice_ref' => $in['invoice_ref'] ?? null,
+                        'invoice_date' => $invoiceDate, 'received_date' => $in['received_date'] ?? null,
+                    ]);
+            }
             $mid = self::insertMovement($conn, $ctx, [
                 'item_id' => $itemId, 'store_id' => $store, 'kind' => $kind, 'quantity' => $signed, 'balance_after' => $after,
                 'unit_cost' => $cost, 'ticket_id' => $ticketId, 'recipient_user_id' => $userId, 'supplier_id' => $supplierId,
                 'invoice_ref' => $kind === 'receive' ? self::text($in['invoice_ref'] ?? null, 100) : null,
-                'invoice_date' => $invoiceDate, 'reason' => $reason,
+                'invoice_date' => $invoiceDate, 'reason' => $reason, 'delivery_id' => $deliveryId,
             ]);
             $conn->prepare("UPDATE consumable_stock SET on_hand = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$after, $s['id']]);
             // A delivery at a new price: that is the price now (Ed: value at the latest receipt).
@@ -494,12 +507,12 @@ final class ConsumablesService
     {
         $conn->prepare(
             "INSERT INTO consumable_movements (item_id, store_id, kind, quantity, balance_after, unit_cost, ticket_id, recipient_user_id,
-                                               supplier_id, invoice_ref, invoice_date, reason, reverses_id, count_id, analyst_id, source, created_datetime)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
+                                               supplier_id, invoice_ref, invoice_date, reason, reverses_id, count_id, delivery_id, analyst_id, source, created_datetime)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
         )->execute([
             $m['item_id'], $m['store_id'], $m['kind'], $m['quantity'], $m['balance_after'], $m['unit_cost'] ?? null,
             $m['ticket_id'] ?? null, $m['recipient_user_id'] ?? null, $m['supplier_id'] ?? null, $m['invoice_ref'] ?? null,
-            $m['invoice_date'] ?? null, $m['reason'] ?? null, $m['reverses_id'] ?? null, $m['count_id'] ?? null,
+            $m['invoice_date'] ?? null, $m['reason'] ?? null, $m['reverses_id'] ?? null, $m['count_id'] ?? null, $m['delivery_id'] ?? null,
             $ctx->actorId > 0 ? $ctx->actorId : null, self::source($ctx),
         ]);
         return (int)$conn->lastInsertId();
@@ -558,6 +571,7 @@ final class ConsumablesService
                 'item_id' => (int)$m['item_id'], 'store_id' => (int)$m['store_id'], 'kind' => 'reverse', 'quantity' => $signed,
                 'balance_after' => $after, 'unit_cost' => $m['unit_cost'], 'ticket_id' => $m['ticket_id'],
                 'recipient_user_id' => $m['recipient_user_id'], 'reason' => mb_substr($reason, 0, 500), 'reverses_id' => $movementId,
+                'delivery_id' => $m['delivery_id'],
             ]);
             $conn->prepare("UPDATE consumable_stock SET on_hand = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$after, $s['id']]);
             if ($m['ticket_id']) self::ticketNote($conn, $ctx, (int)$m['ticket_id'], 'reverse', $item, abs($signed), null);
@@ -578,7 +592,7 @@ final class ConsumablesService
     public static function movements(PDO $conn, array $f, int $limit = self::HISTORY_LIMIT): array
     {
         $where = []; $args = [];
-        foreach (['item' => 'm.item_id', 'ticket' => 'm.ticket_id', 'recipient' => 'm.recipient_user_id'] as $k => $col) {
+        foreach (['item' => 'm.item_id', 'ticket' => 'm.ticket_id', 'recipient' => 'm.recipient_user_id', 'delivery' => 'm.delivery_id'] as $k => $col) {
             if (!empty($f[$k])) { $where[] = "$col = ?"; $args[] = (int)$f[$k]; }
         }
         if (!$where) return [];
@@ -586,19 +600,21 @@ final class ConsumablesService
             "SELECT m.*, i.name AS item_name, i.unit, an.full_name AS analyst_name,
                     COALESCE(NULLIF(u.preferred_name, ''), NULLIF(u.display_name, ''), u.email, u.username) AS recipient_name,
                     COALESCE(NULLIF(sp.trading_name, ''), sp.legal_name) AS supplier_name,
-                    t.ticket_number, (SELECT r.id FROM consumable_movements r WHERE r.reverses_id = m.id) AS reversed_by
+                    t.ticket_number, (SELECT r.id FROM consumable_movements r WHERE r.reverses_id = m.id) AS reversed_by,
+                    dl.order_ref
                FROM consumable_movements m
                JOIN consumable_items i ON i.id = m.item_id
                LEFT JOIN analysts an ON an.id = m.analyst_id
                LEFT JOIN users u ON u.id = m.recipient_user_id
                LEFT JOIN suppliers sp ON sp.id = m.supplier_id
                LEFT JOIN tickets t ON t.id = m.ticket_id
+               LEFT JOIN consumable_deliveries dl ON dl.id = m.delivery_id
               WHERE " . implode(' AND ', $where) . "
               ORDER BY m.id DESC LIMIT " . max(1, $limit)
         );
         $st->execute($args);
         return array_map(function ($r) {
-            foreach (['id', 'item_id', 'store_id', 'quantity', 'balance_after', 'ticket_id', 'recipient_user_id', 'supplier_id', 'reverses_id', 'count_id', 'reversed_by'] as $k) {
+            foreach (['id', 'item_id', 'store_id', 'quantity', 'balance_after', 'ticket_id', 'recipient_user_id', 'supplier_id', 'reverses_id', 'count_id', 'reversed_by', 'delivery_id'] as $k) {
                 $r[$k] = $r[$k] !== null ? (int)$r[$k] : null;
             }
             $r['unit_cost'] = $r['unit_cost'] !== null ? (float)$r['unit_cost'] : null;
@@ -607,6 +623,193 @@ final class ConsumablesService
         }, $st->fetchAll(PDO::FETCH_ASSOC));
     }
 
+    // ====================================================================
+    //  Deliveries (Ed, 2026-11-21): one order, several items, one set of documents
+    // ====================================================================
+
+    /** Make a delivery row. Inside the caller's transaction. */
+    private static function newDelivery(PDO $conn, ActorContext $ctx, int $storeId, int $tenantId, array $h): int
+    {
+        $received = self::date($h['received_date'] ?? null, 'The date received') ?? gmdate('Y-m-d');
+        $conn->prepare(
+            "INSERT INTO consumable_deliveries (store_id, tenant_id, supplier_id, order_ref, invoice_ref, invoice_date, received_date, note, created_by_analyst_id, created_datetime)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
+        )->execute([$storeId, $tenantId, $h['supplier_id'] ?? null, self::text($h['order_ref'] ?? null, 100), self::text($h['invoice_ref'] ?? null, 100),
+                    self::date($h['invoice_date'] ?? null, 'The invoice date'), $received, self::text($h['note'] ?? null, 500),
+                    $ctx->actorId > 0 ? $ctx->actorId : null]);
+        $id = (int)$conn->lastInsertId();
+        self::audit($conn, $ctx, ['delivery' => $id], 'delivery.created', null, self::text($h['order_ref'] ?? null, 100) ?? ('Delivery #' . $id));
+        return $id;
+    }
+
+    private static function date($v, string $what): ?string
+    {
+        if ($v === null || $v === '') return null;
+        $d = DateTime::createFromFormat('!Y-m-d', (string)$v);
+        if (!$d || $d->format('Y-m-d') !== (string)$v) throw new ServiceError('validation', 'invalid_field', "$what is not a date.");
+        return $d->format('Y-m-d');
+    }
+
+    /**
+     * Book a whole delivery in: the header and a line per item, all or nothing.
+     *
+     * @param array $in  supplier_id, order_ref (optional), invoice_ref, invoice_date, received_date, note,
+     *                   lines [{item_id, quantity, unit_cost}] - at least one; every item in the same company
+     * @return array {delivery_id, lines}
+     */
+    public static function receiveDelivery(PDO $conn, ActorContext $ctx, array $in): array
+    {
+        $lines = array_values(array_filter((array)($in['lines'] ?? []), fn($l) => is_array($l) && !empty($l['item_id'])));
+        if (!$lines) throw new ServiceError('validation', 'missing_field', 'Add at least one item to the delivery.');
+        if (count($lines) > 200) throw new ServiceError('validation', 'invalid_field', 'A delivery can have at most 200 lines.');
+        $supplierId = self::ref($conn, $in['supplier_id'] ?? null, 'suppliers', 'That supplier');
+        // Every line's item, checked and in one company, before anything is written.
+        $tenant = null;
+        foreach ($lines as $l) {
+            $it = self::item($conn, $ctx, (int)$l['item_id']);
+            $t = (int)$it['tenant_id'] ?: getDefaultTenantId($conn);
+            if ($tenant !== null && $t !== $tenant) throw new ServiceError('validation', 'invalid_field', 'Every item on a delivery must belong to the same company.');
+            $tenant = $t;
+            if (!(int)$it['is_active']) throw new ServiceError('conflict', 'inactive', "\"{$it['name']}\" is no longer in use. Turn it back on to receive it.");
+            // Every line checked BEFORE anything is written, so a bad line can never leave half a
+            // delivery booked in - even when the caller holds the transaction and cannot roll back.
+            $q = $l['quantity'] ?? null;
+            if (!is_numeric($q) || (int)$q != $q || (int)$q <= 0) {
+                throw new ServiceError('validation', 'invalid_field', "Enter a whole number of 1 or more for \"{$it['name']}\".");
+            }
+            self::money($l['unit_cost'] ?? null, "The unit cost of \"{$it['name']}\"");
+        }
+        $owns = !$conn->inTransaction();
+        if ($owns) $conn->beginTransaction();
+        try {
+            $store = self::storeFor($conn, $tenant);
+            $did = self::newDelivery($conn, $ctx, $store, $tenant, array_merge($in, ['supplier_id' => $supplierId]));
+            foreach ($lines as $l) {
+                self::move($conn, $ctx, 'receive', (int)$l['item_id'], [
+                    'quantity' => $l['quantity'] ?? null, 'unit_cost' => $l['unit_cost'] ?? null, 'supplier_id' => $supplierId,
+                    'invoice_ref' => $in['invoice_ref'] ?? null, 'invoice_date' => $in['invoice_date'] ?? null, 'delivery_id' => $did,
+                ]);
+            }
+            if ($owns) $conn->commit();
+        } catch (Throwable $e) {
+            if ($owns && $conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+        return ['delivery_id' => $did, 'lines' => count($lines)];
+    }
+
+    private static function loadDelivery(PDO $conn, ActorContext $ctx, int $id): array
+    {
+        $st = $conn->prepare(
+            "SELECT d.*, COALESCE(NULLIF(sp.trading_name, ''), sp.legal_name) AS supplier_name, an.full_name AS created_by
+               FROM consumable_deliveries d
+               LEFT JOIN suppliers sp ON sp.id = d.supplier_id
+               LEFT JOIN analysts an ON an.id = d.created_by_analyst_id
+              WHERE d.id = ?"
+        );
+        $st->execute([$id]);
+        $d = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$d || ($ctx->actorId > 0 && !analystCanAccessTenant($conn, $ctx->actorId, (int)$d['tenant_id'] ?: getDefaultTenantId($conn)))) {
+            throw new ServiceError('not_found', 'not_found', 'That delivery does not exist, or is in a company you cannot see.');
+        }
+        return $d;
+    }
+
+    /** One delivery: its header, its lines (with any undo), its history. */
+    public static function getDelivery(PDO $conn, ActorContext $ctx, int $id): array
+    {
+        $d = self::loadDelivery($conn, $ctx, $id);
+        $d['lines'] = self::movements($conn, ['delivery' => $id], 500);
+        $a = $conn->prepare(
+            "SELECT a.field_name, a.old_value, a.new_value, a.created_datetime, an.full_name AS analyst_name
+               FROM consumable_audit a LEFT JOIN analysts an ON an.id = a.analyst_id
+              WHERE a.delivery_id = ? ORDER BY a.id DESC LIMIT 200"
+        );
+        $a->execute([$id]);
+        $d['audit'] = $a->fetchAll(PDO::FETCH_ASSOC);
+        $d['value'] = round(array_sum(array_map(fn($m) => $m['value'] ?? 0, $d['lines'])), 2);
+        return $d;
+    }
+
+    /**
+     * The deliveries in the active company's store, newest first.
+     *
+     * @param array $f  q (order number, invoice number, supplier or an item on it)
+     */
+    public static function deliveries(PDO $conn, ActorContext $ctx, array $f = []): array
+    {
+        $store = self::storeFor($conn, self::tenantFor($conn, $ctx));
+        $where = "d.store_id = ?"; $args = [$store];
+        if (($q = trim((string)($f['q'] ?? ''))) !== '') {
+            $like = likeContainsPattern($q);
+            $where .= " AND (d.order_ref LIKE ? OR d.invoice_ref LIKE ? OR sp.legal_name LIKE ? OR sp.trading_name LIKE ?
+                         OR EXISTS (SELECT 1 FROM consumable_movements xm JOIN consumable_items xi ON xi.id = xm.item_id
+                                     WHERE xm.delivery_id = d.id AND (xi.name LIKE ? OR xi.part_number LIKE ?)))";
+            array_push($args, $like, $like, $like, $like, $like, $like);
+        }
+        $st = $conn->prepare(
+            "SELECT d.id, d.order_ref, d.invoice_ref, d.invoice_date, d.received_date, d.note,
+                    COALESCE(NULLIF(sp.trading_name, ''), sp.legal_name) AS supplier_name, an.full_name AS created_by,
+                    (SELECT COUNT(*) FROM consumable_movements m WHERE m.delivery_id = d.id AND m.kind = 'receive') AS line_count,
+                    (SELECT COALESCE(SUM(m.quantity * COALESCE(m.unit_cost, 0)), 0) FROM consumable_movements m WHERE m.delivery_id = d.id) AS value,
+                    (SELECT COUNT(*) FROM consumable_movements m WHERE m.delivery_id = d.id AND m.kind = 'receive'
+                        AND EXISTS (SELECT 1 FROM consumable_movements r WHERE r.reverses_id = m.id)) AS undone,
+                    (SELECT COUNT(*) FROM document_links dlk WHERE dlk.parent_type = 'consumable_delivery' AND dlk.parent_id = d.id) AS documents
+               FROM consumable_deliveries d
+               LEFT JOIN suppliers sp ON sp.id = d.supplier_id
+               LEFT JOIN analysts an ON an.id = d.created_by_analyst_id
+              WHERE $where
+              ORDER BY d.received_date DESC, d.id DESC LIMIT 500"
+        );
+        $st->execute($args);
+        return array_map(function ($r) {
+            foreach (['id', 'line_count', 'undone', 'documents'] as $k) $r[$k] = (int)$r[$k];
+            $r['value'] = round((float)$r['value'], 2);
+            return $r;
+        }, $st->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /** Change a delivery's order number, invoice, supplier, dates or note - each change recorded. */
+    public static function saveDelivery(PDO $conn, ActorContext $ctx, int $id, array $in): void
+    {
+        $d = self::loadDelivery($conn, $ctx, $id);
+        $new = [
+            'supplier_id'   => array_key_exists('supplier_id', $in) ? self::ref($conn, $in['supplier_id'], 'suppliers', 'That supplier') : ($d['supplier_id'] !== null ? (int)$d['supplier_id'] : null),
+            'order_ref'     => array_key_exists('order_ref', $in) ? self::text($in['order_ref'], 100) : $d['order_ref'],
+            'invoice_ref'   => array_key_exists('invoice_ref', $in) ? self::text($in['invoice_ref'], 100) : $d['invoice_ref'],
+            'invoice_date'  => array_key_exists('invoice_date', $in) ? self::date($in['invoice_date'], 'The invoice date') : $d['invoice_date'],
+            'received_date' => array_key_exists('received_date', $in) ? (self::date($in['received_date'], 'The date received') ?? $d['received_date']) : $d['received_date'],
+            'note'          => array_key_exists('note', $in) ? self::text($in['note'], 500) : $d['note'],
+        ];
+        $conn->prepare("UPDATE consumable_deliveries SET supplier_id = ?, order_ref = ?, invoice_ref = ?, invoice_date = ?, received_date = ?, note = ? WHERE id = ?")
+             ->execute([$new['supplier_id'], $new['order_ref'], $new['invoice_ref'], $new['invoice_date'], $new['received_date'], $new['note'], $id]);
+        foreach ($new as $k => $v) {
+            self::audit($conn, $ctx, ['delivery' => $id], 'delivery.' . $k, self::shown($conn, $k, $d[$k]), self::shown($conn, $k, $v));
+        }
+    }
+
+    /** Undo a whole delivery - every line not already undone - with one reason; all or nothing. */
+    public static function reverseDelivery(PDO $conn, ActorContext $ctx, int $id, string $reason): int
+    {
+        self::loadDelivery($conn, $ctx, $id);
+        if (trim($reason) === '') throw new ServiceError('validation', 'missing_field', 'Say why this is being undone.');
+        $st = $conn->prepare("SELECT m.id FROM consumable_movements m WHERE m.delivery_id = ? AND m.kind = 'receive'
+                                AND NOT EXISTS (SELECT 1 FROM consumable_movements r WHERE r.reverses_id = m.id) ORDER BY m.id");
+        $st->execute([$id]);
+        $ids = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+        if (!$ids) throw new ServiceError('conflict', 'already_reversed', 'Everything on that delivery has already been undone.');
+        $owns = !$conn->inTransaction();
+        if ($owns) $conn->beginTransaction();
+        try {
+            foreach ($ids as $mid) self::reverse($conn, $ctx, $mid, $reason);
+            self::audit($conn, $ctx, ['delivery' => $id], 'delivery.undone', null, trim($reason));
+            if ($owns) $conn->commit();
+        } catch (Throwable $e) {
+            if ($owns && $conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+        return count($ids);
+    }
     // ====================================================================
     //  Running low
     // ====================================================================

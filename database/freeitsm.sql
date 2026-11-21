@@ -11500,6 +11500,29 @@ CREATE TABLE IF NOT EXISTS `consumable_count_lines` (
     CONSTRAINT `fk_consumable_count_lines_item` FOREIGN KEY (`item_id`) REFERENCES `consumable_items` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- A delivery (Ed, 2026-11-21): one order - its supplier, order number (optional), invoice and
+-- documents - with a line per item. Every receipt belongs to one; each line is a receive
+-- movement carrying delivery_id. Documents attach to it through the shared panel
+-- (documentEntityRegistry 'consumable_delivery').
+CREATE TABLE IF NOT EXISTS `consumable_deliveries` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `store_id`              INT NOT NULL,
+    `tenant_id`             INT NULL,          -- the store's company, for the documents' company scope
+    `supplier_id`           INT NULL,
+    `order_ref`             VARCHAR(100) NULL, -- the purchase order number; optional (Ed)
+    `invoice_ref`           VARCHAR(100) NULL,
+    `invoice_date`          DATE NULL,
+    `received_date`         DATE NOT NULL,
+    `note`                  VARCHAR(500) NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL, -- UTC
+    PRIMARY KEY (`id`),
+    KEY `idx_consumable_deliveries_store` (`store_id`, `received_date`),
+    KEY `idx_consumable_deliveries_tenant` (`tenant_id`),
+    KEY `idx_consumable_deliveries_order` (`order_ref`),
+    CONSTRAINT `fk_consumable_deliveries_store` FOREIGN KEY (`store_id`) REFERENCES `consumable_stores` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- The ledger. APPEND-ONLY - see the note at the top of this block.
 CREATE TABLE IF NOT EXISTS `consumable_movements` (
     `id`                INT NOT NULL AUTO_INCREMENT,
@@ -11517,6 +11540,7 @@ CREATE TABLE IF NOT EXISTS `consumable_movements` (
     `reason`            VARCHAR(500) NULL,
     `reverses_id`       INT NULL,                -- the movement this one undoes
     `count_id`          INT NULL,                -- the stock take that posted it
+    `delivery_id`       INT NULL,                -- the delivery a receipt (or its undo) belongs to
     `analyst_id`        INT NULL,                -- who; NULL = FreeITSM itself
     `source`            VARCHAR(20) NOT NULL DEFAULT 'app',   -- app | ticket | api
     `created_datetime`  DATETIME NOT NULL,       -- UTC
@@ -11526,9 +11550,11 @@ CREATE TABLE IF NOT EXISTS `consumable_movements` (
     KEY `idx_consumable_movements_ticket` (`ticket_id`),
     KEY `idx_consumable_movements_recipient` (`recipient_user_id`),
     KEY `idx_consumable_movements_when` (`created_datetime`),
+    KEY `idx_consumable_movements_delivery` (`delivery_id`),
     CONSTRAINT `fk_consumable_movements_item` FOREIGN KEY (`item_id`) REFERENCES `consumable_items` (`id`),
     CONSTRAINT `fk_consumable_movements_store` FOREIGN KEY (`store_id`) REFERENCES `consumable_stores` (`id`),
-    CONSTRAINT `fk_consumable_movements_reverses` FOREIGN KEY (`reverses_id`) REFERENCES `consumable_movements` (`id`)
+    CONSTRAINT `fk_consumable_movements_reverses` FOREIGN KEY (`reverses_id`) REFERENCES `consumable_movements` (`id`),
+    CONSTRAINT `fk_consumable_movements_delivery` FOREIGN KEY (`delivery_id`) REFERENCES `consumable_deliveries` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Every change to an item, a type, a level or a stock take, field by field.
@@ -11537,6 +11563,7 @@ CREATE TABLE IF NOT EXISTS `consumable_audit` (
     `item_id`          INT NULL,
     `type_id`          INT NULL,
     `count_id`         INT NULL,
+    `delivery_id`      INT NULL,
     `analyst_id`       INT NULL,
     `field_name`       VARCHAR(100) NOT NULL,
     `old_value`        VARCHAR(1000) NULL,
@@ -11546,7 +11573,8 @@ CREATE TABLE IF NOT EXISTS `consumable_audit` (
     PRIMARY KEY (`id`),
     KEY `idx_consumable_audit_item` (`item_id`, `id`),
     KEY `idx_consumable_audit_type` (`type_id`),
-    KEY `idx_consumable_audit_count` (`count_id`)
+    KEY `idx_consumable_audit_count` (`count_id`),
+    KEY `idx_consumable_audit_delivery` (`delivery_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Custom fields on consumable items: the shared TypedFields engine through

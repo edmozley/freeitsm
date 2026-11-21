@@ -23,6 +23,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/services/consumables.php';
+require_once __DIR__ . '/../includes/documents.php';
 
 $pass = 0; $fail = 0;
 function ok(string $what, bool $cond, string $detail = ''): void {
@@ -159,6 +160,33 @@ try {
     $mine = array_values(array_filter($rep['items'], fn($r) => $r['id'] === $item))[0] ?? [];
     ok('the differences report has it, losses apart', ($mine['units_lost'] ?? null) === -2 && ($mine['value_lost'] ?? null) === -25.0 && ($mine['units_found'] ?? null) === 0);
     ok('...in this month\'s figures', end($rep['series'])['units_lost'] <= -2);
+
+    // ---- deliveries: one order, several items, one place for its paperwork -----------
+    $mouse = ConsumablesService::saveItem($conn, $A, ['name' => "$tag Mouse", 'type_id' => $paper, 'unit' => 'each']);
+    $kb    = ConsumablesService::saveItem($conn, $A, ['name' => "$tag Keyboard", 'type_id' => $paper, 'unit' => 'each']);
+    $before = [$onHand($item), $onHand($mouse), $onHand($kb)];
+    $del = ConsumablesService::receiveDelivery($conn, $A, ['order_ref' => "PO-$tag", 'invoice_ref' => 'INV-77', 'invoice_date' => '2026-11-20',
+        'lines' => [['item_id' => $item, 'quantity' => 10, 'unit_cost' => '12.50'], ['item_id' => $mouse, 'quantity' => 10, 'unit_cost' => '8'], ['item_id' => $kb, 'quantity' => 5, 'unit_cost' => '11.49']]]);
+    ok('a delivery of three items books each in', $onHand($item) === $before[0] + 10 && $onHand($mouse) === 10 && $onHand($kb) === 5);
+    $got = ConsumablesService::getDelivery($conn, $A, $del['delivery_id']);
+    ok('...as one delivery, three lines, with its order number and value', count($got['lines']) === 3 && $got['order_ref'] === "PO-$tag" && $got['value'] === 262.45, json_encode([count($got['lines']), $got['order_ref'], $got['value']]));
+    ok('each line shows its order number from the item\'s side', (ConsumablesService::movements($conn, ['item' => $mouse])[0]['order_ref'] ?? null) === "PO-$tag");
+    ok('a delivery is all or nothing', refused(fn() => ConsumablesService::receiveDelivery($conn, $A, ['lines' => [['item_id' => $mouse, 'quantity' => 2], ['item_id' => $kb, 'quantity' => 0]]])) === 'invalid_field'
+        && $onHand($mouse) === 10);
+    ok('a delivery needs at least one line', refused(fn() => ConsumablesService::receiveDelivery($conn, $A, ['lines' => []])) === 'missing_field');
+    $one = ConsumablesService::move($conn, $A, 'receive', $mouse, ['quantity' => 3, 'order_ref' => 'PO-single']);
+    $did = (int)$conn->query("SELECT delivery_id FROM consumable_movements WHERE id = " . (int)$one['movement_id'])->fetchColumn();
+    ok('a single Receive makes its own one-line delivery, order number and all', $did > 0 && ConsumablesService::getDelivery($conn, $A, $did)['order_ref'] === 'PO-single');
+    ok('the order number is optional', ConsumablesService::move($conn, $A, 'receive', $kb, ['quantity' => 1])['on_hand'] === 6);
+    ConsumablesService::saveDelivery($conn, $A, $del['delivery_id'], ['order_ref' => "PO-$tag-B"]);
+    $h = ConsumablesService::getDelivery($conn, $A, $del['delivery_id'])['audit'];
+    ok('changing the order number is recorded, old and new', (bool)array_filter($h, fn($a) => $a['field_name'] === 'delivery.order_ref' && $a['old_value'] === "PO-$tag" && $a['new_value'] === "PO-$tag-B"));
+    ok('documents can hang off a delivery', documentEntityDef('consumable_delivery') !== null);
+    ok('...and the list finds it by an item on it', in_array($del['delivery_id'], array_column(ConsumablesService::deliveries($conn, $A, ['q' => "$tag Keyboard"]), 'id'), true));
+    $n = ConsumablesService::reverseDelivery($conn, $A, $del['delivery_id'], 'Booked in twice');
+    ok('undoing the delivery takes all three back out', $n === 3 && $onHand($mouse) === 3 && $onHand($kb) === 1);
+    ok('...once', refused(fn() => ConsumablesService::reverseDelivery($conn, $A, $del['delivery_id'], 'again')) === 'already_reversed');
+    ok('the undos stay with the delivery', count(ConsumablesService::getDelivery($conn, $A, $del['delivery_id'])['lines']) === 6);
 
     // ---- the books balance --------------------------------------------------------
     ok('on hand equals the ledger', $onHand($item) === $ledger($item));

@@ -293,6 +293,25 @@ function documentEntityRegistry(): array {
             'can'    => function (PDO $c, int $a, int $id) { require_once __DIR__ . '/leases.php'; return leaseCanView($c, $a, $id); },
             'filter' => function (PDO $c, int $a, string $alias) { return activeTenantFilter($c, $a, $alias); },
         ],
+        'consumable_delivery' => [
+            // Assets -> Consumables -> Deliveries (5.8.0): the order confirmation, invoice or
+            // delivery note for one delivery. Scoped by the store's company, like assets.
+            'module'    => 'assets',
+            'table'     => 'consumable_deliveries',
+            'label'     => 'Consumables delivery',
+            'url'       => 'asset-management/consumables/deliveries.php?id=%d',
+            'title'     => 'order_ref',
+            'title_sql' => "COALESCE(NULLIF(consumable_deliveries.order_ref, ''), CONCAT('Delivery #', consumable_deliveries.id))",
+            'alive'     => null,
+            'can'       => function (PDO $c, int $a, int $id) {
+                $st = $c->prepare("SELECT tenant_id FROM consumable_deliveries WHERE id = ?");
+                $st->execute([$id]);
+                $t = $st->fetchColumn();
+                if ($t === false) return false;
+                return analystCanAccessTenant($c, $a, (int)$t ?: getDefaultTenantId($c));
+            },
+            'filter'    => function (PDO $c, int $a, string $alias) { return activeTenantFilter($c, $a, $alias); },
+        ],
         'software_licence' => [
             // ⚠️ THE ONLY ENTRY THAT NEEDS `title_sql`. A licence has no name of
             // its own — `software_licences` holds a type, a key and a renewal

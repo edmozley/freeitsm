@@ -95,6 +95,17 @@
 .cs-person-results span { display: block; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
 .cs-person-results .cs-dim { padding: 8px 10px; }
 
+/* Deliveries */
+.cs-delivery { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+.cs-card-box { background: var(--surface, #fff); border-radius: 8px; padding: 16px 18px 6px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
+.cs-card-box > .cs-dim { font-size: var(--font-size-md, 13px); margin-bottom: 10px; }
+.cs-lines { margin-top: 10px; }
+.cs-lines td { padding: 5px 6px; }
+.cs-lines select { width: 100%; }
+.cs-num { width: 110px; text-align: right; }
+.cs-move-order { color: var(--accent, #1565c0); }
+@media (max-width: 1000px) { .cs-delivery { grid-template-columns: 1fr; } }
+
 /* Stock take */
 .cs-count-input { width: 90px; padding: 5px 8px; border: 1px solid var(--border, #ccc); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); text-align: right; font-size: var(--font-size-md, 13px); }
 .cs-count-input.cs-saved { border-color: var(--success-border, #9fd9b3); }

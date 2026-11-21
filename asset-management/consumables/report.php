@@ -35,7 +35,7 @@ $ready = ConsumablesService::ready($conn);
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.consumables.report'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../../assets/css/consumables.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/consumables.css?v=4">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <?php echo Money::scriptTag(); ?>
@@ -54,6 +54,7 @@ $ready = ConsumablesService::ready($conn);
             </div>
             <div class="cs-head-actions">
                 <a class="btn btn-secondary" href="./"><?php echo htmlspecialchars(t('asset-management.consumables.title')); ?></a>
+                <a class="btn btn-secondary" href="deliveries.php"><?php echo htmlspecialchars(t('asset-management.consumables.deliveries')); ?></a>
                 <a class="btn btn-secondary" href="stocktake.php"><?php echo htmlspecialchars(t('asset-management.consumables.stocktake')); ?></a>
             </div>
         </div>

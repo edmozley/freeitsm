@@ -40,7 +40,7 @@ $mayWrite = analystCanWriteModule($conn, (int)$_SESSION['analyst_id'], 'assets')
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.consumables.stocktake'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../../assets/css/consumables.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/consumables.css?v=4">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <?php echo Money::scriptTag(); ?>
@@ -59,6 +59,7 @@ $mayWrite = analystCanWriteModule($conn, (int)$_SESSION['analyst_id'], 'assets')
             </div>
             <div class="cs-head-actions">
                 <a class="btn btn-secondary" href="./"><?php echo htmlspecialchars(t('asset-management.consumables.title')); ?></a>
+                <a class="btn btn-secondary" href="deliveries.php"><?php echo htmlspecialchars(t('asset-management.consumables.deliveries')); ?></a>
                 <a class="btn btn-secondary" href="report.php"><?php echo htmlspecialchars(t('asset-management.consumables.report')); ?></a>
             </div>
         </div>

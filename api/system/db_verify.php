@@ -1288,6 +1288,8 @@ try {
         ['consumable_movements',    'fk_consumable_movements_item',     'consumable_items',     'item_id',     'id', 'RESTRICT'],
         ['consumable_movements',    'fk_consumable_movements_store',    'consumable_stores',    'store_id',    'id', 'RESTRICT'],
         ['consumable_movements',    'fk_consumable_movements_reverses', 'consumable_movements', 'reverses_id', 'id', 'RESTRICT'],
+        ['consumable_deliveries',   'fk_consumable_deliveries_store',   'consumable_stores',    'store_id',    'id', 'RESTRICT'],
+        ['consumable_movements',    'fk_consumable_movements_delivery', 'consumable_deliveries','delivery_id', 'id', 'RESTRICT'],
         ['consumable_field_options','fk_consumable_field_options_field','consumable_fields',    'field_id',    'id', 'CASCADE'],
         ['consumable_field_values', 'fk_cfv_item',                      'consumable_items',     'item_id',     'id', 'CASCADE'],
         ['consumable_field_values', 'fk_cfv_field',                     'consumable_fields',    'field_id',    'id', 'RESTRICT'],

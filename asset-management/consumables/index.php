@@ -71,7 +71,7 @@ $mayWrite = analystCanWriteModule($conn, $aid, 'assets');
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.consumables.title'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../../assets/css/consumables.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/consumables.css?v=4">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <?php echo Money::scriptTag(); ?>
@@ -92,6 +92,7 @@ $mayWrite = analystCanWriteModule($conn, $aid, 'assets');
                 <p class="cs-intro"><?php echo htmlspecialchars(t('asset-management.consumables.intro')); ?></p>
             </div>
             <div class="cs-head-actions">
+                <a class="btn btn-secondary" href="deliveries.php"><?php echo htmlspecialchars(t('asset-management.consumables.deliveries')); ?></a>
                 <a class="btn btn-secondary" href="stocktake.php"><?php echo htmlspecialchars(t('asset-management.consumables.stocktake')); ?></a>
                 <a class="btn btn-secondary" href="report.php"><?php echo htmlspecialchars(t('asset-management.consumables.report')); ?></a>
                 <?php if ($mayWrite): ?><button type="button" class="btn btn-primary" id="csNew"><?php echo htmlspecialchars(t('common.action_row.new')); ?></button><?php endif; ?>
@@ -208,6 +209,10 @@ $mayWrite = analystCanWriteModule($conn, $aid, 'assets');
                                 <select class="search-box" id="cmSupplier"></select>
                             </div>
                             <div class="form-group">
+                                <label class="form-label" for="cmOrder"><?php echo htmlspecialchars(t('asset-management.consumables.order_ref')); ?></label>
+                                <input type="text" class="search-box" id="cmOrder" maxlength="100" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('asset-management.consumables.optional')); ?>">
+                            </div>
+                            <div class="form-group">
                                 <label class="form-label" for="cmInvoice"><?php echo htmlspecialchars(t('asset-management.consumables.invoice_ref')); ?></label>
                                 <input type="text" class="search-box" id="cmInvoice" maxlength="100" autocomplete="off">
                             </div>
@@ -271,7 +276,7 @@ $mayWrite = analystCanWriteModule($conn, $aid, 'assets');
         'status'   => in_array($_GET['status'] ?? '', ['low', 'out'], true) ? $_GET['status'] : '',
     ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
     </script>
-    <script src="../../assets/js/consumables.js?v=2"></script>
+    <script src="../../assets/js/consumables.js?v=3"></script>
 <?php endif; ?>
 </body>
 </html>

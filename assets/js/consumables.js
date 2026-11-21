@@ -130,6 +130,8 @@
             const who = [m.recipient_name ? T(m.kind === 'return' ? 'from_person' : 'to_person', { name: m.recipient_name }) : '',
                          m.supplier_name ? T('from_supplier', { name: m.supplier_name }) : '',
                          m.invoice_ref ? T('invoice', { ref: m.invoice_ref }) : ''].filter(Boolean).join(' · ');
+            // The delivery a receipt belongs to - its order number, its documents.
+            const order = m.delivery_id ? ` · <a class="cs-move-order" href="deliveries.php?id=${m.delivery_id}">${esc(m.order_ref ? T('order', { ref: m.order_ref }) : T('delivery_n', { id: m.delivery_id }))}</a>` : '';
             const undone = m.reversed_by ? `<span class="cs-pill cs-out">${esc(T('undone'))}</span>` : '';
             const canUndo = CFG.write && !m.reversed_by && !['reverse', 'count'].includes(m.kind) && (m.kind !== 'adjust' || meta.may_adjust);
             return `<li class="${m.reversed_by ? 'cs-undone' : ''}">
@@ -139,7 +141,7 @@
                     <span class="cs-when">${esc(when(m.created_datetime))}</span></div>
                 <div class="cs-move-sub">${esc(m.analyst_name || T('system'))}${who ? ' · ' + esc(who) : ''}
                     ${m.ticket_id ? ` · <a href="../../tickets/?ticket_id=${m.ticket_id}">${esc(m.ticket_number || ('#' + m.ticket_id))}</a>` : ''}
-                    ${m.value != null ? ' · ' + money(m.value) : ''}</div>
+                    ${m.value != null ? ' · ' + money(m.value) : ''}${order}</div>
                 ${m.reason ? `<div class="cs-move-reason">${esc(m.reason)}</div>` : ''}
                 ${canUndo ? `<button type="button" class="cs-link" data-undo="${m.id}">${esc(T('undo'))}</button>` : ''}
             </li>`;
@@ -246,7 +248,7 @@
         $('cmQtyHint').textContent = kind === 'adjust' ? T('quantity_adjust_hint') : (kind === 'issue' ? T('quantity_issue_hint', { n: item.on_hand }) : '');
         $('cmCost').value = item.unit_cost ?? '';
         $('cmSupplier').innerHTML = supplierOptions(item.supplier_id);
-        $('cmInvoice').value = ''; $('cmInvoiceDate').value = '';
+        $('cmInvoice').value = ''; $('cmInvoiceDate').value = ''; $('cmOrder').value = '';
         $('cmPersonLabel').textContent = T(kind === 'return' ? 'returned_by' : 'issued_to');
         $('cmPerson').value = ''; $('cmPersonResults').hidden = true;
         $('cmTicket').value = CFG.ticket ? CFG.ticket.number + ' - ' + CFG.ticket.subject : T('no_ticket');
@@ -290,7 +292,7 @@
         e.preventDefault();
         if ($('cmPerson').value.trim() && !movePerson && moveKind !== 'receive' && moveKind !== 'adjust') { showError('cmError', T('pick_person')); return; }
         const body = { action: 'move', kind: moveKind, item_id: moveItem.id, quantity: $('cmQty').value, reason: $('cmReason').value };
-        if (moveKind === 'receive') Object.assign(body, { unit_cost: $('cmCost').value, supplier_id: $('cmSupplier').value, invoice_ref: $('cmInvoice').value, invoice_date: $('cmInvoiceDate').value });
+        if (moveKind === 'receive') Object.assign(body, { unit_cost: $('cmCost').value, supplier_id: $('cmSupplier').value, invoice_ref: $('cmInvoice').value, invoice_date: $('cmInvoiceDate').value, order_ref: $('cmOrder').value });
         if (moveKind === 'issue' || moveKind === 'return') {
             body.recipient_user_id = movePerson || '';
             if (CFG.ticket) { body.ticket_id = CFG.ticket.id; body.source = 'ticket'; }
