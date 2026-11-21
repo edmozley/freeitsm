@@ -306,6 +306,10 @@ $translationNamespaces = ['common', 'forms'];
                     <h4><?php echo htmlspecialchars(t('forms.help.actions_gate_title')); ?></h4>
                     <p><?php echo t('forms.help.actions_gate_body'); ?></p>
 
+                    <?php /* Discussion #298: an approver changes a waiting request's answers, every change recorded. */ ?>
+                    <h4><?php echo htmlspecialchars(t('forms.help.actions_edit_title')); ?></h4>
+                    <p><?php echo t('forms.help.actions_edit_body'); ?></p>
+
                     <p class="help-note"><?php echo t('forms.help.actions_tip'); ?></p>
                 </div>
 

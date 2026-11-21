@@ -182,6 +182,7 @@ return [
         'views_flow_choose' => 'Choose view',
         'views_flow_click'  => 'Click event',
         'views_tip'         => 'Click any event on the calendar to open a quick-view popup showing the title, time, location, and description. From there you can open the full edit form.',
+        'views_table' => 'The <strong>Table</strong> view lists the events as rows you can sort, filter and choose columns for. <strong>Save view</strong> keeps an arrangement under a name and <strong>Views</strong> opens the library; the table remembers the view you last picked and opens with it next time, on any browser - until you pick another or use <strong>Reset</strong>, after which it opens with your default view again.',
 
         // Section 3 — Creating events
         'creating_heading' => 'Creating events',

@@ -237,7 +237,7 @@ return [
         's1_feat3_title' => 'Automatisk opdatering',
         's1_feat3_desc' => 'Dashboardet opdaterer sig automatisk hvert 5. minut, så oplysningerne holder sig aktuelle uden nogen manuel handling. Lad Vagttårn stå åbent, så holder det sig selv opdateret i baggrunden.',
         's1_feat4_title' => 'Direkte link',
-        's1_feat4_desc' => 'Hop direkte ind i et hvilket som helst modul fra dets kort. Hvert modulnavn er et klikbart link, der fører dig direkte til det relevante område, så du kan handle på problemer uden at skulle lede efter den rigtige side.',
+        's1_feat4_desc' => 'Hvert tal på et kort er et link, og det samme er hvert korts ikon. Klik på et tal, og modulet åbner allerede filtreret til præcis det, tallet talte - en sagsstatus åbner sagslisten på den status, og kontrakter, der udløber inden for 30 dage, åbner netop de kontrakter - med en mærkat eller en fremhævet mappe, der fortæller, hvorfor listen er kortere. Fjern den, og du er tilbage på den normale liste.',
         's2_title' => 'Dashboardets layout',
         's2_p1' => 'Vagttårn-dashboardet bruger et responsivt gitter med 3 kolonner af modulkort. På mindre skærme tilpasser gitteret sig til 2 kolonner eller én enkelt kolonne, så det virker på enhver enhed. Over gitteret sidder titellinjen med en opdateringsknap og et "Opdateret"-tidsstempel, der viser, hvornår data sidst blev hentet.',
         's2_p2' => 'Hvert kort i gitteret følger en konsekvent struktur, så du hurtigt kan skimme dem:',

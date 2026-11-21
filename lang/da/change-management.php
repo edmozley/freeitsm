@@ -885,5 +885,11 @@ return [
         'tip_company'   => 'Flytte til en anden virksomhed',
         'tip_company_desc' => 'Registreret under den forkerte virksomhed? Højreklik på ændringen, og vælg Flyt til virksomhed (eller brug POST /changes/{id}/move-to-company i API\'et). De opgaver, der er knyttet til ændringen, flytter med (det kræver også skriveadgang til Opgaver). Tilknyttede sager gør ikke: de skal allerede være i den nye virksomhed, så fjern tilknytningen til dem, der ikke er. Flytningen registreres i aktivitetstidslinjen.',
         'tip_audit_desc' => 'Hver feltændring spores i aktivitetstidslinjen, og hver version af den lange tekst bevares i sin helhed - åbn den via "Vis" eller et afsnits link Versioner.',
+        'tip_labels' => 'Kolonner med overskrifter',
+        'tip_labels_desc' => 'Ændringslisten viser Risiko, Prioritet, Type og Status i kolonner med overskrifter (på en telefon med en lille etiket foran hver værdi). Vælg selv farvede værdier med en prik eller ren tekst under Indstillinger → Etiketter i ændringslisten.',
+        'tip_pdf' => 'En ændring som PDF',
+        'tip_pdf_desc' => 'Del → Eksportér som PDF giver et dokument med din organisations logo (når et er angivet under Branding) og navn øverst og derefter detaljerne, planerne, risikomatricen, godkendelserne, den efterfølgende gennemgang, tilknyttede sager, navnene på vedhæftede filer og aktiviteten. Det tegnes altid i det lyse tema, uanset hvilket tema du bruger.',
+        'tip_views' => 'Gemte tabelvisninger',
+        'tip_views_desc' => 'I tabellen gemmer Gem visning kolonnerne, sorteringen og filtrene under et navn, og Visninger åbner biblioteket. Tabellen husker den visning, du sidst valgte, og åbner med den næste gang, i enhver browser - indtil du vælger en anden eller bruger Nulstil, hvorefter den igen åbner med din standardvisning.',
     ],
 ];

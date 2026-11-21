@@ -185,6 +185,7 @@ $translationNamespaces = ['common', 'calendar'];
                     </div>
 
                     <p class="help-note"><?php echo htmlspecialchars(t('calendar.help.views_tip')); ?></p>
+                    <p><?php echo t('calendar.help.views_table'); ?></p>   <?php /* saved views, the last one remembered (GH #408) */ ?>
                 </div>
 
                 <!-- Section 3: Creating Events (highlighted) -->

@@ -314,7 +314,7 @@ return [
         's1_feat3_title' => 'Auto-refresh',
         's1_feat3_desc'  => 'The dashboard refreshes itself every 5 minutes - or every 1, 2, 10 or 15, as you choose under Preferences → General - so the information stays current without any manual action. Leave Watchtower open and it keeps itself up to date in the background.',
         's1_feat4_title' => 'Click-through',
-        's1_feat4_desc'  => 'Jump directly into any module from its card. Each module name is a clickable link that takes you straight to the relevant area, so you can act on issues without searching for the right page.',
+        's1_feat4_desc'  => 'Every number on a card is a link, and so is each card\'s icon. Click a count and its module opens already filtered to exactly the items that number counted - a ticket status opens the ticket list on that status, contracts ending in 30 days open those contracts - with a chip or a lit folder saying why the list is short. Remove it and you are back on the normal list.',
 
         // Section 2 — Dashboard layout
         's2_title' => 'The dashboard layout',

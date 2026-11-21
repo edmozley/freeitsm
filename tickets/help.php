@@ -1353,7 +1353,7 @@ try {
                     <p><?php echo t('tickets.help.workspace.' . $k); ?></p>
                     <?php endforeach; ?>
                     <h4><?php echo htmlspecialchars(t('tickets.help.workspace.tb_title')); ?></h4>
-                    <?php foreach (['tb_what', 'tb_columns', 'tb_same', 'tb_export'] as $k): ?>
+                    <?php foreach (['tb_what', 'tb_remember', 'tb_columns', 'tb_same', 'tb_export'] as $k): ?>
                     <p><?php echo t('tickets.help.workspace.' . $k); ?></p>
                     <?php endforeach; ?>
                 </div>

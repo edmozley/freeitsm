@@ -93,6 +93,18 @@ require __DIR__ . '/_top.php';
         <li>Each FAIL says why: inheritance turned off with nothing granted to them, a grant below Modify, or nothing granted anywhere above.</li>
     </ul>
     <p><strong>Runtime:</strong> instant. <strong>Side effects:</strong> none — read-only. The report shows folder and file names the person may not be allowed to see, so keep it to yourself.</p>
+
+    <?php /* GH #365: the bell named the signed-in user instead of whoever (or whatever) made the change. */ ?>
+    <h4>D021 - Notification bell: did that person really do it?</h4>
+    <p>Run this when the bell says <em>"Handed to your team by ..."</em>, <em>"Assigned to you by ..."</em> or <em>"... changed the status"</em> and that person says they never touched the ticket. The bell does not keep its sentence - each row keeps the kind of event and a <strong>copy of a name</strong> - while the ticket's <strong>Audit</strong> records who really made each change, or <strong>System</strong> when a workflow did.</p>
+    <ul>
+        <li>Name the <strong>ticket</strong>.</li>
+        <li>It lists every bell row raised for that ticket - the words, the name kept and who received it (a change sent to a whole team appears once) - then the ticket's history and the workflows that ran on it.</li>
+        <li>Each bell row is paired with the history line of the same kind (Team, Owner, Status, Priority, Ticket Created, the note itself, the reply's email) nearest in time, and given a verdict: <strong>MATCH</strong>, <strong>MISMATCH</strong>, <strong>AUTOMATIC CREDITED TO A PERSON</strong>, <strong>NOT FOUND</strong> or <strong>NOT CHECKED</strong>.</li>
+        <li>Up to 5.7.0 the bell named whoever was signed in when a change ran, so a workflow that assigned a team was announced under the name of whoever's browser triggered it. The report calls those out.</li>
+    </ul>
+    <p><strong>Runtime:</strong> instant. <strong>Side effects:</strong> none — read-only. Administrators only.</p>
+    <div class="help-note"><strong>Paired by kind and time, not by a link.</strong> Rows from before 5.8.0 keep no record of the change that raised them, and when several updates reach someone's bell before they read it the bell merges them into one row that keeps only the latest - the report says so. Each person can ask the same question of their own bell with the <strong>(i)</strong> button on a row; it gives the same answer from the same code.</div>
 </div>
 
 <!-- 4. When to use them -->

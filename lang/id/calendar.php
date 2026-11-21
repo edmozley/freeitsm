@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Pilih tampilan',
         'views_flow_click' => 'Klik acara',
         'views_tip' => 'Klik acara mana pun di kalender untuk membuka popup tampilan cepat yang menunjukkan judul, waktu, lokasi, dan deskripsi. Dari sana Anda dapat membuka formulir ubah lengkap.',
+        'views_table' => 'Tampilan <strong>Tabel</strong> menampilkan acara sebagai baris yang dapat Anda urutkan, saring, dan pilih kolomnya. <strong>Simpan tampilan</strong> menyimpan susunan dengan sebuah nama dan <strong>Tampilan</strong> membuka pustakanya; tabel mengingat tampilan yang terakhir Anda pilih dan membukanya lagi lain kali, di browser mana pun - sampai Anda memilih yang lain atau menggunakan <strong>Atur ulang</strong>, setelah itu tabel kembali dibuka dengan tampilan default Anda.',
         'creating_heading' => 'Membuat acara',
         'creating_intro' => 'Menambahkan acara ke kalender itu mudah. Klik tombol <strong>+ Acara Baru</strong> di bilah samping untuk membuka formulir acara. Isi detailnya dan simpan &mdash; acara langsung muncul di kalender.',
         'creating_step1' => '<strong>Klik + Acara Baru</strong> &mdash; tombolnya ada di bilah samping kalender di sebelah kiri. Ini membuka modal pembuatan acara.',

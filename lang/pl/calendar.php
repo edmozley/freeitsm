@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Wybierz widok',
         'views_flow_click' => 'Kliknij wydarzenie',
         'views_tip' => 'Kliknij dowolne wydarzenie w kalendarzu, aby otworzyć okno szybkiego podglądu z tytułem, godziną, lokalizacją i opisem. Stamtąd możesz otworzyć pełny formularz edycji.',
+        'views_table' => 'Widok <strong>Tabela</strong> pokazuje wydarzenia jako wiersze, które możesz sortować, filtrować i dla których wybierasz kolumny. <strong>Zapisz widok</strong> zachowuje układ pod nazwą, a <strong>Widoki</strong> otwiera bibliotekę; tabela pamięta ostatnio wybrany widok i następnym razem otwiera się z nim, w każdej przeglądarce - dopóki nie wybierzesz innego albo nie użyjesz <strong>Resetuj</strong>; potem znów otwiera się z Twoim widokiem domyślnym.',
         'creating_heading' => 'Tworzenie wydarzeń',
         'creating_intro' => 'Dodawanie wydarzeń do kalendarza jest proste. Kliknij przycisk <strong>+ Nowe wydarzenie</strong> na pasku bocznym, aby otworzyć formularz wydarzenia. Wypełnij szczegóły i zapisz &mdash; wydarzenie pojawi się w kalendarzu natychmiast.',
         'creating_step1' => '<strong>Kliknij + Nowe wydarzenie</strong> &mdash; przycisk znajduje się na pasku bocznym kalendarza po lewej stronie. Otwiera to okno tworzenia wydarzenia.',

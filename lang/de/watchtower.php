@@ -237,7 +237,7 @@ return [
         's1_feat3_title' => 'Automatische Aktualisierung',
         's1_feat3_desc' => 'Das Dashboard aktualisiert sich automatisch alle 5 Minuten, sodass die Informationen ohne manuelles Zutun aktuell bleiben. Lassen Sie Watchtower geöffnet, und es hält sich im Hintergrund selbst auf dem neuesten Stand.',
         's1_feat4_title' => 'Direkter Zugriff',
-        's1_feat4_desc' => 'Springen Sie direkt von der Karte in jedes Modul. Jeder Modulname ist ein anklickbarer Link, der Sie direkt in den relevanten Bereich führt, sodass Sie Probleme angehen können, ohne die richtige Seite suchen zu müssen.',
+        's1_feat4_desc' => 'Jede Zahl auf einer Karte ist ein Link, ebenso das Symbol jeder Karte. Klicken Sie auf eine Zahl, und das Modul öffnet sich bereits gefiltert auf genau das, was diese Zahl gezählt hat - ein Ticketstatus öffnet die Ticketliste mit diesem Status, Verträge, die in 30 Tagen enden, öffnen genau diese Verträge - mit einem Chip oder einem hervorgehobenen Ordner, der erklärt, warum die Liste kürzer ist. Entfernen Sie ihn, und Sie sind wieder in der normalen Liste.',
         's2_title' => 'Das Dashboard-Layout',
         's2_p1' => 'Das Watchtower-Dashboard verwendet ein responsives 3-Spalten-Raster aus Modulkarten. Auf kleineren Bildschirmen passt sich das Raster auf 2 Spalten oder eine einzelne Spalte an, sodass es auf jedem Gerät funktioniert. Über dem Raster befindet sich die Titelleiste mit einer Schaltfläche zum Aktualisieren und einem Zeitstempel „Aktualisiert“, der anzeigt, wann die Daten zuletzt abgerufen wurden.',
         's2_p2' => 'Jede Karte im Raster folgt einer einheitlichen Struktur, damit Sie sie schnell überfliegen können:',

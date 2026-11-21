@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Vælg visning',
         'views_flow_click' => 'Klik på begivenhed',
         'views_tip' => 'Klik på en begivenhed i kalenderen for at åbne et hurtigt visningsvindue med titel, tidspunkt, sted og beskrivelse. Herfra kan du åbne den fulde redigeringsformular.',
+        'views_table' => 'Visningen <strong>Tabel</strong> viser begivenhederne som rækker, du kan sortere, filtrere og vælge kolonner til. <strong>Gem visning</strong> gemmer en opsætning under et navn, og <strong>Visninger</strong> åbner biblioteket; tabellen husker den visning, du sidst valgte, og åbner med den næste gang, i enhver browser - indtil du vælger en anden eller bruger <strong>Nulstil</strong>, hvorefter den igen åbner med din standardvisning.',
         'creating_heading' => 'Opret begivenheder',
         'creating_intro' => 'Det er enkelt at tilføje begivenheder til kalenderen. Klik på knappen <strong>+ Ny begivenhed</strong> i sidepanelet for at åbne begivenhedsformularen. Udfyld detaljerne, og gem &mdash; begivenheden vises straks i kalenderen.',
         'creating_step1' => '<strong>Klik på + Ny begivenhed</strong> &mdash; knappen findes i kalenderens sidepanel til venstre. Dette åbner vinduet til oprettelse af begivenhed.',

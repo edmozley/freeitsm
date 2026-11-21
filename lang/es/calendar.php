@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Elegir vista',
         'views_flow_click' => 'Hacer clic en el evento',
         'views_tip' => 'Haz clic en cualquier evento del calendario para abrir una ventana de vista rápida que muestra el título, la hora, la ubicación y la descripción. Desde ahí puedes abrir el formulario de edición completo.',
+        'views_table' => 'La vista <strong>Tabla</strong> muestra los eventos como filas que puedes ordenar, filtrar y para las que puedes elegir columnas. <strong>Guardar vista</strong> guarda una disposición con un nombre y <strong>Vistas</strong> abre la biblioteca; la tabla recuerda la última vista que elegiste y se abre con ella la próxima vez, en cualquier navegador, hasta que elijas otra o uses <strong>Restablecer</strong>; después vuelve a abrirse con tu vista predeterminada.',
         'creating_heading' => 'Crear eventos',
         'creating_intro' => 'Añadir eventos al calendario es sencillo. Haz clic en el botón <strong>+ Nuevo evento</strong> de la barra lateral para abrir el formulario de evento. Rellena los detalles y guarda &mdash; el evento aparece en el calendario al instante.',
         'creating_step1' => '<strong>Haz clic en + Nuevo evento</strong> &mdash; el botón está en la barra lateral del calendario, a la izquierda. Esto abre la ventana de creación de eventos.',

@@ -888,5 +888,11 @@ return [
         'tip_company'   => 'Memindahkan ke perusahaan lain',
         'tip_company_desc' => 'Tercatat di perusahaan yang salah? Klik kanan perubahan dan pilih Pindahkan ke perusahaan (atau gunakan POST /changes/{id}/move-to-company di API). Tugas yang terhubung ke perubahan ikut pindah (ini juga memerlukan akses tulis ke Tugas). Tiket terlampir tidak: tiket harus sudah berada di perusahaan baru, jadi lepaskan tautan tiket yang belum. Pemindahan dicatat di linimasa Aktivitas.',
         'tip_audit_desc' => 'Setiap perubahan bidang dilacak di linimasa Aktivitas, dan setiap versi teks panjang disimpan secara utuh - buka dari "Lihat" atau tautan Versi pada bagian.',
+        'tip_labels' => 'Kolom berlabel',
+        'tip_labels_desc' => 'Daftar perubahan menampilkan Risiko, Prioritas, Jenis, dan Status dalam kolom berlabel (di ponsel, dengan label kecil sebelum setiap nilai). Pilih sendiri nilai berwarna dengan titik atau teks biasa di Preferensi → Label daftar perubahan.',
+        'tip_pdf' => 'Perubahan sebagai PDF',
+        'tip_pdf_desc' => 'Bagikan → Ekspor sebagai PDF menghasilkan dokumen dengan logo organisasi Anda (jika sudah diatur di Branding) dan namanya di bagian atas, lalu detail, rencana, matriks risiko, persetujuan, tinjauan pasca-implementasi, tiket tertaut, nama lampiran, dan aktivitas. Dokumen selalu digambar dengan tema terang, apa pun tema yang Anda gunakan.',
+        'tip_views' => 'Tampilan tabel tersimpan',
+        'tip_views_desc' => 'Di tabel, Simpan tampilan menyimpan kolom, urutan, dan filter dengan sebuah nama, dan Tampilan membuka pustakanya. Tabel mengingat tampilan yang terakhir Anda pilih dan membukanya lagi lain kali, di browser mana pun - sampai Anda memilih yang lain atau menggunakan Atur ulang, setelah itu tabel kembali dibuka dengan tampilan default Anda.',
     ],
 ];

@@ -1275,6 +1275,7 @@ return [
             'p2' => 'A partir de ahí sigue vigilando: los datos del registro se actualizan según un calendario, las comprobaciones se ejecutan a diario, y cualquier cambio importante - los servidores de nombres, el registrador, un bloqueo que se quita - se registra y, si lo desea, se envía por correo al instante.',
             'p3' => 'Las alertas de caducidad y de certificados llegan al responsable de cada dominio (o a una lista), como un único resumen por persona en lugar de un correo por dominio. También llegan a la campana de notificaciones y a los flujos de trabajo, de modo que un dominio a punto de caducar puede crear un ticket, crear una tarea o publicar en un canal de chat.',
             'p4' => 'Un dominio también está unido al resto de FreeITSM: los elementos de la CMDB que dependen de él, los tickets que hablan de él, sus guías de procedimiento en Conocimiento, su contrato y los servicios de Estado del servicio que funcionan sobre él - que pueden marcarse, o generar una incidencia, cuando caduca. Consulte **Conexiones** y **Estado del servicio** más abajo.',
+            'p5' => '**Guardar vista** en la barra de herramientas del registro guarda con un nombre las columnas, el orden y los filtros que hayas puesto, y **Vistas** abre la biblioteca. El registro recuerda la última vista que elegiste y se abre con ella la próxima vez, en cualquier navegador, hasta que elijas otra o uses **Restablecer**; después vuelve a abrirse con tu vista predeterminada.',
         ],
         'adding' => [
             'nav' => 'Añadir dominios',

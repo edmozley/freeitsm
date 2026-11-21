@@ -1275,6 +1275,7 @@ return [
             'p2' => 'Ab dann bleibt es dran: Registry-Angaben werden nach Zeitplan aktualisiert, die Prüfungen laufen täglich, und alles Wichtige, das sich ändert - die Nameserver, der Registrar, eine entfernte Sperre -, wird festgehalten und auf Wunsch sofort per E-Mail gemeldet.',
             'p3' => 'Ablauf- und Zertifikatswarnungen gehen an den Eigentümer der jeweiligen Domain (oder an eine Liste), als eine Zusammenfassung pro Person statt einer E-Mail pro Domain. Sie erreichen auch die Benachrichtigungsglocke und Workflows, sodass eine ablaufende Domain ein Ticket erstellen, eine Aufgabe anlegen oder eine Nachricht in einen Chat-Kanal senden kann.',
             'p4' => 'Eine Domain ist außerdem mit dem Rest von FreeITSM verbunden: den CMDB-Einträgen, die von ihr abhängen, den Tickets zu ihr, ihren Runbooks im Wissen, ihrem Vertrag und den Services in Service Status, die auf ihr laufen - diese können markiert werden oder einen Vorfall auslösen, wenn sie abläuft. Siehe **Verbindungen** und **Servicestatus** weiter unten.',
+            'p5' => '**Ansicht speichern** in der Symbolleiste des Registers sichert die eingestellten Spalten, Sortierung und Filter unter einem Namen, und **Ansichten** öffnet die Bibliothek. Das Register merkt sich die zuletzt gewählte Ansicht und öffnet beim nächsten Mal damit, in jedem Browser - bis Sie eine andere wählen oder **Zurücksetzen** nutzen; danach öffnet es wieder mit Ihrer Standardansicht.',
         ],
         'adding' => [
             'nav' => 'Domains hinzufügen',

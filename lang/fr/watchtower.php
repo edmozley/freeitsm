@@ -251,7 +251,7 @@ return [
         's1_feat3_title' => 'Actualisation automatique',
         's1_feat3_desc' => 'Le tableau de bord s\'actualise automatiquement toutes les 5 minutes, de sorte que les informations restent à jour sans aucune action manuelle. Laissez Watchtower ouvert et il se tient à jour en arrière-plan.',
         's1_feat4_title' => 'Accès direct',
-        's1_feat4_desc' => 'Accédez directement à n\'importe quel module depuis sa carte. Chaque nom de module est un lien cliquable qui vous emmène directement vers la zone concernée, afin que vous puissiez agir sur les problèmes sans chercher la bonne page.',
+        's1_feat4_desc' => 'Chaque nombre sur une carte est un lien, tout comme l\'icône de chaque carte. Cliquez sur un nombre et son module s\'ouvre déjà filtré sur exactement ce que ce nombre a compté - un statut de ticket ouvre la liste des tickets sur ce statut, les contrats qui se terminent dans 30 jours ouvrent ces contrats - avec une étiquette ou un dossier mis en évidence qui explique pourquoi la liste est plus courte. Retirez-la et vous revenez à la liste habituelle.',
         's2_title' => 'La disposition du tableau de bord',
         's2_p1' => 'Le tableau de bord Watchtower utilise une grille réactive de cartes de modules sur 3 colonnes. Sur les écrans plus petits, la grille s\'adapte à 2 colonnes ou à une seule colonne, afin de fonctionner sur tout appareil. Au-dessus de la grille se trouve la barre de titre avec un bouton d\'actualisation et un horodatage « Mis à jour » indiquant la dernière récupération des données.',
         's2_p2' => 'Chaque carte de la grille suit une structure cohérente pour que vous puissiez les parcourir rapidement :',

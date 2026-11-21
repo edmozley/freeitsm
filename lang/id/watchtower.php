@@ -251,7 +251,7 @@ return [
         's1_feat3_title' => 'Penyegaran otomatis',
         's1_feat3_desc' => 'Dasbor secara otomatis menyegar setiap 5 menit, sehingga informasi tetap terkini tanpa tindakan manual apa pun. Biarkan Watchtower tetap terbuka dan ia akan terus memperbarui dirinya sendiri di latar belakang.',
         's1_feat4_title' => 'Klik-tembus',
-        's1_feat4_desc' => 'Lompat langsung ke modul mana pun dari kartunya. Setiap nama modul adalah tautan yang dapat diklik yang membawa Anda langsung ke area yang relevan, sehingga Anda dapat menindaklanjuti masalah tanpa mencari halaman yang tepat.',
+        's1_feat4_desc' => 'Setiap angka pada kartu adalah tautan, begitu juga ikon setiap kartu. Klik sebuah angka dan modulnya terbuka sudah tersaring tepat pada hal-hal yang dihitung angka itu - status tiket membuka daftar tiket pada status tersebut, kontrak yang berakhir dalam 30 hari membuka kontrak-kontrak itu - dengan label atau folder yang disorot yang menjelaskan mengapa daftarnya lebih pendek. Hapus label itu dan Anda kembali ke daftar biasa.',
         's2_title' => 'Tata letak dasbor',
         's2_p1' => 'Dasbor Watchtower menggunakan kisi 3 kolom responsif berisi kartu modul. Pada layar yang lebih kecil, kisi beradaptasi menjadi 2 kolom atau satu kolom, sehingga berfungsi pada perangkat apa pun. Di atas kisi terdapat bilah judul dengan tombol segarkan dan stempel waktu "Diperbarui" yang menunjukkan kapan data terakhir diambil.',
         's2_p2' => 'Setiap kartu dalam kisi mengikuti struktur yang konsisten sehingga Anda dapat memindainya dengan cepat:',

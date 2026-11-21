@@ -29,7 +29,7 @@ $multi = isMultiTenant(connectToDatabase());
 // id => number of paragraphs (help.<id>.p1 … pN). The company section only
 // appears where there is more than one company, like every other help page.
 $sections = [
-    'overview'   => 4,
+    'overview'   => 5,   // p5: saved views, the last one remembered (GH #408)
     'adding'     => 5,
     'subdomains' => 5,
     'internal'   => 9,   // GH #203 (slice 2: endpoints and their limits; slice 3: expected records, #243; split DNS, #249)

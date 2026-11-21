@@ -237,7 +237,7 @@ return [
         's1_feat3_title' => 'Actualización automática',
         's1_feat3_desc' => 'El panel se actualiza automáticamente cada 5 minutos, por lo que la información se mantiene al día sin ninguna acción manual. Deja Watchtower abierto y se mantendrá actualizado en segundo plano.',
         's1_feat4_title' => 'Acceso directo',
-        's1_feat4_desc' => 'Salta directamente a cualquier módulo desde su tarjeta. El nombre de cada módulo es un enlace en el que se puede hacer clic que te lleva directamente al área relevante, para que puedas actuar sobre los problemas sin buscar la página correcta.',
+        's1_feat4_desc' => 'Cada número de una tarjeta es un enlace, y también el icono de cada tarjeta. Haz clic en un número y su módulo se abre ya filtrado exactamente a lo que contó ese número (un estado de ticket abre la lista de tickets en ese estado; los contratos que vencen en 30 días abren esos contratos), con una etiqueta o una carpeta resaltada que indica por qué la lista es más corta. Quítala y vuelves a la lista normal.',
         's2_title' => 'La disposición del panel',
         's2_p1' => 'El panel de Watchtower utiliza una cuadrícula adaptable de 3 columnas de tarjetas de módulo. En pantallas más pequeñas, la cuadrícula se adapta a 2 columnas o a una sola columna, por lo que funciona en cualquier dispositivo. Encima de la cuadrícula está la barra de título con un botón de actualización y una marca de tiempo «Actualizado» que muestra cuándo se obtuvieron los datos por última vez.',
         's2_p2' => 'Cada tarjeta de la cuadrícula sigue una estructura coherente para que puedas examinarlas rápidamente:',

@@ -888,5 +888,11 @@ return [
         'tip_company'   => 'Déplacer vers une autre entreprise',
         'tip_company_desc' => 'Classé sous la mauvaise entreprise ? Faites un clic droit sur le changement et choisissez Déplacer vers l\'entreprise (ou utilisez POST /changes/{id}/move-to-company dans l\'API). Les tâches liées au changement le suivent (cela demande aussi un accès en écriture aux Tâches). Les tickets liés, non : ils doivent déjà être dans la nouvelle entreprise, donc détachez ceux qui n\'y sont pas. Le déplacement est enregistré dans la chronologie d\'activité.',
         'tip_audit_desc' => 'Chaque modification de champ est suivie dans la chronologie d\'activité, et chaque version du texte long est conservée en intégralité - ouvrez-la depuis « Voir » ou le lien Versions d\'une section.',
+        'tip_labels' => 'Colonnes avec en-têtes',
+        'tip_labels_desc' => 'La liste des changements affiche Risque, Priorité, Type et Statut dans des colonnes avec en-têtes (sur un téléphone, avec un petit libellé devant chaque valeur). Choisissez pour vous des valeurs en couleur avec un point ou du texte brut dans Préférences → Libellés de la liste des changements.',
+        'tip_pdf' => 'Un changement en PDF',
+        'tip_pdf_desc' => 'Partager → Exporter en PDF produit un document avec en tête le logo de votre organisation (s\'il est défini dans Image de marque) et son nom, puis les détails, les plans, la matrice des risques, les approbations, la revue post-implémentation, les tickets liés, les noms des pièces jointes et l\'activité. Il est toujours dessiné avec le thème clair, quel que soit le thème que vous utilisez.',
+        'tip_views' => 'Vues enregistrées du tableau',
+        'tip_views_desc' => 'Dans le tableau, Enregistrer la vue conserve les colonnes, le tri et les filtres sous un nom, et Vues ouvre la bibliothèque. Le tableau retient la dernière vue choisie et s\'ouvre avec elle la fois suivante, dans n\'importe quel navigateur - jusqu\'à ce que vous en choisissiez une autre ou utilisiez Réinitialiser ; il s\'ouvre alors de nouveau avec votre vue par défaut.',
     ],
 ];

@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Ansicht wählen',
         'views_flow_click' => 'Termin anklicken',
         'views_tip' => 'Klicken Sie auf einen beliebigen Termin im Kalender, um ein Schnellansichts-Popup mit Titel, Uhrzeit, Ort und Beschreibung zu öffnen. Von dort aus können Sie das vollständige Bearbeitungsformular öffnen.',
+        'views_table' => 'Die Ansicht <strong>Tabelle</strong> listet die Termine als Zeilen auf, die Sie sortieren, filtern und mit eigenen Spalten versehen können. <strong>Ansicht speichern</strong> sichert eine Anordnung unter einem Namen, und <strong>Ansichten</strong> öffnet die Bibliothek; die Tabelle merkt sich die zuletzt gewählte Ansicht und öffnet beim nächsten Mal damit, in jedem Browser - bis Sie eine andere wählen oder <strong>Zurücksetzen</strong> nutzen; danach öffnet sie wieder mit Ihrer Standardansicht.',
         'creating_heading' => 'Termine erstellen',
         'creating_intro' => 'Das Hinzufügen von Terminen zum Kalender ist unkompliziert. Klicken Sie auf die Schaltfläche <strong>+ Neuer Termin</strong> in der Seitenleiste, um das Terminformular zu öffnen. Füllen Sie die Details aus und speichern Sie &mdash; der Termin erscheint sofort im Kalender.',
         'creating_step1' => '<strong>+ Neuer Termin anklicken</strong> &mdash; die Schaltfläche befindet sich in der Kalender-Seitenleiste auf der linken Seite. Dies öffnet das Dialogfeld zur Terminerstellung.',

@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Choisir l\'affichage',
         'views_flow_click' => 'Cliquer sur un événement',
         'views_tip' => 'Cliquez sur n\'importe quel événement du calendrier pour ouvrir une fenêtre d\'aperçu rapide affichant le titre, l\'heure, le lieu et la description. De là, vous pouvez ouvrir le formulaire de modification complet.',
+        'views_table' => 'La vue <strong>Tableau</strong> présente les événements sous forme de lignes que vous pouvez trier, filtrer et dont vous choisissez les colonnes. <strong>Enregistrer la vue</strong> conserve une disposition sous un nom et <strong>Vues</strong> ouvre la bibliothèque ; le tableau retient la dernière vue choisie et s\'ouvre avec elle la fois suivante, dans n\'importe quel navigateur - jusqu\'à ce que vous en choisissiez une autre ou utilisiez <strong>Réinitialiser</strong> ; il s\'ouvre alors de nouveau avec votre vue par défaut.',
         'creating_heading' => 'Créer des événements',
         'creating_intro' => 'Ajouter des événements au calendrier est simple. Cliquez sur le bouton <strong>+ Nouvel événement</strong> dans la barre latérale pour ouvrir le formulaire d\'événement. Remplissez les détails et enregistrez &mdash; l\'événement apparaît immédiatement sur le calendrier.',
         'creating_step1' => '<strong>Cliquez sur + Nouvel événement</strong> &mdash; le bouton se trouve dans la barre latérale du calendrier, à gauche. Cela ouvre la fenêtre de création d\'événement.',

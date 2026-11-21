@@ -1121,6 +1121,7 @@ return [
             'p2'    => 'From then on it keeps watching: registry details refresh on a schedule, the checks run daily, and anything important that changes - the name servers, the registrar, a lock being removed - is recorded and, if you choose, emailed at once.',
             'p3'    => 'Expiry and certificate alerts go to each domain\'s owner (or a list), as one digest per person rather than one email per domain. They also reach the notification bell and workflows, so a lapsing domain can raise a ticket, create a task, or post to a chat channel.',
             'p4'    => 'A domain is also joined to the rest of FreeITSM: the CMDB items that depend on it, the tickets about it, its runbooks in Knowledge, its contract, and the Service Status services that run on it - which can be flagged, or have an incident raised, when it lapses. See **Connections** and **Service Status** below.',
+            'p5' => '**Save view** in the register\'s toolbar keeps the columns, sort and filters you have set under a name, and **Views** opens the library. The register remembers the view you last picked and opens with it next time, on any browser - until you pick another or use **Reset**, after which it opens with your default view again.',
         ],
         'adding' => [
             'nav'   => 'Adding domains',

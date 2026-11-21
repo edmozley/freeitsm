@@ -251,7 +251,7 @@ return [
         's1_feat3_title' => 'Automatyczne odświeżanie',
         's1_feat3_desc' => 'Pulpit automatycznie odświeża się co 5 minut, dzięki czemu informacje pozostają aktualne bez żadnego ręcznego działania. Zostaw Watchtower otwarty, a sam będzie się aktualizował w tle.',
         's1_feat4_title' => 'Przejście jednym kliknięciem',
-        's1_feat4_desc' => 'Przejdź bezpośrednio do dowolnego modułu z jego karty. Każda nazwa modułu jest klikalnym linkiem, który przenosi Cię prosto do odpowiedniego obszaru, dzięki czemu możesz reagować na problemy bez szukania właściwej strony.',
+        's1_feat4_desc' => 'Każda liczba na karcie jest linkiem, podobnie jak ikona każdej karty. Kliknij liczbę, a jej moduł otworzy się już przefiltrowany dokładnie do tego, co ta liczba policzyła - status zgłoszeń otwiera listę zgłoszeń w tym statusie, umowy kończące się w ciągu 30 dni otwierają właśnie te umowy - z etykietą lub podświetlonym folderem, który wyjaśnia, dlaczego lista jest krótsza. Usuń ją, a wrócisz do zwykłej listy.',
         's2_title' => 'Układ pulpitu',
         's2_p1' => 'Pulpit Watchtower wykorzystuje responsywną 3-kolumnową siatkę kart modułów. Na mniejszych ekranach siatka dostosowuje się do 2 kolumn lub pojedynczej kolumny, więc działa na każdym urządzeniu. Nad siatką znajduje się pasek tytułu z przyciskiem odświeżania oraz znacznikiem czasu „Zaktualizowano”, pokazującym, kiedy dane zostały ostatnio pobrane.',
         's2_p2' => 'Każda karta w siatce ma spójną strukturę, dzięki czemu możesz je szybko przeglądać:',

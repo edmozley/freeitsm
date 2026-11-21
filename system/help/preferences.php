@@ -58,6 +58,22 @@ require __DIR__ . '/_top.php';
     </ul>
 </div>
 
+<!-- Settings pages: Tabs or One page (GH #399) -->
+<div class="help-section" id="settings-view">
+    <div class="help-section-header"><?php echo helpSectionNum('settings-view'); ?>
+        <div>
+            <h3>Settings pages: Tabs or One page</h3>
+            <p>Every module's <strong>Settings</strong> page has a <strong>Tabs</strong> / <strong>One page</strong> switch beside its tab bar. The choice is yours, and is not made here: you make it on any settings page and it applies to all of them.</p>
+        </div>
+    </div>
+    <ul>
+        <li><strong>Tabs</strong> is the page as it has always been: one tab at a time.</li>
+        <li><strong>One page</strong> shows every section at once, one under another, with an index down the left that follows you as you scroll - click a name to jump to it - and a <strong>Search settings</strong> box that hides the sections that do not mention what you type. A tab that is really a separate page is listed in the index with an arrow and opens that page.</li>
+        <li>Your choice is saved to your account, so it follows you to any browser. A link to a particular settings tab still opens at that section.</li>
+        <li>On a phone the page always shows tabs, and a settings page with only one section has nothing to switch.</li>
+    </ul>
+</div>
+
 <!-- Money (GH #189) -->
 <div class="help-section" id="money">
     <div class="help-section-header"><?php echo helpSectionNum('money'); ?>
@@ -113,6 +129,12 @@ require __DIR__ . '/_top.php';
             <p>Each new item in the bell also appears as a notification on your computer - in Edge on Windows, a normal Windows notification - so you see it while working in another window. Clicking it opens the ticket or task.</p>
             <p>Your browser asks whether to allow notifications from this site when you turn it on. If you say no, the switch goes back off and the page says how to allow them later. <strong>Test</strong> shows a sample.</p>
         </div>
+        <?php /* GH #365: the bell's (i) panel. */ ?>
+        <div class="help-card">
+            <h4>Why is this here?</h4>
+            <p>Every row in the bell has an <strong>(i)</strong> beside its <strong>x</strong>. It opens the row to say who did it (a person, or a workflow, email or FreeITSM itself, marked <em>automatic</em>), how (on screen, through the API, by a workflow, when mail arrived), when, and why it reached you - you own the ticket, you are in the team it was handed to, you are watching it.</p>
+            <p>It also shows the matching line from the ticket's Audit, with a tick when the history agrees and a warning naming who the history says made the change when it does not. It only explains your own notifications, and says so if you can no longer see the ticket.</p>
+        </div>
         <div class="help-card">
             <h4>Tasks assigned to you</h4>
             <p><strong>Email me when a task is assigned to me</strong> sends an email whenever a task is created for you or handed to you from someone else, written in your own interface language. Nothing is sent for a task you assign to yourself. Off unless you turn it on.</p>
@@ -165,6 +187,21 @@ require __DIR__ . '/_top.php';
         <div class="help-card">
             <h4>My company for new tickets</h4>
             <p>Shown only when you can reach more than one company. In the all-companies view, <strong>New ticket</strong> asks which company a ticket is for; choose one here to have it chosen for you. You can still change it on the form, and if you can no longer reach that company, nothing is chosen.</p>
+        </div>
+        <?php /* GH #409 */ ?>
+        <div class="help-card">
+            <h4>Company at sign-in</h4>
+            <p>Also shown only when you can reach more than one company. Switch on <strong>Start in the company I last used</strong> and each sign-in opens in the company you last picked in the company switcher - or in All companies - instead of the Default company. A company you can no longer see, or one that has been deactivated, is skipped. Off unless you switch it on.</p>
+            <p>New tickets are filed to the company you are working in, so glance at the switcher before you create one.</p>
+        </div>
+        <?php /* Discussion #388 */ ?>
+        <div class="help-card">
+            <h4>Watchtower refreshes every</h4>
+            <p>How often the Watchtower dashboard fetches fresh numbers: every <strong>1, 2, 5, 10 or 15 minutes</strong>, 5 unless you choose. A short time suits a screen on the wall - a user signed in just for it stays signed in, because every refresh keeps the session alive.</p>
+        </div>
+        <div class="help-card">
+            <h4>Change list labels</h4>
+            <p>How Risk, Priority, Type and Status show in the Change Management list: <strong>Coloured</strong>, as coloured text with a dot (the default), or <strong>Plain text</strong>. The change itself, the table and the PDF are not affected.</p>
         </div>
     </div>
 </div>

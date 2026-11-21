@@ -955,5 +955,11 @@ return [
         'tip_company'   => 'Moving to another company',
         'tip_company_desc' => 'Filed under the wrong company? Right-click the change and choose Move to company (or use POST /changes/{id}/move-to-company in the API). The tasks linked to the change move with it (that needs write access to Tasks too). Linked tickets do not: they must already be in the new company, so unlink any that are not. The move is recorded in the Activity timeline.',
         'tip_audit_desc' => 'Every field change is tracked in the Activity timeline, and every version of the long text is kept in full - open it from "View" or a section\'s Versions link.',
+        'tip_labels' => 'Labelled columns',
+        'tip_labels_desc' => 'The changes list shows Risk, Priority, Type and Status in labelled columns (on a phone, a small label before each value). Choose coloured values with a dot or plain text for yourself under Preferences → Change list labels.',
+        'tip_pdf' => 'A PDF of a change',
+        'tip_pdf_desc' => 'Share → Export as PDF gives a document headed with your organisation\'s logo (when one is set in Branding) and name, then the details, plans, risk matrix, approvals, post-implementation review, linked tickets, attachment names and activity. It is always drawn in the light theme, whichever theme you use.',
+        'tip_views' => 'Saved table views',
+        'tip_views_desc' => 'On the table, Save view keeps the columns, sort and filters under a name and Views opens the library. The table remembers the view you last picked and opens with it next time, on any browser - until you pick another or use Reset, after which it opens with your default view again.',
     ],
 ];

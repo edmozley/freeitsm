@@ -1274,6 +1274,7 @@ return [
             'p2' => 'Od tej chwili FreeITSM cały czas nad nią czuwa: dane z rejestru odświeżają się według harmonogramu, kontrole uruchamiają się codziennie, a każda ważna zmiana - serwerów nazw, rejestratora, zdjęcie blokady - jest zapisywana i, jeśli chcesz, od razu wysyłana e-mailem.',
             'p3' => 'Alerty o wygaśnięciu domen i certyfikatów trafiają do właściciela każdej domeny (lub na listę osób), jako jedno podsumowanie na osobę, a nie jeden e-mail na domenę. Docierają też do dzwonka powiadomień i przepływów pracy, więc wygasająca domena może utworzyć zgłoszenie, zadanie albo wysłać wiadomość na kanał czatu.',
             'p4' => 'Domena jest też powiązana z resztą FreeITSM: elementami CMDB, które od niej zależą, zgłoszeniami na jej temat, instrukcjami w Bazie wiedzy, umową oraz usługami Statusu usług, które na niej działają - mogą one zostać oznaczone lub zgłoszony może zostać incydent, gdy domena wygaśnie. Zobacz **Powiązania** i **Status usług** poniżej.',
+            'p5' => '**Zapisz widok** na pasku narzędzi rejestru zachowuje pod nazwą ustawione kolumny, sortowanie i filtry, a **Widoki** otwiera bibliotekę. Rejestr pamięta ostatnio wybrany widok i następnym razem otwiera się z nim, w każdej przeglądarce - dopóki nie wybierzesz innego albo nie użyjesz **Resetuj**; potem znów otwiera się z Twoim widokiem domyślnym.',
         ],
         'adding' => [
             'nav' => 'Dodawanie domen',

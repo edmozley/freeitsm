@@ -886,5 +886,11 @@ return [
         'tip_company'   => 'In ein anderes Unternehmen verschieben',
         'tip_company_desc' => 'Unter dem falschen Unternehmen abgelegt? Klicken Sie mit der rechten Maustaste auf den Change und wählen Sie In Unternehmen verschieben (oder nutzen Sie POST /changes/{id}/move-to-company in der API). Die mit dem Change verknüpften Aufgaben werden mitverschoben (dafür ist auch Schreibzugriff auf Aufgaben nötig). Verknüpfte Tickets nicht: Sie müssen bereits im neuen Unternehmen sein, also lösen Sie die Verknüpfung bei allen anderen. Die Verschiebung wird in der Aktivitätszeitleiste festgehalten.',
         'tip_audit_desc' => 'Jede Feldänderung wird in der Aktivitätszeitleiste nachverfolgt, und jede Version der langen Texte wird vollständig aufbewahrt - öffnen Sie sie über „Ansehen“ oder den Link „Versionen“ eines Abschnitts.',
+        'tip_labels' => 'Beschriftete Spalten',
+        'tip_labels_desc' => 'Die Änderungsliste zeigt Risiko, Priorität, Typ und Status in beschrifteten Spalten (auf einem Smartphone mit einer kleinen Beschriftung vor jedem Wert). Unter Einstellungen → Beschriftungen in der Änderungsliste wählen Sie für sich farbige Werte mit einem Punkt oder reinen Text.',
+        'tip_pdf' => 'Eine Änderung als PDF',
+        'tip_pdf_desc' => 'Teilen → Als PDF exportieren erstellt ein Dokument mit dem Logo Ihrer Organisation (sofern eines unter Branding hinterlegt ist) und ihrem Namen im Kopf, danach die Details, Pläne, Risikomatrix, Genehmigungen, das Post-Implementation-Review, verknüpfte Tickets, die Namen der Anhänge und die Aktivität. Es wird immer im hellen Design gezeichnet, gleich welches Design Sie verwenden.',
+        'tip_views' => 'Gespeicherte Tabellenansichten',
+        'tip_views_desc' => 'In der Tabelle sichert Ansicht speichern Spalten, Sortierung und Filter unter einem Namen, und Ansichten öffnet die Bibliothek. Die Tabelle merkt sich die zuletzt gewählte Ansicht und öffnet beim nächsten Mal damit, in jedem Browser - bis Sie eine andere wählen oder Zurücksetzen nutzen; danach öffnet sie wieder mit Ihrer Standardansicht.',
     ],
 ];

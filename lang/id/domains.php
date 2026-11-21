@@ -1274,6 +1274,7 @@ return [
             'p2' => 'Sejak saat itu FreeITSM terus memantau: detail registri disegarkan sesuai jadwal, pemeriksaan berjalan setiap hari, dan setiap perubahan penting - name server, registrar, kunci yang dilepas - dicatat dan, jika Anda memilihnya, langsung dikirim lewat email.',
             'p3' => 'Peringatan kedaluwarsa dan sertifikat dikirim ke pemilik setiap domain (atau ke sebuah daftar), sebagai satu ringkasan per orang, bukan satu email per domain. Peringatan juga sampai ke lonceng notifikasi dan workflow, sehingga domain yang hampir habis masa berlakunya dapat membuat tiket, membuat tugas, atau memposting ke kanal obrolan.',
             'p4' => 'Sebuah domain juga terhubung ke bagian lain FreeITSM: item CMDB yang bergantung padanya, tiket tentangnya, runbook-nya di Pengetahuan, kontraknya, dan layanan Status Layanan yang berjalan di atasnya - yang dapat ditandai, atau dibuatkan insiden, saat domain itu kedaluwarsa. Lihat **Koneksi** dan **Status Layanan** di bawah.',
+            'p5' => '**Simpan tampilan** di bilah alat Daftar menyimpan kolom, urutan, dan filter yang Anda atur dengan sebuah nama, dan **Tampilan** membuka pustakanya. Daftar mengingat tampilan yang terakhir Anda pilih dan membukanya lagi lain kali, di browser mana pun - sampai Anda memilih yang lain atau menggunakan **Atur ulang**, setelah itu Daftar kembali dibuka dengan tampilan default Anda.',
         ],
         'adding' => [
             'nav' => 'Menambahkan domain',
