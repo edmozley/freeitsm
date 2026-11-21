@@ -252,6 +252,22 @@ function aiProviderChat(array $cfg, array $opts): array
 }
 
 /**
+ * Whether an Anthropic model still accepts the `temperature` parameter.
+ *
+ * Only the older generations do: Claude 2 and 3, and the 4-family up to 4.6
+ * (Opus 4.6, Sonnet 4.6, Haiku 4.5, and the 4.0-4.5 releases, dated or not).
+ * Opus 4.7 and 4.8, the 5-family and Fable reject a non-default value with a 400.
+ * Written as "the old ones that accept it" so that any model released later is
+ * treated like the newest ones - no temperature - rather than breaking.
+ *
+ * @param string $model  an Anthropic model id, e.g. 'claude-haiku-5-5' or 'claude-sonnet-4-5-20250929'
+ */
+function aiAnthropicAcceptsTemperature(string $model): bool
+{
+    return (bool) preg_match('/^claude-(?:[23]|instant|(?:opus|sonnet|haiku)-4(?:-[0-6](?:-|$)|-\d{8}|$))/i', trim($model));
+}
+
+/**
  * Sends one system + user prompt to the Anthropic Messages API and returns the joined text blocks with token counts and the stop reason.
  *
  * @param string $model  the Anthropic model id, already trimmed and non-empty
@@ -262,13 +278,18 @@ function aiProviderChat(array $cfg, array $opts): array
  */
 function aiProviderCallAnthropic(string $model, string $apiKey, bool $verify, array $opts): array
 {
-    $body = json_encode([
+    $req = [
         'model'       => $model,
         'max_tokens'  => $opts['max_tokens'],
-        'temperature' => $opts['temperature'],
         'system'      => (string)($opts['system'] ?? ''),
         'messages'    => [['role' => 'user', 'content' => (string)($opts['user'] ?? '')]],
-    ]);
+    ];
+    // TRAP: the newer Claude models refuse `temperature` with a 400 - Haiku 5.5 and
+    // Sonnet 5.5 accept only the default, Opus 4.7 onwards, Sonnet 5 and Fable not at
+    // all - so sending our 0.0 to them failed EVERY AI feature (5.9.0). Only the older
+    // models that accept it get it; everything newer runs at its default.
+    if (aiAnthropicAcceptsTemperature($model)) $req['temperature'] = $opts['temperature'];
+    $body = json_encode($req);
 
     $headers = [
         'x-api-key: ' . $apiKey,
@@ -783,14 +804,16 @@ function aiProviderChatTools(array $cfg, array $opts, array $tools, callable $ru
         }, $tools);
 
         for ($round = 0; $round < $maxRounds; $round++) {
-            $body = json_encode([
+            $req = [
                 'model'       => $model,
                 'max_tokens'  => $maxTokens,
-                'temperature' => $temperature,
                 'system'      => (string)($opts['system'] ?? ''),
                 'tools'       => $wire,
                 'messages'    => $messages,
-            ]);
+            ];
+            // TRAP: newer Claude models refuse `temperature` - see aiAnthropicAcceptsTemperature().
+            if (aiAnthropicAcceptsTemperature($model)) $req['temperature'] = $temperature;
+            $body = json_encode($req);
             $resp = aiProviderHttpPost(AI_ANTHROPIC_URL, [
                 'x-api-key: ' . $apiKey,
                 'anthropic-version: 2023-06-01',
