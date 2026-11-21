@@ -97,7 +97,7 @@ foreach ($channels as $ch) {
     <title><?php echo htmlspecialchars(pageTitle('war-room')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/war-room.css?v=7">
+    <link rel="stylesheet" href="../assets/css/war-room.css?v=8">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1"><!-- the shared file viewer (5.9.0) -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
     <style>
@@ -176,6 +176,7 @@ foreach ($channels as $ch) {
                 </div>
                 <div class="wr-tools">
                     <button type="button" class="wr-tool" id="wrSearchBtn"><?php echo htmlspecialchars(t('war-room.search.heading')); ?></button>
+                    <button type="button" class="wr-tool" id="wrSavedBtn"><?php echo htmlspecialchars(t('war-room.saved.button')); ?></button>
                     <button type="button" class="wr-tool" id="wrSitrepBtn"><?php echo htmlspecialchars(t('war-room.sitrep.button')); ?></button>
                     <button type="button" class="wr-tool" id="wrManageBtn" hidden><?php echo htmlspecialchars(t('war-room.manage.heading')); ?></button>
                 </div>
@@ -244,7 +245,7 @@ foreach ($channels as $ch) {
     <script src="../assets/js/float-window.js?v=2"></script>
     <script src="../assets/js/files-icons.js?v=4"></script>
     <script src="../assets/js/files-viewer.js?v=10"></script>
-    <script src="../assets/js/war-room.js?v=9"></script>
+    <script src="../assets/js/war-room.js?v=10"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -117,6 +117,54 @@ try {
     ok('a link to a message that is gone gives nothing', warRoomChannelOfMessage($conn, $a, $m2) === 0);
     $around = array_column(warRoomMessages($conn, $all, 0, 200, $a, $m4), 'id');
     ok('loading around a message includes it and everything after it', in_array($m4, $around, true) && in_array($m5, $around, true) && in_array($q4, $around, true));
+
+    // ---- piece 2: pins
+    ok('anyone who can post may pin', warRoomPin($conn, $b, $m4, true) === 'ok');
+    $pm4 = msgOf(warRoomMessages($conn, $all, 0, 200, $a), $m4)['pinned'];
+    ok('the message says who pinned it and when', $pm4 && $pm4['by'] !== '' && $pm4['at'] !== '');
+    ok('the channel counts its pins', warRoomPinCount($conn, $all) === 1);
+    ok('pinning twice still counts once', warRoomPin($conn, $a, $m4, true) === 'ok' && warRoomPinCount($conn, $all) === 1);
+    $list = warRoomPins($conn, $all);
+    ok('the pinned list has it, with the text', count($list) === 1 && $list[0]['id'] === $m4 && $list[0]['text'] === 'ZZ watched');
+    ok('nobody can pin in a channel they cannot post in', warRoomPin($conn, $b, $pm, true) === 'no');
+    $after2 = warRoomMessages($conn, $all, $q4, 200, $a);
+    ok('a pin makes the poll re-send the message', msgOf($after2, $m4) !== null);
+    // The limit: fill the private channel to WARROOM_MAX_PINS, then one more.
+    $ids = [];
+    for ($i = 0; $i < WARROOM_MAX_PINS; $i++) { $id = warRoomSend($conn, $a, $priv, "ZZ pin $i"); warRoomPin($conn, $a, $id, true); $ids[] = $id; }
+    $extra = warRoomSend($conn, $a, $priv, 'ZZ one too many');
+    ok('past ' . WARROOM_MAX_PINS . ' pins a conversation refuses another', warRoomPin($conn, $a, $extra, true) === 'full');
+    ok('...but re-pinning one already pinned is fine', warRoomPin($conn, $a, $ids[0], true) === 'ok');
+    ok('unpinning works', warRoomPin($conn, $a, $m4, false) === 'ok' && warRoomPinCount($conn, $all) === 0);
+
+    // ---- saved
+    ok('saving a message you can read works', warRoomSave($conn, $b, $m5, true));
+    ok("'saved' is the viewer's own", msgOf(warRoomMessages($conn, $all, 0, 200, $b), $m5)['saved'] === true
+        && msgOf(warRoomMessages($conn, $all, 0, 200, $a), $m5)['saved'] === false);
+    $sv = warRoomSavedList($conn, $b);
+    ok('the saved list names the conversation', count($sv) === 1 && $sv[0]['id'] === $m5 && $sv[0]['channel'] !== '');
+    ok('you cannot save a message you cannot read', !warRoomSave($conn, $b, $pm, true));
+    warRoomSave($conn, $a, $pm, true);
+    ok('saved messages show only from conversations you can read', count(warRoomSavedList($conn, $a)) === 1);
+    $conn->prepare("DELETE FROM warroom_channel_members WHERE channel_id = ? AND analyst_id = ?")->execute([$priv, $a]);
+    ok('...and leaving the conversation hides them', !warRoomCanAccessChannel($conn, $a, $priv) && count(warRoomSavedList($conn, $a)) === 0);
+    ok('taking it off works', warRoomSave($conn, $b, $m5, false) && count(warRoomSavedList($conn, $b)) === 0);
+
+    // ---- deleting removes pins and saves
+    $m6 = warRoomSend($conn, $a, $all, 'ZZ pin then delete');
+    warRoomPin($conn, $a, $m6, true); warRoomSave($conn, $b, $m6, true);
+    warRoomDeleteMessage($conn, $a, $m6);
+    ok('deleting a message unpins it and takes it off saved lists', warRoomPinCount($conn, $all) === 0 && count(warRoomSavedList($conn, $b)) === 0);
+
+    // ---- mark as unread
+    warRoomMarkRead($conn, $b, $all, $m6);
+    $unreadOf = function () use ($conn, $b, $all) { foreach (warRoomChannelList($conn, $b) as $c) if ($c['id'] === $all) return $c['unread']; return -1; };
+    ok('control: read to the end, nothing is unread', $unreadOf() === 0);
+    ok('mark as unread moves the marker back', warRoomMarkUnread($conn, $b, $m4));
+    $last = (int) $conn->query("SELECT last_read_message_id FROM warroom_reads WHERE analyst_id = $b AND channel_id = $all")->fetchColumn();
+    ok('...to the message just before it', $last > 0 && $last < $m4 && (int) $conn->query("SELECT COUNT(*) FROM warroom_messages WHERE channel_id = $all AND id > $last AND id < $m4")->fetchColumn() === 0);
+    ok('...so the channel shows as unread from there', $unreadOf() > 0);
+    ok('you cannot mark a message in a channel you cannot read', !warRoomMarkUnread($conn, $b, $pm));
 } finally {
     $conn->rollBack();
 }

@@ -70,6 +70,7 @@ try {
         'success'  => true,
         'messages' => $messages,
         'present'  => warRoomPresent($conn, $analystId, $channelId),
+        'pins'     => warRoomPinCount($conn, $channelId),   // 5.9.0: the pinned bar
         'channels' => $channels,
         'me'       => $analystId,
     ]);

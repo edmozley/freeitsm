@@ -51,6 +51,21 @@ try {
     } elseif ($action === 'react') {
         // 5.9.0: add or take away an emoji reaction.
         $ok = warRoomReact($conn, $analystId, $messageId, (string) ($input['emoji'] ?? ''), !empty($input['on']));
+    } elseif ($action === 'pin' || $action === 'unpin') {
+        // 5.9.0: pinned for everyone in the conversation.
+        $res = warRoomPin($conn, $analystId, $messageId, $action === 'pin');
+        if ($res === 'full') {
+            http_response_code(409);
+            echo json_encode(['success' => false, 'error' => 'pins_full', 'max' => WARROOM_MAX_PINS]);
+            exit;
+        }
+        $ok = $res === 'ok';
+    } elseif ($action === 'save' || $action === 'unsave') {
+        // 5.9.0: the analyst's own bookmark.
+        $ok = warRoomSave($conn, $analystId, $messageId, $action === 'save');
+    } elseif ($action === 'unread') {
+        // 5.9.0: move the analyst's read marker back to just before this message.
+        $ok = warRoomMarkUnread($conn, $analystId, $messageId);
     } elseif ($action === 'delete') {
         $mayManage = analystHasCapability($conn, $analystId, Cap::WAR_ROOM_MANAGE);
         $ok = warRoomDeleteMessage($conn, $analystId, $messageId, $mayManage);

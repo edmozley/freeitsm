@@ -95,6 +95,8 @@ function analystReferenceRegistry(): array {
         ['warroom_channel_members', 'analyst_id', 'personal'],
         ['warroom_mentions', 'analyst_id', 'personal'],
         ['warroom_reactions', 'analyst_id', 'personal'],   // 5.9.0: emoji reactions
+        ['warroom_saved', 'analyst_id', 'personal'],       // 5.9.0: personal bookmarks
+        ['warroom_pins', 'pinned_by', 'history'],          // 5.9.0: who pinned it - shown to everyone, like an audit line
         ['warroom_reads', 'analyst_id', 'personal'],
         ['warroom_presence', 'analyst_id', 'personal'],
         ['task_collaborators', 'analyst_id', 'personal'],

@@ -9093,6 +9093,35 @@ CREATE TABLE IF NOT EXISTS `warroom_reactions` (
     CONSTRAINT `fk_warroom_reactions_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Pinned messages (5.9.0): pinned for everyone in the conversation. Anyone who can
+-- post may pin or unpin; who pinned it is shown. One pin per message.
+CREATE TABLE IF NOT EXISTS `warroom_pins` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `channel_id`       INT NOT NULL,
+    `message_id`       INT NOT NULL,
+    `pinned_by`        INT NULL,
+    `pinned_datetime`  DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_warroom_pin` (`message_id`),
+    KEY `ix_warroom_pins_channel` (`channel_id`, `id`),
+    CONSTRAINT `fk_warroom_pins_channel` FOREIGN KEY (`channel_id`) REFERENCES `warroom_channels` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_warroom_pins_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_warroom_pins_by` FOREIGN KEY (`pinned_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Saved messages (5.9.0): a personal bookmark. Nobody else sees it.
+CREATE TABLE IF NOT EXISTS `warroom_saved` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`       INT NOT NULL,
+    `message_id`       INT NOT NULL,
+    `saved_datetime`   DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_warroom_saved` (`analyst_id`, `message_id`),
+    KEY `ix_warroom_saved_message` (`message_id`),
+    CONSTRAINT `fk_warroom_saved_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_warroom_saved_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- How far each analyst has read in each channel, so the list can show what is new.
 -- Upserted, and the id only ever moves forward (GREATEST) — an out-of-order poll
 -- must not un-read a channel.

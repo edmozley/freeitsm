@@ -1662,6 +1662,26 @@ try {
             try { $conn->exec("ALTER TABLE warroom_reactions ADD CONSTRAINT fk_warroom_reactions_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
+    // 5.9.0: pins and saved messages.
+    if ($tableExists('warroom_pins') && $tableExists('warroom_messages')) {
+        if ($tableExists('warroom_channels') && !$fkExists('warroom_pins', 'fk_warroom_pins_channel')) {
+            try { $conn->exec("ALTER TABLE warroom_pins ADD CONSTRAINT fk_warroom_pins_channel FOREIGN KEY (channel_id) REFERENCES warroom_channels (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('warroom_pins', 'fk_warroom_pins_message')) {
+            try { $conn->exec("ALTER TABLE warroom_pins ADD CONSTRAINT fk_warroom_pins_message FOREIGN KEY (message_id) REFERENCES warroom_messages (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if ($tableExists('analysts') && !$fkExists('warroom_pins', 'fk_warroom_pins_by')) {
+            try { $conn->exec("ALTER TABLE warroom_pins ADD CONSTRAINT fk_warroom_pins_by FOREIGN KEY (pinned_by) REFERENCES analysts (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+    }
+    if ($tableExists('warroom_saved') && $tableExists('warroom_messages')) {
+        if ($tableExists('analysts') && !$fkExists('warroom_saved', 'fk_warroom_saved_analyst')) {
+            try { $conn->exec("ALTER TABLE warroom_saved ADD CONSTRAINT fk_warroom_saved_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('warroom_saved', 'fk_warroom_saved_message')) {
+            try { $conn->exec("ALTER TABLE warroom_saved ADD CONSTRAINT fk_warroom_saved_message FOREIGN KEY (message_id) REFERENCES warroom_messages (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
     if ($tableExists('warroom_attachments') && $tableExists('warroom_messages')) {
         if (!$idxExists('warroom_attachments', 'ix_warroom_attachments_message')) {
             try { $conn->exec("ALTER TABLE warroom_attachments ADD KEY ix_warroom_attachments_message (message_id)"); } catch (Exception $e) {}

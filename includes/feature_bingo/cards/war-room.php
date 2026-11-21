@@ -109,4 +109,16 @@ return [
         'link'     => 'war-room/',
         'check'    => ['rows', 'warroom_reactions'],
     ],
+    [
+        'id'       => 'war-room.pins',
+        'module'   => 'war-room',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Pin what matters',
+        'what'     => 'Right-click a war room message and choose Pin: it goes in a Pinned bar at the top of the conversation for everyone, with who pinned it.',
+        'why'      => 'The bridge number, the current workaround, the decision that was made - in a long incident channel they scroll away. Pinned, anyone arriving late finds them first.',
+        'done'     => 'At least one war room message is pinned.',
+        'link'     => 'war-room/',
+        'check'    => ['rows', 'warroom_pins'],
+    ],
 ];

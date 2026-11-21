@@ -6016,6 +6016,22 @@ return [
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // Pinned for everyone in the conversation (5.9.0); one pin per message.
+    'warroom_pins' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'channel_id'       => 'INT NOT NULL',
+        'message_id'       => 'INT NOT NULL',
+        'pinned_by'        => 'INT NULL',
+        'pinned_datetime'  => 'DATETIME NOT NULL',
+    ],
+    // A personal bookmark (5.9.0).
+    'warroom_saved' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'       => 'INT NOT NULL',
+        'message_id'       => 'INT NOT NULL',
+        'saved_datetime'   => 'DATETIME NOT NULL',
+    ],
+
     // ⚠️ THERE IS NO content_type COLUMN, AND THAT IS THE POINT. The type an
     // attachment is served as is derived from its extension against our own map
     // at serve time (attachmentServeRules, security finding F5). Storing what the

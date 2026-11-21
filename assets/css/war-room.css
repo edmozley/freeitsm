@@ -794,3 +794,37 @@
     transition: opacity 0.15s;
 }
 .wr-toast.is-on { opacity: 1; }
+
+/* Pin, save, mark as unread (5.9.0, piece 2). */
+.wr-msg-mark { font-size: var(--font-size-xs, 11px); cursor: default; }
+.wr-pinbar {
+    display: block;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 6px;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
+    font: inherit;
+    font-size: var(--font-size-sm, 12px);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+.wr-pinbar:hover { border-color: var(--accent, #ea580c); }
+.wr-pinbar[hidden] { display: none; }
+.wr-list-item { display: flex; align-items: flex-start; gap: 6px; }
+.wr-list-open {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.wr-list-note { margin-top: 2px; font-size: var(--font-size-xs, 11px); }
+.wr-list-act { flex: none; }

@@ -64,6 +64,7 @@
     var pending   = [];      // files chosen but not yet sent
     var quoting   = null;    // the message the next one quotes (5.9.0), or null
     var focusId   = window.WR_FOCUS || 0;   // a permanent link's message, until it is shown
+    var holdRead  = 0;       // a channel marked unread: not marked read again until it is left (5.9.0)
 
     // The ten reactions offered first (wiki War-Room-Message-Actions-Design). The
     // full list ships with FreeITSM - nothing comes from the internet.
@@ -76,7 +77,7 @@
      'wrTitle', 'wrTopic', 'wrPanel', 'wrPanelTitle', 'wrPanelBody', 'wrPanelClose',
      'wrModal', 'wrModalTitle', 'wrModalBody', 'wrModalClose', 'wrSearchBtn', 'wrSitrepBtn',
      'wrManageBtn', 'wrNewChannel', 'wrNewDm', 'wrFiles', 'wrPending', 'wrArchivedNote',
-     'wrAttachLabel'].forEach(function (id) { els[id] = document.getElementById(id); });
+     'wrAttachLabel', 'wrSavedBtn'].forEach(function (id) { els[id] = document.getElementById(id); });
 
     /** Translates a key through window.t, or returns the key when no translator is loaded. */
     function t(key, vars) {
@@ -183,6 +184,7 @@
     /** Opens another channel - clears the message list, resets the since_id watermark and polls at once. */
     function switchChannel(id) {
         if (id === activeId) return;
+        holdRead = 0;   // marked unread: it stays so until you come back, which is now possible
         activeId = id;
         lastId = 0;
         clear(els.wrMessages);
@@ -220,6 +222,19 @@
         // Both are stated, never silent: this is the record of an incident, and a
         // reader has to be able to tell a message that changed from one that did not.
         if (m.edited && !m.deleted) head.appendChild(el('span', 'wr-msg-flag', t('war-room.message.edited')));
+        // Pinned for everyone, and saved by you (5.9.0) - small marks, with who and when on hover.
+        if (m.pinned && !m.deleted) {
+            var pin = el('span', 'wr-msg-mark', '\uD83D\uDCCC');
+            pin.title = t('war-room.pins.by', { name: m.pinned.by, time: localTime(m.pinned.at) });
+            pin.setAttribute('aria-label', pin.title);
+            head.appendChild(pin);
+        }
+        if (m.saved && !m.deleted) {
+            var sv = el('span', 'wr-msg-mark', '\uD83D\uDD16');
+            sv.title = t('war-room.saved.flag');
+            sv.setAttribute('aria-label', sv.title);
+            head.appendChild(sv);
+        }
         row.appendChild(head);
 
         if (m.deleted) {
@@ -436,7 +451,7 @@
      */
     function poll() {
         var url = api + 'poll.php?channel_id=' + encodeURIComponent(activeId) +
-                  '&since_id=' + encodeURIComponent(lastId) + '&read=1' +
+                  '&since_id=' + encodeURIComponent(lastId) + '&read=' + (holdRead === activeId ? '0' : '1') +
                   (focusId && lastId === 0 ? '&around=' + encodeURIComponent(focusId) : '');
         fetch(url, { credentials: 'same-origin' })
             .then(function (r) { return r.json(); })
@@ -449,6 +464,7 @@
                 renderChannels();
                 applyChannelHeader();
                 renderPresence(d.present);
+                renderPinBar(d.pins || 0);
             })
             .catch(function () {
                 // ⚠️ Say so. The one thing this module must never do is let
@@ -764,8 +780,15 @@
             menuEl.appendChild(b);
         }
         if (canPost) item(t('war-room.menu.quote'), function () { startQuote(m); });
-        item(t('war-room.menu.copy'), function () { copyMessage(m); });
+        // Two plain items rather than a hover submenu (Ed, 21 Nov 2026): one click each,
+        // and they work the same with a keyboard and on a phone, where nothing hovers.
+        item(t('war-room.menu.copy_text'), function () { copyMessage(m, false); });
+        item(t('war-room.menu.copy_full'), function () { copyMessage(m, true); });
         item(t('war-room.menu.copy_link'), function () { copyLink(m); });
+        menuEl.appendChild(el('div', 'wr-menu-sep'));
+        if (canPost) item(t(m.pinned ? 'war-room.menu.unpin' : 'war-room.menu.pin'), function () { pinMessage(m, !m.pinned); });
+        item(t(m.saved ? 'war-room.menu.unsave' : 'war-room.menu.save'), function () { saveMessage(m, !m.saved); });
+        item(t('war-room.menu.unread'), function () { markUnread(m); });
         if (mayEdit(m) || mayDelete(m)) menuEl.appendChild(el('div', 'wr-menu-sep'));
         if (mayEdit(m)) item(t('war-room.message.edit'), function () { openEdit(m); });
         if (mayDelete(m)) item(t('war-room.message.delete'), function () { openDelete(m); });
@@ -1007,9 +1030,9 @@
               : (navigator.clipboard && window.isSecureContext ? navigator.clipboard.writeText(text).then(function () { return true; }) : Promise.resolve(false));
         p.then(function (ok) { toast(t(ok ? doneKey : 'war-room.menu.copy_failed')); }, function () { toast(t('war-room.menu.copy_failed')); });
     }
-    /** Copies the message's text with its author and time; attachments by name. */
-    function copyMessage(m) {
-        var text = m.author + ' (' + localTime(m.created) + '):\n' + String(m.body || '').trim();
+    /** Copies the message's text - with its author and time when full - and attachments by name. */
+    function copyMessage(m, full) {
+        var text = (full ? m.author + ' (' + localTime(m.created) + '):\n' : '') + String(m.body || '').trim();
         (m.attachments || []).forEach(function (a) { text += '\n[' + a.name + ']'; });
         copyText(text, 'war-room.menu.copied');
     }
@@ -1057,6 +1080,131 @@
             if (w) e.preventDefault();
         });
     }
+
+    /* ── pin, save, mark as unread (5.9.0, piece 2) ── */
+
+    /** Posts one message action to message.php; resolves with the reply, rejects on failure. */
+    function messagePost(action, id) {
+        return fetch(api + 'message.php', {
+            method: 'POST', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action, id: id })
+        }).then(function (r) { return r.json(); })
+          .then(function (d) { if (!d || !d.success) { var e = new Error('failed'); e.reply = d; throw e; } return d; });
+    }
+
+    /** Pins (on) or unpins a message for everyone in the conversation. */
+    function pinMessage(m, on) {
+        messagePost(on ? 'pin' : 'unpin', m.id)
+            .then(function () { poll(); if (!els.wrPanel.hidden && els.wrPanel.getAttribute('data-list') === 'pins') openPins(); })
+            .catch(function (e) {
+                toast(e.reply && e.reply.error === 'pins_full'
+                    ? t('war-room.pins.full', { max: e.reply.max }) : t('war-room.menu.failed'));
+            });
+    }
+
+    /** Saves a message to your own list, or takes it off. Only you see it, so it is redrawn here rather than polled. */
+    function saveMessage(m, on) {
+        messagePost(on ? 'save' : 'unsave', m.id).then(function () {
+            var cur = messageById[m.id];
+            if (cur) { cur.saved = on; appendMessages([cur]); }
+            toast(t(on ? 'war-room.saved.done' : 'war-room.saved.removed'));
+            if (!els.wrPanel.hidden && els.wrPanel.getAttribute('data-list') === 'saved') openSaved();
+        }).catch(function () { toast(t('war-room.menu.failed')); });
+    }
+
+    /** Marks a message unread: the conversation stays unread from there until you leave it and come back. */
+    function markUnread(m) {
+        messagePost('unread', m.id).then(function () {
+            holdRead = activeId;
+            toast(t('war-room.unread.done'));
+            poll();
+        }).catch(function () { toast(t('war-room.menu.failed')); });
+    }
+
+    // The pinned bar, above the conversation: "Pinned (3)", opening the list.
+    var pinBar = el('button', 'wr-pinbar');
+    pinBar.type = 'button';
+    pinBar.hidden = true;
+    pinBar.addEventListener('click', openPins);
+    els.wrMessages.parentNode.insertBefore(pinBar, els.wrMessages);
+
+    /** Shows the pinned bar with its count, or hides it when nothing is pinned. */
+    function renderPinBar(n) {
+        pinBar.hidden = !n;
+        pinBar.textContent = '\uD83D\uDCCC ' + t('war-room.pins.bar', { count: n });
+    }
+
+    /** A clickable row for the pinned and saved lists: where, who, when, the start of the text. */
+    function listItem(r, where, extra) {
+        var item = el('div', 'wr-result wr-list-item');
+        var open = el('button', 'wr-list-open');
+        open.type = 'button';
+        var head = el('div', 'wr-result-head');
+        if (where) head.appendChild(el('span', 'wr-result-channel', where));
+        head.appendChild(el('span', 'wr-result-meta', r.author + ' \u00B7 ' + localTime(r.created)));
+        open.appendChild(head);
+        open.appendChild(el('div', 'wr-result-snippet', r.text));
+        if (extra) open.appendChild(el('div', 'wr-muted wr-list-note', extra));
+        item.appendChild(open);
+        return { item: item, open: open };
+    }
+
+    /** Lists this conversation's pinned messages in the side panel; click one to go to it. */
+    function openPins() {
+        var body = openPanel(t('war-room.pins.title'));
+        els.wrPanel.setAttribute('data-list', 'pins');
+        body.appendChild(el('div', 'wr-muted', t('war-room.emoji.loading')));
+        var canPost = !els.wrComposer.hidden;
+        fetch(api + 'lists.php?list=pins&channel_id=' + encodeURIComponent(activeId), { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d || !d.success) throw new Error('failed');
+                clear(body);
+                if (!d.items.length) { body.appendChild(el('div', 'wr-muted', t('war-room.pins.none'))); return; }
+                d.items.forEach(function (r) {
+                    var li = listItem(r, null, t('war-room.pins.by', { name: r.by, time: localTime(r.at) }));
+                    li.open.addEventListener('click', function () { highlightMessage(r.id, false); });
+                    if (canPost) {
+                        var un = el('button', 'wr-msg-act wr-list-act', t('war-room.menu.unpin'));
+                        un.type = 'button';
+                        un.addEventListener('click', function () { pinMessage({ id: r.id }, false); });
+                        li.item.appendChild(un);
+                    }
+                    body.appendChild(li.item);
+                });
+            })
+            .catch(function () { clear(body); body.appendChild(el('div', 'wr-muted', t('war-room.menu.failed'))); });
+    }
+
+    /** Lists your saved messages from every conversation you can still read; click one to go to it. */
+    function openSaved() {
+        var body = openPanel(t('war-room.saved.title'));
+        els.wrPanel.setAttribute('data-list', 'saved');
+        body.appendChild(el('div', 'wr-muted', t('war-room.emoji.loading')));
+        fetch(api + 'lists.php?list=saved', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d || !d.success) throw new Error('failed');
+                clear(body);
+                if (!d.items.length) { body.appendChild(el('div', 'wr-muted', t('war-room.saved.none'))); return; }
+                d.items.forEach(function (r) {
+                    var li = listItem(r, r.channel, null);
+                    li.open.addEventListener('click', function () {
+                        if (r.channel_id === activeId) { highlightMessage(r.id, false); return; }
+                        focusId = r.id;          // the switch loads around it, then highlights it
+                        switchChannel(r.channel_id);
+                    });
+                    var rm = el('button', 'wr-msg-act wr-list-act', t('war-room.saved.remove'));
+                    rm.type = 'button';
+                    rm.addEventListener('click', function () { saveMessage({ id: r.id }, false); });
+                    li.item.appendChild(rm);
+                    body.appendChild(li.item);
+                });
+            })
+            .catch(function () { clear(body); body.appendChild(el('div', 'wr-muted', t('war-room.menu.failed'))); });
+    }
+    if (els.wrSavedBtn) els.wrSavedBtn.addEventListener('click', openSaved);
 
     /* ── a passing note ── */
 
@@ -1245,6 +1393,7 @@
 
     /** Opens the side panel (search or situation report) with a title and returns its empty body. */
     function openPanel(title) {
+        els.wrPanel.removeAttribute('data-list');   // set again by the pinned / saved lists (5.9.0)
         els.wrPanelTitle.textContent = title;
         clear(els.wrPanelBody);
         els.wrPanel.hidden = false;

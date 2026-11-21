@@ -54,6 +54,9 @@ const WARROOM_MAX_BODY = 4000;
  */
 const WARBOT_NAME = 'Warbot';
 
+/** Pins per conversation (5.9.0). Past this a pin list stops being a shortlist. */
+const WARROOM_MAX_PINS = 50;
+
 /** Attachments per message. Enough for a screenshot set, not a file share. */
 const WARROOM_MAX_ATTACHMENTS = 5;
 
@@ -582,6 +585,8 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
             'deleted_by'  => $r['deleted_by_name'],
             'attachments' => [],
             'reactions'   => [],
+            'pinned'      => null,    // 5.9.0: {by, at} when pinned for everyone
+            'saved'       => false,   // 5.9.0: the viewer's own bookmark
             'quote'       => $r['quote_of_id'] !== null && $r['deleted_datetime'] === null
                 ? ['id' => (int) $r['quote_of_id'], 'gone' => true] : null,
         ];
@@ -608,6 +613,7 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
         }
         warRoomAttachReactions($conn, $rows, $in, $viewerId);
         warRoomAttachQuotes($conn, $rows, $channelId);
+        warRoomAttachPinsAndSaved($conn, $rows, $in, $viewerId);
     }
     return array_values($rows);
 }
@@ -746,6 +752,196 @@ function warRoomChannelOfMessage(PDO $conn, int $analystId, int $messageId): int
 }
 
 /**
+ * Whether each message is pinned (and by whom, when) and whether the viewer saved it.
+ *
+ * @param array $rows  warRoomMessages()' rows by id - filled in place
+ * @param string $in   the same ids as a comma list (already integers)
+ * @param int $viewerId  the analyst looking, for 'saved'
+ */
+function warRoomAttachPinsAndSaved(PDO $conn, array &$rows, string $in, int $viewerId): void
+{
+    try {
+        $q = $conn->query(
+            "SELECT p.message_id, p.pinned_datetime, a.full_name
+               FROM warroom_pins p LEFT JOIN analysts a ON a.id = p.pinned_by
+              WHERE p.message_id IN ($in)"
+        );
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $p) {
+            $mid = (int) $p['message_id'];
+            if (isset($rows[$mid])) $rows[$mid]['pinned'] = [
+                'by' => $p['full_name'] ?? (function_exists('t') ? t('war-room.former_analyst') : 'Former analyst'),
+                'at' => $p['pinned_datetime'],
+            ];
+        }
+        if ($viewerId > 0) {
+            $s = $conn->prepare("SELECT message_id FROM warroom_saved WHERE analyst_id = ? AND message_id IN ($in)");
+            $s->execute([$viewerId]);
+            foreach ($s->fetchAll(PDO::FETCH_COLUMN) as $mid) {
+                if (isset($rows[(int) $mid])) $rows[(int) $mid]['saved'] = true;
+            }
+        }
+    } catch (Throwable $e) {
+        // before Database Verification: nothing pinned or saved yet
+    }
+}
+
+/**
+ * Pin a message for everyone in the conversation, or unpin it. Anyone who can post
+ * there may do either - who pinned it is shown. Stamps changed_datetime so the poll
+ * re-sends the message to everybody looking at it.
+ *
+ * @param int $messageId  the warroom_messages id
+ * @param bool $on  true = pin, false = unpin
+ * @return string 'ok', 'full' (WARROOM_MAX_PINS already), or 'no' (no such / deleted message, cannot post)
+ */
+function warRoomPin(PDO $conn, int $analystId, int $messageId, bool $on): string
+{
+    $row = warRoomMessageRow($conn, $messageId);
+    if ($row === null || $row['deleted_datetime'] !== null) return 'no';
+    $channelId = (int) $row['channel_id'];
+    if (!warRoomCanPostChannel($conn, $analystId, $channelId)) return 'no';
+
+    if ($on) {
+        $have = $conn->prepare("SELECT COUNT(*) FROM warroom_pins WHERE channel_id = ? AND message_id <> ?");
+        $have->execute([$channelId, $messageId]);
+        if ((int) $have->fetchColumn() >= WARROOM_MAX_PINS) return 'full';
+        $conn->prepare("INSERT IGNORE INTO warroom_pins (channel_id, message_id, pinned_by, pinned_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$channelId, $messageId, $analystId]);
+    } else {
+        $conn->prepare("DELETE FROM warroom_pins WHERE message_id = ?")->execute([$messageId]);
+    }
+    $conn->prepare("UPDATE warroom_messages SET changed_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$messageId]);
+    return 'ok';
+}
+
+/** How many messages are pinned in a channel - the poll sends it for the pinned bar. */
+function warRoomPinCount(PDO $conn, int $channelId): int
+{
+    try {
+        $st = $conn->prepare("SELECT COUNT(*) FROM warroom_pins WHERE channel_id = ?");
+        $st->execute([$channelId]);
+        return (int) $st->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
+
+/**
+ * The pinned messages of a channel, newest pin first, for the pinned list.
+ *
+ * @param int $channelId  checked by the caller (warRoomCanAccessChannel)
+ * @return array<int,array> id, author, created, text (the start), by, at
+ */
+function warRoomPins(PDO $conn, int $channelId): array
+{
+    $st = $conn->prepare(
+        "SELECT m.id, m.body, m.created_datetime, m.is_bot, a.full_name, pb.full_name AS pinned_by_name, p.pinned_datetime
+           FROM warroom_pins p
+           JOIN warroom_messages m ON m.id = p.message_id
+           LEFT JOIN analysts a ON a.id = m.analyst_id
+           LEFT JOIN analysts pb ON pb.id = p.pinned_by
+          WHERE p.channel_id = ? AND m.deleted_datetime IS NULL
+          ORDER BY p.id DESC"
+    );
+    $st->execute([$channelId]);
+    $former = function_exists('t') ? t('war-room.former_analyst') : 'Former analyst';
+    return array_map(fn($r) => [
+        'id'      => (int) $r['id'],
+        'author'  => !empty($r['is_bot']) ? WARBOT_NAME : ($r['full_name'] ?? $former),
+        'created' => $r['created_datetime'],
+        'text'    => mb_substr(trim((string) $r['body']), 0, 200),
+        'by'      => $r['pinned_by_name'] ?? $former,
+        'at'      => $r['pinned_datetime'],
+    ], $st->fetchAll(PDO::FETCH_ASSOC));
+}
+
+/**
+ * Save a message to the analyst's own list, or take it off. Saving needs only that
+ * they can READ the conversation - an archived channel's messages can be saved.
+ *
+ * @param int $messageId  the warroom_messages id
+ * @param bool $on  true = save, false = remove
+ */
+function warRoomSave(PDO $conn, int $analystId, int $messageId, bool $on): bool
+{
+    $row = warRoomMessageRow($conn, $messageId);
+    if ($row === null || $row['deleted_datetime'] !== null) return false;
+    if (!warRoomCanAccessChannel($conn, $analystId, (int) $row['channel_id'])) return false;
+    if ($on) {
+        $conn->prepare("INSERT IGNORE INTO warroom_saved (analyst_id, message_id, saved_datetime) VALUES (?, ?, UTC_TIMESTAMP())")
+             ->execute([$analystId, $messageId]);
+    } else {
+        $conn->prepare("DELETE FROM warroom_saved WHERE analyst_id = ? AND message_id = ?")->execute([$analystId, $messageId]);
+    }
+    return true;
+}
+
+/**
+ * The analyst's saved messages, newest saved first - only from conversations they can
+ * still read. Leaving a private channel hides what was saved from it, rather than
+ * keeping a way in.
+ *
+ * @return array<int,array> id, channel_id, channel, author, created, text, saved
+ */
+function warRoomSavedList(PDO $conn, int $analystId, int $limit = 200): array
+{
+    $st = $conn->prepare(
+        "SELECT m.id, m.channel_id, m.body, m.created_datetime, m.is_bot, a.full_name, s.saved_datetime
+           FROM warroom_saved s
+           JOIN warroom_messages m ON m.id = s.message_id
+           LEFT JOIN analysts a ON a.id = m.analyst_id
+          WHERE s.analyst_id = ? AND m.deleted_datetime IS NULL
+          ORDER BY s.id DESC
+          LIMIT " . max(1, min(500, $limit))
+    );
+    $st->execute([$analystId]);
+    $former = function_exists('t') ? t('war-room.former_analyst') : 'Former analyst';
+    // The reader's own channel list (archived included) names each channel from their
+    // side - a DM is "Sarah", not "Ed, Sarah" - and is exactly the set they can read.
+    $names = [];
+    foreach (warRoomChannelList($conn, $analystId, true) as $c) $names[(int) $c['id']] = $c['name'];
+    $out = [];
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $cid = (int) $r['channel_id'];
+        if (!isset($names[$cid])) continue;
+        $out[] = [
+            'id'         => (int) $r['id'],
+            'channel_id' => $cid,
+            'channel'    => $names[$cid],
+            'author'     => !empty($r['is_bot']) ? WARBOT_NAME : ($r['full_name'] ?? $former),
+            'created'    => $r['created_datetime'],
+            'text'       => mb_substr(trim((string) $r['body']), 0, 200),
+            'saved'      => $r['saved_datetime'],
+        ];
+    }
+    return $out;
+}
+
+/**
+ * Mark a message as unread: the analyst's read marker for its channel moves back to
+ * just before it, so the channel shows as unread from there. The one place the marker
+ * moves backwards - warRoomMarkRead() only ever moves it forward.
+ *
+ * @param int $messageId  the first message to show as unread
+ */
+function warRoomMarkUnread(PDO $conn, int $analystId, int $messageId): bool
+{
+    $row = warRoomMessageRow($conn, $messageId);
+    if ($row === null) return false;
+    $channelId = (int) $row['channel_id'];
+    if (!warRoomCanAccessChannel($conn, $analystId, $channelId)) return false;
+    $prev = $conn->prepare("SELECT COALESCE(MAX(id), 0) FROM warroom_messages WHERE channel_id = ? AND id < ?");
+    $prev->execute([$channelId, $messageId]);
+    $to = (int) $prev->fetchColumn();
+    $conn->prepare(
+        "INSERT INTO warroom_reads (analyst_id, channel_id, last_read_message_id, updated_datetime)
+         VALUES (?, ?, ?, UTC_TIMESTAMP())
+         ON DUPLICATE KEY UPDATE last_read_message_id = VALUES(last_read_message_id), updated_datetime = VALUES(updated_datetime)"
+    )->execute([$analystId, $channelId, $to]);
+    return true;
+}
+
+/**
  * Edit a message. The AUTHOR only — nobody else may put words in your mouth, not
  * even an administrator, who can delete but not rewrite.
  *
@@ -810,6 +1006,11 @@ function warRoomDeleteMessage(PDO $conn, int $analystId, int $messageId, bool $m
     }
     $conn->prepare("DELETE FROM warroom_attachments WHERE message_id = :m")->execute([':m' => $messageId]);
     $conn->prepare("DELETE FROM warroom_mentions WHERE message_id = :m")->execute([':m' => $messageId]);
+    // Its content is gone, so a pin or a bookmark would point at a tombstone (5.9.0).
+    try {
+        $conn->prepare("DELETE FROM warroom_pins WHERE message_id = :m")->execute([':m' => $messageId]);
+        $conn->prepare("DELETE FROM warroom_saved WHERE message_id = :m")->execute([':m' => $messageId]);
+    } catch (Throwable $e) { /* before Database Verification */ }
 
     $stmt = $conn->prepare(
         "UPDATE warroom_messages
