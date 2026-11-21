@@ -259,6 +259,40 @@ try {
     warRoomMarkRead($conn, $b, $all, $s2);
     ok('switched off: no read time is recorded at all', (int) $conn->query("SELECT COUNT(*) FROM warroom_read_marks WHERE analyst_id = $b")->fetchColumn() === $marks);
     ok('...and Seen by answers nothing', warRoomSeenBy($conn, $a, $s1) === null);
+
+    // ---- piece 6: Files cards
+    require_once __DIR__ . '/../includes/services/files_attach.php';
+    if (!analystCanAccessModule($conn, $a, 'files')) {
+        echo "  SKIP  Files cards: the first analyst cannot open Files on this install\n";
+    } else {
+        $conn->prepare("INSERT INTO files_folders (name, inherit_permissions) VALUES (?, 0)")->execute(['ZZ wr ' . bin2hex(random_bytes(3))]);
+        $folder = (int) $conn->lastInsertId();
+        $conn->prepare("INSERT INTO files_permissions (folder_id, principal_type, principal_id, level) VALUES (?, 'analyst', ?, 2)")->execute([$folder, $a]);
+        $conn->prepare("INSERT INTO files_items (folder_id, name, size_bytes, mime_type) VALUES (?, 'ZZ runbook.pdf', 1234, 'application/pdf')")->execute([$folder]);
+        $item = (int) $conn->lastInsertId();
+        FilesAcl::reset();
+
+        $fm = warRoomSend($conn, $a, $all, 'ZZ see the runbook');
+        ok('a file you can see in Files can be shared as a card', warRoomAddFileLinks($conn, $a, $fm, [$item]) === 1);
+        $fm2 = warRoomSend($conn, $b, $all, 'ZZ trying to share');
+        ok('...a file you cannot see cannot', warRoomAddFileLinks($conn, $b, $fm2, [$item]) === 0);
+        $ca = msgOf(warRoomMessages($conn, $all, 0, 200, $a), $fm)['files'][0] ?? null;
+        ok('the sharer sees the card: name, size, can open', $ca && $ca['access'] && $ca['name'] === 'ZZ runbook.pdf' && $ca['size'] === 1234 && !$ca['gone']);
+        $cb = msgOf(warRoomMessages($conn, $all, 0, 200, $b), $fm)['files'][0] ?? null;
+        ok('somebody without access sees the name, but cannot open it', $cb && !$cb['access'] && $cb['name'] === 'ZZ runbook.pdf' && $cb['size'] === null);
+        $conn->prepare("UPDATE files_items SET name = 'ZZ runbook v2.pdf' WHERE id = ?")->execute([$item]);
+        ok('it is a live link: a rename shows to those who can open it',
+           (msgOf(warRoomMessages($conn, $all, 0, 200, $a), $fm)['files'][0]['name'] ?? '') === 'ZZ runbook v2.pdf'
+           && (msgOf(warRoomMessages($conn, $all, 0, 200, $b), $fm)['files'][0]['name'] ?? '') === 'ZZ runbook.pdf');
+        $fwd = warRoomForward($conn, $a, $fm, $all);
+        ok('forwarding forwards the link - the same file, not a copy', (int) $conn->query("SELECT file_item_id FROM warroom_file_links WHERE message_id = $fwd")->fetchColumn() === $item);
+        $conn->prepare("UPDATE files_items SET deleted_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$item]);
+        FilesAcl::reset();
+        $cg = msgOf(warRoomMessages($conn, $all, 0, 200, $a), $fm)['files'][0] ?? null;
+        ok('a file moved to the bin says it is no longer available', $cg && $cg['gone'] && !$cg['access']);
+        warRoomDeleteMessage($conn, $a, $fm);
+        ok('deleting the message removes its cards', (int) $conn->query("SELECT COUNT(*) FROM warroom_file_links WHERE message_id = $fm")->fetchColumn() === 0);
+    }
 } finally {
     $conn->rollBack();
 }

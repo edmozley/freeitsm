@@ -157,4 +157,16 @@ return [
         'link'     => 'war-room/',
         'check'    => ['rows', 'warroom_messages', 'forwarded_from_id IS NOT NULL'],
     ],
+    [
+        'id'       => 'war-room.files_cards',
+        'module'   => 'war-room',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Share a file from Files',
+        'what'     => 'The + button in the war room offers Computer or Files. A file from Files appears as a card that always opens the latest version, with each reader\'s own Files permissions.',
+        'why'      => 'The runbook everyone needs lives in Files already. Sharing it as a link means nobody reads last month\'s copy, and Files still decides who may open it.',
+        'done'     => 'A file from Files has been shared in the war room.',
+        'link'     => 'war-room/',
+        'check'    => ['rows', 'warroom_file_links'],
+    ],
 ];

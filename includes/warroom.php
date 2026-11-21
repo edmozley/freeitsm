@@ -596,6 +596,7 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
             'deleted_by'  => $r['deleted_by_name'],
             'attachments' => [],
             'reactions'   => [],
+            'files'       => [],      // 5.9.0: Files cards - links to files in the Files module
             'lang'        => $r['lang'] ?? null,   // 5.9.0: the language it is written in, once detected
             'tr'          => null,    // 5.9.0: a stored translation into the viewer's language
             'thread_root' => isset($r['thread_root_id']) && $r['thread_root_id'] !== null ? (int) $r['thread_root_id'] : null,
@@ -637,6 +638,7 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
         warRoomAttachQuotes($conn, $rows, $channelId);
         warRoomAttachPinsAndSaved($conn, $rows, $in, $viewerId);
         warRoomAttachThreadCounts($conn, $rows, $in);
+        warRoomAttachFileLinks($conn, $rows, $in, $viewerId);
         if ($viewerLang !== '') warRoomAttachTranslations($conn, $rows, $in, $viewerLang);
     }
     return array_values($rows);
@@ -851,6 +853,13 @@ function warRoomForward(PDO $conn, int $analystId, int $messageId, int $toChanne
     )->execute([$toChannel, $analystId, $body, $messageId, mb_substr($author, 0, 150), mb_substr($where, 0, 150), $o['created_datetime']]);
     $id = (int) $conn->lastInsertId();   // TRAP (§8): read before anything else touches the connection
 
+    // Files cards are forwarded as the same links - never copies (Ed, 21 Nov 2026).
+    try {
+        $conn->prepare("INSERT INTO warroom_file_links (message_id, file_item_id, name, created_datetime)
+                        SELECT ?, file_item_id, name, UTC_TIMESTAMP() FROM warroom_file_links WHERE message_id = ?")
+             ->execute([$id, $messageId]);
+    } catch (Throwable $e) { /* before Database Verification */ }
+
     // Copy the files, each under a new random name.
     $at = $conn->prepare("SELECT stored_name, original_name, size_bytes FROM warroom_attachments WHERE message_id = ?");
     $at->execute([$messageId]);
@@ -864,6 +873,75 @@ function warRoomForward(PDO $conn, int $analystId, int $messageId, int $toChanne
         if (@copy($src, $dir . $new)) $ins->execute([$id, $new, $f['original_name'], (int) $f['size_bytes']]);
     }
     return $id;
+}
+
+/** Most Files cards on one message. */
+const WARROOM_MAX_FILE_LINKS = 5;
+
+/**
+ * Put Files cards on a message (5.9.0): links to files the SENDER can at least view -
+ * nobody can share a file they cannot see. Each keeps the file's name as it was, for
+ * readers who cannot open it. Returns how many were added.
+ *
+ * @param int $messageId  the message just sent
+ * @param int[] $itemIds  files_items ids from the Files picker
+ */
+function warRoomAddFileLinks(PDO $conn, int $analystId, int $messageId, array $itemIds): int
+{
+    $itemIds = array_slice(array_values(array_unique(array_filter(array_map('intval', $itemIds), fn($i) => $i > 0))), 0, WARROOM_MAX_FILE_LINKS);
+    if (!$itemIds) return 0;
+    require_once __DIR__ . '/services/files_attach.php';
+    $ins = $conn->prepare("INSERT INTO warroom_file_links (message_id, file_item_id, name, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())");
+    $n = 0;
+    foreach ($itemIds as $item) {
+        $v = FilesAttach::viewFor($conn, $analystId, $item);
+        if (!$v['access']) continue;
+        $ins->execute([$messageId, $item, mb_substr((string) $v['title'], 0, 255)]);
+        $n++;
+    }
+    return $n;
+}
+
+/**
+ * The Files cards on each message, as THIS viewer may see them (5.9.0): the live name,
+ * size and type when they can open it in Files; the name as shared when they cannot;
+ * "gone" when it has been deleted, binned or purged. The Files module decides, through
+ * FilesAttach::viewFor() - module access and the folder's permission.
+ *
+ * @param array $rows  warRoomMessages()' rows by id - filled in place
+ * @param string $in   the same ids as a comma list (already integers)
+ */
+function warRoomAttachFileLinks(PDO $conn, array &$rows, string $in, int $viewerId): void
+{
+    try {
+        $q = $conn->query("SELECT message_id, file_item_id, name FROM warroom_file_links WHERE message_id IN ($in) ORDER BY id");
+        $links = $q->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return;   // before Database Verification
+    }
+    if (!$links) return;
+    require_once __DIR__ . '/services/files_attach.php';
+    $seen = [];
+    $meta = $conn->prepare("SELECT size_bytes, mime_type FROM files_items WHERE id = ?");
+    foreach ($links as $l) {
+        $mid = (int) $l['message_id'];
+        if (!isset($rows[$mid]) || $rows[$mid]['deleted']) continue;
+        $item = (int) $l['file_item_id'];
+        if (!isset($seen[$item])) {
+            $v = $viewerId > 0 ? FilesAttach::viewFor($conn, $viewerId, $item) : ['access' => false, 'title' => null, 'gone' => false];
+            $size = null; $mime = null;
+            if ($v['access']) { $meta->execute([$item]); $m = $meta->fetch(PDO::FETCH_ASSOC) ?: []; $size = isset($m['size_bytes']) ? (int) $m['size_bytes'] : null; $mime = $m['mime_type'] ?? null; }
+            $seen[$item] = ['access' => (bool) $v['access'], 'gone' => !empty($v['gone']), 'name' => $v['access'] ? (string) $v['title'] : null, 'size' => $size, 'mime' => $mime];
+        }
+        $s = $seen[$item];
+        $rows[$mid]['files'][] = [
+            'item_id' => $item,
+            'name'    => $s['name'] ?? (string) $l['name'],
+            'access'  => $s['access'],
+            'gone'    => $s['gone'],
+            'size'    => $s['size'],
+        ];
+    }
 }
 
 /**
@@ -1386,6 +1464,7 @@ function warRoomDeleteMessage(PDO $conn, int $analystId, int $messageId, bool $m
     $conn->prepare("DELETE FROM warroom_mentions WHERE message_id = :m")->execute([':m' => $messageId]);
     // Its content is gone, so a pin or a bookmark would point at a tombstone (5.9.0).
     warRoomForgetTranslations($conn, $messageId);
+    try { $conn->prepare("DELETE FROM warroom_file_links WHERE message_id = ?")->execute([$messageId]); } catch (Throwable $e) {}
     try {
         $conn->prepare("DELETE FROM warroom_pins WHERE message_id = :m")->execute([':m' => $messageId]);
         $conn->prepare("DELETE FROM warroom_saved WHERE message_id = :m")->execute([':m' => $messageId]);

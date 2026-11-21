@@ -88,6 +88,9 @@ return [
         'too_many' => 'Anda dapat melampirkan hingga {count} berkas pada satu pesan',
         'rejected' => 'Tidak dilampirkan: {names}',
         'download' => 'Unduh',
+        'computer' => 'Komputer',
+        'files' => 'Berkas',
+        'files_title' => 'Bagikan berkas dari Berkas',
     ],
     'sitrep' => [
         'heading' => 'Laporan situasi',
@@ -201,6 +204,8 @@ return [
         'talking_thread_desc' => 'Balas di utas (klik kanan pesan) membuka pesan di panel kanan dengan kotak balasan sendiri, sehingga percakapan sampingan tidak memenuhi percakapan utama. Pesan lalu menunjukkan jumlah balasannya - klik untuk membuka utas. Centang Kirim juga ke percakapan ini bila semua orang perlu melihat balasan.',
         'talking_forward_title' => 'Meneruskan, dan siapa yang telah melihatnya',
         'talking_forward_desc' => 'Teruskan ke... mengirim pesan ke percakapan lain atau seseorang, dengan komentar bila mau; teks dan file-nya ikut, beserta asalnya. Dilihat oleh menunjukkan siapa yang telah membaca pesan dan kapan (dan, di percakapan kecil, siapa yang belum) - kecuali administrator Anda menonaktifkannya.',
+        'talking_filecards_title' => 'Membagikan berkas dari Berkas',
+        'talking_filecards_desc' => '+ menawarkan Komputer atau Berkas. Berkas dari Berkas dibagikan sebagai tautan - kartu dengan ikon, nama, dan ukurannya. Selalu membuka versi terbaru, dan setiap pembaca melihat apa yang diizinkan hak akses Berkas mereka sendiri: yang hanya dapat melihat tidak bisa mengunduh, dan yang tidak punya akses melihat namanya tetapi tidak dapat membukanya. Berkas yang dihapus atau dipindah ke tempat sampah akan menyatakannya.',
         'finding_heading' => 'Mencari',
         'finding_intro' => 'Ada dua cara, tergantung apakah Anda yang mencari sesuatu atau sesuatu yang mencari Anda.',
         'finding_search_title' => 'Cari',
@@ -383,5 +388,10 @@ return [
         'not_yet' => 'Belum dilihat ({count})',
         'nobody' => 'Belum ada orang lain yang membacanya.',
         'unavailable' => 'Tidak tersedia untuk pesan ini - Dilihat oleh mungkin dinonaktifkan, atau ini balasan di dalam utas.',
+    ],
+    'filecard' => [
+        'from' => 'dari Berkas',
+        'no_access' => 'Anda tidak memiliki akses ke berkas ini di Berkas',
+        'gone' => 'Tidak lagi tersedia di Berkas',
     ],
 ];

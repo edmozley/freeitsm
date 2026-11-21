@@ -108,6 +108,9 @@ return [
         'too_many'  => 'You can attach up to {count} files to one message',
         'rejected'  => 'Not attached: {names}',
         'download'  => 'Download',
+        'computer' => 'Computer',
+        'files' => 'Files',
+        'files_title' => 'Share a file from Files',
     ],
 
     // The AI briefing. Named "situation report" rather than "summary" because
@@ -264,6 +267,8 @@ return [
         'talking_thread_desc' => 'Reply in thread (right-click a message) opens the message in the panel on the right with its own reply box, so a side conversation does not fill the main one. The message then shows how many replies it has - click that to open the thread. Tick Also send to this conversation when everyone should see a reply.',
         'talking_forward_title' => 'Forwarding, and who has seen it',
         'talking_forward_desc' => 'Forward to... sends a message to another conversation or a person, with a comment if you like; its text and files go with it, under where it came from. Seen by lists who has read a message and when (and, in a small conversation, who has not yet) - unless your administrator has switched it off.',
+        'talking_filecards_title' => 'Sharing a file from Files',
+        'talking_filecards_desc' => '+ offers Computer or Files. A file from Files is shared as a link - a card with its icon, name and size. It always opens the latest version, and each reader sees what their own Files permissions allow: people who can only view it get no download, and people with no access see the name but cannot open it. A file deleted or moved to the bin says so.',
 
         'finding_heading' => 'Finding things',
         'finding_intro'   => 'Two ways, depending on whether you are looking for something or something is looking for you.',
@@ -452,5 +457,10 @@ return [
         'not_yet' => 'Not seen yet ({count})',
         'nobody' => 'Nobody else has read it yet.',
         'unavailable' => 'Not available for this message - Seen by may be switched off, or it is a reply inside a thread.',
+    ],
+    'filecard' => [
+        'from' => 'from Files',
+        'no_access' => 'You don\'t have access to this file in Files',
+        'gone' => 'No longer available in Files',
     ],
 ];

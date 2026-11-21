@@ -6013,6 +6013,15 @@ return [
         'fwd_created'      => 'DATETIME NULL',     // 5.9.0: when the original was sent
     ],
 
+    // Files cards (5.9.0): links to Files items - latest version, viewer's own permissions.
+    'warroom_file_links' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'message_id'       => 'INT NOT NULL',
+        'file_item_id'     => 'INT NOT NULL',
+        'name'             => 'VARCHAR(255) NOT NULL',
+        'created_datetime' => 'DATETIME NOT NULL',
+    ],
+
     // Seen by (5.9.0): a row each time a read marker moves forward.
     'warroom_read_marks' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',

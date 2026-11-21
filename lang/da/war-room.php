@@ -88,6 +88,9 @@ return [
         'too_many' => 'Du kan vedhæfte op til {count} filer til én besked',
         'rejected' => 'Ikke vedhæftet: {names}',
         'download' => 'Download',
+        'computer' => 'Computer',
+        'files' => 'Filer',
+        'files_title' => 'Del en fil fra Filer',
     ],
     'sitrep' => [
         'heading' => 'Situationsrapport',
@@ -201,6 +204,8 @@ return [
         'talking_thread_desc' => 'Svar i tråd (højreklik på en besked) åbner beskeden i panelet til højre med sit eget svarfelt, så en sidesamtale ikke fylder hovedsamtalen. Beskeden viser derefter, hvor mange svar den har - klik for at åbne tråden. Sæt flueben i Send også til denne samtale, når alle skal se et svar.',
         'talking_forward_title' => 'Videresendelse, og hvem der har set det',
         'talking_forward_desc' => 'Videresend til... sender en besked til en anden samtale eller en person, gerne med en kommentar; teksten og filerne følger med under, hvor den kom fra. Set af viser, hvem der har læst en besked og hvornår (og i en lille samtale, hvem der ikke har endnu) - medmindre din administrator har slået det fra.',
+        'talking_filecards_title' => 'Del en fil fra Filer',
+        'talking_filecards_desc' => '+ tilbyder Computer eller Filer. En fil fra Filer deles som et link - et kort med ikon, navn og størrelse. Det åbner altid den nyeste version, og hver læser ser det, deres egne rettigheder i Filer tillader: kan de kun se den, er der ingen download, og har de ingen adgang, ser de navnet, men kan ikke åbne den. En slettet eller kasseret fil siger det.',
         'finding_heading' => 'At finde ting',
         'finding_intro' => 'To måder, afhængigt af om du leder efter noget, eller noget leder efter dig.',
         'finding_search_title' => 'Søgning',
@@ -383,5 +388,10 @@ return [
         'not_yet' => 'Ikke set endnu ({count})',
         'nobody' => 'Ingen andre har læst den endnu.',
         'unavailable' => 'Ikke tilgængelig for denne besked - Set af kan være slået fra, eller det er et svar i en tråd.',
+    ],
+    'filecard' => [
+        'from' => 'fra Filer',
+        'no_access' => 'Du har ikke adgang til denne fil i Filer',
+        'gone' => 'Ikke længere tilgængelig i Filer',
     ],
 ];

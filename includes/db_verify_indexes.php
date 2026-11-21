@@ -561,6 +561,7 @@ return [
     ['warroom_reactions', 'uq_warroom_reaction', 'unique', '(`message_id`,`analyst_id`,`emoji`)'],
     ['warroom_reactions', 'ix_warroom_reactions_analyst', 'key', '(`analyst_id`)'],
     ['warroom_translations', 'uq_warroom_translation', 'unique', '(`message_id`,`lang`)'],
+    ['warroom_file_links', 'ix_warroom_file_links_message', 'key', '(`message_id`)'],
     ['warroom_read_marks', 'ix_warroom_read_marks_channel', 'key', '(`channel_id`,`up_to_message_id`)'],
     ['warroom_read_marks', 'ix_warroom_read_marks_analyst', 'key', '(`analyst_id`)'],
     ['warroom_pins', 'uq_warroom_pin', 'unique', '(`message_id`)'],

@@ -88,6 +88,9 @@ return [
         'too_many' => 'Sie können bis zu {count} Dateien an eine Nachricht anhängen',
         'rejected' => 'Nicht angehängt: {names}',
         'download' => 'Herunterladen',
+        'computer' => 'Computer',
+        'files' => 'Dateien',
+        'files_title' => 'Datei aus Dateien teilen',
     ],
     'sitrep' => [
         'heading' => 'Lagebericht',
@@ -201,6 +204,8 @@ return [
         'talking_thread_desc' => 'Im Thread antworten (Rechtsklick auf eine Nachricht) öffnet die Nachricht im rechten Bereich mit einem eigenen Antwortfeld, sodass ein Nebengespräch die Hauptunterhaltung nicht füllt. Die Nachricht zeigt dann, wie viele Antworten sie hat - ein Klick öffnet den Thread. Setzen Sie das Häkchen bei Auch an diese Unterhaltung senden, wenn alle eine Antwort sehen sollen.',
         'talking_forward_title' => 'Weiterleiten, und wer es gesehen hat',
         'talking_forward_desc' => 'Weiterleiten an... sendet eine Nachricht an eine andere Unterhaltung oder eine Person, auf Wunsch mit Kommentar; Text und Dateien gehen mit, mit Angabe der Herkunft. Gesehen von zeigt, wer eine Nachricht wann gelesen hat (und in einer kleinen Unterhaltung, wer noch nicht) - sofern Ihre Administration es nicht ausgeschaltet hat.',
+        'talking_filecards_title' => 'Eine Datei aus Dateien teilen',
+        'talking_filecards_desc' => '+ bietet Computer oder Dateien an. Eine Datei aus Dateien wird als Link geteilt - als Karte mit Symbol, Name und Größe. Sie öffnet immer die neueste Version, und jede Person sieht, was ihre eigenen Berechtigungen in Dateien erlauben: Wer nur ansehen darf, kann nicht herunterladen, und wer keinen Zugriff hat, sieht den Namen, kann sie aber nicht öffnen. Eine gelöschte oder in den Papierkorb verschobene Datei sagt das.',
         'finding_heading' => 'Dinge finden',
         'finding_intro' => 'Zwei Wege — je nachdem, ob Sie etwas suchen oder etwas Sie sucht.',
         'finding_search_title' => 'Suche',
@@ -383,5 +388,10 @@ return [
         'not_yet' => 'Noch nicht gesehen ({count})',
         'nobody' => 'Noch niemand sonst hat sie gelesen.',
         'unavailable' => 'Für diese Nachricht nicht verfügbar - Gesehen von ist vielleicht ausgeschaltet, oder es ist eine Antwort in einem Thread.',
+    ],
+    'filecard' => [
+        'from' => 'aus Dateien',
+        'no_access' => 'Sie haben keinen Zugriff auf diese Datei in Dateien',
+        'gone' => 'In Dateien nicht mehr verfügbar',
     ],
 ];

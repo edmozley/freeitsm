@@ -41,6 +41,7 @@ try {
         $quoteOf   = (int) ($_POST['quote_of_id'] ?? 0);
         $threadOf  = (int) ($_POST['thread_root_id'] ?? 0);
         $alsoIn    = !empty($_POST['also_in_channel']);
+        $fileItems = isset($_POST['files_items']) ? (array) $_POST['files_items'] : [];
     } else {
         $input     = json_decode(file_get_contents('php://input'), true);
         if (!is_array($input)) $input = [];
@@ -49,6 +50,7 @@ try {
         $quoteOf   = (int) ($input['quote_of_id'] ?? 0);
         $threadOf  = (int) ($input['thread_root_id'] ?? 0);   // 5.9.0: a reply in a thread
         $alsoIn    = !empty($input['also_in_channel']);
+        $fileItems = is_array($input['files_items'] ?? null) ? $input['files_items'] : [];   // 5.9.0: Files cards
     }
 
     // Same check as the read path, and it covers archived channels too: posting
@@ -81,7 +83,7 @@ try {
     // A message with only files needs a body of some sort, since the feed renders
     // the text and hangs the files under it. Rather than invent placeholder text,
     // an empty body is allowed WHEN there are files.
-    if (trim($body) === '' && !$files) {
+    if (trim($body) === '' && !$files && !$fileItems) {
         echo json_encode(['success' => false, 'error' => 'Empty message']);
         exit;
     }
@@ -96,6 +98,9 @@ try {
     // validation loses the file rather than the message. The rejected names are
     // reported back so the sender is told which one, and why, rather than
     // silently posting a message that is missing the screenshot they meant.
+    // Files cards (5.9.0): links to files the sender can see in Files.
+    $linked = $fileItems ? warRoomAddFileLinks($conn, $analystId, $id, $fileItems) : 0;
+
     $stored = [];
     $rejected = [];
     foreach ($files as $file) {
@@ -111,6 +116,7 @@ try {
         'id'          => $id,
         'attachments' => $stored,
         'rejected'    => $rejected,
+        'linked'      => $linked,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);

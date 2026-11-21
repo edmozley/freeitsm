@@ -1662,6 +1662,11 @@ try {
             try { $conn->exec("ALTER TABLE warroom_reactions ADD CONSTRAINT fk_warroom_reactions_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
+    // 5.9.0: Files cards go with their message.
+    if ($tableExists('warroom_file_links') && $tableExists('warroom_messages')
+        && !$fkExists('warroom_file_links', 'fk_warroom_file_links_message')) {
+        try { $conn->exec("ALTER TABLE warroom_file_links ADD CONSTRAINT fk_warroom_file_links_message FOREIGN KEY (message_id) REFERENCES warroom_messages (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+    }
     // 5.9.0: Seen by - read marks go with their analyst and channel.
     if ($tableExists('warroom_read_marks')) {
         if ($tableExists('analysts') && !$fkExists('warroom_read_marks', 'fk_warroom_read_marks_analyst')) {

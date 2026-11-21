@@ -88,6 +88,9 @@ return [
         'too_many' => 'Do jednej wiadomości można załączyć maks. {count} plików',
         'rejected' => 'Nie załączono: {names}',
         'download' => 'Pobierz',
+        'computer' => 'Komputer',
+        'files' => 'Pliki',
+        'files_title' => 'Udostępnij plik z Plików',
     ],
     'sitrep' => [
         'heading' => 'Raport sytuacyjny',
@@ -201,6 +204,8 @@ return [
         'talking_thread_desc' => 'Odpowiedz w wątku (prawy przycisk na wiadomości) otwiera wiadomość w panelu po prawej z własnym polem odpowiedzi, by rozmowa poboczna nie zapełniała głównej. Wiadomość pokazuje potem liczbę odpowiedzi - kliknij, aby otworzyć wątek. Zaznacz Wyślij też do tej rozmowy, gdy wszyscy mają zobaczyć odpowiedź.',
         'talking_forward_title' => 'Przekazywanie, i kto to widział',
         'talking_forward_desc' => 'Przekaż do... wysyła wiadomość do innej rozmowy lub osoby, jeśli chcesz z komentarzem; jej tekst i pliki idą razem z nią, z informacją, skąd pochodzi. Widziane przez pokazuje, kto przeczytał wiadomość i kiedy (a w małej rozmowie - kto jeszcze nie), chyba że administrator to wyłączył.',
+        'talking_filecards_title' => 'Udostępnianie pliku z Plików',
+        'talking_filecards_desc' => '+ oferuje Komputer lub Pliki. Plik z Plików jest udostępniany jako link - karta z ikoną, nazwą i rozmiarem. Zawsze otwiera najnowszą wersję, a każdy czytelnik widzi to, na co pozwalają jego uprawnienia w Plikach: kto może tylko oglądać, nie pobierze, a kto nie ma dostępu, widzi nazwę, ale nie otworzy pliku. Usunięty lub przeniesiony do kosza plik informuje o tym.',
         'finding_heading' => 'Wyszukiwanie',
         'finding_intro' => 'Dwa sposoby, w zależności od tego, czy Ty czegoś szukasz, czy coś szuka Ciebie.',
         'finding_search_title' => 'Wyszukiwanie',
@@ -383,5 +388,10 @@ return [
         'not_yet' => 'Jeszcze nie widziane ({count})',
         'nobody' => 'Nikt inny jeszcze tego nie przeczytał.',
         'unavailable' => 'Niedostępne dla tej wiadomości - Widziane przez może być wyłączone albo to odpowiedź w wątku.',
+    ],
+    'filecard' => [
+        'from' => 'z Plików',
+        'no_access' => 'Nie masz dostępu do tego pliku w Plikach',
+        'gone' => 'Nie jest już dostępny w Plikach',
     ],
 ];

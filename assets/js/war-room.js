@@ -62,6 +62,7 @@
     var offline   = false;
     var channels  = [];
     var pending   = [];      // files chosen but not yet sent
+    var pendingLinks = [];   // files picked from Files, not yet sent (5.9.0): [{id, name}]
     var quoting   = null;    // the message the next one quotes (5.9.0), or null
     var focusId   = window.WR_FOCUS || 0;   // a permanent link's message, until it is shown
     var holdRead  = 0;       // a channel marked unread: not marked read again until it is left (5.9.0)
@@ -340,6 +341,7 @@
             });
             row.appendChild(wrap);
         }
+        if (m.files && m.files.length) row.appendChild(renderFileCards(m.files));
         if (m.reactions && m.reactions.length) row.appendChild(renderReactions(m));
         // Threads (5.9.0): under a first message, how many replies and when the last
         // came; on a reply also sent to the conversation, the way into its thread.
@@ -535,7 +537,17 @@
     /** Draws a removable chip for each file chosen but not yet sent. */
     function renderPending() {
         clear(els.wrPending);
-        els.wrPending.hidden = !pending.length;
+        els.wrPending.hidden = !pending.length && !pendingLinks.length;
+        pendingLinks.forEach(function (f, i) {
+            var chip = el('span', 'wr-chip wr-chip-files');
+            chip.appendChild(el('span', null, '\uD83D\uDCC1 ' + f.name));
+            var x = el('button', 'wr-chip-x', '\u00D7');
+            x.type = 'button';
+            x.setAttribute('aria-label', t('war-room.quote.cancel'));
+            x.addEventListener('click', function () { pendingLinks.splice(i, 1); renderPending(); });
+            chip.appendChild(x);
+            els.wrPending.appendChild(chip);
+        });
         pending.forEach(function (f, i) {
             var chip = el('span', 'wr-chip');
             chip.appendChild(el('span', null, f.name));
@@ -1342,6 +1354,87 @@
         poll();
     }
 
+    /* ── + : Computer or Files, and the Files cards (5.9.0, piece 6) ── */
+
+    /**
+     * Files cards: a live link to a file in Files - its type icon, name and size, and
+     * "from Files". Opens the LATEST version in the shared viewer with the reader's own
+     * Files permissions (view-only and watermarks included). Without access the name
+     * still shows, so people know what to ask for; a deleted or binned file says so.
+     */
+    function renderFileCards(files) {
+        var wrap = el('div', 'wr-filecards');
+        files.forEach(function (f) {
+            var card = el('button', 'wr-filecard' + (f.access ? '' : ' is-locked') + (f.gone ? ' is-gone' : ''));
+            card.type = 'button';
+            var icon = el('span', 'wr-filecard-icon');
+            // FilesIcons draws from the file TYPE (a fixed table) - no text from the name goes in.
+            if (window.FilesIcons) icon.innerHTML = window.FilesIcons.file(f.name, 32);
+            card.appendChild(icon);
+            var txt = el('span', 'wr-filecard-text');
+            txt.appendChild(el('span', 'wr-filecard-name', f.name));
+            var sub = f.gone ? t('war-room.filecard.gone')
+                    : (!f.access ? t('war-room.filecard.no_access')
+                    : (f.size != null ? bytes(f.size) + ' \u00B7 ' : '') + t('war-room.filecard.from'));
+            txt.appendChild(el('span', 'wr-filecard-sub', sub));
+            card.appendChild(txt);
+            if (!f.access || f.gone) card.disabled = true;
+            card.addEventListener('click', function () {
+                if (!f.access || f.gone) return;
+                var open = window.FilesViewer && window.FilesViewer.openItem;
+                if (open) window.FilesViewer.openItem(f.item_id).catch(function () { window.open((window.WR_LINK_BASE || '').replace(/war-room\/$/, '') + 'files/?item=' + f.item_id, '_blank'); });
+                else window.open((window.WR_LINK_BASE || '').replace(/war-room\/$/, '') + 'files/?item=' + f.item_id, '_blank');
+            });
+            wrap.appendChild(card);
+        });
+        return wrap;
+    }
+
+    // + : with Files available it offers Computer or Files; otherwise it is the file
+    // chooser it always was.
+    if (window.WR_FILES && window.FilesPicker && els.wrAttachLabel) {
+        var attachMenu = null;
+        /** Closes the Computer / Files choice. */
+        var closeAttach = function () { if (attachMenu) { attachMenu.remove(); attachMenu = null; } };
+        els.wrAttachLabel.addEventListener('click', function (e) {
+            if (e.target === els.wrFiles) return;   // the hidden input's own click (Computer)
+            e.preventDefault();
+            if (attachMenu) { closeAttach(); return; }
+            attachMenu = el('div', 'wr-menu wr-attach-menu');
+            attachMenu.setAttribute('role', 'menu');
+            /** One choice in the + menu. */
+            var add = function (label, fn) {
+                var b = el('button', 'wr-menu-item', label);
+                b.type = 'button';
+                b.setAttribute('role', 'menuitem');
+                b.addEventListener('click', function () { closeAttach(); fn(); });
+                attachMenu.appendChild(b);
+            };
+            add('\uD83D\uDCBB ' + t('war-room.attach.computer'), function () { els.wrFiles.click(); });
+            add('\uD83D\uDCC1 ' + t('war-room.attach.files'), function () {
+                window.FilesPicker.open({
+                    mode: 'link',
+                    title: t('war-room.attach.files_title'),
+                    onPick: function (itemId, how, name) {
+                        if (pendingLinks.length >= 5) { toast(t('war-room.attach.too_many', { count: 5 })); return; }
+                        if (!pendingLinks.some(function (x) { return x.id === Number(itemId); })) pendingLinks.push({ id: Number(itemId), name: String(name || '') });
+                        renderPending();
+                        els.wrBody.focus();
+                    }
+                });
+            });
+            var r = els.wrAttachLabel.getBoundingClientRect();
+            placeBox(attachMenu, r.left, r.top - 4, false);
+            attachMenu.style.top = Math.max(8, r.top - attachMenu.offsetHeight - 6) + 'px';
+            var first = attachMenu.querySelector('button');
+            if (first) first.focus();
+        });
+        document.addEventListener('mousedown', function (e) {
+            if (attachMenu && !attachMenu.contains(e.target) && !els.wrAttachLabel.contains(e.target)) closeAttach();
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAttach(); });
+    }
+
     /* ── forward and Seen by (5.9.0, piece 4) ── */
 
     /**
@@ -1663,7 +1756,8 @@
      */
     function send() {
         var body = els.wrBody.value;
-        if (!body.trim() && !pending.length) return;
+        if (!body.trim() && !pending.length && !pendingLinks.length) return;
+        var linkIds = pendingLinks.map(function (f) { return f.id; });
 
         els.wrSend.disabled = true;
         /** Re-enables the Send button when the request settles. */
@@ -1675,6 +1769,7 @@
             fd.append('channel_id', activeId);
             fd.append('body', body);
             if (quoting) fd.append('quote_of_id', quoting.id);
+            linkIds.forEach(function (id) { fd.append('files_items[]', id); });
             pending.forEach(function (f) { fd.append('files[]', f); });
             request = fetch(api + 'send.php', { method: 'POST', credentials: 'same-origin', body: fd });
         } else {
@@ -1682,7 +1777,7 @@
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ channel_id: activeId, body: body, quote_of_id: quoting ? quoting.id : 0 })
+                body: JSON.stringify({ channel_id: activeId, body: body, quote_of_id: quoting ? quoting.id : 0, files_items: linkIds })
             });
         }
 
@@ -1691,6 +1786,7 @@
                 if (!d || !d.success) throw new Error(d && d.error || 'send failed');
                 els.wrBody.value = '';
                 pending = [];
+                pendingLinks = [];
                 renderPending();
                 clearQuote();
                 // A file we refused is reported by name. Posting the message and

@@ -88,6 +88,9 @@ return [
         'too_many' => 'Puede adjuntar hasta {count} archivos a un mensaje',
         'rejected' => 'No adjuntado: {names}',
         'download' => 'Descargar',
+        'computer' => 'Equipo',
+        'files' => 'Archivos',
+        'files_title' => 'Compartir un archivo de Archivos',
     ],
     'sitrep' => [
         'heading' => 'Informe de situación',
@@ -201,6 +204,8 @@ return [
         'talking_thread_desc' => 'Responder en un hilo (clic con el botón derecho en un mensaje) abre el mensaje en el panel de la derecha con su propio cuadro de respuesta, para que una conversación paralela no llene la principal. El mensaje muestra entonces cuántas respuestas tiene: haga clic para abrir el hilo. Marque Enviar también a esta conversación cuando todos deban ver una respuesta.',
         'talking_forward_title' => 'Reenviar, y quién lo ha visto',
         'talking_forward_desc' => 'Reenviar a... envía un mensaje a otra conversación o a una persona, con un comentario si lo desea; su texto y sus archivos van con él, indicando de dónde viene. Visto por muestra quién ha leído un mensaje y cuándo (y, en una conversación pequeña, quién aún no), salvo que su administrador lo haya desactivado.',
+        'talking_filecards_title' => 'Compartir un archivo de Archivos',
+        'talking_filecards_desc' => '+ ofrece Equipo o Archivos. Un archivo de Archivos se comparte como enlace: una tarjeta con su icono, nombre y tamaño. Siempre abre la versión más reciente, y cada lector ve lo que permiten sus propios permisos en Archivos: quien solo puede verlo no tiene descarga, y quien no tiene acceso ve el nombre pero no puede abrirlo. Un archivo eliminado o enviado a la papelera lo indica.',
         'finding_heading' => 'Encontrar cosas',
         'finding_intro' => 'Dos formas, según si usted busca algo o algo le busca a usted.',
         'finding_search_title' => 'Buscar',
@@ -383,5 +388,10 @@ return [
         'not_yet' => 'Aún sin ver ({count})',
         'nobody' => 'Nadie más lo ha leído todavía.',
         'unavailable' => 'No disponible para este mensaje: puede que Visto por esté desactivado o que sea una respuesta dentro de un hilo.',
+    ],
+    'filecard' => [
+        'from' => 'de Archivos',
+        'no_access' => 'No tiene acceso a este archivo en Archivos',
+        'gone' => 'Ya no está disponible en Archivos',
     ],
 ];

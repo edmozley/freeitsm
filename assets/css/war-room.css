@@ -926,3 +926,31 @@
 .wr-fwd-note { width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit; }
 .wr-seen-row { display: flex; justify-content: space-between; gap: 8px; padding: 5px 2px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: var(--font-size-md, 13px); }
 .wr-seen-gap { margin-top: 14px; }
+
+/* + : Computer or Files, and Files cards (5.9.0, piece 6). */
+.wr-attach-menu { min-width: 180px; }
+.wr-chip-files { border-style: dashed; }
+.wr-filecards { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.wr-filecard {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 320px;
+    padding: 6px 12px 6px 6px;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 8px;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.wr-filecard:hover:not(:disabled) { border-color: var(--accent, #ea580c); }
+.wr-filecard:disabled { cursor: default; }
+.wr-filecard-icon { flex: none; display: flex; }
+.wr-filecard-text { display: flex; flex-direction: column; min-width: 0; }
+.wr-filecard-name { font-size: var(--font-size-md, 13px); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wr-filecard-sub { font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); }
+.wr-filecard.is-locked .wr-filecard-name,
+.wr-filecard.is-gone .wr-filecard-name { color: var(--text-muted, #666); font-weight: 400; }
+.wr-filecard.is-gone .wr-filecard-icon { opacity: 0.45; }

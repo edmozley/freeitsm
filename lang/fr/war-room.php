@@ -88,6 +88,9 @@ return [
         'too_many' => 'Vous pouvez joindre jusqu\'à {count} fichiers à un message',
         'rejected' => 'Non joint : {names}',
         'download' => 'Télécharger',
+        'computer' => 'Ordinateur',
+        'files' => 'Fichiers',
+        'files_title' => 'Partager un fichier de Fichiers',
     ],
     'sitrep' => [
         'heading' => 'Rapport de situation',
@@ -201,6 +204,8 @@ return [
         'talking_thread_desc' => 'Répondre dans un fil (clic droit sur un message) ouvre le message dans le panneau de droite avec sa propre zone de réponse, pour qu\'une discussion annexe n\'encombre pas la conversation principale. Le message indique ensuite combien de réponses il a : cliquez pour ouvrir le fil. Cochez Envoyer aussi dans cette conversation quand tout le monde doit voir une réponse.',
         'talking_forward_title' => 'Transférer, et qui l\'a vu',
         'talking_forward_desc' => 'Transférer à... envoie un message à une autre conversation ou à une personne, avec un commentaire si vous le souhaitez ; son texte et ses fichiers suivent, avec leur provenance. Vu par indique qui a lu un message et quand (et, dans une petite conversation, qui ne l\'a pas encore lu) - sauf si votre administrateur l\'a désactivé.',
+        'talking_filecards_title' => 'Partager un fichier de Fichiers',
+        'talking_filecards_desc' => '+ propose Ordinateur ou Fichiers. Un fichier de Fichiers est partagé comme un lien - une carte avec son icône, son nom et sa taille. Il ouvre toujours la dernière version, et chaque lecteur voit ce que ses propres droits dans Fichiers permettent : qui peut seulement le voir n\'a pas de téléchargement, et qui n\'a pas accès voit le nom sans pouvoir l\'ouvrir. Un fichier supprimé ou mis à la corbeille l\'indique.',
         'finding_heading' => 'Trouver des informations',
         'finding_intro' => 'Deux façons, selon que vous cherchez quelque chose ou que quelque chose vous cherche.',
         'finding_search_title' => 'Recherche',
@@ -383,5 +388,10 @@ return [
         'not_yet' => 'Pas encore vu ({count})',
         'nobody' => 'Personne d\'autre ne l\'a encore lu.',
         'unavailable' => 'Non disponible pour ce message - Vu par est peut-être désactivé, ou c\'est une réponse dans un fil.',
+    ],
+    'filecard' => [
+        'from' => 'depuis Fichiers',
+        'no_access' => 'Vous n\'avez pas accès à ce fichier dans Fichiers',
+        'gone' => 'N\'est plus disponible dans Fichiers',
     ],
 ];

@@ -9124,6 +9124,22 @@ CREATE TABLE IF NOT EXISTS `warroom_translations` (
     CONSTRAINT `fk_warroom_translations_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Files cards (5.9.0): a message's links to files in the Files module. A LINK, not a
+-- copy - it always opens the latest version, with the viewer's own Files permissions.
+-- `name` is the file's name when it was shared, shown to people who cannot open it
+-- (it was posted into a conversation they can read). No foreign key to files_items:
+-- a purged file leaves the card saying it is no longer available.
+CREATE TABLE IF NOT EXISTS `warroom_file_links` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `message_id`       INT NOT NULL,
+    `file_item_id`     INT NOT NULL,
+    `name`             VARCHAR(255) NOT NULL,
+    `created_datetime` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_warroom_file_links_message` (`message_id`),
+    CONSTRAINT `fk_warroom_file_links_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Seen by (5.9.0): one row each time an analyst's read marker in a channel moves
 -- forward, so "read at" is real - the time their marker first passed a message.
 -- Recorded only while War room -> Settings -> Seen by is on.
