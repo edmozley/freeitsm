@@ -107,6 +107,7 @@ return [
         'aborted' => 'গত ২৪ ঘণ্টায় লুপ সুরক্ষার কারণে <span class="wt-attention-bold">{count}</span>টি রান বাতিল হয়েছে',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span>টি ওয়েবহুক পুনরায় চেষ্টা ছেড়ে দিয়েছে — বার্তাটি কখনো পৌঁছায়নি',
         'failures' => '{count}টি ব্যর্থতা',
+        'attention' => '<span class="wt-attention-bold">{count}</span>টি রান তাদের কাজের একটি অংশ বাদ দিয়েছে এবং একটি নোট রেখেছে - সর্বশেষ: {name}',
     ],
     'mc' => [
         'metric_done' => 'সম্পন্ন',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'মোট',
         'metric_offline' => 'অফলাইন',
         'metric_lease' => 'লিজ',
+        'metric_consumables' => 'কম স্টক',
         'metric_warranty' => 'ওয়ারেন্টি',
         'warranty' => '<span class="wt-attention-bold">{count}</span>টি অ্যাসেটের ওয়ারেন্টি শেষ হয়েছে বা {days} দিনের মধ্যে শেষ হচ্ছে',
         'lease' => '<span class="wt-attention-bold">{count}</span>টি অ্যাসেটের লিজ শেষ হয়েছে বা {days} দিনের মধ্যে শেষ হচ্ছে',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'দেখানো চালিয়ে যান',
         'impersonal_hide' => 'লুকান',
         'impersonal_note' => 'সার্ভিস স্ট্যাটাস, ওয়ার্কফ্লো, সরঞ্জাম, শেয়ার করা ক্যালেন্ডার, চুক্তি, নলেজ, সফটওয়্যার লাইসেন্স ও ডোমেইন ব্যক্তির নয়, দলের অন্তর্গত, তাই এগুলো আপনার জন্য সংকুচিত হতে পারে না। এগুলো রাখাই নিরাপদ উত্তর: ব্যক্তিগত ভিউতে গেছেন বলে একটি অবনমিত পরিষেবা অদৃশ্য হওয়া উচিত নয়।',
+        'refresh_heading' => 'Watchtower রিফ্রেশ হয় প্রতি',
+        'refresh_minutes' => '{n} মিনিট',
+        'refresh_note' => 'দেয়ালের স্ক্রিনের জন্য কম সময় ভালো: শুধু এর জন্য সাইন ইন করা ব্যবহারকারী সাইন ইন থাকে, এবং ড্যাশবোর্ড নিজে থেকেই হালনাগাদ হয়।',
     ],
 ];

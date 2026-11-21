@@ -47,6 +47,7 @@ return [
         'heading' => 'কোর্স',
         'upload' => 'আপলোড',
         'create' => 'তৈরি করুন',
+        'new_tip' => 'নতুন কোর্স',
         'col_title' => 'শিরোনাম',
         'col_version' => 'SCORM সংস্করণ',
         'col_uploaded' => 'আপলোড হয়েছে',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'লার্নিং গ্রুপ',
         'new' => 'নতুন',
+        'new_tip' => 'নতুন গ্রুপ',
         'col_name' => 'নাম',
         'col_description' => 'বিবরণ',
         'col_members' => 'সদস্য',
