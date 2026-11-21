@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Vel vising',
         'views_flow_click' => 'Klikk på hendinga',
         'views_tip' => 'Klikk på ei kva som helst hending i kalenderen for å opne ei snøggvising som viser tittel, tid, stad og skildring. Derifrå kan du opne heile redigeringsskjemaet.',
+        'views_table' => 'Visinga <strong>Tabell</strong> listar hendingane som rader du kan sortere, filtrere og velje kolonnar for. <strong>Lagre vising</strong> held på eit oppsett under eit namn, og <strong>Visingar</strong> opnar biblioteket; tabellen hugsar visinga du valde sist og opnar med henne neste gong, i kva som helst nettlesar - til du vel ei anna eller brukar <strong>Nullstill</strong>, og då opnar han med standardvisinga di att.',
         'creating_heading' => 'Opprette hendingar',
         'creating_intro' => 'Det er enkelt å leggje hendingar til i kalenderen. Klikk på knappen <strong>+ Ny hending</strong> i sidepanelet for å opne hendingsskjemaet. Fyll ut detaljane og lagre &mdash; hendinga dukkar opp i kalenderen med ein gong.',
         'creating_step1' => '<strong>Klikk + Ny hending</strong> &mdash; knappen ligg i kalenderpanelet til venstre. Då opnar dialogen for å opprette ei hending.',

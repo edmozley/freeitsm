@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Utgjevar',
         'col_installed' => 'Installert på',
         'col_seats' => 'Sete',
+        'col_installations' => 'Installasjonar',
+        'col_licence_seats' => 'Lisensplassar',
         'col_actions' => '',
         'add_app' => 'Legg til applikasjon',
         'new_app' => 'Ny applikasjon',
@@ -418,5 +420,10 @@ return [
         'tip5_t' => 'Ikkje berre sjå på diagramma — klikk deg inn i dei. Kvart diagramsegment kan klikkast. Eit klikk på ei søyle eller ein kakebit tek deg til maskinene bak det datapunktet, slik at du kan grave vidare.',
         'tip6_b' => 'Automatiske oppdateringar',
         'tip6_t' => 'Programvaredata blir oppdaterte kvar gong PowerShell-skriptet køyrer på ei maskin. Set den planlagde oppgåva til å køyre dagleg, så speglar inventaret alltid den noverande tilstanden i IT-parken.',
+    ],
+    'watch_filter' => [
+        'expiring' => 'Fornyast innan {days} dagar',
+        'notice' => 'Varslingsfristen startar innan {days} dagar',
+        'remove' => 'Fjern dette filteret',
     ],
 ];

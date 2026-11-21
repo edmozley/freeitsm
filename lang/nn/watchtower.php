@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> køyringar vart avbrotne av loopvernet siste 24 timane',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhookar gav opp å prøve på nytt — meldinga kom aldri fram',
         'failures' => '{count} feil',
+        'attention' => '<span class="wt-attention-bold">{count}</span> køyring(ar) hoppa over ein del av jobben og la att eit notat - siste: {name}',
     ],
     'mc' => [
         'metric_done' => 'Utførte',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'Totalt',
         'metric_offline' => 'Fråkopla',
         'metric_lease' => 'Leasing',
+        'metric_consumables' => 'Låg beholdning',
         'metric_warranty' => 'Garanti',
         'warranty' => '<span class="wt-attention-bold">{count}</span> ressursar har garanti som har gått ut eller går ut innan {days} dagar',
         'lease' => '<span class="wt-attention-bold">{count}</span> ressursar har leasing som har gått ut eller går ut innan {days} dagar',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'Hald fram med å vise dei',
         'impersonal_hide' => 'Skjul dei',
         'impersonal_note' => 'Tenestestatus, arbeidsflytar, utstyr, den delte kalenderen, kontraktar, kunnskap, programvarelisensar og domene tilhøyrer teamet og ikkje ein person, så dei kan ikkje avgrensast til deg. Å behalde dei er det tryggaste svaret: ei svekt teneste er det siste som bør forsvinne fordi du byta til ei personleg vising.',
+        'refresh_heading' => 'Watchtower oppdaterer seg kvar',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Raskare høver for ein skjerm på veggen: ein brukar som er logga inn berre for han blir ståande innlogga, og dashbordet oppdaterer seg sjølv.',
     ],
 ];

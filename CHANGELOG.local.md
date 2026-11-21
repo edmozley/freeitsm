@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3099 | i18n | Improvement | Norwegian Nynorsk (nn) brought to 100% - 6,069 strings translated, checked free of Bokmål forms. |
 | 3098 | i18n | Improvement | Norwegian Bokmål (nb) brought to 100% - 6,069 strings translated across 27 modules. |
 | 3097 | i18n | Improvement | **Russian (ru) to 100% - 5,513 strings, including Case reports, the Help assistant and Starters.** 20 translators (Cyrillic budgets: smaller chunks), 44 chunks, timeboxes pinned (Этап / Фаза / Спринт); every chunk passed the verifier first time. Counts written as "Label: {n}" where Russian plurals cannot be chosen. `i18n_audit ru`: 100%, 0 placeholder mismatches; lint clean. Note for Ed: the company Tax ID label is "ИНН" (Russia's own), a translator's choice. Batch 1 of the 14-locale run (it, nl, pt-BR, ru) complete. |
 | 3096 | i18n | Improvement | **Brazilian Portuguese (pt-BR) to 100% - 6,043 strings, including Case reports, the Help assistant and Starters.** 16 translators, 48 chunks, timeboxes pinned (Estágio / Fase / Sprint); every chunk passed the verifier first time. `i18n_audit pt-BR`: 100%, 0 placeholder mismatches; lint clean. Note for Ed: the company Tax ID label is "CNPJ/CPF" (Brazil's own), a translator's choice. |
