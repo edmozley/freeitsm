@@ -260,6 +260,8 @@ return [
         'talking_keep_desc' => 'Pin puts a message in the Pinned bar at the top of the conversation for everyone - anyone in the conversation can pin and unpin, and who pinned it is shown. Save keeps a message in your own Saved list (the button beside Search) - nobody else sees it. Mark as unread shows the conversation as unread from that message until you leave it and come back.',
         'talking_translate_title' => 'Reading in your own language',
         'talking_translate_desc' => 'When your administrator has switched translation on, messages written in other languages appear in your FreeITSM language, fading in when the translation arrives. Translated from ... · Show original under a message switches that one back; Show messages in my language, in the panel on the left, turns it off for you.',
+        'talking_thread_title' => 'Replying in a thread',
+        'talking_thread_desc' => 'Reply in thread (right-click a message) opens the message in the panel on the right with its own reply box, so a side conversation does not fill the main one. The message then shows how many replies it has - click that to open the thread. Tick Also send to this conversation when everyone should see a reply.',
 
         'finding_heading' => 'Finding things',
         'finding_intro'   => 'Two ways, depending on whether you are looking for something or something is looking for you.',
@@ -354,6 +356,7 @@ return [
         'copied' => 'Copied',
         'link_copied' => 'Link copied',
         'copy_failed' => 'Could not copy - your browser blocked it.',
+        'thread' => 'Reply in thread',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -415,5 +418,14 @@ return [
         'translated' => 'Translated',
         'show_original' => 'Show original',
         'show_translation' => 'Show translation',
+    ],
+    'thread' => [
+        'title' => 'Thread',
+        'reply_one' => '1 reply',
+        'replies' => '{count} replies',
+        'last' => 'last {time}',
+        'in_thread' => 'replied in a thread',
+        'placeholder' => 'Reply in this thread...',
+        'also' => 'Also send to this conversation',
     ],
 ];

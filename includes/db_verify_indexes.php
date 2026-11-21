@@ -551,6 +551,7 @@ return [
     ['warroom_messages', 'ix_warroom_messages_channel', 'key', '(`channel_id`,`id`)'],
     ['warroom_messages', 'ix_warroom_messages_changed', 'key', '(`channel_id`,`changed_datetime`)'],
     ['warroom_messages', 'ix_warroom_messages_quote', 'key', '(`quote_of_id`)'],
+    ['warroom_messages', 'ix_warroom_messages_thread', 'key', '(`thread_root_id`,`id`)'],
     ['warroom_messages', 'ix_warroom_messages_created', 'key', '(`created_datetime`)'],
     ['warroom_messages', 'ix_warroom_messages_reply', 'key', '(`reply_to_id`)'],
     ['warroom_attachments', 'ix_warroom_attachments_message', 'key', '(`message_id`)'],

@@ -197,6 +197,8 @@ return [
         'talking_keep_desc' => 'Épingler place un message dans la barre Épinglés en haut de la conversation, pour tous - chacun dans la conversation peut épingler et désépingler, et l\'auteur de l\'épingle est affiché. Enregistrer garde un message dans votre propre liste Enregistrés (le bouton à côté de Rechercher) - personne d\'autre ne la voit. Marquer comme non lu affiche la conversation comme non lue à partir de ce message jusqu\'à ce que vous la quittiez et y reveniez.',
         'talking_translate_title' => 'Lire dans votre langue',
         'talking_translate_desc' => 'Lorsque votre administrateur a activé la traduction, les messages écrits dans d\'autres langues s\'affichent dans votre langue FreeITSM, en fondu à l\'arrivée de la traduction. Traduit de ... · Afficher l\'original sous un message le rétablit ; Afficher les messages dans ma langue, dans le panneau de gauche, la désactive pour vous.',
+        'talking_thread_title' => 'Répondre dans un fil',
+        'talking_thread_desc' => 'Répondre dans un fil (clic droit sur un message) ouvre le message dans le panneau de droite avec sa propre zone de réponse, pour qu\'une discussion annexe n\'encombre pas la conversation principale. Le message indique ensuite combien de réponses il a : cliquez pour ouvrir le fil. Cochez Envoyer aussi dans cette conversation quand tout le monde doit voir une réponse.',
         'finding_heading' => 'Trouver des informations',
         'finding_intro' => 'Deux façons, selon que vous cherchez quelque chose ou que quelque chose vous cherche.',
         'finding_search_title' => 'Recherche',
@@ -285,6 +287,7 @@ return [
         'copied' => 'Copié',
         'link_copied' => 'Lien copié',
         'copy_failed' => 'Copie impossible - votre navigateur l\'a bloquée.',
+        'thread' => 'Répondre dans un fil',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -346,5 +349,14 @@ return [
         'translated' => 'Traduit',
         'show_original' => 'Afficher l\'original',
         'show_translation' => 'Afficher la traduction',
+    ],
+    'thread' => [
+        'title' => 'Fil',
+        'reply_one' => '1 réponse',
+        'replies' => '{count} réponses',
+        'last' => 'dernière {time}',
+        'in_thread' => 'a répondu dans un fil',
+        'placeholder' => 'Répondre dans ce fil...',
+        'also' => 'Envoyer aussi dans cette conversation',
     ],
 ];

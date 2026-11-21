@@ -845,3 +845,43 @@
     cursor: pointer;
 }
 .wr-tr-note:hover { color: var(--accent, #ea580c); text-decoration: underline; }
+
+/* Threads (5.9.0, piece 3): the reply count under a first message, the way into a
+   thread from a reply also sent to the conversation, and the thread panel. */
+.wr-thread-summary,
+.wr-thread-link {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 12px;
+    background: var(--surface, #fff);
+    color: var(--accent, #ea580c);
+    font: inherit;
+    font-size: var(--font-size-sm, 12px);
+    font-weight: 600;
+    cursor: pointer;
+}
+.wr-thread-summary:hover,
+.wr-thread-link:hover { border-color: var(--accent, #ea580c); }
+.wr-thread-link { font-weight: 400; color: var(--text-muted, #666); border-style: dashed; }
+.wr-thread-msgs { display: flex; flex-direction: column; }
+.wr-thread-root {
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+    border-bottom: 2px solid var(--border, #e0e0e0);
+}
+.wr-thread-composer {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 0 2px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border-soft, #f2f2f2);
+    background: var(--surface, #fff);
+}
+.wr-thread-composer textarea { width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit; }
+.wr-thread-composer .btn { align-self: flex-end; }
+.wr-thread-also { display: flex; gap: 6px; align-items: center; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }

@@ -165,6 +165,39 @@ try {
     ok('...to the message just before it', $last > 0 && $last < $m4 && (int) $conn->query("SELECT COUNT(*) FROM warroom_messages WHERE channel_id = $all AND id > $last AND id < $m4")->fetchColumn() === 0);
     ok('...so the channel shows as unread from there', $unreadOf() > 0);
     ok('you cannot mark a message in a channel you cannot read', !warRoomMarkUnread($conn, $b, $pm));
+
+    // ---- piece 3: threads
+    $root = warRoomSend($conn, $a, $all, 'ZZ thread root');
+    $mid  = warRoomSend($conn, $a, $all, 'ZZ after the root');
+    $t1 = warRoomSend($conn, $b, $all, 'ZZ first reply', 0, $root);
+    ok('a thread reply gets a real id (TRAP: the reply-count update runs after the id is read)', $t1 > $mid);
+    ok('it is stored against its first message', warRoomThreadRootOf($conn, $t1) === $root);
+    $main = warRoomMessages($conn, $all, 0, 200, $a);
+    ok('a thread reply is not in the conversation', msgOf($main, $t1) === null);
+    $r0 = msgOf($main, $root);
+    ok('the first message says it has 1 reply, and when', ($r0['thread']['count'] ?? 0) === 1 && !empty($r0['thread']['last']));
+    $t2 = warRoomSend($conn, $a, $all, 'ZZ reply to the reply', 0, $t1);
+    ok('replying to a reply joins the same thread (one level)', warRoomThreadRootOf($conn, $t2) === $root);
+    $t3 = warRoomSend($conn, $b, $all, 'ZZ also for everyone', 0, $root, true);
+    $main = warRoomMessages($conn, $all, 0, 200, $a);
+    ok('a reply also sent to the conversation appears there, marked as from a thread',
+       ($x = msgOf($main, $t3)) !== null && $x['thread_root'] === $root && $x['in_channel'] === true);
+    $th = warRoomMessages($conn, $all, 0, 500, $a, 0, '', $root);
+    ok('the thread is its first message and every reply, in order', array_column($th, 'id') === [$root, $t1, $t2, $t3], json_encode(array_column($th, 'id')));
+    ok('...and nothing else from the conversation', msgOf($th, $mid) === null);
+    $poll = warRoomMessages($conn, $all, $t3, 200, $a);
+    ok('a reply makes the poll re-send the first message with the new count', ($p = msgOf($poll, $root)) !== null && $p['thread']['count'] === 3);
+    $thSince = warRoomMessages($conn, $all, $t2, 500, $a, 0, '', $root);
+    ok('the open thread polls from its own watermark', array_column($thSince, 'id') === [$root, $t3] || array_column($thSince, 'id') === [$t3], json_encode(array_column($thSince, 'id')));
+    $other = warRoomSend($conn, $a, $all, 'ZZ not a thread', 0, $pm);
+    ok('a "thread" on a message in another channel is posted as an ordinary message', warRoomThreadRootOf($conn, $other) === 0);
+    // Unread: a thread-only reply does not make the conversation unread; one also sent does.
+    warRoomMarkRead($conn, $b, $all, $other);
+    $u0 = $unreadOf();
+    warRoomSend($conn, $a, $all, 'ZZ quiet thread reply', 0, $root);
+    ok('a thread-only reply does not count as unread in the conversation', $unreadOf() === $u0);
+    warRoomSend($conn, $a, $all, 'ZZ loud thread reply', 0, $root, true);
+    ok('...a reply also sent to it does', $unreadOf() === $u0 + 1);
 } finally {
     $conn->rollBack();
 }

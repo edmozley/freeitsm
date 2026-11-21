@@ -197,6 +197,8 @@ return [
         'talking_keep_desc' => 'Sematkan menaruh pesan di bilah Disematkan di atas percakapan untuk semua orang - siapa pun di percakapan dapat menyematkan dan melepasnya, dan siapa yang menyematkan ditampilkan. Simpan menaruh pesan di daftar Tersimpan milik Anda (tombol di samping Cari) - tidak ada orang lain yang melihatnya. Tandai belum dibaca menampilkan percakapan sebagai belum dibaca mulai dari pesan itu sampai Anda meninggalkannya dan kembali.',
         'talking_translate_title' => 'Membaca dalam bahasa Anda',
         'talking_translate_desc' => 'Jika administrator Anda telah mengaktifkan terjemahan, pesan dalam bahasa lain muncul dalam bahasa FreeITSM Anda, memudar masuk saat terjemahan tiba. Diterjemahkan dari ... · Tampilkan asli di bawah pesan mengembalikannya; Tampilkan pesan dalam bahasa saya di panel kiri menonaktifkannya untuk Anda.',
+        'talking_thread_title' => 'Membalas di utas',
+        'talking_thread_desc' => 'Balas di utas (klik kanan pesan) membuka pesan di panel kanan dengan kotak balasan sendiri, sehingga percakapan sampingan tidak memenuhi percakapan utama. Pesan lalu menunjukkan jumlah balasannya - klik untuk membuka utas. Centang Kirim juga ke percakapan ini bila semua orang perlu melihat balasan.',
         'finding_heading' => 'Mencari',
         'finding_intro' => 'Ada dua cara, tergantung apakah Anda yang mencari sesuatu atau sesuatu yang mencari Anda.',
         'finding_search_title' => 'Cari',
@@ -285,6 +287,7 @@ return [
         'copied' => 'Disalin',
         'link_copied' => 'Tautan disalin',
         'copy_failed' => 'Tidak dapat menyalin - browser Anda memblokirnya.',
+        'thread' => 'Balas di utas',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -346,5 +349,14 @@ return [
         'translated' => 'Diterjemahkan',
         'show_original' => 'Tampilkan asli',
         'show_translation' => 'Tampilkan terjemahan',
+    ],
+    'thread' => [
+        'title' => 'Utas',
+        'reply_one' => '1 balasan',
+        'replies' => '{count} balasan',
+        'last' => 'terakhir {time}',
+        'in_thread' => 'membalas di utas',
+        'placeholder' => 'Balas di utas ini...',
+        'also' => 'Kirim juga ke percakapan ini',
     ],
 ];

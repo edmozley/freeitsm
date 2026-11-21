@@ -197,6 +197,8 @@ return [
         'talking_keep_desc' => 'Anheften setzt eine Nachricht für alle in die Leiste Angeheftet oben in der Unterhaltung - jeder in der Unterhaltung kann anheften und lösen, und es wird angezeigt, wer angeheftet hat. Speichern legt eine Nachricht in Ihre eigene Liste Gespeichert (die Schaltfläche neben Suchen) - niemand sonst sieht sie. Als ungelesen markieren zeigt die Unterhaltung ab dieser Nachricht als ungelesen, bis Sie sie verlassen und zurückkommen.',
         'talking_translate_title' => 'In der eigenen Sprache lesen',
         'talking_translate_desc' => 'Wenn Ihre Administration die Übersetzung eingeschaltet hat, erscheinen Nachrichten in anderen Sprachen in Ihrer FreeITSM-Sprache und werden eingeblendet, sobald die Übersetzung da ist. Übersetzt aus ... · Original anzeigen unter einer Nachricht schaltet diese zurück; Nachrichten in meiner Sprache anzeigen im linken Bereich schaltet es für Sie aus.',
+        'talking_thread_title' => 'Im Thread antworten',
+        'talking_thread_desc' => 'Im Thread antworten (Rechtsklick auf eine Nachricht) öffnet die Nachricht im rechten Bereich mit einem eigenen Antwortfeld, sodass ein Nebengespräch die Hauptunterhaltung nicht füllt. Die Nachricht zeigt dann, wie viele Antworten sie hat - ein Klick öffnet den Thread. Setzen Sie das Häkchen bei Auch an diese Unterhaltung senden, wenn alle eine Antwort sehen sollen.',
         'finding_heading' => 'Dinge finden',
         'finding_intro' => 'Zwei Wege — je nachdem, ob Sie etwas suchen oder etwas Sie sucht.',
         'finding_search_title' => 'Suche',
@@ -285,6 +287,7 @@ return [
         'copied' => 'Kopiert',
         'link_copied' => 'Link kopiert',
         'copy_failed' => 'Kopieren nicht möglich - Ihr Browser hat es blockiert.',
+        'thread' => 'Im Thread antworten',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -346,5 +349,14 @@ return [
         'translated' => 'Übersetzt',
         'show_original' => 'Original anzeigen',
         'show_translation' => 'Übersetzung anzeigen',
+    ],
+    'thread' => [
+        'title' => 'Thread',
+        'reply_one' => '1 Antwort',
+        'replies' => '{count} Antworten',
+        'last' => 'zuletzt {time}',
+        'in_thread' => 'hat in einem Thread geantwortet',
+        'placeholder' => 'In diesem Thread antworten...',
+        'also' => 'Auch an diese Unterhaltung senden',
     ],
 ];

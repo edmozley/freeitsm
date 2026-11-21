@@ -9018,12 +9018,18 @@ CREATE TABLE IF NOT EXISTS `warroom_messages` (
     -- it is first translated - so a message is never sent anywhere for a reader who
     -- already speaks its language. NULL = not detected yet.
     `lang`             VARCHAR(16) NULL,
+    -- Threads (5.9.0): the message a reply hangs off (always a top-level message),
+    -- and whether the reply was also sent to the conversation. Deliberately NO
+    -- foreign key: retention may remove the first message and the replies stay.
+    `thread_root_id`   INT NULL,
+    `also_in_channel`  TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     -- (channel_id, id): every read is "this channel, newer than id N".
     KEY `ix_warroom_messages_channel` (`channel_id`, `id`),
     -- The poll's "changed in the last 30 seconds" in this channel.
     KEY `ix_warroom_messages_changed` (`channel_id`, `changed_datetime`),
     KEY `ix_warroom_messages_quote` (`quote_of_id`),
+    KEY `ix_warroom_messages_thread` (`thread_root_id`, `id`),
     -- Retention deletes by age across every channel at once.
     KEY `ix_warroom_messages_created` (`created_datetime`),
     -- Warbot's reply points at the message it answers, which is also how a

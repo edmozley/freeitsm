@@ -6005,6 +6005,8 @@ return [
         'quote_of_id'      => 'INT NULL',        // 5.9.0: the message this one quotes
         'changed_datetime' => 'DATETIME NULL',   // 5.9.0: a reaction changed it - the poll re-sends it
         'lang'             => 'VARCHAR(16) NULL',  // 5.9.0: the language it is written in, detected once
+        'thread_root_id'   => 'INT NULL',          // 5.9.0: the first message of the thread it is in
+        'also_in_channel'  => 'TINYINT(1) NOT NULL DEFAULT 0',   // 5.9.0: a thread reply also sent to the conversation
     ],
 
     // Translations (5.9.0): one per message per language, never per person.

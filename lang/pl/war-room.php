@@ -197,6 +197,8 @@ return [
         'talking_keep_desc' => 'Przypnij umieszcza wiadomość na pasku Przypięte u góry rozmowy dla wszystkich - każdy w rozmowie może przypinać i odpinać, a widać, kto przypiął. Zapisz dodaje wiadomość do Twojej listy Zapisane (przycisk obok Szukaj) - nikt inny jej nie widzi. Oznacz jako nieprzeczytane pokazuje rozmowę jako nieprzeczytaną od tej wiadomości, dopóki jej nie opuścisz i nie wrócisz.',
         'talking_translate_title' => 'Czytanie we własnym języku',
         'talking_translate_desc' => 'Gdy administrator włączy tłumaczenie, wiadomości w innych językach pojawiają się w Twoim języku FreeITSM, płynnie po nadejściu tłumaczenia. Przetłumaczono z ... · Pokaż oryginał pod wiadomością przywraca ją; Pokazuj wiadomości w moim języku w panelu po lewej wyłącza to dla Ciebie.',
+        'talking_thread_title' => 'Odpowiadanie w wątku',
+        'talking_thread_desc' => 'Odpowiedz w wątku (prawy przycisk na wiadomości) otwiera wiadomość w panelu po prawej z własnym polem odpowiedzi, by rozmowa poboczna nie zapełniała głównej. Wiadomość pokazuje potem liczbę odpowiedzi - kliknij, aby otworzyć wątek. Zaznacz Wyślij też do tej rozmowy, gdy wszyscy mają zobaczyć odpowiedź.',
         'finding_heading' => 'Wyszukiwanie',
         'finding_intro' => 'Dwa sposoby, w zależności od tego, czy Ty czegoś szukasz, czy coś szuka Ciebie.',
         'finding_search_title' => 'Wyszukiwanie',
@@ -285,6 +287,7 @@ return [
         'copied' => 'Skopiowano',
         'link_copied' => 'Link skopiowany',
         'copy_failed' => 'Nie udało się skopiować - przeglądarka to zablokowała.',
+        'thread' => 'Odpowiedz w wątku',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -346,5 +349,14 @@ return [
         'translated' => 'Przetłumaczono',
         'show_original' => 'Pokaż oryginał',
         'show_translation' => 'Pokaż tłumaczenie',
+    ],
+    'thread' => [
+        'title' => 'Wątek',
+        'reply_one' => '1 odpowiedź',
+        'replies' => 'Odpowiedzi: {count}',
+        'last' => 'ostatnia {time}',
+        'in_thread' => 'odpowiedział(a) w wątku',
+        'placeholder' => 'Odpowiedz w tym wątku...',
+        'also' => 'Wyślij też do tej rozmowy',
     ],
 ];

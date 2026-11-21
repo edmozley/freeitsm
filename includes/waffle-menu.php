@@ -1551,7 +1551,8 @@ function renderWarRoomAlerts($path_prefix) {
                 item.appendChild(top);
                 item.appendChild(el('div', 'wra-item-body', m.snippet));
                 item.addEventListener('click', function () {
-                    window.location.href = room + '?channel=' + encodeURIComponent(m.channel_id);
+                    // To the message itself (5.9.0) - which opens its thread when it is a thread reply.
+                    window.location.href = room + '?channel=' + encodeURIComponent(m.channel_id) + '&message=' + encodeURIComponent(m.id);
                 });
                 list.appendChild(item);
             });

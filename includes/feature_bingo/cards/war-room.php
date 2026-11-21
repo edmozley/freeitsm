@@ -133,4 +133,16 @@ return [
         'link'     => 'war-room/settings/?tab=ai',
         'check'    => ['setting', 'warroom_translate', 'eq', '1'],
     ],
+    [
+        'id'       => 'war-room.threads',
+        'module'   => 'war-room',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Side conversations in threads',
+        'what'     => 'Right-click a war room message and choose Reply in thread: the side conversation goes in a panel of its own, and the message shows how many replies it has.',
+        'why'      => 'In a busy incident channel, "who is going to floor 3?" and its five answers bury the updates everyone needs. A thread keeps them together and out of the way.',
+        'done'     => 'Somebody has replied in a war room thread.',
+        'link'     => 'war-room/',
+        'check'    => ['rows', 'warroom_messages', 'thread_root_id IS NOT NULL'],
+    ],
 ];

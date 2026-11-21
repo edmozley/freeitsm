@@ -39,12 +39,16 @@ try {
         $channelId = (int) ($_POST['channel_id'] ?? 0);
         $body      = (string) ($_POST['body'] ?? '');
         $quoteOf   = (int) ($_POST['quote_of_id'] ?? 0);
+        $threadOf  = (int) ($_POST['thread_root_id'] ?? 0);
+        $alsoIn    = !empty($_POST['also_in_channel']);
     } else {
         $input     = json_decode(file_get_contents('php://input'), true);
         if (!is_array($input)) $input = [];
         $channelId = (int) ($input['channel_id'] ?? 0);
         $body      = isset($input['body']) ? (string) $input['body'] : '';
         $quoteOf   = (int) ($input['quote_of_id'] ?? 0);
+        $threadOf  = (int) ($input['thread_root_id'] ?? 0);   // 5.9.0: a reply in a thread
+        $alsoIn    = !empty($input['also_in_channel']);
     }
 
     // Same check as the read path, and it covers archived channels too: posting
@@ -82,7 +86,7 @@ try {
         exit;
     }
 
-    $id = warRoomSend($conn, $analystId, $channelId, trim($body) === '' ? ' ' : $body, $quoteOf);
+    $id = warRoomSend($conn, $analystId, $channelId, trim($body) === '' ? ' ' : $body, $quoteOf, $threadOf, $alsoIn);
     if ($id === 0) {
         echo json_encode(['success' => false, 'error' => 'Empty message']);
         exit;

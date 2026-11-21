@@ -197,6 +197,8 @@ return [
         'talking_keep_desc' => 'Fijar pone un mensaje en la barra Fijados, arriba de la conversación, para todos: cualquiera en la conversación puede fijar y desfijar, y se muestra quién lo fijó. Guardar conserva un mensaje en su propia lista Guardados (el botón junto a Buscar): nadie más la ve. Marcar como no leído muestra la conversación como no leída desde ese mensaje hasta que salga y vuelva.',
         'talking_translate_title' => 'Leer en su propio idioma',
         'talking_translate_desc' => 'Cuando su administrador ha activado la traducción, los mensajes escritos en otros idiomas aparecen en su idioma de FreeITSM, con un fundido cuando llega la traducción. Traducido del ... · Mostrar original bajo un mensaje lo devuelve al original; Mostrar mensajes en mi idioma, en el panel de la izquierda, lo desactiva para usted.',
+        'talking_thread_title' => 'Responder en un hilo',
+        'talking_thread_desc' => 'Responder en un hilo (clic con el botón derecho en un mensaje) abre el mensaje en el panel de la derecha con su propio cuadro de respuesta, para que una conversación paralela no llene la principal. El mensaje muestra entonces cuántas respuestas tiene: haga clic para abrir el hilo. Marque Enviar también a esta conversación cuando todos deban ver una respuesta.',
         'finding_heading' => 'Encontrar cosas',
         'finding_intro' => 'Dos formas, según si usted busca algo o algo le busca a usted.',
         'finding_search_title' => 'Buscar',
@@ -285,6 +287,7 @@ return [
         'copied' => 'Copiado',
         'link_copied' => 'Enlace copiado',
         'copy_failed' => 'No se pudo copiar - su navegador lo bloqueó.',
+        'thread' => 'Responder en un hilo',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -346,5 +349,14 @@ return [
         'translated' => 'Traducido',
         'show_original' => 'Mostrar original',
         'show_translation' => 'Mostrar traducción',
+    ],
+    'thread' => [
+        'title' => 'Hilo',
+        'reply_one' => '1 respuesta',
+        'replies' => '{count} respuestas',
+        'last' => 'última {time}',
+        'in_thread' => 'respondió en un hilo',
+        'placeholder' => 'Responder en este hilo...',
+        'also' => 'Enviar también a esta conversación',
     ],
 ];

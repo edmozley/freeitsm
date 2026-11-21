@@ -65,6 +65,10 @@
     var quoting   = null;    // the message the next one quotes (5.9.0), or null
     var focusId   = window.WR_FOCUS || 0;   // a permanent link's message, until it is shown
     var holdRead  = 0;       // a channel marked unread: not marked read again until it is left (5.9.0)
+    var threadRoot = 0;      // the open thread's first message (5.9.0), 0 when none
+    var threadLastId = 0;    // the open thread's since-watermark
+    var threadMsgs = null;   // the open thread's message list in the side panel
+    var threadFocus = 0;     // a reply to highlight once the thread has loaded
 
     // Translation (5.9.0): each message shown in the reader's FreeITSM language once
     // the server has a translation; the original is always one click away.
@@ -216,7 +220,8 @@
     /**
      * Builds one message row - author, Warbot tag, time, edited flag, body with @mentions, edit/delete buttons and attachments - all as text nodes.
      */
-    function renderMessage(m) {
+    function renderMessage(m, ctx) {
+        ctx = ctx || 'main';   // 'main' = the conversation, 'thread' = the thread panel (5.9.0)
         var row = el('div', 'wr-msg' + (m.deleted ? ' wr-msg-deleted' : '') + (m.is_bot ? ' wr-msg-bot' : ''));
         row.setAttribute('data-msg-id', m.id);
 
@@ -286,7 +291,7 @@
         more.setAttribute('aria-haspopup', 'menu');
         more.addEventListener('click', function () {
             var r = more.getBoundingClientRect();
-            openMenu(m, r.right, r.bottom + 4, more);
+            openMenu(m, r.right, r.bottom + 4, more, ctx);
         });
         acts.appendChild(more);
         row.appendChild(acts);
@@ -296,9 +301,9 @@
             var sel = window.getSelection ? String(window.getSelection()) : '';
             if (sel && row.contains(window.getSelection().anchorNode)) return;
             e.preventDefault();
-            openMenu(m, e.clientX, e.clientY, null);
+            openMenu(m, e.clientX, e.clientY, null, ctx);
         });
-        addLongPress(row, m);
+        addLongPress(row, m, ctx);
 
         if (m.attachments && m.attachments.length) {
             var wrap = el('div', 'wr-attachments');
@@ -327,6 +332,22 @@
             row.appendChild(wrap);
         }
         if (m.reactions && m.reactions.length) row.appendChild(renderReactions(m));
+        // Threads (5.9.0): under a first message, how many replies and when the last
+        // came; on a reply also sent to the conversation, the way into its thread.
+        if (ctx === 'main' && m.thread && m.thread.count) {
+            var sum = el('button', 'wr-thread-summary',
+                '\uD83D\uDCAC ' + (m.thread.count === 1 ? t('war-room.thread.reply_one') : t('war-room.thread.replies', { count: m.thread.count }))
+                + ' \u00B7 ' + t('war-room.thread.last', { time: localTime(m.thread.last) }));
+            sum.type = 'button';
+            sum.addEventListener('click', function () { openThread(m.id, 0); });
+            row.appendChild(sum);
+        }
+        if (ctx === 'main' && m.thread_root && m.in_channel) {
+            var inT = el('button', 'wr-thread-link', '\u21AA ' + t('war-room.thread.in_thread'));
+            inT.type = 'button';
+            inT.addEventListener('click', function () { openThread(m.thread_root, m.id); });
+            row.appendChild(inT);
+        }
         return row;
     }
 
@@ -408,7 +429,7 @@
 
         list.forEach(function (m) {
             messageById[m.id] = m;
-            var node = renderMessage(m);
+            var node = renderMessage(m, 'main');
             // ⚠️ UPSERT BY ID, NEVER BLIND APPEND. The poll deliberately re-sends
             // a message that was edited or deleted in the last 30 seconds, because
             // its id is below the since_id watermark and it would otherwise never
@@ -464,14 +485,21 @@
     function poll() {
         var url = api + 'poll.php?channel_id=' + encodeURIComponent(activeId) +
                   '&since_id=' + encodeURIComponent(lastId) + '&read=' + (holdRead === activeId ? '0' : '1') +
-                  (focusId && lastId === 0 ? '&around=' + encodeURIComponent(focusId) : '');
+                  (focusId && lastId === 0 ? '&around=' + encodeURIComponent(focusId) : '') +
+                  (threadRoot ? '&thread_root=' + encodeURIComponent(threadRoot) + '&thread_since=' + encodeURIComponent(threadLastId) : '');
         fetch(url, { credentials: 'same-origin' })
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (!d || !d.success) throw new Error('poll failed');
                 offline = false;
                 appendMessages(d.messages || []);
-                if (focusId) { var f = focusId; focusId = 0; highlightMessage(f, true); }
+                if (d.thread && threadRoot) appendThread(d.thread);
+                if (focusId) {
+                    var f = focusId; focusId = 0;
+                    // A link to a reply that only lives in its thread opens the thread (5.9.0).
+                    if (d.focus_root && !els.wrMessages.querySelector('[data-msg-id="' + f + '"]')) openThread(d.focus_root, f);
+                    else highlightMessage(f, true);
+                }
                 channels = d.channels || [];
                 renderChannels();
                 applyChannelHeader();
@@ -748,7 +776,8 @@
      * @param {Object} m  the message, as the poll sent it
      * @param {HTMLElement|null} from  the ⋯ button that opened it, for focus to return to
      */
-    function openMenu(m, x, y, from) {
+    function openMenu(m, x, y, from, ctx) {
+        ctx = ctx || 'main';
         closeMenu();
         if (m.deleted) return;
         m = messageById[m.id] || m;
@@ -791,7 +820,10 @@
             b.addEventListener('click', function () { closeMenu(); fn(); });
             menuEl.appendChild(b);
         }
-        if (canPost) item(t('war-room.menu.quote'), function () { startQuote(m); });
+        // In the thread panel the reply box is the thread's own, so Quote (which fills the
+        // conversation's box) and Reply in thread are offered only in the conversation.
+        if (canPost && ctx === 'main') item(t('war-room.menu.thread'), function () { openThread(m.thread_root || m.id, 0); });
+        if (canPost && ctx === 'main') item(t('war-room.menu.quote'), function () { startQuote(m); });
         // Two plain items rather than a hover submenu (Ed, 21 Nov 2026): one click each,
         // and they work the same with a keyboard and on a phone, where nothing hovers.
         item(t('war-room.menu.copy_text'), function () { copyMessage(m, false); });
@@ -829,12 +861,12 @@
     els.wrMessages.addEventListener('scroll', function () { if (menuEl) closeMenu(); });
 
     /** A long press opens the menu on a phone, where there is no right-click. Moving cancels it. */
-    function addLongPress(row, m) {
+    function addLongPress(row, m, ctx) {
         var timer = null, sx = 0, sy = 0;
         row.addEventListener('touchstart', function (e) {
             if (e.touches.length !== 1) return;
             sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-            timer = setTimeout(function () { timer = null; openMenu(m, sx, sy, null); }, 550);
+            timer = setTimeout(function () { timer = null; openMenu(m, sx, sy, null, ctx); }, 550);
         }, { passive: true });
         /** Cancels a pending long press. */
         var cancel = function () { if (timer) { clearTimeout(timer); timer = null; } };
@@ -1061,7 +1093,8 @@
      * @param {boolean} fromLink  true on arrival from a permanent link
      */
     function highlightMessage(id, fromLink) {
-        var node = els.wrMessages.querySelector('[data-msg-id="' + id + '"]');
+        var node = els.wrMessages.querySelector('[data-msg-id="' + id + '"]')
+                || (threadMsgs && threadMsgs.querySelector('[data-msg-id="' + id + '"]'));
         if (!node) {
             if (fromLink) { toast(t('war-room.link.missing')); return; }
             focusId = id; lastId = 0;
@@ -1121,7 +1154,7 @@
         b.textContent = from + ' \u00B7 ' + t(trOriginal[m.id] ? 'war-room.translate.show_translation' : 'war-room.translate.show_original');
         b.addEventListener('click', function () {
             if (trOriginal[m.id]) delete trOriginal[m.id]; else trOriginal[m.id] = true;
-            appendMessages([messageById[m.id] || m]);
+            refreshRows([messageById[m.id] || m]);
         });
         return b;
     }
@@ -1141,7 +1174,7 @@
         Object.keys(messageById).forEach(function (k) {
             var m = messageById[k];
             if (m.deleted || !String(m.body || '').trim()) return;
-            if (!els.wrMessages.querySelector('[data-msg-id="' + m.id + '"]')) return;   // another channel's
+            if (!isShown(m.id)) return;   // another channel's
             if (m.lang && langKey(m.lang) === langKey(TR.lang)) return;
             if (translationOf(m)) return;
             var asked = trAsked[m.id];
@@ -1172,7 +1205,7 @@
                       if (it.lang) cur.lang = it.lang;
                       if (it.text) { trCache[m.id] = { text: it.text, body: cur.body }; trFresh[m.id] = true; redraw.push(cur); }
                   });
-                  if (redraw.length) appendMessages(redraw);
+                  if (redraw.length) refreshRows(redraw);
                   next(list.slice(20));
               })
               .catch(function () { /* the originals stay; asked again in a minute */ });
@@ -1196,10 +1229,106 @@
                 }).catch(function () { /* the box still shows the choice for this visit */ });
             });
             // Redraw what is on the page in the chosen language, then fill any gaps.
-            var shown = Object.keys(messageById).map(function (k) { return messageById[k]; })
-                .filter(function (m) { return els.wrMessages.querySelector('[data-msg-id="' + m.id + '"]'); });
-            appendMessages(shown);
+            refreshRows(Object.keys(messageById).map(function (k) { return messageById[k]; }));
+            scheduleTranslate();
         });
+    }
+
+    /* ── threads (5.9.0, piece 3) ── */
+
+    /** True when a message is drawn in the conversation or in the open thread. */
+    function isShown(id) {
+        return !!(els.wrMessages.querySelector('[data-msg-id="' + id + '"]')
+               || (threadMsgs && threadMsgs.querySelector('[data-msg-id="' + id + '"]')));
+    }
+
+    /** Redraws messages wherever they are shown - the conversation and the open thread. */
+    function refreshRows(list) {
+        list.forEach(function (m) {
+            var a = els.wrMessages.querySelector('[data-msg-id="' + m.id + '"]');
+            if (a) a.parentNode.replaceChild(renderMessage(m, 'main'), a);
+            var b = threadMsgs && threadMsgs.querySelector('[data-msg-id="' + m.id + '"]');
+            if (b) b.parentNode.replaceChild(renderMessage(m, 'thread'), b);
+        });
+    }
+
+    /** Adds the open thread's new or changed messages - upserted, as the conversation is. */
+    function appendThread(list) {
+        if (!threadMsgs || !list.length) return;
+        var sc = els.wrPanelBody;   // the panel body scrolls, not the list inside it
+        var atBottom = (sc.scrollHeight - sc.scrollTop - sc.clientHeight) < 80;
+        var added = false;
+        list.forEach(function (m) {
+            messageById[m.id] = m;
+            var node = renderMessage(m, 'thread');
+            if (m.id === threadRoot) node.classList.add('wr-thread-root');
+            var ex = threadMsgs.querySelector('[data-msg-id="' + m.id + '"]');
+            if (ex) ex.parentNode.replaceChild(node, ex);
+            else { threadMsgs.appendChild(node); added = true; }
+            if (m.id > threadLastId) threadLastId = m.id;
+        });
+        if (atBottom && added) sc.scrollTop = sc.scrollHeight;
+        if (threadFocus) { var f = threadFocus; threadFocus = 0; highlightMessage(f, false); }
+        scheduleTranslate();
+    }
+
+    /**
+     * Opens a thread in the side panel: its first message, every reply, and a reply box
+     * with "Also send to this conversation". The same poll keeps it current.
+     * @param {number} rootId  the thread's first message
+     * @param {number} focus   a reply to highlight once loaded, or 0
+     */
+    function openThread(rootId, focus) {
+        var body = openPanel(t('war-room.thread.title'));
+        els.wrPanel.setAttribute('data-list', 'thread');
+        threadRoot = rootId; threadLastId = 0; threadFocus = focus || 0;
+        threadMsgs = el('div', 'wr-thread-msgs');
+        body.appendChild(threadMsgs);
+
+        if (!els.wrComposer.hidden) {   // an archived channel is read-only
+            var form = el('form', 'wr-thread-composer');
+            var ta = document.createElement('textarea');
+            ta.className = 'wr-input';
+            ta.rows = 2;
+            ta.placeholder = t('war-room.thread.placeholder');
+            ta.setAttribute('aria-label', t('war-room.thread.placeholder'));
+            form.appendChild(ta);
+            var also = el('label', 'wr-thread-also');
+            var cb = document.createElement('input');
+            cb.type = 'checkbox';
+            also.appendChild(cb);
+            also.appendChild(el('span', null, t('war-room.thread.also')));
+            form.appendChild(also);
+            var go = el('button', 'btn btn-primary', t('war-room.composer.send'));
+            go.type = 'submit';
+            form.appendChild(go);
+            /** Sends the reply into the thread (and the conversation when ticked). */
+            var sendReply = function () {
+                var text = ta.value;
+                if (!text.trim()) return;
+                go.disabled = true;
+                fetch(api + 'send.php', {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ channel_id: activeId, body: text, thread_root_id: rootId, also_in_channel: cb.checked ? 1 : 0 })
+                }).then(function (r) { return r.json(); })
+                  .then(function (d) {
+                      if (!d || !d.success) throw new Error('failed');
+                      ta.value = ''; cb.checked = false;
+                      poll();
+                      if (addressesWarbot(text) && d.id) askWarbot(d.id);
+                  })
+                  .catch(function () { toast(t('war-room.error.send')); })
+                  .then(function () { go.disabled = false; ta.focus(); });
+            };
+            form.addEventListener('submit', function (e) { e.preventDefault(); sendReply(); });
+            ta.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); }
+            });
+            body.appendChild(form);
+            setTimeout(function () { ta.focus(); }, 0);
+        }
+        poll();
     }
 
     /* ── pin, save, mark as unread (5.9.0, piece 2) ── */
@@ -1228,7 +1357,7 @@
     function saveMessage(m, on) {
         messagePost(on ? 'save' : 'unsave', m.id).then(function () {
             var cur = messageById[m.id];
-            if (cur) { cur.saved = on; appendMessages([cur]); }
+            if (cur) { cur.saved = on; refreshRows([cur]); }
             toast(t(on ? 'war-room.saved.done' : 'war-room.saved.removed'));
             if (!els.wrPanel.hidden && els.wrPanel.getAttribute('data-list') === 'saved') openSaved();
         }).catch(function () { toast(t('war-room.menu.failed')); });
@@ -1515,13 +1644,14 @@
     /** Opens the side panel (search or situation report) with a title and returns its empty body. */
     function openPanel(title) {
         els.wrPanel.removeAttribute('data-list');   // set again by the pinned / saved lists (5.9.0)
+        threadRoot = 0; threadMsgs = null; threadFocus = 0;   // another panel replaces an open thread
         els.wrPanelTitle.textContent = title;
         clear(els.wrPanelBody);
         els.wrPanel.hidden = false;
         return els.wrPanelBody;
     }
     /** Hides the side panel. */
-    function closePanel() { els.wrPanel.hidden = true; }
+    function closePanel() { els.wrPanel.hidden = true; threadRoot = 0; threadMsgs = null; threadFocus = 0; }
     els.wrPanelClose.addEventListener('click', closePanel);
 
     els.wrSearchBtn.addEventListener('click', function () {

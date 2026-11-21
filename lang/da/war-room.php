@@ -197,6 +197,8 @@ return [
         'talking_keep_desc' => 'Fastgør sætter en besked i bjælken Fastgjort øverst i samtalen for alle - alle i samtalen kan fastgøre og frigøre, og det vises, hvem der fastgjorde den. Gem lægger en besked på din egen liste Gemte (knappen ved siden af Søg) - ingen andre ser den. Markér som ulæst viser samtalen som ulæst fra den besked, til du forlader den og kommer tilbage.',
         'talking_translate_title' => 'Læs på dit eget sprog',
         'talking_translate_desc' => 'Når din administrator har slået oversættelse til, vises beskeder skrevet på andre sprog på dit FreeITSM-sprog og toner frem, når oversættelsen kommer. Oversat fra ... · Vis original under en besked skifter den tilbage; Vis beskeder på mit sprog i panelet til venstre slår det fra for dig.',
+        'talking_thread_title' => 'Svar i en tråd',
+        'talking_thread_desc' => 'Svar i tråd (højreklik på en besked) åbner beskeden i panelet til højre med sit eget svarfelt, så en sidesamtale ikke fylder hovedsamtalen. Beskeden viser derefter, hvor mange svar den har - klik for at åbne tråden. Sæt flueben i Send også til denne samtale, når alle skal se et svar.',
         'finding_heading' => 'At finde ting',
         'finding_intro' => 'To måder, afhængigt af om du leder efter noget, eller noget leder efter dig.',
         'finding_search_title' => 'Søgning',
@@ -285,6 +287,7 @@ return [
         'copied' => 'Kopieret',
         'link_copied' => 'Link kopieret',
         'copy_failed' => 'Kunne ikke kopiere - din browser blokerede det.',
+        'thread' => 'Svar i tråd',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -346,5 +349,14 @@ return [
         'translated' => 'Oversat',
         'show_original' => 'Vis original',
         'show_translation' => 'Vis oversættelse',
+    ],
+    'thread' => [
+        'title' => 'Tråd',
+        'reply_one' => '1 svar',
+        'replies' => '{count} svar',
+        'last' => 'seneste {time}',
+        'in_thread' => 'svarede i en tråd',
+        'placeholder' => 'Svar i denne tråd...',
+        'also' => 'Send også til denne samtale',
     ],
 ];
