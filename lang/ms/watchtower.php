@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> jalanan digugurkan oleh perlindungan gelung dalam 24 jam lepas',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook berhenti mencuba semula — mesej tidak pernah sampai',
         'failures' => '{count} kegagalan',
+        'attention' => '<span class="wt-attention-bold">{count}</span> larian terlangkau sebahagian tugasnya dan meninggalkan nota - terkini: {name}',
     ],
     'mc' => [
         'metric_done' => 'Selesai',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'Jumlah',
         'metric_offline' => 'Luar Talian',
         'metric_lease' => 'Pajakan',
+        'metric_consumables' => 'Stok rendah',
         'metric_warranty' => 'Waranti',
         'warranty' => '<span class="wt-attention-bold">{count}</span> aset dengan waranti tamat tempoh atau tamat dalam masa {days} hari',
         'lease' => '<span class="wt-attention-bold">{count}</span> aset dengan pajakan yang telah tamat atau akan tamat dalam {days} hari',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'Teruskan memaparkannya',
         'impersonal_hide' => 'Sembunyikan',
         'impersonal_note' => 'Status perkhidmatan, workflow, peralatan, kalendar yang dikongsi, kontrak, pengetahuan, lesen perisian dan domain milik pasukan dan bukan seseorang, jadi ia tidak boleh dipersempitkan kepada anda. Mengekalkannya ialah jawapan yang lebih selamat: perkhidmatan yang terjejas ialah perkara terakhir yang patut hilang hanya kerana anda beralih ke paparan peribadi.',
+        'refresh_heading' => 'Watchtower menyegar semula setiap',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Lebih kerap sesuai untuk skrin di dinding: pengguna yang log masuk khas untuknya kekal log masuk, dan papan pemuka mengemas kini dirinya sendiri.',
     ],
 ];

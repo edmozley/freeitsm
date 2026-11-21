@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Penerbit',
         'col_installed' => 'Dipasang Pada',
         'col_seats' => 'Slot',
+        'col_installations' => 'Pemasangan',
+        'col_licence_seats' => 'Kerusi lesen',
         'col_actions' => '',
         'add_app' => 'Tambah aplikasi',
         'new_app' => 'Aplikasi baharu',
@@ -418,5 +420,10 @@ return [
         'tip5_t' => 'Jangan hanya lihat carta — klik ke dalamnya. Setiap segmen carta adalah interaktif. Mengklik bar atau hirisan pai membawa anda ke mesin di sebalik titik data tersebut, supaya anda boleh menyiasat dengan lebih lanjut.',
         'tip6_b' => 'Kemas kini automatik',
         'tip6_t' => 'Data perisian disegarkan setiap kali skrip PowerShell berjalan pada satu mesin. Tetapkan tugas berjadual untuk berjalan setiap hari dan inventori anda akan sentiasa mencerminkan keadaan semasa estet anda.',
+    ],
+    'watch_filter' => [
+        'expiring' => 'Diperbaharui dalam masa {days} hari',
+        'notice' => 'Tempoh notis bermula dalam masa {days} hari',
+        'remove' => 'Buang penapis ini',
     ],
 ];

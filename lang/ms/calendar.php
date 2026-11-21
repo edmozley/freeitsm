@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Pilih paparan',
         'views_flow_click' => 'Klik acara',
         'views_tip' => 'Klik mana-mana acara pada kalendar untuk membuka popup pratonton pantas yang menunjukkan tajuk, masa, lokasi, dan keterangan. Dari situ anda boleh membuka borang sunting penuh.',
+        'views_table' => 'Paparan <strong>Jadual</strong> menyenaraikan acara sebagai baris yang boleh anda isih, tapis dan pilih lajurnya. <strong>Simpan paparan</strong> menyimpan susunan di bawah satu nama dan <strong>Paparan</strong> membuka pustaka; jadual mengingati paparan yang anda pilih kali terakhir dan membukanya pada kali seterusnya, pada mana-mana pelayar - sehingga anda memilih yang lain atau menggunakan <strong>Set semula</strong>, selepas itu ia dibuka dengan paparan lalai anda semula.',
         'creating_heading' => 'Mencipta acara',
         'creating_intro' => 'Menambah acara ke kalendar adalah mudah. Klik butang <strong>+ Acara Baharu</strong> pada bar sisi untuk membuka borang acara. Isikan butiran dan simpan &mdash; acara akan muncul di kalendar dengan serta-merta.',
         'creating_step1' => '<strong>Klik + Acara Baharu</strong> &mdash; butang ini terletak pada bar sisi kalendar di sebelah kiri. Ini membuka modal penciptaan acara.',

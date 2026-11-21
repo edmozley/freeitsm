@@ -47,6 +47,7 @@ return [
         'heading' => 'Kursus',
         'upload' => 'Muat naik',
         'create' => 'Cipta',
+        'new_tip' => 'Kursus baharu',
         'col_title' => 'Tajuk',
         'col_version' => 'Versi SCORM',
         'col_uploaded' => 'Dimuat naik',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'Kumpulan Pembelajaran',
         'new' => 'Baharu',
+        'new_tip' => 'Kumpulan baharu',
         'col_name' => 'Nama',
         'col_description' => 'Penerangan',
         'col_members' => 'Ahli',

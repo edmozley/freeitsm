@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3101 | i18n | Improvement | Malay (ms) brought to 100% - 6,069 strings translated, checked free of Indonesian forms. |
 | 3100 | i18n | Improvement | Afrikaans (af) brought to 100% - 5,513 strings translated. |
 | 3099 | i18n | Improvement | Norwegian Nynorsk (nn) brought to 100% - 6,069 strings translated, checked free of Bokmål forms. |
 | 3098 | i18n | Improvement | Norwegian Bokmål (nb) brought to 100% - 6,069 strings translated across 27 modules. |

@@ -49,6 +49,7 @@ return [
     ],
     'modal' => [
         'new_incident' => 'Insiden Baharu',
+        'new_incident_tip' => 'Insiden baharu',
         'edit_incident' => 'Edit Insiden',
         'title' => 'Tajuk',
         'title_placeholder' => 'Penerangan ringkas tentang insiden',
