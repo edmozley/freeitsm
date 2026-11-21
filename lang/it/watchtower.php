@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> esecuzione/i interrotta/e dalla protezione anti-loop nelle ultime 24 ore',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook hanno rinunciato a riprovare — il messaggio non è mai arrivato',
         'failures' => '{count} errore/i',
+        'attention' => '<span class="wt-attention-bold">{count}</span> esecuzione/i hanno saltato parte del loro lavoro e lasciato una nota - l\'ultima: {name}',
     ],
     'mc' => [
         'metric_done' => 'Completati',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'Totale',
         'metric_offline' => 'Offline',
         'metric_lease' => 'Leasing',
+        'metric_consumables' => 'Scorte basse',
         'metric_warranty' => 'Garanzia',
         'warranty' => '<span class="wt-attention-bold">{count}</span> asset con garanzia scaduta o in scadenza entro {days} giorni',
         'lease' => '<span class="wt-attention-bold">{count}</span> asset con un leasing terminato o in scadenza entro {days} giorni',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'Continua a mostrarle',
         'impersonal_hide' => 'Nascondile',
         'impersonal_note' => 'Stato dei servizi, workflow, attrezzatura, calendario condiviso, contratti, conoscenza, licenze software e domini appartengono al team e non a una persona, quindi non possono restringersi a te. Mantenerle è la risposta più sicura: un servizio degradato è l\'ultima cosa che dovrebbe sparire perché sei passato a una vista personale.',
+        'refresh_heading' => 'Watchtower si aggiorna ogni',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Meno minuti vanno bene per uno schermo a parete: un utente connesso solo per quello resta connesso, e la dashboard si aggiorna da sola.',
     ],
 ];

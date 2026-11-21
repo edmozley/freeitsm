@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Scegli la vista',
         'views_flow_click' => 'Fai clic sull\'evento',
         'views_tip' => 'Fai clic su qualsiasi evento del calendario per aprire un popup di anteprima rapida che mostra il titolo, l\'orario, il luogo e la descrizione. Da lì puoi aprire il modulo di modifica completo.',
+        'views_table' => 'La vista <strong>Tabella</strong> elenca gli eventi come righe che puoi ordinare, filtrare e di cui puoi scegliere le colonne. <strong>Salva vista</strong> conserva una disposizione con un nome e <strong>Viste</strong> apre la libreria; la tabella ricorda l\'ultima vista scelta e la riapre la volta successiva, su qualsiasi browser, finché non ne scegli un\'altra o usi <strong>Reimposta</strong>, dopo di che si apre di nuovo con la tua vista predefinita.',
         'creating_heading' => 'Creazione di eventi',
         'creating_intro' => 'Aggiungere eventi al calendario è semplice. Fai clic sul pulsante <strong>+ Nuovo evento</strong> nella barra laterale per aprire il modulo dell\'evento. Compila i dettagli e salva &mdash; l\'evento appare immediatamente sul calendario.',
         'creating_step1' => '<strong>Fai clic su + Nuovo evento</strong> &mdash; il pulsante si trova nella barra laterale del calendario sulla sinistra. Si apre la finestra di creazione dell\'evento.',

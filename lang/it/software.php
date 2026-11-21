@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Editore',
         'col_installed' => 'Installato il',
         'col_seats' => 'Postazioni',
+        'col_installations' => 'Installazioni',
+        'col_licence_seats' => 'Postazioni in licenza',
         'col_actions' => '',
         'add_app' => 'Aggiungi applicazione',
         'new_app' => 'Nuova applicazione',
@@ -418,5 +420,10 @@ return [
         'tip5_t' => 'Non limitarti a guardare i grafici: cliccaci dentro. Ogni segmento di grafico è interattivo. Cliccando su una barra o una fetta di torta arrivi alle macchine dietro quel dato, così puoi indagare ulteriormente.',
         'tip6_b' => 'Aggiornamenti automatici',
         'tip6_t' => 'I dati del software si aggiornano ogni volta che lo script PowerShell viene eseguito su una macchina. Imposta l\'attività pianificata per l\'esecuzione quotidiana e il tuo inventario rifletterà sempre lo stato attuale del tuo parco IT.',
+    ],
+    'watch_filter' => [
+        'expiring' => 'Rinnovo entro {days} giorni',
+        'notice' => 'Il periodo di preavviso inizia entro {days} giorni',
+        'remove' => 'Rimuovi questo filtro',
     ],
 ];
