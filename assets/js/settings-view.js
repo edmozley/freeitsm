@@ -12,6 +12,12 @@
  * Nothing is moved in the DOM - the index sits in a grid column beside the panels - so
  * ids, page scripts and styles keep working.
  *
+ * GH #418 (@pappas81): the panels show in the TAB BAR's order - the order the module chose,
+ * Reply templates beside Templates - not the order its HTML happens to list them, and the
+ * index lists them as they appear. Before, the index followed the tabs and the page followed
+ * the HTML, so on most settings pages the two disagreed. CSS `order` on the grid items does
+ * it, so still nothing moves in the DOM.
+ *
  * Steps aside, leaving the tabs alone, when: the page has fewer than two panels it can
  * match to tabs (the SSO pages draw a tab bar with no panels); the screen is a phone.
  * The choice is the person's, saved as user_preferences.settings_view and used on every
@@ -147,6 +153,25 @@
             panels.forEach(it => spy.observe(it.panel));
         }
 
+        // ---- GH #418: the page in the tab bar's order, and the index in the page's ----
+        // The panels that are the grid's own items are re-slotted into tab order: they take
+        // the positions panels already had, so a heading above them or a Save button below
+        // keeps its place. A panel nested deeper cannot be reordered this way; for those the
+        // index simply follows where they are on screen.
+        function arrange(on) {
+            const kids = Array.from(container.children).filter(k => k !== index);
+            kids.forEach(k => { k.style.order = ''; });
+            if (!on) return;
+            const direct = panels.filter(it => it.panel.parentElement === container);
+            const slots = [];
+            kids.forEach((k, i) => { k.style.order = String(i); if (direct.some(it => it.panel === k)) slots.push(i); });
+            direct.forEach((it, n) => { it.panel.style.order = String(slots[n]); });
+            // The index in the order the sections are now drawn; links to other pages last.
+            const drawn = panels.slice().sort((a, b) => a.panel.getBoundingClientRect().top - b.panel.getBoundingClientRect().top);
+            drawn.forEach(it => { if (it.link) list.appendChild(it.link); });
+            items.forEach(it => { if (it.moved && it.link) list.appendChild(it.link); });
+        }
+
         /** Open every tab once, so each loads whatever it loads when opened; then return to the one that was open. */
         function warm() {
             if (warmed) return;
@@ -164,6 +189,7 @@
             sw.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));
             if (mode === 'page') warm();
             document.body.classList.toggle('sv-page', mode === 'page');
+            arrange(mode === 'page');
             // The switch sits at the top of the index in One page, beside the tab bar in Tabs.
             if (mode === 'page') index.insertBefore(sw, index.firstChild); else bar.insertAdjacentElement('beforebegin', sw);
             watch(mode === 'page');

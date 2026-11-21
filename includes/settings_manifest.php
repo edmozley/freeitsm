@@ -226,5 +226,5 @@ function renderSettingsViewSwitch(): void
             ] : []];
     echo '        <link rel="stylesheet" href="' . htmlspecialchars($base) . 'assets/css/settings-view.css?v=3">' . "\n";
     echo '        <script>window.SETTINGS_VIEW = ' . json_encode($cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) . ';</script>' . "\n";
-    echo '        <script src="' . htmlspecialchars($base) . 'assets/js/settings-view.js?v=3" defer></script>' . "\n";
+    echo '        <script src="' . htmlspecialchars($base) . 'assets/js/settings-view.js?v=4" defer></script>' . "\n";
 }
