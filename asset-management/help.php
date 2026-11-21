@@ -932,11 +932,18 @@ $translationNamespaces = ['common', 'asset-management'];
                         <h3><?php echo htmlspecialchars(t('asset-management.consumables.help_heading')); ?></h3>
                     </div>
                     <p><?php echo t('asset-management.consumables.help_intro'); ?></p>
+                    <?php /* The life of a consumable, in the order it happens (Ed, 2026-11-21: "does the help
+                             explain the process from start to finish - ordering, taking a delivery, recording,
+                             stock take, issuing"). Each step: its paragraphs, by key. */ ?>
+                    <p><strong><?php echo htmlspecialchars(t('asset-management.consumables.help_journey')); ?></strong></p>
+                    <?php foreach ([1 => ['p1'], 2 => ['p5'], 3 => ['p8'], 4 => ['p9', 'p3', 'p2'], 5 => ['p4'], 6 => ['p6'], 7 => ['p7']] as $step => $paras): ?>
+                    <h4><?php echo htmlspecialchars(t('asset-management.consumables.help_step' . $step)); ?></h4>
                     <div class="help-list">
-                        <?php foreach (['p1', 'p2', 'p8', 'p3', 'p9', 'p4', 'p5', 'p6', 'p7'] as $hp): ?>
+                        <?php foreach ($paras as $hp): ?>
                         <div><?php echo t('asset-management.consumables.help_' . $hp); ?></div>
                         <?php endforeach; ?>
                     </div>
+                    <?php endforeach; ?>
                 </div>
 
 <div class="help-section" id="tips">
