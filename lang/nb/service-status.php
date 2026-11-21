@@ -49,6 +49,7 @@ return [
     ],
     'modal' => [
         'new_incident' => 'Ny hendelse',
+        'new_incident_tip' => 'Ny hendelse',
         'edit_incident' => 'Rediger hendelse',
         'title' => 'Tittel',
         'title_placeholder' => 'Kort beskrivelse av hendelsen',

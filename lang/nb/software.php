@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Utgiver',
         'col_installed' => 'Installert på',
         'col_seats' => 'Seter',
+        'col_installations' => 'Installasjoner',
+        'col_licence_seats' => 'Lisensplasser',
         'col_actions' => '',
         'add_app' => 'Legg til applikasjon',
         'new_app' => 'Ny applikasjon',
@@ -418,5 +420,10 @@ return [
         'tip5_t' => 'Ikke bare se på diagrammene — klikk deg inn i dem. Hvert diagramsegment er interaktivt. Klikker du på en stolpe eller en sektor, kommer du til maskinene bak datapunktet, slik at du kan undersøke videre.',
         'tip6_b' => 'Automatiske oppdateringer',
         'tip6_t' => 'Programvaredataene oppdateres hver gang PowerShell-skriptet kjører på en maskin. Sett den planlagte oppgaven til å kjøre daglig, så vil inventaret alltid speile den faktiske tilstanden i maskinparken.',
+    ],
+    'watch_filter' => [
+        'expiring' => 'Fornyes innen {days} dager',
+        'notice' => 'Oppsigelsesfristen starter innen {days} dager',
+        'remove' => 'Fjern dette filteret',
     ],
 ];

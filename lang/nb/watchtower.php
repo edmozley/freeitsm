@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> kjøringer ble avbrutt av løkkebeskyttelsen siste 24 t',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhooks ga opp etter gjentatte forsøk — meldingen kom aldri fram',
         'failures' => '{count} feil',
+        'attention' => '<span class="wt-attention-bold">{count}</span> kjøring(er) hoppet over deler av jobben og la igjen et notat - siste: {name}',
     ],
     'mc' => [
         'metric_done' => 'Utført',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'Totalt',
         'metric_offline' => 'Frakoblet',
         'metric_lease' => 'Leasing',
+        'metric_consumables' => 'Lav beholdning',
         'metric_warranty' => 'Garanti',
         'warranty' => '<span class="wt-attention-bold">{count}</span> ressurser har utløpt garanti, eller garanti som utløper innen {days} dager',
         'lease' => '<span class="wt-attention-bold">{count}</span> ressurser har utløpt leasing, eller leasing som utløper innen {days} dager',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'Fortsett å vise dem',
         'impersonal_hide' => 'Skjul dem',
         'impersonal_note' => 'Tjenestestatus, arbeidsflyter, utstyr, den delte kalenderen, kontrakter, kunnskap, programvarelisenser og domener tilhører teamet og ikke en person, så de kan ikke begrenses til deg. Å beholde dem er det tryggeste svaret: en degradert tjeneste er det siste som bør forsvinne fordi du byttet til en personlig visning.',
+        'refresh_heading' => 'Watchtower oppdateres hvert',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Kortere passer for en skjerm på veggen: en bruker som er logget inn bare for den, forblir innlogget, og dashbordet oppdaterer seg selv.',
     ],
 ];

@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Velg visning',
         'views_flow_click' => 'Klikk på hendelse',
         'views_tip' => 'Klikk på en hendelse i kalenderen for å åpne en hurtigvisning med tittel, tid, sted og beskrivelse. Derfra kan du åpne hele redigeringsskjemaet.',
+        'views_table' => 'Visningen <strong>Tabell</strong> lister hendelsene som rader du kan sortere, filtrere og velge kolonner for. <strong>Lagre visning</strong> beholder en oppsetning under et navn, og <strong>Visninger</strong> åpner biblioteket. Tabellen husker visningen du sist valgte og åpner med den neste gang, i alle nettlesere - til du velger en annen eller bruker <strong>Tilbakestill</strong>, og da åpner den med standardvisningen din igjen.',
         'creating_heading' => 'Opprette hendelser',
         'creating_intro' => 'Det er enkelt å legge hendelser inn i kalenderen. Klikk <strong>+ Ny hendelse</strong> i sidepanelet for å åpne skjemaet. Fyll inn detaljene og lagre &mdash; hendelsen vises i kalenderen med én gang.',
         'creating_step1' => '<strong>Klikk + Ny hendelse</strong> &mdash; knappen ligger i kalenderens sidepanel til venstre. Da åpnes vinduet for å opprette en hendelse.',

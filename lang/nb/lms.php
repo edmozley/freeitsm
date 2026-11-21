@@ -47,6 +47,7 @@ return [
         'heading' => 'Kurs',
         'upload' => 'Last opp',
         'create' => 'Opprett',
+        'new_tip' => 'Nytt kurs',
         'col_title' => 'Tittel',
         'col_version' => 'SCORM-versjon',
         'col_uploaded' => 'Lastet opp',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'Læringsgrupper',
         'new' => 'Ny',
+        'new_tip' => 'Ny gruppe',
         'col_name' => 'Navn',
         'col_description' => 'Beskrivelse',
         'col_members' => 'Medlemmer',
