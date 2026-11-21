@@ -689,6 +689,9 @@ return [
             'help' => [
                 'unanswered' => 'Der Hilfe-Assistent konnte eine Frage nicht beantworten',
             ],
+            'consumable' => [
+                'low_stock' => 'Bestand wird knapp - Zeit zum Nachbestellen',
+            ],
             'hyperv' => [
                 'collector' => 'Ein Hyper-V-Collector braucht Ihre Aufmerksamkeit',
             ],
@@ -747,6 +750,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Der Hilfe-Assistent kann eine gestellte Frage nicht beantworten (Administratoren)',
+            ],
+            'consumable' => [
+                'low_stock' => 'Ein Verbrauchsmaterial erreicht seinen Meldebestand (wer benachrichtigt wird, legen Sie unter Assets -> Einstellungen -> Verbrauchsmaterial fest)',
             ],
             'hyperv' => [
                 'collector' => 'Ein Hyper-V-Collector meldet sich nicht mehr, oder der Speicher eines Clusters kann nicht gelesen werden (Personen, die Hyper-V-Verbindungen verwalten)',

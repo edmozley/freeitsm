@@ -862,6 +862,10 @@ return [
         'linked_toast' => '{name} tilknyttet',
         'expires' => 'Udløber {date}',
     ],
+    // Link to... -> Consumables (5.8.0): issue stock against the ticket.
+    'consumables' => [
+        'menu_item' => 'Forbrugsvarer',
+    ],
     'assets' => [
         'menu_item' => 'Udstyr',
         'section_title' => 'Berørt udstyr',
@@ -2450,6 +2454,10 @@ Dette kan ikke fortrydes. Vil du fortsætte?',
             'preferred_name_placeholder' => 'f.eks. Jane',
             'company' => 'Virksomhed',
             'company_none' => 'Ingen virksomhed (sager går til triage)',
+            // GH #398: add a company from the person editor
+            'company_new' => '+ Ny virksomhed...',
+            'company_new_name' => 'Navn på den nye virksomhed',
+            'company_new_failed' => 'Virksomheden kunne ikke tilføjes.',
             'cost_centre' => 'Omkostningssted',
             'cost_centre_none' => 'Ingen',
             'cost_centre_inactive' => 'inaktivt',

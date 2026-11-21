@@ -993,6 +993,13 @@ return [
         'intro' => 'Des champs que vous inventez pour les entreprises et pour les personnes. Les réponses se saisissent sur l\'entreprise (System → Entreprises) et sur la personne, et se lisent et s\'écrivent via l\'API REST sous custom_fields.',
         'tab_companies' => 'Entreprises',
         'tab_people' => 'Personnes',
+        // Assets -> Consumables (5.8.0)
+        'tab_consumables' => 'Consommables',
+        'intro_consumables' => 'Champs des consommables dans Actifs → Consommables. Un champ s\'applique à tous les types, ou à un seul - un toner peut avoir un rendement en pages et le papier un grammage.',
+        'f_consumable_type' => 'Type',
+        'f_consumable_type_hint' => 'Tous les types, ou un seul. Ne peut plus être modifié une fois le champ créé.',
+        'col_consumable_type' => 'Type',
+        'every_type' => 'Tous les types',
         'intro_companies' => 'Une seule liste pour toutes les entreprises.',
         'intro_people' => 'Partagés par toutes les entreprises, ou propres à une entreprise. Une personne qui change d\'entreprise ne voit plus les réponses de son ancienne entreprise.',
         'col_name' => 'Nom',

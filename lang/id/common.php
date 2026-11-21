@@ -689,6 +689,9 @@ return [
             'help' => [
                 'unanswered' => 'Asisten bantuan tidak dapat menjawab sebuah pertanyaan',
             ],
+            'consumable' => [
+                'low_stock' => 'Stok menipis - saatnya memesan ulang',
+            ],
             'hyperv' => [
                 'collector' => 'Collector Hyper-V memerlukan perhatian Anda',
             ],
@@ -747,6 +750,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Asisten bantuan tidak dapat menjawab pertanyaan yang diajukan seseorang (administrator)',
+            ],
+            'consumable' => [
+                'low_stock' => 'Barang habis pakai turun ke titik pemesanan ulangnya (siapa yang diberi tahu dipilih di Aset -> Pengaturan -> Barang habis pakai)',
             ],
             'hyperv' => [
                 'collector' => 'Collector Hyper-V berhenti melapor, atau penyimpanan sebuah cluster tidak dapat dibaca (orang yang mengelola koneksi Hyper-V)',

@@ -193,6 +193,7 @@ return [
         'metric_total' => 'Gesamt',
         'metric_offline' => 'Offline',
         'metric_lease' => 'Leasing',
+        'metric_consumables' => 'Niedriger Bestand',   // Consumables (5.8.0)
         'metric_warranty' => 'Garantie',
         'warranty' => '<span class="wt-attention-bold">{count}</span> Asset(s) mit abgelaufener oder innerhalb von {days} Tagen ablaufender Garantie',
         'lease' => '<span class="wt-attention-bold">{count}</span> Asset(s), deren Leasing beendet ist oder innerhalb von {days} Tagen endet',

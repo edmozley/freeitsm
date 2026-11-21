@@ -862,6 +862,10 @@ return [
         'linked_toast' => '{name} ditautkan',
         'expires' => 'Kedaluwarsa {date}',
     ],
+    // Link to... -> Consumables (5.8.0): issue stock against the ticket.
+    'consumables' => [
+        'menu_item' => 'Barang habis pakai',
+    ],
     'assets' => [
         'menu_item' => 'Perangkat',
         'section_title' => 'Perangkat terdampak',
@@ -2450,6 +2454,10 @@ Ini tidak dapat dibatalkan. Lanjutkan?',
             'preferred_name_placeholder' => 'misal, Siti',
             'company' => 'Perusahaan',
             'company_none' => 'Tanpa perusahaan (tiket masuk ke triase)',
+            // GH #398: add a company from the person editor
+            'company_new' => '+ Perusahaan baru...',
+            'company_new_name' => 'Nama perusahaan baru',
+            'company_new_failed' => 'Perusahaan tidak dapat ditambahkan.',
             'cost_centre' => 'Pusat biaya',
             'cost_centre_none' => 'Tidak ada',
             'cost_centre_inactive' => 'nonaktif',

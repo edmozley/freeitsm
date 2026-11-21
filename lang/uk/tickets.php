@@ -862,6 +862,10 @@ return [
         'linked_toast' => 'Прив\'язано {name}',
         'expires' => 'Спливає {date}',
     ],
+    // Link to... -> Consumables (5.8.0): issue stock against the ticket.
+    'consumables' => [
+        'menu_item' => 'Витратні матеріали',
+    ],
     'assets' => [
         'menu_item' => 'Обладнання',
         'section_title' => 'Уражене обладнання',
@@ -2450,6 +2454,10 @@ supplier.co.uk',
             'preferred_name_placeholder' => 'напр. Ганна',
             'company' => 'Компанія',
             'company_none' => 'Без компанії (заявки надходять до сортування)',
+            // GH #398: add a company from the person editor
+            'company_new' => '+ Нова компанія...',
+            'company_new_name' => 'Назва нової компанії',
+            'company_new_failed' => 'Не вдалося додати компанію.',
             'cost_centre' => 'Центр витрат',
             'cost_centre_none' => 'Немає',
             'cost_centre_inactive' => 'неактивний',

@@ -993,6 +993,13 @@ return [
         'intro' => 'Felter, du selv opfinder til virksomheder og personer. Svarene udfyldes på virksomheden (System → Virksomheder) og personen og læses og skrives via REST API\'et som custom_fields.',
         'tab_companies' => 'Virksomheder',
         'tab_people' => 'Personer',
+        // Assets -> Consumables (5.8.0)
+        'tab_consumables' => 'Forbrugsvarer',
+        'intro_consumables' => 'Felter på forbrugsvarer under Aktiver → Forbrugsvarer. Et felt hører til alle typer eller til én type - en toner kan have en sidekapacitet og papir en vægt.',
+        'f_consumable_type' => 'Type',
+        'f_consumable_type_hint' => 'Alle typer eller kun én. Kan ikke ændres, når feltet er oprettet.',
+        'col_consumable_type' => 'Type',
+        'every_type' => 'Alle typer',
         'intro_companies' => 'Én liste for alle virksomheder.',
         'intro_people' => 'Fælles for alle virksomheder eller kun for én virksomhed. En person, der skifter virksomhed, efterlader den gamle virksomheds svar skjult.',
         'col_name' => 'Navn',

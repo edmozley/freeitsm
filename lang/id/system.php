@@ -993,6 +993,13 @@ return [
         'intro' => 'Kolom yang Anda buat sendiri untuk perusahaan dan untuk orang. Jawaban diisi pada perusahaan (System → Perusahaan) dan pada orangnya, lalu dibaca dan ditulis melalui REST API sebagai custom_fields.',
         'tab_companies' => 'Perusahaan',
         'tab_people' => 'Orang',
+        // Assets -> Consumables (5.8.0)
+        'tab_consumables' => 'Barang habis pakai',
+        'intro_consumables' => 'Kolom untuk barang habis pakai di Aset → Barang habis pakai. Sebuah kolom berlaku untuk semua jenis, atau untuk satu jenis - toner bisa punya kapasitas halaman dan kertas punya berat.',
+        'f_consumable_type' => 'Jenis',
+        'f_consumable_type_hint' => 'Semua jenis, atau satu saja. Tidak dapat diubah setelah kolom dibuat.',
+        'col_consumable_type' => 'Jenis',
+        'every_type' => 'Semua jenis',
         'intro_companies' => 'Satu daftar untuk semua perusahaan.',
         'intro_people' => 'Dipakai bersama oleh semua perusahaan, atau milik satu perusahaan saja. Orang yang pindah perusahaan tidak lagi melihat jawaban dari perusahaan lamanya.',
         'col_name' => 'Nama',

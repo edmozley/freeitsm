@@ -862,6 +862,10 @@ return [
         'linked_toast' => '{name} vinculado',
         'expires' => 'Caduca el {date}',
     ],
+    // Link to... -> Consumables (5.8.0): issue stock against the ticket.
+    'consumables' => [
+        'menu_item' => 'Consumibles',
+    ],
     'assets' => [
         'menu_item' => 'Equipo',
         'section_title' => 'Equipo afectado',
@@ -2450,6 +2454,10 @@ Esto no se puede deshacer. ¿Continuar?',
             'preferred_name_placeholder' => 'p. ej. María',
             'company' => 'Empresa',
             'company_none' => 'Sin empresa (los tickets van a la cola de triaje)',
+            // GH #398: add a company from the person editor
+            'company_new' => '+ Nueva empresa...',
+            'company_new_name' => 'Nombre de la nueva empresa',
+            'company_new_failed' => 'No se ha podido añadir la empresa.',
             'cost_centre' => 'Centro de coste',
             'cost_centre_none' => 'Ninguno',
             'cost_centre_inactive' => 'inactivo',

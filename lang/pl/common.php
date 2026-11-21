@@ -689,6 +689,9 @@ return [
             'help' => [
                 'unanswered' => 'Asystent pomocy nie potrafił odpowiedzieć na pytanie',
             ],
+            'consumable' => [
+                'low_stock' => 'Kończy się zapas - czas zamówić ponownie',
+            ],
             'hyperv' => [
                 'collector' => 'Kolektor Hyper-V wymaga uwagi',
             ],
@@ -747,6 +750,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Asystent pomocy nie potrafi odpowiedzieć na czyjeś pytanie (administratorzy)',
+            ],
+            'consumable' => [
+                'low_stock' => 'Materiał eksploatacyjny spada do swojego progu zamówienia (kto dostaje powiadomienie, wybiera się w Zasoby -> Ustawienia -> Materiały eksploatacyjne)',
             ],
             'hyperv' => [
                 'collector' => 'Kolektor Hyper-V przestaje zgłaszać dane lub nie można odczytać pamięci masowej klastra (osoby zarządzające połączeniami Hyper-V)',

@@ -205,6 +205,7 @@ return [
         'metric_total' => 'Всього',
         'metric_offline' => 'Офлайн',
         'metric_lease' => 'Оренда',
+        'metric_consumables' => 'Низький запас',   // Consumables (5.8.0)
         'metric_warranty' => 'Гарантія',
         'warranty' => '<span class="wt-attention-bold">{count}</span> активів з гарантією, що закінчилась або закінчується протягом {days} днів',
         'lease' => '<span class="wt-attention-bold">{count}</span> активів з орендою, що закінчилась або закінчується протягом {days} днів',

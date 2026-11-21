@@ -993,6 +993,13 @@ return [
         'intro' => 'Pola, które tworzysz dla firm i dla osób. Odpowiedzi wypełnia się przy firmie (System → Firmy) i przy osobie, a odczytuje i zapisuje przez REST API jako custom_fields.',
         'tab_companies' => 'Firmy',
         'tab_people' => 'Osoby',
+        // Assets -> Consumables (5.8.0)
+        'tab_consumables' => 'Materiały eksploatacyjne',
+        'intro_consumables' => 'Pola materiałów eksploatacyjnych w Zasoby → Materiały eksploatacyjne. Pole należy do każdego typu albo do jednego typu - toner może mieć wydajność stron, a papier gramaturę.',
+        'f_consumable_type' => 'Typ',
+        'f_consumable_type_hint' => 'Każdy typ albo tylko jeden. Nie można go zmienić po utworzeniu pola.',
+        'col_consumable_type' => 'Typ',
+        'every_type' => 'Każdy typ',
         'intro_companies' => 'Jedna lista dla wszystkich firm.',
         'intro_people' => 'Wspólne dla wszystkich firm albo własne jednej firmy. Osoba, która zmienia firmę, nie widzi odpowiedzi ze swojej poprzedniej firmy.',
         'col_name' => 'Nazwa',

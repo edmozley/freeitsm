@@ -993,6 +993,13 @@ return [
         'intro' => 'Felder, die Sie selbst für Unternehmen und für Personen anlegen. Die Antworten werden beim Unternehmen (System → Unternehmen) und bei der Person ausgefüllt und über die REST-API als custom_fields gelesen und geschrieben.',
         'tab_companies' => 'Unternehmen',
         'tab_people' => 'Personen',
+        // Assets -> Consumables (5.8.0)
+        'tab_consumables' => 'Verbrauchsmaterial',
+        'intro_consumables' => 'Felder für Verbrauchsmaterial unter Assets → Verbrauchsmaterial. Ein Feld gilt für jeden Typ oder für einen einzigen Typ - Toner kann eine Seitenreichweite haben und Papier ein Gewicht.',
+        'f_consumable_type' => 'Typ',
+        'f_consumable_type_hint' => 'Jeder Typ oder nur einer. Kann nach dem Anlegen des Felds nicht mehr geändert werden.',
+        'col_consumable_type' => 'Typ',
+        'every_type' => 'Jeder Typ',
         'intro_companies' => 'Eine Liste für alle Unternehmen.',
         'intro_people' => 'Für alle Unternehmen gemeinsam oder nur für ein Unternehmen. Wechselt eine Person das Unternehmen, bleiben die Antworten des alten Unternehmens ausgeblendet.',
         'col_name' => 'Name',

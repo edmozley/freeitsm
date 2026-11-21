@@ -862,6 +862,10 @@ return [
         'linked_toast' => 'Συσχετίστηκε το {name}',
         'expires' => 'Λήγει στις {date}',
     ],
+    // Link to... -> Consumables (5.8.0): issue stock against the ticket.
+    'consumables' => [
+        'menu_item' => 'Αναλώσιμα',
+    ],
     'assets' => [
         'menu_item' => 'Εξοπλισμός',
         'section_title' => 'Επηρεαζόμενος εξοπλισμός',
@@ -2450,6 +2454,10 @@ supplier.co.uk',
             'preferred_name_placeholder' => 'π.χ. Μαρία',
             'company' => 'Εταιρεία',
             'company_none' => 'Καμία εταιρεία (τα αιτήματα πηγαίνουν στη διαλογή)',
+            // GH #398: add a company from the person editor
+            'company_new' => '+ Νέα εταιρεία...',
+            'company_new_name' => 'Όνομα της νέας εταιρείας',
+            'company_new_failed' => 'Δεν ήταν δυνατή η προσθήκη της εταιρείας.',
             'cost_centre' => 'Κέντρο κόστους',
             'cost_centre_none' => 'Κανένα',
             'cost_centre_inactive' => 'ανενεργό',

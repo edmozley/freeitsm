@@ -205,6 +205,7 @@ return [
         'metric_total' => 'Łącznie',
         'metric_offline' => 'Offline',
         'metric_lease' => 'Leasing',
+        'metric_consumables' => 'Niski stan',   // Consumables (5.8.0)
         'metric_warranty' => 'Gwarancja',
         'warranty' => '<span class="wt-attention-bold">{count}</span> zasobów z gwarancją wygasłą lub wygasającą w ciągu {days} dni',
         'lease' => '<span class="wt-attention-bold">{count}</span> zasobów z leasingiem zakończonym lub kończącym się w ciągu {days} dni',

@@ -689,6 +689,9 @@ return [
             'help' => [
                 'unanswered' => 'L\'assistant d\'aide n\'a pas pu répondre à une question',
             ],
+            'consumable' => [
+                'low_stock' => 'Stock bas - il est temps de recommander',
+            ],
             'hyperv' => [
                 'collector' => 'Un collecteur Hyper-V demande votre attention',
             ],
@@ -747,6 +750,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'L\'assistant d\'aide ne peut pas répondre à une question posée (administrateurs)',
+            ],
+            'consumable' => [
+                'low_stock' => 'Un consommable atteint son seuil de réapprovisionnement (les personnes prévenues se choisissent dans Actifs -> Paramètres -> Consommables)',
             ],
             'hyperv' => [
                 'collector' => 'Un collecteur Hyper-V cesse de remonter des rapports, ou le stockage d\'un cluster est illisible (personnes qui gèrent les connexions Hyper-V)',

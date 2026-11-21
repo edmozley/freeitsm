@@ -205,6 +205,7 @@ return [
         'metric_total' => 'Total',
         'metric_offline' => 'Luring',
         'metric_lease' => 'Sewa',
+        'metric_consumables' => 'Stok menipis',   // Consumables (5.8.0)
         'metric_warranty' => 'Garansi',
         'warranty' => '<span class="wt-attention-bold">{count}</span> aset dengan garansi yang sudah atau akan berakhir dalam {days} hari',
         'lease' => '<span class="wt-attention-bold">{count}</span> aset dengan sewa yang berakhir atau akan berakhir dalam {days} hari',

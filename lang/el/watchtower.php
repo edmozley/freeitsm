@@ -193,6 +193,7 @@ return [
         'metric_total' => 'Σύνολο',
         'metric_offline' => 'Εκτός σύνδεσης',
         'metric_lease' => 'Μίσθωση',
+        'metric_consumables' => 'Χαμηλό απόθεμα',   // Consumables (5.8.0)
         'metric_warranty' => 'Εγγύηση',
         'warranty' => '<span class="wt-attention-bold">{count}</span> πάγιο(α) με εγγύηση που έληξε ή λήγει εντός {days} ημερών',
         'lease' => '<span class="wt-attention-bold">{count}</span> πάγιο(α) με μίσθωση που έληξε ή λήγει εντός {days} ημερών',

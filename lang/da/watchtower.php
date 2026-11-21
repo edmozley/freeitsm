@@ -193,6 +193,7 @@ return [
         'metric_total' => 'I alt',
         'metric_offline' => 'Offline',
         'metric_lease' => 'Leasing',
+        'metric_consumables' => 'Lav beholdning',   // Consumables (5.8.0)
         'metric_warranty' => 'Garanti',
         'warranty' => '<span class="wt-attention-bold">{count}</span> aktiv(er) med garanti, der er udløbet eller udløber inden for {days} dage',
         'lease' => '<span class="wt-attention-bold">{count}</span> aktiv(er) med leasing, der er udløbet eller udløber inden for {days} dage',

@@ -862,6 +862,10 @@ return [
         'linked_toast' => 'Powiązano: {name}',
         'expires' => 'Wygasa {date}',
     ],
+    // Link to... -> Consumables (5.8.0): issue stock against the ticket.
+    'consumables' => [
+        'menu_item' => 'Materiały eksploatacyjne',
+    ],
     'assets' => [
         'menu_item' => 'Sprzęt',
         'section_title' => 'Sprzęt, którego dotyczy zgłoszenie',
@@ -2450,6 +2454,10 @@ Tej operacji nie da się cofnąć. Kontynuować?',
             'preferred_name_placeholder' => 'np. Jan',
             'company' => 'Firma',
             'company_none' => 'Brak firmy (zgłoszenia trafiają do wstępnej selekcji)',
+            // GH #398: add a company from the person editor
+            'company_new' => '+ Nowa firma...',
+            'company_new_name' => 'Nazwa nowej firmy',
+            'company_new_failed' => 'Nie udało się dodać firmy.',
             'cost_centre' => 'Centrum kosztów',
             'cost_centre_none' => 'Brak',
             'cost_centre_inactive' => 'nieaktywne',

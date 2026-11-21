@@ -862,6 +862,10 @@ return [
         'linked_toast' => '{name} verknüpft',
         'expires' => 'Läuft ab am {date}',
     ],
+    // Link to... -> Consumables (5.8.0): issue stock against the ticket.
+    'consumables' => [
+        'menu_item' => 'Verbrauchsmaterial',
+    ],
     'assets' => [
         'menu_item' => 'Geräte',
         'section_title' => 'Betroffene Geräte',
@@ -2450,6 +2454,10 @@ Das lässt sich nicht rückgängig machen. Fortfahren?',
             'preferred_name_placeholder' => 'z. B. Erika',
             'company' => 'Unternehmen',
             'company_none' => 'Kein Unternehmen (Tickets gehen in die Triage)',
+            // GH #398: add a company from the person editor
+            'company_new' => '+ Neues Unternehmen...',
+            'company_new_name' => 'Name des neuen Unternehmens',
+            'company_new_failed' => 'Das Unternehmen konnte nicht hinzugefügt werden.',
             'cost_centre' => 'Kostenstelle',
             'cost_centre_none' => 'Keine',
             'cost_centre_inactive' => 'inaktiv',

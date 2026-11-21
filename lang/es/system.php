@@ -993,6 +993,13 @@ return [
         'intro' => 'Campos que usted mismo crea para empresas y para personas. Las respuestas se rellenan en la empresa (Sistema → Empresas) y en la persona, y se leen y se escriben mediante la API REST como custom_fields.',
         'tab_companies' => 'Empresas',
         'tab_people' => 'Personas',
+        // Assets -> Consumables (5.8.0)
+        'tab_consumables' => 'Consumibles',
+        'intro_consumables' => 'Campos de los consumibles en Activos → Consumibles. Un campo pertenece a todos los tipos o a uno solo: un tóner puede tener un rendimiento en páginas y el papel un gramaje.',
+        'f_consumable_type' => 'Tipo',
+        'f_consumable_type_hint' => 'Todos los tipos o solo uno. No se puede cambiar una vez creado el campo.',
+        'col_consumable_type' => 'Tipo',
+        'every_type' => 'Todos los tipos',
         'intro_companies' => 'Una lista para todas las empresas.',
         'intro_people' => 'Comunes a todas las empresas o propios de una sola. Si una persona cambia de empresa, las respuestas de su empresa anterior quedan ocultas.',
         'col_name' => 'Nombre',

@@ -689,6 +689,9 @@ return [
             'help' => [
                 'unanswered' => 'El asistente de ayuda no pudo responder una pregunta',
             ],
+            'consumable' => [
+                'low_stock' => 'Queda poco: hora de volver a pedir',
+            ],
             'hyperv' => [
                 'collector' => 'Un recopilador de Hyper-V requiere su atención',
             ],
@@ -747,6 +750,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'El asistente de ayuda no puede responder una pregunta que alguien hizo (administradores)',
+            ],
+            'consumable' => [
+                'low_stock' => 'Un consumible baja a su punto de pedido (a quién se avisa se elige en Activos -> Ajustes -> Consumibles)',
             ],
             'hyperv' => [
                 'collector' => 'Un recopilador de Hyper-V deja de informar, o no se puede leer el almacenamiento de un clúster (personas que gestionan conexiones de Hyper-V)',

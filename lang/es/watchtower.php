@@ -193,6 +193,7 @@ return [
         'metric_total' => 'Total',
         'metric_offline' => 'Sin conexión',
         'metric_lease' => 'Arrendamiento',
+        'metric_consumables' => 'Stock bajo',   // Consumables (5.8.0)
         'metric_warranty' => 'Garantía',
         'warranty' => '<span class="wt-attention-bold">{count}</span> activo(s) con garantía vencida o que vence en {days} días',
         'lease' => '<span class="wt-attention-bold">{count}</span> activo(s) con arrendamiento terminado o que termina en {days} días',

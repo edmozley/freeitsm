@@ -205,6 +205,7 @@ return [
         'metric_total' => 'Total',
         'metric_offline' => 'Hors ligne',
         'metric_lease' => 'Location',
+        'metric_consumables' => 'Stock bas',   // Consumables (5.8.0)
         'metric_warranty' => 'Garantie',
         'warranty' => '<span class="wt-attention-bold">{count}</span> actif(s) avec garantie expirée ou expirant sous {days} jours',
         'lease' => '<span class="wt-attention-bold">{count}</span> actif(s) dont la location a pris fin ou prend fin sous {days} jours',
