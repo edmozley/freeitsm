@@ -121,4 +121,16 @@ return [
         'link'     => 'war-room/',
         'check'    => ['rows', 'warroom_pins'],
     ],
+    [
+        'id'       => 'war-room.translate',
+        'module'   => 'war-room',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Everyone in their own language',
+        'what'     => 'War room messages typed in any language appear in each reader\'s own FreeITSM language, with the original one click away. Switched on under War room -> Settings -> AI.',
+        'why'      => 'In a team spread across countries, an incident is the worst time to work in a second language. Each message is translated once per language and kept, so it costs pennies.',
+        'done'     => 'War room translation is switched on.',
+        'link'     => 'war-room/settings/?tab=ai',
+        'check'    => ['setting', 'warroom_translate', 'eq', '1'],
+    ],
 ];

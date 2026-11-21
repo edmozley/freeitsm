@@ -195,6 +195,8 @@ return [
         'talking_open_desc' => 'Klik på en fil for at åbne den i et vindue, du kan flytte og ændre størrelse på - PDF, Word- og Excel-dokumenter, billeder, video og tekst vises uden at blive hentet, og Hent er ved siden af. Det kræver ikke internet.',
         'talking_keep_title' => 'Fastgør, gem og vend tilbage senere',
         'talking_keep_desc' => 'Fastgør sætter en besked i bjælken Fastgjort øverst i samtalen for alle - alle i samtalen kan fastgøre og frigøre, og det vises, hvem der fastgjorde den. Gem lægger en besked på din egen liste Gemte (knappen ved siden af Søg) - ingen andre ser den. Markér som ulæst viser samtalen som ulæst fra den besked, til du forlader den og kommer tilbage.',
+        'talking_translate_title' => 'Læs på dit eget sprog',
+        'talking_translate_desc' => 'Når din administrator har slået oversættelse til, vises beskeder skrevet på andre sprog på dit FreeITSM-sprog og toner frem, når oversættelsen kommer. Oversat fra ... · Vis original under en besked skifter den tilbage; Vis beskeder på mit sprog i panelet til venstre slår det fra for dig.',
         'finding_heading' => 'At finde ting',
         'finding_intro' => 'To måder, afhængigt af om du leder efter noget, eller noget leder efter dig.',
         'finding_search_title' => 'Søgning',
@@ -259,6 +261,11 @@ return [
         'ai_heading' => 'Situationsrapport',
         'ai_intro' => 'Situationsrapporten læser krisecentrets chat og udkaster den opdatering, en service delivery manager ville sende til virksomheden — hvor tingene står, hvad der er ændret, hvem der gør hvad, og hvad der stadig er ukendt.',
         'ai_caveat' => 'Dette er den eneste del af krisecentret, der kræver internettet, og det er valgfrit. Uden det fungerer chatten præcis, som den gør nu. Udskriften af de kanaler, personen kan læse, sendes til den udbyder, du vælger her.',
+        'translate_heading' => 'Oversæt beskeder',
+        'translate_intro' => 'Hver person kan læse krigsrummet på sit eget FreeITSM-sprog: beskeder skrevet på et andet sprog oversættes af AI-udbyderen ovenfor, og originalen er altid ét klik væk. Hver besked oversættes én gang til hvert sprog, og oversættelsen gemmes, så intet betales to gange.',
+        'translate_privacy' => 'Slår du dette til, sendes teksten i krigsrummets beskeder til AI-udbyderen ovenfor for at blive oversat. Lad det være slået fra, hvis beskeder ikke må forlade denne server. Uden udbyderen, eller uden internet, ser alle bare beskederne, som de blev skrevet.',
+        'translate_label' => 'Oversæt beskeder til hver persons sprog',
+        'translate_hint' => 'Hver person kan stadig slå det fra for sig selv i krigsrummet.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -331,5 +338,13 @@ return [
     ],
     'unread' => [
         'done' => 'Markeret som ulæst - den forbliver ulæst, til du forlader samtalen og kommer tilbage.',
+    ],
+    'translate' => [
+        'toggle' => 'Vis beskeder på mit sprog',
+        'hint' => 'Beskeder skrevet på andre sprog oversættes af den AI-udbyder, din administrator har valgt. Originalen er altid ét klik væk.',
+        'from' => 'Oversat fra {lang}',
+        'translated' => 'Oversat',
+        'show_original' => 'Vis original',
+        'show_translation' => 'Vis oversættelse',
     ],
 ];

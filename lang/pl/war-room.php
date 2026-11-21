@@ -195,6 +195,8 @@ return [
         'talking_open_desc' => 'Kliknij plik, aby otworzyć go w oknie, które można przesuwać i powiększać - pliki PDF, dokumenty Word i Excel, obrazy, wideo i tekst są wyświetlane bez pobierania, a obok jest Pobierz. Nie wymaga internetu.',
         'talking_keep_title' => 'Przypinanie, zapisywanie i powrót później',
         'talking_keep_desc' => 'Przypnij umieszcza wiadomość na pasku Przypięte u góry rozmowy dla wszystkich - każdy w rozmowie może przypinać i odpinać, a widać, kto przypiął. Zapisz dodaje wiadomość do Twojej listy Zapisane (przycisk obok Szukaj) - nikt inny jej nie widzi. Oznacz jako nieprzeczytane pokazuje rozmowę jako nieprzeczytaną od tej wiadomości, dopóki jej nie opuścisz i nie wrócisz.',
+        'talking_translate_title' => 'Czytanie we własnym języku',
+        'talking_translate_desc' => 'Gdy administrator włączy tłumaczenie, wiadomości w innych językach pojawiają się w Twoim języku FreeITSM, płynnie po nadejściu tłumaczenia. Przetłumaczono z ... · Pokaż oryginał pod wiadomością przywraca ją; Pokazuj wiadomości w moim języku w panelu po lewej wyłącza to dla Ciebie.',
         'finding_heading' => 'Wyszukiwanie',
         'finding_intro' => 'Dwa sposoby, w zależności od tego, czy Ty czegoś szukasz, czy coś szuka Ciebie.',
         'finding_search_title' => 'Wyszukiwanie',
@@ -259,6 +261,11 @@ return [
         'ai_heading' => 'Raport sytuacyjny',
         'ai_intro' => 'Raport sytuacyjny odczytuje czat sztabu kryzysowego i przygotowuje projekt aktualizacji, jaką wysłałby kierownik ds. dostarczania usług do biznesu — jak sprawy stoją, co się zmieniło, kto co robi i co wciąż jest niewiadome.',
         'ai_caveat' => 'To jedyna część sztabu kryzysowego wymagająca internetu i jest opcjonalna. Bez niej czat działa dokładnie tak jak teraz. Zapis kanałów, które dana osoba może czytać, jest wysyłany do wybranego tutaj dostawcy.',
+        'translate_heading' => 'Tłumaczenie wiadomości',
+        'translate_intro' => 'Każdy może czytać pokój kryzysowy we własnym języku FreeITSM: wiadomości w innym języku tłumaczy dostawca AI powyżej, a oryginał jest zawsze o jedno kliknięcie. Każda wiadomość jest tłumaczona raz na każdy język, a tłumaczenie jest zapisywane, więc nic nie jest opłacane dwa razy.',
+        'translate_privacy' => 'Włączenie tej opcji wysyła tekst wiadomości do dostawcy AI powyżej w celu tłumaczenia. Zostaw ją wyłączoną, jeśli wiadomości nie mogą opuszczać tego serwera. Bez dostawcy lub bez internetu wszyscy po prostu widzą wiadomości tak, jak zostały napisane.',
+        'translate_label' => 'Tłumacz wiadomości na język każdej osoby',
+        'translate_hint' => 'Każdy może ją wyłączyć dla siebie w pokoju kryzysowym.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -331,5 +338,13 @@ return [
     ],
     'unread' => [
         'done' => 'Oznaczono jako nieprzeczytane - pozostanie tak, dopóki nie opuścisz tej rozmowy i nie wrócisz.',
+    ],
+    'translate' => [
+        'toggle' => 'Pokazuj wiadomości w moim języku',
+        'hint' => 'Wiadomości w innych językach tłumaczy dostawca AI wybrany przez administratora. Oryginał jest zawsze o jedno kliknięcie.',
+        'from' => 'Przetłumaczono z: {lang}',
+        'translated' => 'Przetłumaczono',
+        'show_original' => 'Pokaż oryginał',
+        'show_translation' => 'Pokaż tłumaczenie',
     ],
 ];

@@ -195,6 +195,8 @@ return [
         'talking_open_desc' => 'Klicken Sie auf eine Datei, um sie in einem verschiebbaren, größenveränderbaren Fenster zu öffnen - PDFs, Word- und Excel-Dokumente, Bilder, Videos und Text werden ohne Herunterladen angezeigt, Herunterladen steht daneben. Dafür ist kein Internet nötig.',
         'talking_keep_title' => 'Anheften, speichern und später wiederkommen',
         'talking_keep_desc' => 'Anheften setzt eine Nachricht für alle in die Leiste Angeheftet oben in der Unterhaltung - jeder in der Unterhaltung kann anheften und lösen, und es wird angezeigt, wer angeheftet hat. Speichern legt eine Nachricht in Ihre eigene Liste Gespeichert (die Schaltfläche neben Suchen) - niemand sonst sieht sie. Als ungelesen markieren zeigt die Unterhaltung ab dieser Nachricht als ungelesen, bis Sie sie verlassen und zurückkommen.',
+        'talking_translate_title' => 'In der eigenen Sprache lesen',
+        'talking_translate_desc' => 'Wenn Ihre Administration die Übersetzung eingeschaltet hat, erscheinen Nachrichten in anderen Sprachen in Ihrer FreeITSM-Sprache und werden eingeblendet, sobald die Übersetzung da ist. Übersetzt aus ... · Original anzeigen unter einer Nachricht schaltet diese zurück; Nachrichten in meiner Sprache anzeigen im linken Bereich schaltet es für Sie aus.',
         'finding_heading' => 'Dinge finden',
         'finding_intro' => 'Zwei Wege — je nachdem, ob Sie etwas suchen oder etwas Sie sucht.',
         'finding_search_title' => 'Suche',
@@ -259,6 +261,11 @@ return [
         'ai_heading' => 'Lagebericht',
         'ai_intro' => 'Der Lagebericht liest den Chat des Lagezentrums und entwirft die Meldung, die ein Service-Delivery-Manager an das Unternehmen senden würde — wie der Stand ist, was sich geändert hat, wer woran arbeitet und was noch offen ist.',
         'ai_caveat' => 'Dies ist der eine Teil des Lagezentrums, der das Internet benötigt, und er ist optional. Ohne ihn funktioniert der Chat genau wie bisher. Der Verlauf der Kanäle, auf die die jeweilige Person Zugriff hat, wird an den hier gewählten Anbieter übertragen.',
+        'translate_heading' => 'Nachrichten übersetzen',
+        'translate_intro' => 'Jede Person kann den War Room in ihrer eigenen FreeITSM-Sprache lesen: Nachrichten in einer anderen Sprache werden vom KI-Anbieter oben übersetzt, und das Original ist immer einen Klick entfernt. Jede Nachricht wird einmal pro Sprache übersetzt und die Übersetzung gespeichert, sodass nichts doppelt bezahlt wird.',
+        'translate_privacy' => 'Wenn Sie dies einschalten, wird der Text der War-Room-Nachrichten zur Übersetzung an den KI-Anbieter oben gesendet. Lassen Sie es aus, wenn Nachrichten diesen Server nicht verlassen dürfen. Ohne den Anbieter oder ohne Internet sehen alle die Nachrichten einfach so, wie sie geschrieben wurden.',
+        'translate_label' => 'Nachrichten in die Sprache jeder Person übersetzen',
+        'translate_hint' => 'Jede Person kann es im War Room trotzdem für sich ausschalten.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -331,5 +338,13 @@ return [
     ],
     'unread' => [
         'done' => 'Als ungelesen markiert - sie bleibt ungelesen, bis Sie die Unterhaltung verlassen und zurückkommen.',
+    ],
+    'translate' => [
+        'toggle' => 'Nachrichten in meiner Sprache anzeigen',
+        'hint' => 'Nachrichten in anderen Sprachen werden vom KI-Anbieter übersetzt, den Ihre Administration gewählt hat. Das Original ist immer einen Klick entfernt.',
+        'from' => 'Übersetzt aus {lang}',
+        'translated' => 'Übersetzt',
+        'show_original' => 'Original anzeigen',
+        'show_translation' => 'Übersetzung anzeigen',
     ],
 ];

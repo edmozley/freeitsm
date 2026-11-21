@@ -195,6 +195,8 @@ return [
         'talking_open_desc' => 'Cliquez sur un fichier pour l\'ouvrir dans une fenêtre déplaçable et redimensionnable - PDF, documents Word et Excel, images, vidéos et texte s\'affichent sans téléchargement, avec Télécharger à côté. Aucun accès à internet n\'est nécessaire.',
         'talking_keep_title' => 'Épingler, enregistrer et revenir plus tard',
         'talking_keep_desc' => 'Épingler place un message dans la barre Épinglés en haut de la conversation, pour tous - chacun dans la conversation peut épingler et désépingler, et l\'auteur de l\'épingle est affiché. Enregistrer garde un message dans votre propre liste Enregistrés (le bouton à côté de Rechercher) - personne d\'autre ne la voit. Marquer comme non lu affiche la conversation comme non lue à partir de ce message jusqu\'à ce que vous la quittiez et y reveniez.',
+        'talking_translate_title' => 'Lire dans votre langue',
+        'talking_translate_desc' => 'Lorsque votre administrateur a activé la traduction, les messages écrits dans d\'autres langues s\'affichent dans votre langue FreeITSM, en fondu à l\'arrivée de la traduction. Traduit de ... · Afficher l\'original sous un message le rétablit ; Afficher les messages dans ma langue, dans le panneau de gauche, la désactive pour vous.',
         'finding_heading' => 'Trouver des informations',
         'finding_intro' => 'Deux façons, selon que vous cherchez quelque chose ou que quelque chose vous cherche.',
         'finding_search_title' => 'Recherche',
@@ -259,6 +261,11 @@ return [
         'ai_heading' => 'Rapport de situation',
         'ai_intro' => 'Le rapport de situation lit le chat du War Room et rédige le point qu\'un responsable de la livraison de services enverrait à l\'entreprise — où en sont les choses, ce qui a changé, qui fait quoi et ce qui reste inconnu.',
         'ai_caveat' => 'C\'est la seule partie du War Room qui a besoin d\'Internet, et c\'est facultatif. Sans cela, le chat fonctionne exactement comme maintenant. La transcription des canaux que la personne peut lire est envoyée au fournisseur que vous choisissez ici.',
+        'translate_heading' => 'Traduire les messages',
+        'translate_intro' => 'Chacun peut lire la salle de crise dans sa propre langue FreeITSM : les messages écrits dans une autre langue sont traduits par le fournisseur d\'IA ci-dessus, et l\'original est toujours à un clic. Chaque message est traduit une seule fois dans chaque langue et la traduction est conservée : rien n\'est payé deux fois.',
+        'translate_privacy' => 'Activer cette option envoie le texte des messages au fournisseur d\'IA ci-dessus pour traduction. Laissez-la désactivée si les messages ne doivent pas quitter ce serveur. Sans le fournisseur, ou sans internet, chacun voit simplement les messages tels qu\'ils ont été écrits.',
+        'translate_label' => 'Traduire les messages dans la langue de chacun',
+        'translate_hint' => 'Chacun peut toujours la désactiver pour lui-même dans la salle de crise.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -331,5 +338,13 @@ return [
     ],
     'unread' => [
         'done' => 'Marqué comme non lu - il le reste jusqu\'à ce que vous quittiez cette conversation et y reveniez.',
+    ],
+    'translate' => [
+        'toggle' => 'Afficher les messages dans ma langue',
+        'hint' => 'Les messages écrits dans d\'autres langues sont traduits par le fournisseur d\'IA choisi par votre administrateur. L\'original est toujours à un clic.',
+        'from' => 'Traduit de : {lang}',
+        'translated' => 'Traduit',
+        'show_original' => 'Afficher l\'original',
+        'show_translation' => 'Afficher la traduction',
     ],
 ];

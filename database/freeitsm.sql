@@ -9014,6 +9014,10 @@ CREATE TABLE IF NOT EXISTS `warroom_messages` (
     -- (5.9.0). The poll re-sends anything changed in the last 30 seconds, because
     -- the message's id is below the reader's since_id watermark.
     `changed_datetime` DATETIME NULL,
+    -- The language the message is written in (5.9.0), detected once by the AI when
+    -- it is first translated - so a message is never sent anywhere for a reader who
+    -- already speaks its language. NULL = not detected yet.
+    `lang`             VARCHAR(16) NULL,
     PRIMARY KEY (`id`),
     -- (channel_id, id): every read is "this channel, newer than id N".
     KEY `ix_warroom_messages_channel` (`channel_id`, `id`),
@@ -9091,6 +9095,20 @@ CREATE TABLE IF NOT EXISTS `warroom_reactions` (
     KEY `ix_warroom_reactions_analyst` (`analyst_id`),
     CONSTRAINT `fk_warroom_reactions_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_warroom_reactions_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Translations of war room messages (5.9.0), one per message per language - not per
+-- person, so a message is translated at most once into each language however many
+-- people read it. The original in warroom_messages is always the record.
+CREATE TABLE IF NOT EXISTS `warroom_translations` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `message_id`       INT NOT NULL,
+    `lang`             VARCHAR(16) NOT NULL,
+    `body`             TEXT NOT NULL,
+    `created_datetime` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_warroom_translation` (`message_id`, `lang`),
+    CONSTRAINT `fk_warroom_translations_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Pinned messages (5.9.0): pinned for everyone in the conversation. Anyone who can

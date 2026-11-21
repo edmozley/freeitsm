@@ -37,6 +37,7 @@ return [
             'setting_keys' => [
                 'warroom_ai_provider', 'warroom_ai_model',
                 'warroom_ai_api_key', 'warroom_ai_verify_ssl',
+                'warroom_translate',   // 5.9.0: translate messages into each reader's language (off by default)
             ],
         ],
     ],

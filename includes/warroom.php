@@ -495,7 +495,7 @@ function warRoomDirectory(PDO $conn, int $analystId): array
  * @param int $sinceId  the newest message id the page holds; 0 for the first load (the latest $limit)
  * @param int $limit  the most messages to return, 1-500
  */
-function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit = 200, int $viewerId = 0, int $aroundId = 0): array
+function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit = 200, int $viewerId = 0, int $aroundId = 0, string $viewerLang = ''): array
 {
     $limit = max(1, min(500, $limit));
 
@@ -516,7 +516,7 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
 
     $cols = "m.id, m.body, m.created_datetime, m.analyst_id, a.full_name,
              m.edited_datetime, m.deleted_datetime, d.full_name AS deleted_by_name,
-             m.is_bot, m.reply_to_id, m.quote_of_id";
+             m.is_bot, m.reply_to_id, m.quote_of_id, m.lang";
     $joins = "LEFT JOIN analysts a ON a.id = m.analyst_id
               LEFT JOIN analysts d ON d.id = m.deleted_by";
 
@@ -585,6 +585,8 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
             'deleted_by'  => $r['deleted_by_name'],
             'attachments' => [],
             'reactions'   => [],
+            'lang'        => $r['lang'] ?? null,   // 5.9.0: the language it is written in, once detected
+            'tr'          => null,    // 5.9.0: a stored translation into the viewer's language
             'pinned'      => null,    // 5.9.0: {by, at} when pinned for everyone
             'saved'       => false,   // 5.9.0: the viewer's own bookmark
             'quote'       => $r['quote_of_id'] !== null && $r['deleted_datetime'] === null
@@ -614,6 +616,7 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
         warRoomAttachReactions($conn, $rows, $in, $viewerId);
         warRoomAttachQuotes($conn, $rows, $channelId);
         warRoomAttachPinsAndSaved($conn, $rows, $in, $viewerId);
+        if ($viewerLang !== '') warRoomAttachTranslations($conn, $rows, $in, $viewerLang);
     }
     return array_values($rows);
 }
@@ -941,6 +944,203 @@ function warRoomMarkUnread(PDO $conn, int $analystId, int $messageId): bool
     return true;
 }
 
+/* ── Translation (5.9.0) - wiki War-Room-Message-Actions-Design ─────────────────
+   Every message is stored as typed; each reader can see it in their own FreeITSM
+   language. A translation is stored once per message per LANGUAGE (not per person)
+   and a message's own language is detected once, so nothing is translated twice
+   and an English message is never sent anywhere for an English reader. Off unless
+   an administrator switches it on (War room -> Settings -> AI), because it sends
+   message text to the AI provider. Without the provider, or the internet, readers
+   simply see the originals - the chat never waits for it. */
+
+/** True when an administrator has switched translation on AND an AI provider is set up. */
+function warRoomTranslateEnabled(PDO $conn): bool
+{
+    try {
+        $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'warroom_translate' LIMIT 1");
+        $st->execute();
+        if ((string) $st->fetchColumn() !== '1') return false;
+        require_once __DIR__ . '/ai_settings.php';
+        require_once __DIR__ . '/ai_provider.php';
+        return aiConfigured(aiSettingsLoad($conn, 'warroom_ai'));
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/** The primary language subtag, lower-case: 'pt-BR' -> 'pt', 'FR' -> 'fr'. */
+function warRoomLangKey(?string $code): string
+{
+    return strtolower(explode('-', str_replace('_', '-', trim((string) $code)))[0]);
+}
+
+/** Drop a message's translations and its detected language - after an edit or a delete. */
+function warRoomForgetTranslations(PDO $conn, int $messageId): void
+{
+    try {
+        $conn->prepare("DELETE FROM warroom_translations WHERE message_id = ?")->execute([$messageId]);
+        $conn->prepare("UPDATE warroom_messages SET lang = NULL WHERE id = ?")->execute([$messageId]);
+    } catch (Throwable $e) {
+        // before Database Verification: nothing stored yet
+    }
+}
+
+/**
+ * Put each message's stored translation into the viewer's language on its row.
+ *
+ * @param array $rows  warRoomMessages()' rows by id - filled in place
+ * @param string $in   the same ids as a comma list (already integers)
+ * @param string $lang the viewer's FreeITSM language, e.g. 'de'
+ */
+function warRoomAttachTranslations(PDO $conn, array &$rows, string $in, string $lang): void
+{
+    try {
+        $st = $conn->prepare("SELECT message_id, body FROM warroom_translations WHERE lang = ? AND message_id IN ($in)");
+        $st->execute([warRoomLangKey($lang)]);
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $t) {
+            $mid = (int) $t['message_id'];
+            if (isset($rows[$mid]) && !$rows[$mid]['deleted']) $rows[$mid]['tr'] = $t['body'];
+        }
+    } catch (Throwable $e) {
+        // before Database Verification
+    }
+}
+
+/**
+ * Translate messages of one channel into a language, using and filling the store.
+ *
+ * Returns, for each message asked about that has text: ['lang' => its language,
+ * 'text' => the translation, or null when it is already in that language]. Messages
+ * it could not translate (the provider failed) are left out, so the page keeps the
+ * original. Two readers asking at once for the same language wait on one lock, so
+ * the second finds the first one's translations instead of paying again.
+ *
+ * @param int $channelId  checked here: the analyst must be able to read it
+ * @param int[] $ids      message ids in that channel (at most 60 are looked at)
+ * @param string $target  the reader's FreeITSM language, e.g. 'de'
+ * @throws RuntimeException  when the AI provider cannot be reached
+ */
+function warRoomTranslate(PDO $conn, int $analystId, int $channelId, array $ids, string $target): array
+{
+    if (!warRoomCanAccessChannel($conn, $analystId, $channelId)) return [];
+    $want = warRoomLangKey($target);
+    $ids = array_slice(array_values(array_unique(array_filter(array_map('intval', $ids), fn($i) => $i > 0))), 0, 60);
+    if (!$ids || $want === '') return [];
+
+    /** The messages still to do, and the answers so far. */
+    $load = function () use ($conn, $channelId, $ids, $want): array {
+        $in = implode(',', $ids);
+        $st = $conn->prepare(
+            "SELECT m.id, m.body, m.lang, t.body AS tr
+               FROM warroom_messages m
+               LEFT JOIN warroom_translations t ON t.message_id = m.id AND t.lang = ?
+              WHERE m.channel_id = ? AND m.id IN ($in) AND m.deleted_datetime IS NULL AND TRIM(m.body) <> ''"
+        );
+        $st->execute([$want, $channelId]);
+        $done = []; $todo = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $id = (int) $r['id'];
+            if ($r['lang'] !== null && warRoomLangKey($r['lang']) === $want) $done[$id] = ['lang' => $r['lang'], 'text' => null];
+            elseif ($r['tr'] !== null) $done[$id] = ['lang' => $r['lang'], 'text' => $r['tr']];
+            else $todo[$id] = (string) $r['body'];
+        }
+        return [$done, $todo];
+    };
+
+    [$done, $todo] = $load();
+    if (!$todo) return $done;
+
+    $lock = 'wr_tr_' . $channelId . '_' . $want;
+    $locked = (int) $conn->query("SELECT GET_LOCK(" . $conn->quote($lock) . ", 25)")->fetchColumn() === 1;
+    try {
+        if ($locked) [$done, $todo] = $load();   // somebody else may have just done them
+        if (!$todo) return $done;
+
+        require_once __DIR__ . '/ai_settings.php';
+        require_once __DIR__ . '/ai_provider.php';
+        $cfg = aiSettingsLoad($conn, 'warroom_ai');
+        $setLang = $conn->prepare("UPDATE warroom_messages SET lang = ? WHERE id = ? AND lang IS NULL");
+        $save = $conn->prepare("INSERT IGNORE INTO warroom_translations (message_id, lang, body, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())");
+
+        foreach (array_chunk($todo, 20, true) as $batch) {
+            foreach (warRoomTranslateBatch($cfg, $want, $batch) as $id => $res) {
+                $src = $res['lang'];
+                if ($src !== '') $setLang->execute([$src, $id]);
+                if ($res['same'] || ($src !== '' && warRoomLangKey($src) === $want)) {
+                    $done[$id] = ['lang' => $src ?: $want, 'text' => null];
+                } elseif ($res['text'] !== '') {
+                    $save->execute([$id, $want, $res['text']]);
+                    $done[$id] = ['lang' => $src, 'text' => $res['text']];
+                }
+            }
+        }
+        return $done;
+    } finally {
+        if ($locked) $conn->query("SELECT RELEASE_LOCK(" . $conn->quote($lock) . ")");
+    }
+}
+
+/**
+ * One call to the AI provider: detect each message's language and translate the
+ * ones that are not already in the target language.
+ *
+ * @param array $cfg     aiSettingsLoad($conn, 'warroom_ai')
+ * @param string $want   the target language key, e.g. 'de'
+ * @param array $batch   [message id => original text], at most 20
+ * @return array [id => ['lang' => detected code, 'same' => bool, 'text' => translation or '']]
+ */
+function warRoomTranslateBatch(array $cfg, string $want, array $batch): array
+{
+    $name = class_exists('I18n') ? (I18n::getSupportedLocales()[$want] ?? '') : '';
+    $items = [];
+    $chars = 0;
+    foreach ($batch as $id => $text) { $items[] = ['id' => $id, 'text' => $text]; $chars += mb_strlen($text); }
+    $result = aiProviderChat($cfg, [
+        'system' => 'You translate short messages from an IT team\'s incident chat. Reply with JSON only - no commentary, no code fences.',
+        'user'   => warRoomTranslatePrompt($want, $name, $items),
+        // Room for every translation, plus any thinking the model does first.
+        'max_tokens' => min(16000, 1500 + $chars * 2),
+    ]);
+    $raw = (string) ($result['content'] ?? '');
+    $a = strpos($raw, '['); $b = strrpos($raw, ']');
+    $list = ($a !== false && $b !== false && $b > $a) ? json_decode(substr($raw, $a, $b - $a + 1), true) : null;
+    $out = [];
+    foreach ((array) $list as $r) {
+        $id = (int) ($r['id'] ?? 0);
+        if (!isset($batch[$id])) continue;   // only the messages we asked about
+        $lang = preg_match('/^[a-z]{2,3}(-[a-z0-9]{2,8})?$/i', (string) ($r['lang'] ?? '')) ? strtolower((string) $r['lang']) : '';
+        $out[$id] = [
+            'lang' => $lang,
+            'same' => !empty($r['same']),
+            'text' => mb_substr(trim((string) ($r['text'] ?? '')), 0, WARROOM_MAX_BODY * 2),
+        ];
+    }
+    return $out;
+}
+
+/**
+ * The translation request. Names, addresses and codes are kept as written - in an
+ * incident chat "@Sarah restart srv-db01 (INC-1042)" must not come back as anything else.
+ *
+ * @param string $want  the target language code, e.g. 'de'
+ * @param string $name  its own name, e.g. 'Deutsch' - helps the model
+ * @param array $items  [['id' => int, 'text' => string], ...]
+ */
+function warRoomTranslatePrompt(string $want, string $name, array $items): string
+{
+    return "Target language: {$want}" . ($name !== '' ? " ({$name})" : '') . ".\n\n"
+        . "For each message below:\n"
+        . "- Detect the language it is written in, as an ISO 639-1 code (e.g. en, fr, de, es).\n"
+        . "- If it is already in the target language, return \"same\": true and no text.\n"
+        . "- Otherwise translate it into the target language, naturally, as a colleague would write it.\n\n"
+        . "Keep exactly as written: @mentions and people's names, server and host names, IP addresses, URLs, "
+        . "email addresses, file paths, ticket and change references (like INC-1042 or CHG-0037), error codes, "
+        . "commands and anything that looks like code, numbers, and emoji. Keep line breaks. Do not add, explain or answer anything.\n\n"
+        . "Reply with only a JSON array, one object per message, in the same order:\n"
+        . "[{\"id\": 1, \"lang\": \"fr\", \"same\": false, \"text\": \"...\"}]\n\n"
+        . "Messages:\n" . json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
 /**
  * Edit a message. The AUTHOR only — nobody else may put words in your mouth, not
  * even an administrator, who can delete but not rewrite.
@@ -968,6 +1168,7 @@ function warRoomEditMessage(PDO $conn, int $analystId, int $messageId, string $b
           WHERE id = :id AND deleted_datetime IS NULL"
     );
     $stmt->execute([':b' => $body, ':id' => $messageId]);
+    warRoomForgetTranslations($conn, $messageId);   // 5.9.0: the old translations say the old thing
 
     // Re-resolve from the NEW text. A name removed by the edit should stop being a
     // mention; one added should start being one.
@@ -1007,6 +1208,7 @@ function warRoomDeleteMessage(PDO $conn, int $analystId, int $messageId, bool $m
     $conn->prepare("DELETE FROM warroom_attachments WHERE message_id = :m")->execute([':m' => $messageId]);
     $conn->prepare("DELETE FROM warroom_mentions WHERE message_id = :m")->execute([':m' => $messageId]);
     // Its content is gone, so a pin or a bookmark would point at a tombstone (5.9.0).
+    warRoomForgetTranslations($conn, $messageId);
     try {
         $conn->prepare("DELETE FROM warroom_pins WHERE message_id = :m")->execute([':m' => $messageId]);
         $conn->prepare("DELETE FROM warroom_saved WHERE message_id = :m")->execute([':m' => $messageId]);

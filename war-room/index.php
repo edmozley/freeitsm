@@ -66,12 +66,17 @@ $canManage = analystHasCapability($conn, $analystId, Cap::WAR_ROOM_MANAGE);
 $prefs = [];
 $dp = $conn->prepare(
     "SELECT preference_key, preference_value FROM user_preferences
-      WHERE analyst_id = :a AND preference_key IN ('warroom_desktop_alerts','warroom_mention_style')"
+      WHERE analyst_id = :a AND preference_key IN ('warroom_desktop_alerts','warroom_mention_style','warroom_translate')"
 );
 $dp->execute([':a' => $analystId]);
 foreach ($dp->fetchAll(PDO::FETCH_ASSOC) as $r) $prefs[$r['preference_key']] = (string) $r['preference_value'];
 
 $desktopAlerts = ($prefs['warroom_desktop_alerts'] ?? '') === '1';
+
+// Translation (5.9.0): offered only when an administrator has switched it on and an
+// AI provider is set up; then each person chooses, on unless they turn it off.
+$translateAvailable = warRoomTranslateEnabled($conn);
+$translateOn = $translateAvailable && ($prefs['warroom_translate'] ?? '1') === '1';
 
 // 'short' is the default because a war room has a handful of analysts, not a
 // five-thousand-person workspace: a first name is nearly always unique here, so
@@ -97,7 +102,7 @@ foreach ($channels as $ch) {
     <title><?php echo htmlspecialchars(pageTitle('war-room')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/war-room.css?v=8">
+    <link rel="stylesheet" href="../assets/css/war-room.css?v=9">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1"><!-- the shared file viewer (5.9.0) -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
     <style>
@@ -154,6 +159,13 @@ foreach ($channels as $ch) {
                 <input type="checkbox" id="wrDesktopAlerts"<?php echo $desktopAlerts ? ' checked' : ''; ?>>
                 <span><?php echo htmlspecialchars(t('war-room.mention.desktop')); ?></span>
             </label>
+
+            <?php if ($translateAvailable): ?>
+            <label class="wr-desktop-opt" title="<?php echo htmlspecialchars(t('war-room.translate.hint')); ?>">
+                <input type="checkbox" id="wrTranslateMine"<?php echo $translateOn ? ' checked' : ''; ?>>
+                <span><?php echo htmlspecialchars(t('war-room.translate.toggle')); ?></span>
+            </label>
+            <?php endif; ?>
 
             <div class="wr-pref">
                 <label class="wr-pref-label" for="wrMentionStyle"><?php echo htmlspecialchars(t('war-room.mention.style_label')); ?></label>
@@ -239,13 +251,14 @@ foreach ($channels as $ch) {
         window.WR_FOCUS     = <?php echo (int) $focusId; ?>;
         window.WR_FOCUS_MISSING = <?php echo $focusMissing ? 'true' : 'false'; ?>;
         window.WR_LINK_BASE = <?php echo json_encode(BASE_URL . 'war-room/'); ?>;
+        window.WR_TRANSLATE = <?php echo json_encode(['available' => $translateAvailable, 'on' => $translateOn, 'lang' => I18n::getLocale()]); ?>;
     </script>
     <!-- Attachments open in the viewer Files and Tickets use (5.9.0). Its own
          libraries (pdf.js and the rest) ship with FreeITSM and load on first use. -->
     <script src="../assets/js/float-window.js?v=2"></script>
     <script src="../assets/js/files-icons.js?v=4"></script>
     <script src="../assets/js/files-viewer.js?v=10"></script>
-    <script src="../assets/js/war-room.js?v=10"></script>
+    <script src="../assets/js/war-room.js?v=11"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

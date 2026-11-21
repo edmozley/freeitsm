@@ -66,6 +66,14 @@
     var focusId   = window.WR_FOCUS || 0;   // a permanent link's message, until it is shown
     var holdRead  = 0;       // a channel marked unread: not marked read again until it is left (5.9.0)
 
+    // Translation (5.9.0): each message shown in the reader's FreeITSM language once
+    // the server has a translation; the original is always one click away.
+    var TR = window.WR_TRANSLATE || { available: false, on: false, lang: 'en' };
+    var trCache = {};        // id -> {text, body}: translations fetched this visit, tied to the text they translate
+    var trAsked = {};        // id -> time asked, so a message is not asked about twice (or retried for a minute after a failure)
+    var trOriginal = {};     // id -> true: this reader chose "Show original" for it
+    var trFresh = {};        // id -> true: just arrived, fade it in once
+
     // The ten reactions offered first (wiki War-Room-Message-Actions-Design). The
     // full list ships with FreeITSM - nothing comes from the internet.
     var QUICK_EMOJI = ['\uD83D\uDC4D', '\u2764\uFE0F', '\uD83D\uDE02', '\uD83D\uDE2E', '\uD83D\uDE22',
@@ -248,8 +256,11 @@
         if (m.quote) row.appendChild(renderQuote(m.quote));
 
         var body = el('div', 'wr-msg-body');
-        renderBodyWithMentions(body, m.body);
+        var tr = translationOf(m);
+        renderBodyWithMentions(body, tr && !trOriginal[m.id] ? tr : m.body);
+        if (tr && !trOriginal[m.id] && trFresh[m.id]) { body.classList.add('wr-tr-fade'); delete trFresh[m.id]; }
         row.appendChild(body);
+        if (tr) row.appendChild(translationNote(m));
 
         // Edit and delete belong to the author; delete also to war_room.manage.
         // Rendered per message as well as in the menu, because a message you can act
@@ -418,6 +429,7 @@
         // Only scroll for genuinely NEW messages. Following an edit to the bottom
         // would yank the reader away from whatever they had scrolled back to.
         if (atBottom && added) els.wrMessages.scrollTop = els.wrMessages.scrollHeight;
+        scheduleTranslate();
     }
 
     /* ── presence ──────────────────────────────────────────────────────────── */
@@ -1078,6 +1090,115 @@
             if (!window.FilesViewer || !window.FilesViewer.openUrl) return;
             var w = window.FilesViewer.openUrl({ name: a.name, src: href, downloadUrl: href, size: a.size, key: 'wr-att-' + a.id });
             if (w) e.preventDefault();
+        });
+    }
+
+    /* ── translation (5.9.0) ── */
+
+    /** The primary language subtag: 'pt-BR' -> 'pt'. */
+    function langKey(code) { return String(code || '').toLowerCase().replace('_', '-').split('-')[0]; }
+
+    /** The translation to show for a message, or null: the stored one from the poll, or one fetched this visit for this exact text. */
+    function translationOf(m) {
+        if (!TR.on || m.deleted) return null;
+        if (m.lang && langKey(m.lang) === langKey(TR.lang)) return null;
+        if (m.tr) return m.tr;
+        var c = trCache[m.id];
+        return c && c.body === m.body ? c.text : null;
+    }
+
+    /** A language's name in the reader's language, by the browser's own list (no internet). */
+    function langName(code) {
+        try { return new Intl.DisplayNames([TR.lang], { type: 'language' }).of(code) || code; }
+        catch (e) { return code; }
+    }
+
+    /** "Translated from French · Show original" under a translated message - a toggle for that one message. */
+    function translationNote(m) {
+        var b = el('button', 'wr-tr-note');
+        b.type = 'button';
+        var from = m.lang ? t('war-room.translate.from', { lang: langName(m.lang) }) : t('war-room.translate.translated');
+        b.textContent = from + ' \u00B7 ' + t(trOriginal[m.id] ? 'war-room.translate.show_translation' : 'war-room.translate.show_original');
+        b.addEventListener('click', function () {
+            if (trOriginal[m.id]) delete trOriginal[m.id]; else trOriginal[m.id] = true;
+            appendMessages([messageById[m.id] || m]);
+        });
+        return b;
+    }
+
+    var trTimer = null;
+    /** Asks, shortly after drawing, for translations of the messages on the page that need one. */
+    function scheduleTranslate() {
+        if (!TR.on) return;
+        clearTimeout(trTimer);
+        trTimer = setTimeout(requestTranslations, 300);
+    }
+
+    /** Sends the messages that still need translating to translate.php, twenty at a time, and redraws each as it arrives. */
+    function requestTranslations() {
+        if (!TR.on) return;
+        var now = Date.now(), want = [];
+        Object.keys(messageById).forEach(function (k) {
+            var m = messageById[k];
+            if (m.deleted || !String(m.body || '').trim()) return;
+            if (!els.wrMessages.querySelector('[data-msg-id="' + m.id + '"]')) return;   // another channel's
+            if (m.lang && langKey(m.lang) === langKey(TR.lang)) return;
+            if (translationOf(m)) return;
+            var asked = trAsked[m.id];
+            if (asked && (asked.body === m.body) && (asked.ok || now - asked.at < 60000)) return;
+            want.push(m);
+        });
+        if (!want.length) return;
+        var channel = activeId;
+        /** One batch of up to twenty, then the next. */
+        var next = function (list) {
+            if (!list.length || channel !== activeId || !TR.on) return;
+            var batch = list.slice(0, 20);
+            batch.forEach(function (m) { trAsked[m.id] = { at: Date.now(), body: m.body, ok: false }; });
+            fetch(api + 'translate.php', {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channel_id: channel, ids: batch.map(function (m) { return m.id; }) })
+            }).then(function (r) { return r.json(); })
+              .then(function (d) {
+                  if (!d || !d.success) return;   // no provider, offline: the originals stay
+                  var redraw = [];
+                  batch.forEach(function (m) {
+                      var it = d.items && d.items[m.id];
+                      if (!it) return;
+                      trAsked[m.id].ok = true;
+                      var cur = messageById[m.id];
+                      if (!cur) return;
+                      if (it.lang) cur.lang = it.lang;
+                      if (it.text) { trCache[m.id] = { text: it.text, body: cur.body }; trFresh[m.id] = true; redraw.push(cur); }
+                  });
+                  if (redraw.length) appendMessages(redraw);
+                  next(list.slice(20));
+              })
+              .catch(function () { /* the originals stay; asked again in a minute */ });
+        };
+        next(want);
+    }
+
+    var trToggle = document.getElementById('wrTranslateMine');
+    // TRAP: saves go one after another. Two quick clicks sent side by side could land
+    // in the wrong order and leave the preference opposite to the box (caught testing).
+    var trSaving = Promise.resolve();
+    if (trToggle) {
+        trToggle.addEventListener('change', function () {
+            TR.on = trToggle.checked;
+            var value = TR.on ? '1' : '0';
+            trSaving = trSaving.then(function () {
+                return fetch(window.WR_PREF_URL, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: 'warroom_translate', value: value })
+                }).catch(function () { /* the box still shows the choice for this visit */ });
+            });
+            // Redraw what is on the page in the chosen language, then fill any gaps.
+            var shown = Object.keys(messageById).map(function (k) { return messageById[k]; })
+                .filter(function (m) { return els.wrMessages.querySelector('[data-msg-id="' + m.id + '"]'); });
+            appendMessages(shown);
         });
     }
 

@@ -258,6 +258,8 @@ return [
         'talking_open_desc' => 'Click a file to open it in a window you can move and resize - PDFs, Word and Excel documents, pictures, video and text are shown without downloading, and Download is beside them. It needs no internet.',
         'talking_keep_title' => 'Pinning, saving and coming back later',
         'talking_keep_desc' => 'Pin puts a message in the Pinned bar at the top of the conversation for everyone - anyone in the conversation can pin and unpin, and who pinned it is shown. Save keeps a message in your own Saved list (the button beside Search) - nobody else sees it. Mark as unread shows the conversation as unread from that message until you leave it and come back.',
+        'talking_translate_title' => 'Reading in your own language',
+        'talking_translate_desc' => 'When your administrator has switched translation on, messages written in other languages appear in your FreeITSM language, fading in when the translation arrives. Translated from ... · Show original under a message switches that one back; Show messages in my language, in the panel on the left, turns it off for you.',
 
         'finding_heading' => 'Finding things',
         'finding_intro'   => 'Two ways, depending on whether you are looking for something or something is looking for you.',
@@ -328,6 +330,11 @@ return [
         'ai_heading' => 'Situation report',
         'ai_intro'   => 'The situation report reads the war room chat and drafts the update a service delivery manager would send to the business — where things stand, what has changed, who is doing what and what is still unknown.',
         'ai_caveat'  => 'This is the one part of the war room that needs the internet, and it is optional. Without it the chat works exactly as it does now. The transcript of the channels the person can read is sent to the provider you choose here.',
+        'translate_heading' => 'Translate messages',
+        'translate_intro' => 'Each person can read the war room in their own FreeITSM language: messages written in another language are translated by the AI provider above, and the original is always one click away. Each message is translated once into each language and the translation is kept, so nothing is paid for twice.',
+        'translate_privacy' => 'Switching this on sends the text of war room messages to the AI provider above, to be translated. Leave it off if messages must not leave this server. Without the provider, or without the internet, everyone simply sees the messages as they were written.',
+        'translate_label' => 'Translate messages into each person\'s language',
+        'translate_hint' => 'Each person can still turn it off for themselves in the war room.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -400,5 +407,13 @@ return [
     ],
     'unread' => [
         'done' => 'Marked as unread - it stays unread until you leave this conversation and come back.',
+    ],
+    'translate' => [
+        'toggle' => 'Show messages in my language',
+        'hint' => 'Messages written in other languages are translated by the AI provider your administrator chose. The original is always one click away.',
+        'from' => 'Translated from {lang}',
+        'translated' => 'Translated',
+        'show_original' => 'Show original',
+        'show_translation' => 'Show translation',
     ],
 ];

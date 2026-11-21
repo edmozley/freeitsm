@@ -124,6 +124,32 @@ $choices = [0, 7, 30, 90, 180, 365];
             <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('war-room.settings.ai_caveat')); ?></p>
 
             <?php renderAiSettingsPanel('warroom_ai'); ?>
+
+            <?php
+            // Translation (5.9.0): OFF until an administrator switches it on, because it
+            // sends every message's text to the AI provider above (Ed, 21 Nov 2026).
+            $trOn = false;
+            try {
+                $trSt = connectToDatabase()->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'warroom_translate' LIMIT 1");
+                $trSt->execute();
+                $trOn = (string) $trSt->fetchColumn() === '1';
+            } catch (Throwable $e) { /* before Database Verification */ }
+            ?>
+            <div class="section-header" style="margin-top: 28px;">
+                <h2><?php echo htmlspecialchars(t('war-room.settings.translate_heading')); ?></h2>
+            </div>
+            <p style="color: var(--text-muted, #666); margin-bottom: 8px;"><?php echo htmlspecialchars(t('war-room.settings.translate_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 12px;"><?php echo htmlspecialchars(t('war-room.settings.translate_privacy')); ?></p>
+            <form class="wr-set-form" autocomplete="off" onsubmit="event.preventDefault(); saveTranslate();">
+                <label style="display: flex; gap: 8px; align-items: center;">
+                    <input type="checkbox" id="wrTranslate"<?php echo $trOn ? ' checked' : ''; ?>>
+                    <span><?php echo htmlspecialchars(t('war-room.settings.translate_label')); ?></span>
+                </label>
+                <div class="wr-set-hint"><?php echo htmlspecialchars(t('war-room.settings.translate_hint')); ?></div>
+                <div class="wr-set-actions">
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('war-room.settings.save')); ?></button>
+                </div>
+            </form>
         </div>
         <?php endif; ?>
     </div>
@@ -150,6 +176,26 @@ $choices = [0, 7, 30, 90, 180, 365];
         // key nobody owns, and this key's owner is declared in the module's
         // settings manifest — so the tab that shows it and the capability that
         // guards it cannot drift apart.
+        // Translation on or off (5.9.0) - through the same generic writer; the key is
+        // owned by the AI tab in the settings manifest.
+        async function saveTranslate() {
+            const on = document.getElementById('wrTranslate').checked ? '1' : '0';
+            try {
+                const r = await fetch('<?php echo BASE_URL; ?>api/settings/save_system_settings.php', {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ settings: { warroom_translate: on } })
+                });
+                const d = await r.json();
+                if (!d || !d.success) throw new Error('save failed');
+                if (typeof showToast === 'function') showToast(window.t('war-room.settings.saved'), 'success');
+                else alert(window.t('war-room.settings.saved'));
+            } catch (e) {
+                if (typeof showToast === 'function') showToast(window.t('war-room.settings.save_failed'), 'error');
+                else alert(window.t('war-room.settings.save_failed'));
+            }
+        }
+
         async function saveRetention() {
             const days = document.getElementById('wrRetention').value;
             try {

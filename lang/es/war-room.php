@@ -195,6 +195,8 @@ return [
         'talking_open_desc' => 'Haga clic en un archivo para abrirlo en una ventana que puede mover y cambiar de tamaño - los PDF, documentos de Word y Excel, imágenes, vídeo y texto se muestran sin descargarlos, con Descargar al lado. No necesita internet.',
         'talking_keep_title' => 'Fijar, guardar y volver más tarde',
         'talking_keep_desc' => 'Fijar pone un mensaje en la barra Fijados, arriba de la conversación, para todos: cualquiera en la conversación puede fijar y desfijar, y se muestra quién lo fijó. Guardar conserva un mensaje en su propia lista Guardados (el botón junto a Buscar): nadie más la ve. Marcar como no leído muestra la conversación como no leída desde ese mensaje hasta que salga y vuelva.',
+        'talking_translate_title' => 'Leer en su propio idioma',
+        'talking_translate_desc' => 'Cuando su administrador ha activado la traducción, los mensajes escritos en otros idiomas aparecen en su idioma de FreeITSM, con un fundido cuando llega la traducción. Traducido del ... · Mostrar original bajo un mensaje lo devuelve al original; Mostrar mensajes en mi idioma, en el panel de la izquierda, lo desactiva para usted.',
         'finding_heading' => 'Encontrar cosas',
         'finding_intro' => 'Dos formas, según si usted busca algo o algo le busca a usted.',
         'finding_search_title' => 'Buscar',
@@ -259,6 +261,11 @@ return [
         'ai_heading' => 'Informe de situación',
         'ai_intro' => 'El informe de situación lee el chat de la sala de crisis y redacta la actualización que el responsable de entrega del servicio enviaría a la empresa: cómo están las cosas, qué ha cambiado, quién está haciendo qué y qué sigue sin saberse.',
         'ai_caveat' => 'Esta es la única parte de la sala de crisis que necesita internet, y es opcional. Sin ella, el chat funciona exactamente igual que ahora. La transcripción de los canales que la persona puede leer se envía al proveedor que elija aquí.',
+        'translate_heading' => 'Traducir mensajes',
+        'translate_intro' => 'Cada persona puede leer la sala de crisis en su propio idioma de FreeITSM: los mensajes escritos en otro idioma los traduce el proveedor de IA de arriba, y el original siempre está a un clic. Cada mensaje se traduce una vez a cada idioma y la traducción se guarda, así que nada se paga dos veces.',
+        'translate_privacy' => 'Al activar esto, el texto de los mensajes se envía al proveedor de IA de arriba para traducirlo. Déjelo desactivado si los mensajes no deben salir de este servidor. Sin el proveedor, o sin internet, todos ven los mensajes tal como se escribieron.',
+        'translate_label' => 'Traducir los mensajes al idioma de cada persona',
+        'translate_hint' => 'Cada persona puede desactivarlo para sí misma en la sala de crisis.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -331,5 +338,13 @@ return [
     ],
     'unread' => [
         'done' => 'Marcado como no leído: seguirá así hasta que salga de esta conversación y vuelva.',
+    ],
+    'translate' => [
+        'toggle' => 'Mostrar mensajes en mi idioma',
+        'hint' => 'Los mensajes escritos en otros idiomas los traduce el proveedor de IA que eligió su administrador. El original siempre está a un clic.',
+        'from' => 'Traducido del {lang}',
+        'translated' => 'Traducido',
+        'show_original' => 'Mostrar original',
+        'show_translation' => 'Mostrar traducción',
     ],
 ];

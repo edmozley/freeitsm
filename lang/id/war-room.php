@@ -195,6 +195,8 @@ return [
         'talking_open_desc' => 'Klik file untuk membukanya di jendela yang dapat dipindah dan diubah ukurannya - PDF, dokumen Word dan Excel, gambar, video, dan teks ditampilkan tanpa diunduh, dengan Unduh di sebelahnya. Tidak perlu internet.',
         'talking_keep_title' => 'Menyematkan, menyimpan, dan kembali nanti',
         'talking_keep_desc' => 'Sematkan menaruh pesan di bilah Disematkan di atas percakapan untuk semua orang - siapa pun di percakapan dapat menyematkan dan melepasnya, dan siapa yang menyematkan ditampilkan. Simpan menaruh pesan di daftar Tersimpan milik Anda (tombol di samping Cari) - tidak ada orang lain yang melihatnya. Tandai belum dibaca menampilkan percakapan sebagai belum dibaca mulai dari pesan itu sampai Anda meninggalkannya dan kembali.',
+        'talking_translate_title' => 'Membaca dalam bahasa Anda',
+        'talking_translate_desc' => 'Jika administrator Anda telah mengaktifkan terjemahan, pesan dalam bahasa lain muncul dalam bahasa FreeITSM Anda, memudar masuk saat terjemahan tiba. Diterjemahkan dari ... · Tampilkan asli di bawah pesan mengembalikannya; Tampilkan pesan dalam bahasa saya di panel kiri menonaktifkannya untuk Anda.',
         'finding_heading' => 'Mencari',
         'finding_intro' => 'Ada dua cara, tergantung apakah Anda yang mencari sesuatu atau sesuatu yang mencari Anda.',
         'finding_search_title' => 'Cari',
@@ -259,6 +261,11 @@ return [
         'ai_heading' => 'Laporan situasi',
         'ai_intro' => 'Laporan situasi membaca obrolan war room dan menyusun draf pembaruan yang akan dikirim manajer penyampaian layanan kepada pihak bisnis — kondisi saat ini, apa yang berubah, siapa mengerjakan apa, dan apa yang masih belum diketahui.',
         'ai_caveat' => 'Ini satu-satunya bagian war room yang membutuhkan internet, dan bersifat opsional. Tanpanya obrolan berfungsi persis seperti sekarang. Transkrip kanal yang dapat dibaca orang tersebut dikirim ke penyedia yang Anda pilih di sini.',
+        'translate_heading' => 'Terjemahkan pesan',
+        'translate_intro' => 'Setiap orang dapat membaca ruang perang dalam bahasa FreeITSM-nya sendiri: pesan dalam bahasa lain diterjemahkan oleh penyedia AI di atas, dan aslinya selalu tersedia dengan satu klik. Setiap pesan diterjemahkan sekali ke tiap bahasa dan terjemahannya disimpan, jadi tidak ada yang dibayar dua kali.',
+        'translate_privacy' => 'Mengaktifkan ini mengirim teks pesan ruang perang ke penyedia AI di atas untuk diterjemahkan. Biarkan nonaktif jika pesan tidak boleh keluar dari server ini. Tanpa penyedia, atau tanpa internet, semua orang melihat pesan sebagaimana ditulis.',
+        'translate_label' => 'Terjemahkan pesan ke bahasa setiap orang',
+        'translate_hint' => 'Setiap orang tetap dapat menonaktifkannya untuk dirinya sendiri di ruang perang.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -331,5 +338,13 @@ return [
     ],
     'unread' => [
         'done' => 'Ditandai belum dibaca - tetap begitu sampai Anda meninggalkan percakapan ini dan kembali.',
+    ],
+    'translate' => [
+        'toggle' => 'Tampilkan pesan dalam bahasa saya',
+        'hint' => 'Pesan dalam bahasa lain diterjemahkan oleh penyedia AI yang dipilih administrator Anda. Aslinya selalu tersedia dengan satu klik.',
+        'from' => 'Diterjemahkan dari {lang}',
+        'translated' => 'Diterjemahkan',
+        'show_original' => 'Tampilkan asli',
+        'show_translation' => 'Tampilkan terjemahan',
     ],
 ];

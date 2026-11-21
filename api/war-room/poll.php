@@ -48,7 +48,10 @@ try {
 
     warRoomTouchPresence($conn, $analystId, $channelId);
 
-    $messages = warRoomMessages($conn, $channelId, $sinceId, 200, $analystId, $sinceId > 0 ? 0 : $aroundId);
+    // The viewer's language (5.9.0): stored translations come with the messages, so a
+    // conversation already translated shows in your language straight away.
+    $viewerLang = warRoomTranslateEnabled($conn) ? I18n::getLocale() : '';
+    $messages = warRoomMessages($conn, $channelId, $sinceId, 200, $analystId, $sinceId > 0 ? 0 : $aroundId, $viewerLang);
 
     // Marked read AFTER fetching, using the newest id actually returned, so a
     // message that arrives between the two is still unread rather than skipped.

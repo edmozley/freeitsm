@@ -828,3 +828,20 @@
 }
 .wr-list-note { margin-top: 2px; font-size: var(--font-size-xs, 11px); }
 .wr-list-act { flex: none; }
+
+/* Translation (5.9.0): the translated text fades in rather than jumping, and a quiet
+   line under it says where it came from, with the original one click away. */
+@keyframes wr-tr-in { from { opacity: 0.25; } to { opacity: 1; } }
+.wr-msg-body.wr-tr-fade { animation: wr-tr-in 0.6s ease-out; }
+.wr-tr-note {
+    display: block;
+    margin-top: 2px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-dim, #999);
+    font: inherit;
+    font-size: var(--font-size-xs, 11px);
+    cursor: pointer;
+}
+.wr-tr-note:hover { color: var(--accent, #ea580c); text-decoration: underline; }

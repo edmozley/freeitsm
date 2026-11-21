@@ -1662,6 +1662,11 @@ try {
             try { $conn->exec("ALTER TABLE warroom_reactions ADD CONSTRAINT fk_warroom_reactions_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
+    // 5.9.0: translations go with their message.
+    if ($tableExists('warroom_translations') && $tableExists('warroom_messages')
+        && !$fkExists('warroom_translations', 'fk_warroom_translations_message')) {
+        try { $conn->exec("ALTER TABLE warroom_translations ADD CONSTRAINT fk_warroom_translations_message FOREIGN KEY (message_id) REFERENCES warroom_messages (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+    }
     // 5.9.0: pins and saved messages.
     if ($tableExists('warroom_pins') && $tableExists('warroom_messages')) {
         if ($tableExists('warroom_channels') && !$fkExists('warroom_pins', 'fk_warroom_pins_channel')) {

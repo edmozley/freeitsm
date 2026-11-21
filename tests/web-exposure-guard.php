@@ -95,7 +95,7 @@ check('every .php in tests/ refuses to run unless PHP_SAPI is cli',
    exceptions are named by PATH: this used to excuse any file called mock.php,
    so a third one anywhere in tests/ would have passed without anybody deciding
    it should. */
-$httpExceptions = ['tests/azure-openai/mock.php', 'tests/ai-compatible/mock.php'];
+$httpExceptions = ['tests/azure-openai/mock.php', 'tests/ai-compatible/mock.php', 'tests/warroom-translate/mock.php'];
 foreach ($httpExceptions as $rel) {
     $mock = (string)@file_get_contents($root . '/' . $rel);
     check("the HTTP exception $rel is limited to php -S",
