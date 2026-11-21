@@ -378,6 +378,10 @@ try {
     $js = (string)file_get_contents("$root/assets/js/files-desktop.js");
     ok('del_note speaks of the recycle bin, and the desktop uses it', !str_contains($lang, 'There is no recycle bin to restore from yet')
        && str_contains($js, "L('ex.del_note',") && !str_contains($js, 'del_note_bin'));
+    // The Delete key in the bin used to skip, silently, what the person may not purge.
+    $en = require "$root/lang/en/files.php";
+    ok('the Delete key says what it leaves in the bin, in English and in the desktop',
+       isset($en['rb']['purge_left'], $en['rb']['purge_none']) && str_contains($js, "L('rb.purge_left',") && str_contains($js, "L('rb.purge_none',"));
 
     // ── Real S3-compatible storage ─────────────────────────────────────
     $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';
