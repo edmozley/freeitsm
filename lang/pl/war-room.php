@@ -199,6 +199,8 @@ return [
         'talking_translate_desc' => 'Gdy administrator włączy tłumaczenie, wiadomości w innych językach pojawiają się w Twoim języku FreeITSM, płynnie po nadejściu tłumaczenia. Przetłumaczono z ... · Pokaż oryginał pod wiadomością przywraca ją; Pokazuj wiadomości w moim języku w panelu po lewej wyłącza to dla Ciebie.',
         'talking_thread_title' => 'Odpowiadanie w wątku',
         'talking_thread_desc' => 'Odpowiedz w wątku (prawy przycisk na wiadomości) otwiera wiadomość w panelu po prawej z własnym polem odpowiedzi, by rozmowa poboczna nie zapełniała głównej. Wiadomość pokazuje potem liczbę odpowiedzi - kliknij, aby otworzyć wątek. Zaznacz Wyślij też do tej rozmowy, gdy wszyscy mają zobaczyć odpowiedź.',
+        'talking_forward_title' => 'Przekazywanie, i kto to widział',
+        'talking_forward_desc' => 'Przekaż do... wysyła wiadomość do innej rozmowy lub osoby, jeśli chcesz z komentarzem; jej tekst i pliki idą razem z nią, z informacją, skąd pochodzi. Widziane przez pokazuje, kto przeczytał wiadomość i kiedy (a w małej rozmowie - kto jeszcze nie), chyba że administrator to wyłączył.',
         'finding_heading' => 'Wyszukiwanie',
         'finding_intro' => 'Dwa sposoby, w zależności od tego, czy Ty czegoś szukasz, czy coś szuka Ciebie.',
         'finding_search_title' => 'Wyszukiwanie',
@@ -268,6 +270,10 @@ return [
         'translate_privacy' => 'Włączenie tej opcji wysyła tekst wiadomości do dostawcy AI powyżej w celu tłumaczenia. Zostaw ją wyłączoną, jeśli wiadomości nie mogą opuszczać tego serwera. Bez dostawcy lub bez internetu wszyscy po prostu widzą wiadomości tak, jak zostały napisane.',
         'translate_label' => 'Tłumacz wiadomości na język każdej osoby',
         'translate_hint' => 'Każdy może ją wyłączyć dla siebie w pokoju kryzysowym.',
+        'seen_heading' => 'Widziane przez',
+        'seen_intro' => 'Pozwala każdemu zobaczyć, kto przeczytał każdą wiadomość i kiedy - podczas awarii wiedza, że aktualizacja naprawdę została zobaczona, to połowa jej wartości. Czasy odczytu są zapisywane tylko, gdy to jest włączone.',
+        'seen_label' => 'Pokazuj, kto przeczytał każdą wiadomość',
+        'seen_hint' => 'Wyłączenie przestaje zapisywać czasy odczytu i ukrywa Widziane przez dla wszystkich.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -288,6 +294,8 @@ return [
         'link_copied' => 'Link skopiowany',
         'copy_failed' => 'Nie udało się skopiować - przeglądarka to zablokowała.',
         'thread' => 'Odpowiedz w wątku',
+        'forward' => 'Przekaż do...',
+        'seen' => 'Widziane przez',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -358,5 +366,22 @@ return [
         'in_thread' => 'odpowiedział(a) w wątku',
         'placeholder' => 'Odpowiedz w tym wątku...',
         'also' => 'Wyślij też do tej rozmowy',
+    ],
+    'forward' => [
+        'title' => 'Przekaż wiadomość',
+        'search' => 'Znajdź rozmowę lub osobę',
+        'conversations' => 'Rozmowy',
+        'people' => 'Osoby',
+        'comment' => 'Dodaj komentarz (opcjonalnie)',
+        'send' => 'Przekaż',
+        'done' => 'Przekazano do: {name}',
+        'from' => 'Przekazano od {author} w {channel} · {time}',
+    ],
+    'seen' => [
+        'title' => 'Widziane przez',
+        'seen' => 'Widziane ({count})',
+        'not_yet' => 'Jeszcze nie widziane ({count})',
+        'nobody' => 'Nikt inny jeszcze tego nie przeczytał.',
+        'unavailable' => 'Niedostępne dla tej wiadomości - Widziane przez może być wyłączone albo to odpowiedź w wątku.',
     ],
 ];

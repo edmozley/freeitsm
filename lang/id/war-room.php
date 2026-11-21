@@ -199,6 +199,8 @@ return [
         'talking_translate_desc' => 'Jika administrator Anda telah mengaktifkan terjemahan, pesan dalam bahasa lain muncul dalam bahasa FreeITSM Anda, memudar masuk saat terjemahan tiba. Diterjemahkan dari ... · Tampilkan asli di bawah pesan mengembalikannya; Tampilkan pesan dalam bahasa saya di panel kiri menonaktifkannya untuk Anda.',
         'talking_thread_title' => 'Membalas di utas',
         'talking_thread_desc' => 'Balas di utas (klik kanan pesan) membuka pesan di panel kanan dengan kotak balasan sendiri, sehingga percakapan sampingan tidak memenuhi percakapan utama. Pesan lalu menunjukkan jumlah balasannya - klik untuk membuka utas. Centang Kirim juga ke percakapan ini bila semua orang perlu melihat balasan.',
+        'talking_forward_title' => 'Meneruskan, dan siapa yang telah melihatnya',
+        'talking_forward_desc' => 'Teruskan ke... mengirim pesan ke percakapan lain atau seseorang, dengan komentar bila mau; teks dan file-nya ikut, beserta asalnya. Dilihat oleh menunjukkan siapa yang telah membaca pesan dan kapan (dan, di percakapan kecil, siapa yang belum) - kecuali administrator Anda menonaktifkannya.',
         'finding_heading' => 'Mencari',
         'finding_intro' => 'Ada dua cara, tergantung apakah Anda yang mencari sesuatu atau sesuatu yang mencari Anda.',
         'finding_search_title' => 'Cari',
@@ -268,6 +270,10 @@ return [
         'translate_privacy' => 'Mengaktifkan ini mengirim teks pesan ruang perang ke penyedia AI di atas untuk diterjemahkan. Biarkan nonaktif jika pesan tidak boleh keluar dari server ini. Tanpa penyedia, atau tanpa internet, semua orang melihat pesan sebagaimana ditulis.',
         'translate_label' => 'Terjemahkan pesan ke bahasa setiap orang',
         'translate_hint' => 'Setiap orang tetap dapat menonaktifkannya untuk dirinya sendiri di ruang perang.',
+        'seen_heading' => 'Dilihat oleh',
+        'seen_intro' => 'Memungkinkan semua orang melihat siapa yang telah membaca setiap pesan, dan kapan - saat gangguan, mengetahui bahwa pembaruan benar-benar telah dilihat adalah separuh nilainya. Waktu baca hanya dicatat selama ini aktif.',
+        'seen_label' => 'Tampilkan siapa yang telah membaca setiap pesan',
+        'seen_hint' => 'Menonaktifkannya menghentikan pencatatan waktu baca dan menyembunyikan Dilihat oleh bagi semua orang.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -288,6 +294,8 @@ return [
         'link_copied' => 'Tautan disalin',
         'copy_failed' => 'Tidak dapat menyalin - browser Anda memblokirnya.',
         'thread' => 'Balas di utas',
+        'forward' => 'Teruskan ke...',
+        'seen' => 'Dilihat oleh',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -358,5 +366,22 @@ return [
         'in_thread' => 'membalas di utas',
         'placeholder' => 'Balas di utas ini...',
         'also' => 'Kirim juga ke percakapan ini',
+    ],
+    'forward' => [
+        'title' => 'Teruskan pesan',
+        'search' => 'Cari percakapan atau orang',
+        'conversations' => 'Percakapan',
+        'people' => 'Orang',
+        'comment' => 'Tambahkan komentar (opsional)',
+        'send' => 'Teruskan',
+        'done' => 'Diteruskan ke {name}',
+        'from' => 'Diteruskan dari {author} di {channel} · {time}',
+    ],
+    'seen' => [
+        'title' => 'Dilihat oleh',
+        'seen' => 'Dilihat ({count})',
+        'not_yet' => 'Belum dilihat ({count})',
+        'nobody' => 'Belum ada orang lain yang membacanya.',
+        'unavailable' => 'Tidak tersedia untuk pesan ini - Dilihat oleh mungkin dinonaktifkan, atau ini balasan di dalam utas.',
     ],
 ];

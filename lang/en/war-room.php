@@ -262,6 +262,8 @@ return [
         'talking_translate_desc' => 'When your administrator has switched translation on, messages written in other languages appear in your FreeITSM language, fading in when the translation arrives. Translated from ... · Show original under a message switches that one back; Show messages in my language, in the panel on the left, turns it off for you.',
         'talking_thread_title' => 'Replying in a thread',
         'talking_thread_desc' => 'Reply in thread (right-click a message) opens the message in the panel on the right with its own reply box, so a side conversation does not fill the main one. The message then shows how many replies it has - click that to open the thread. Tick Also send to this conversation when everyone should see a reply.',
+        'talking_forward_title' => 'Forwarding, and who has seen it',
+        'talking_forward_desc' => 'Forward to... sends a message to another conversation or a person, with a comment if you like; its text and files go with it, under where it came from. Seen by lists who has read a message and when (and, in a small conversation, who has not yet) - unless your administrator has switched it off.',
 
         'finding_heading' => 'Finding things',
         'finding_intro'   => 'Two ways, depending on whether you are looking for something or something is looking for you.',
@@ -337,6 +339,10 @@ return [
         'translate_privacy' => 'Switching this on sends the text of war room messages to the AI provider above, to be translated. Leave it off if messages must not leave this server. Without the provider, or without the internet, everyone simply sees the messages as they were written.',
         'translate_label' => 'Translate messages into each person\'s language',
         'translate_hint' => 'Each person can still turn it off for themselves in the war room.',
+        'seen_heading' => 'Seen by',
+        'seen_intro' => 'Lets everyone see who has read each message, and when - in an outage, knowing an update has actually been seen is half its value. Read times are only recorded while this is on.',
+        'seen_label' => 'Show who has read each message',
+        'seen_hint' => 'Turning it off stops recording read times and hides Seen by for everyone.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -357,6 +363,8 @@ return [
         'link_copied' => 'Link copied',
         'copy_failed' => 'Could not copy - your browser blocked it.',
         'thread' => 'Reply in thread',
+        'forward' => 'Forward to...',
+        'seen' => 'Seen by',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -427,5 +435,22 @@ return [
         'in_thread' => 'replied in a thread',
         'placeholder' => 'Reply in this thread...',
         'also' => 'Also send to this conversation',
+    ],
+    'forward' => [
+        'title' => 'Forward message',
+        'search' => 'Find a conversation or a person',
+        'conversations' => 'Conversations',
+        'people' => 'People',
+        'comment' => 'Add a comment (optional)',
+        'send' => 'Forward',
+        'done' => 'Forwarded to {name}',
+        'from' => 'Forwarded from {author} in {channel} · {time}',
+    ],
+    'seen' => [
+        'title' => 'Seen by',
+        'seen' => 'Seen ({count})',
+        'not_yet' => 'Not seen yet ({count})',
+        'nobody' => 'Nobody else has read it yet.',
+        'unavailable' => 'Not available for this message - Seen by may be switched off, or it is a reply inside a thread.',
     ],
 ];

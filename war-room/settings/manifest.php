@@ -27,7 +27,7 @@ return [
             // derives ownership from the manifest, so the tab that shows the
             // setting and the capability that guards it cannot disagree — and
             // the generic settings writer refuses any key nobody owns.
-            'setting_keys' => ['warroom_retention_days'],
+            'setting_keys' => ['warroom_retention_days', 'warroom_seen_by'],   // 5.9.0: Seen by on/off
         ],
         [
             'id'        => 'ai',

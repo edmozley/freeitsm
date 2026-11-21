@@ -9023,6 +9023,13 @@ CREATE TABLE IF NOT EXISTS `warroom_messages` (
     -- foreign key: retention may remove the first message and the replies stay.
     `thread_root_id`   INT NULL,
     `also_in_channel`  TINYINT(1) NOT NULL DEFAULT 0,
+    -- Forwarded messages (5.9.0): the original (a reference - no FK, the original may
+    -- go), and who wrote it, where and when, kept as they were when forwarded,
+    -- because the people reading the forward may not be able to read the original.
+    `forwarded_from_id` INT NULL,
+    `fwd_author`       VARCHAR(150) NULL,
+    `fwd_channel`      VARCHAR(150) NULL,
+    `fwd_created`      DATETIME NULL,
     PRIMARY KEY (`id`),
     -- (channel_id, id): every read is "this channel, newer than id N".
     KEY `ix_warroom_messages_channel` (`channel_id`, `id`),
@@ -9115,6 +9122,22 @@ CREATE TABLE IF NOT EXISTS `warroom_translations` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_warroom_translation` (`message_id`, `lang`),
     CONSTRAINT `fk_warroom_translations_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seen by (5.9.0): one row each time an analyst's read marker in a channel moves
+-- forward, so "read at" is real - the time their marker first passed a message.
+-- Recorded only while War room -> Settings -> Seen by is on.
+CREATE TABLE IF NOT EXISTS `warroom_read_marks` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`       INT NOT NULL,
+    `channel_id`       INT NOT NULL,
+    `up_to_message_id` INT NOT NULL,
+    `read_datetime`    DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_warroom_read_marks_channel` (`channel_id`, `up_to_message_id`),
+    KEY `ix_warroom_read_marks_analyst` (`analyst_id`),
+    CONSTRAINT `fk_warroom_read_marks_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_warroom_read_marks_channel` FOREIGN KEY (`channel_id`) REFERENCES `warroom_channels` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Pinned messages (5.9.0): pinned for everyone in the conversation. Anyone who can

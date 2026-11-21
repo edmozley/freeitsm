@@ -6007,6 +6007,19 @@ return [
         'lang'             => 'VARCHAR(16) NULL',  // 5.9.0: the language it is written in, detected once
         'thread_root_id'   => 'INT NULL',          // 5.9.0: the first message of the thread it is in
         'also_in_channel'  => 'TINYINT(1) NOT NULL DEFAULT 0',   // 5.9.0: a thread reply also sent to the conversation
+        'forwarded_from_id' => 'INT NULL',         // 5.9.0: a forward - the original's id (no FK)
+        'fwd_author'       => 'VARCHAR(150) NULL', // 5.9.0: the original's author, as forwarded
+        'fwd_channel'      => 'VARCHAR(150) NULL', // 5.9.0: where it was, as the forwarder saw it
+        'fwd_created'      => 'DATETIME NULL',     // 5.9.0: when the original was sent
+    ],
+
+    // Seen by (5.9.0): a row each time a read marker moves forward.
+    'warroom_read_marks' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'       => 'INT NOT NULL',
+        'channel_id'       => 'INT NOT NULL',
+        'up_to_message_id' => 'INT NOT NULL',
+        'read_datetime'    => 'DATETIME NOT NULL',
     ],
 
     // Translations (5.9.0): one per message per language, never per person.

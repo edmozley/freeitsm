@@ -199,6 +199,8 @@ return [
         'talking_translate_desc' => 'Cuando su administrador ha activado la traducción, los mensajes escritos en otros idiomas aparecen en su idioma de FreeITSM, con un fundido cuando llega la traducción. Traducido del ... · Mostrar original bajo un mensaje lo devuelve al original; Mostrar mensajes en mi idioma, en el panel de la izquierda, lo desactiva para usted.',
         'talking_thread_title' => 'Responder en un hilo',
         'talking_thread_desc' => 'Responder en un hilo (clic con el botón derecho en un mensaje) abre el mensaje en el panel de la derecha con su propio cuadro de respuesta, para que una conversación paralela no llene la principal. El mensaje muestra entonces cuántas respuestas tiene: haga clic para abrir el hilo. Marque Enviar también a esta conversación cuando todos deban ver una respuesta.',
+        'talking_forward_title' => 'Reenviar, y quién lo ha visto',
+        'talking_forward_desc' => 'Reenviar a... envía un mensaje a otra conversación o a una persona, con un comentario si lo desea; su texto y sus archivos van con él, indicando de dónde viene. Visto por muestra quién ha leído un mensaje y cuándo (y, en una conversación pequeña, quién aún no), salvo que su administrador lo haya desactivado.',
         'finding_heading' => 'Encontrar cosas',
         'finding_intro' => 'Dos formas, según si usted busca algo o algo le busca a usted.',
         'finding_search_title' => 'Buscar',
@@ -268,6 +270,10 @@ return [
         'translate_privacy' => 'Al activar esto, el texto de los mensajes se envía al proveedor de IA de arriba para traducirlo. Déjelo desactivado si los mensajes no deben salir de este servidor. Sin el proveedor, o sin internet, todos ven los mensajes tal como se escribieron.',
         'translate_label' => 'Traducir los mensajes al idioma de cada persona',
         'translate_hint' => 'Cada persona puede desactivarlo para sí misma en la sala de crisis.',
+        'seen_heading' => 'Visto por',
+        'seen_intro' => 'Permite a todos ver quién ha leído cada mensaje y cuándo: en una caída, saber que una actualización se ha visto de verdad es la mitad de su valor. Las horas de lectura solo se registran mientras esto está activado.',
+        'seen_label' => 'Mostrar quién ha leído cada mensaje',
+        'seen_hint' => 'Desactivarlo deja de registrar las horas de lectura y oculta Visto por para todos.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -288,6 +294,8 @@ return [
         'link_copied' => 'Enlace copiado',
         'copy_failed' => 'No se pudo copiar - su navegador lo bloqueó.',
         'thread' => 'Responder en un hilo',
+        'forward' => 'Reenviar a...',
+        'seen' => 'Visto por',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -358,5 +366,22 @@ return [
         'in_thread' => 'respondió en un hilo',
         'placeholder' => 'Responder en este hilo...',
         'also' => 'Enviar también a esta conversación',
+    ],
+    'forward' => [
+        'title' => 'Reenviar mensaje',
+        'search' => 'Busque una conversación o una persona',
+        'conversations' => 'Conversaciones',
+        'people' => 'Personas',
+        'comment' => 'Añadir un comentario (opcional)',
+        'send' => 'Reenviar',
+        'done' => 'Reenviado a {name}',
+        'from' => 'Reenviado de {author} en {channel} · {time}',
+    ],
+    'seen' => [
+        'title' => 'Visto por',
+        'seen' => 'Visto ({count})',
+        'not_yet' => 'Aún sin ver ({count})',
+        'nobody' => 'Nadie más lo ha leído todavía.',
+        'unavailable' => 'No disponible para este mensaje: puede que Visto por esté desactivado o que sea una respuesta dentro de un hilo.',
     ],
 ];

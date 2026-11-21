@@ -198,6 +198,67 @@ try {
     ok('a thread-only reply does not count as unread in the conversation', $unreadOf() === $u0);
     warRoomSend($conn, $a, $all, 'ZZ loud thread reply', 0, $root, true);
     ok('...a reply also sent to it does', $unreadOf() === $u0 + 1);
+
+    // ---- piece 4: forward
+    $priv2 = warRoomCreateChannel($conn, $a, 'ZZ fwd ' . bin2hex(random_bytes(3)), '', true);   // only $a is in it
+    $orig = warRoomSend($conn, $a, $all, 'ZZ @' . explode(' ', (string) $conn->query("SELECT full_name FROM analysts WHERE id = $b")->fetchColumn())[0] . ' please check srv-db01');
+    $mentionsBefore = (int) $conn->query("SELECT COUNT(*) FROM warroom_mentions")->fetchColumn();
+    // a real file on the original, to prove it is copied
+    $dir = rtrim(WARROOM_ATTACH_DIR, '/\\') . DIRECTORY_SEPARATOR;
+    $srcName = 'zz' . bin2hex(random_bytes(8)) . '.txt';
+    file_put_contents($dir . $srcName, 'ZZ attachment bytes');
+    $conn->prepare("INSERT INTO warroom_attachments (message_id, stored_name, original_name, size_bytes) VALUES (?, ?, 'note.txt', 19)")->execute([$orig, $srcName]);
+    $copies = [];
+    try {
+        $fw = warRoomForward($conn, $a, $orig, $priv2, 'ZZ FYI');
+        ok('a message can be forwarded to a conversation you can post in', $fw > 0);
+        $fr = msgOf(warRoomMessages($conn, $priv2, 0, 200, $a), $fw);
+        ok('the forward carries the text and where it came from', $fr && str_contains($fr['body'], 'srv-db01')
+            && $fr['forward']['from'] === $orig && $fr['forward']['author'] !== '' && $fr['forward']['channel'] !== '');
+        $before = array_column(warRoomMessages($conn, $priv2, 0, 200, $a), 'body');
+        ok('the comment is posted just before it, as the forwarder', in_array('ZZ FYI', $before, true));
+        $att = $conn->query("SELECT stored_name FROM warroom_attachments WHERE message_id = $fw")->fetchAll(PDO::FETCH_COLUMN);
+        $copies = $att;
+        ok('its file is copied under a new name, byte for byte', count($att) === 1 && $att[0] !== $srcName
+            && @file_get_contents($dir . $att[0]) === 'ZZ attachment bytes');
+        ok('@names in the forwarded text notify nobody again', (int) $conn->query("SELECT COUNT(*) FROM warroom_mentions WHERE message_id = $fw")->fetchColumn() === 0);
+        ok('nobody can forward into a conversation they cannot post in', warRoomForward($conn, $b, $orig, $priv2) === 0);
+        $pmsg = warRoomSend($conn, $a, $priv2, 'ZZ private');
+        ok('nobody can forward a message they cannot read', warRoomForward($conn, $b, $pmsg, $all) === 0);
+        $dm = warRoomOpenDm($conn, $a, $b);
+        ok('...and to a person, through their direct message', warRoomForward($conn, $a, $orig, $dm) > 0);
+        foreach ($conn->query("SELECT stored_name FROM warroom_attachments WHERE message_id IN (SELECT id FROM warroom_messages WHERE channel_id = $dm)")->fetchAll(PDO::FETCH_COLUMN) as $n) $copies[] = $n;
+    } finally {
+        @unlink($dir . $srcName);
+        foreach ($copies as $n) @unlink($dir . $n);
+    }
+
+    // ---- piece 4: Seen by
+    $set = fn($v) => $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('warroom_seen_by', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$v]);
+    $set('1'); warRoomSeenByEnabled($conn, true);
+    $s1 = warRoomSend($conn, $a, $all, 'ZZ seen-by test');
+    warRoomMarkRead($conn, $b, $all, $s1);
+    $sb = warRoomSeenBy($conn, $a, $s1);
+    $bName = (string) $conn->query("SELECT full_name FROM analysts WHERE id = $b")->fetchColumn();
+    ok('Seen by lists who has read it, with a time', $sb && in_array($bName, array_column($sb['seen'], 'name'), true) && !empty($sb['seen'][0]['at']));
+    ok('...and never the author', !in_array((string) $conn->query("SELECT full_name FROM analysts WHERE id = $a")->fetchColumn(), array_column($sb['seen'], 'name'), true));
+    $firstAt = $sb['seen'][array_search($bName, array_column($sb['seen'], 'name'))]['at'];
+    warRoomMarkUnread($conn, $b, $s1);
+    $conn->exec("UPDATE warroom_read_marks SET read_datetime = DATE_SUB(read_datetime, INTERVAL 1 HOUR) WHERE analyst_id = $b AND up_to_message_id >= $s1");
+    $earlier = warRoomSeenBy($conn, $a, $s1)['seen'];
+    warRoomMarkRead($conn, $b, $all, $s1);   // reading it again later
+    $again = warRoomSeenBy($conn, $a, $s1)['seen'];
+    ok('marking unread and reading again keeps the FIRST read time',
+       $again[array_search($bName, array_column($again, 'name'))]['at'] === $earlier[array_search($bName, array_column($earlier, 'name'))]['at']);
+    $tOnly = warRoomSend($conn, $a, $all, 'ZZ thread-only', 0, $s1);
+    ok('a reply only inside a thread has no Seen by (reading the conversation is not reading the thread)', warRoomSeenBy($conn, $a, $tOnly) === null);
+    ok('nobody sees Seen by for a conversation they cannot read', warRoomSeenBy($conn, $b, $pmsg) === null);
+    $set('0'); warRoomSeenByEnabled($conn, true);
+    $s2 = warRoomSend($conn, $a, $all, 'ZZ seen-by off');
+    $marks = (int) $conn->query("SELECT COUNT(*) FROM warroom_read_marks WHERE analyst_id = $b")->fetchColumn();
+    warRoomMarkRead($conn, $b, $all, $s2);
+    ok('switched off: no read time is recorded at all', (int) $conn->query("SELECT COUNT(*) FROM warroom_read_marks WHERE analyst_id = $b")->fetchColumn() === $marks);
+    ok('...and Seen by answers nothing', warRoomSeenBy($conn, $a, $s1) === null);
 } finally {
     $conn->rollBack();
 }

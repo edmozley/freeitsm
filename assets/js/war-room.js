@@ -256,6 +256,15 @@
             return row;
         }
 
+        // A forward (5.9.0): where it came from, linking back - the link opens only
+        // for people who can read the original conversation.
+        if (m.forward) {
+            var fw = el('a', 'wr-fwd', '\u21AA ' + t('war-room.forward.from', {
+                author: m.forward.author, channel: m.forward.channel || '?', time: localTime(m.forward.created) }));
+            fw.href = (window.WR_LINK_BASE || '') + '?message=' + m.forward.from;
+            row.appendChild(fw);
+        }
+
         // The message this one quotes (5.9.0) - drawn from the reference, never
         // pasted text, so it says so if the original was deleted or has gone.
         if (m.quote) row.appendChild(renderQuote(m.quote));
@@ -829,6 +838,8 @@
         item(t('war-room.menu.copy_text'), function () { copyMessage(m, false); });
         item(t('war-room.menu.copy_full'), function () { copyMessage(m, true); });
         item(t('war-room.menu.copy_link'), function () { copyLink(m); });
+        item(t('war-room.menu.forward'), function () { openForward(m); });
+        if (window.WR_SEEN_BY && !(m.thread_root && !m.in_channel)) item(t('war-room.menu.seen'), function () { openSeenBy(m); });
         menuEl.appendChild(el('div', 'wr-menu-sep'));
         if (canPost) item(t(m.pinned ? 'war-room.menu.unpin' : 'war-room.menu.pin'), function () { pinMessage(m, !m.pinned); });
         item(t(m.saved ? 'war-room.menu.unsave' : 'war-room.menu.save'), function () { saveMessage(m, !m.saved); });
@@ -1329,6 +1340,108 @@
             setTimeout(function () { ta.focus(); }, 0);
         }
         poll();
+    }
+
+    /* ── forward and Seen by (5.9.0, piece 4) ── */
+
+    /**
+     * Forward a message: pick a conversation or a person, add a comment if you like.
+     * The text and any files go with it; its @names notify nobody again.
+     */
+    function openForward(m) {
+        var body = openModal(t('war-room.forward.title'));
+        var search = el('input', 'wr-input');
+        search.type = 'search';
+        search.placeholder = t('war-room.forward.search');
+        search.setAttribute('aria-label', t('war-room.forward.search'));
+        body.appendChild(search);
+        var list = el('div', 'wr-fwd-list');
+        list.setAttribute('role', 'listbox');
+        body.appendChild(list);
+        var note = document.createElement('textarea');
+        note.className = 'wr-input wr-fwd-note';
+        note.rows = 2;
+        note.placeholder = t('war-room.forward.comment');
+        note.setAttribute('aria-label', t('war-room.forward.comment'));
+        body.appendChild(note);
+        var actions = el('div', 'wr-modal-actions');
+        var go = el('button', 'btn btn-primary', t('war-room.forward.send'));
+        go.type = 'button';
+        go.disabled = true;
+        actions.appendChild(go);
+        var cancel = el('button', 'btn', t('war-room.create.cancel'));
+        cancel.type = 'button';
+        cancel.addEventListener('click', closeModal);
+        actions.appendChild(cancel);
+        body.appendChild(actions);
+
+        // Conversations you can post in (not archived), then people for a direct message.
+        var targets = channels.filter(function (c) { return !c.archived; })
+            .map(function (c) { return { kind: 'channel', id: c.id, name: c.name, group: t('war-room.forward.conversations') }; })
+            .concat(directory.map(function (p) { return { kind: 'person', id: p.id, name: p.name, group: t('war-room.forward.people') }; }));
+        var chosen = null;
+        /** Draws the matching destinations, grouped; click one to choose it. */
+        function draw() {
+            clear(list);
+            var q = search.value.trim().toLowerCase(), last = '';
+            targets.filter(function (x) { return !q || String(x.name).toLowerCase().indexOf(q) >= 0; }).slice(0, 60).forEach(function (x) {
+                if (x.group !== last) { list.appendChild(el('div', 'wr-fwd-group', x.group)); last = x.group; }
+                var b = el('button', 'wr-fwd-target' + (chosen === x ? ' is-chosen' : ''), x.name);
+                b.type = 'button';
+                b.setAttribute('role', 'option');
+                b.setAttribute('aria-selected', chosen === x ? 'true' : 'false');
+                b.addEventListener('click', function () { chosen = x; go.disabled = false; draw(); });
+                list.appendChild(b);
+            });
+        }
+        search.addEventListener('input', draw);
+        draw();
+        search.focus();
+
+        go.addEventListener('click', function () {
+            if (!chosen) return;
+            go.disabled = true;
+            var payload = { action: 'forward', id: m.id, comment: note.value };
+            if (chosen.kind === 'channel') payload.to_channel = chosen.id; else payload.to_analyst = chosen.id;
+            fetch(api + 'message.php', {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(function (r) { return r.json(); })
+              .then(function (d) {
+                  if (!d || !d.success) throw new Error('failed');
+                  closeModal();
+                  toast(t('war-room.forward.done', { name: chosen.name }));
+                  if (d.channel_id === activeId) poll();
+              })
+              .catch(function () { go.disabled = false; toast(t('war-room.menu.failed')); });
+        });
+    }
+
+    /** Who has read a message, and when - and, in a small conversation, who has not yet. */
+    function openSeenBy(m) {
+        var body = openPanel(t('war-room.seen.title'));
+        els.wrPanel.setAttribute('data-list', 'seen');
+        body.appendChild(el('div', 'wr-muted', t('war-room.emoji.loading')));
+        fetch(api + 'lists.php?list=seen&id=' + encodeURIComponent(m.id), { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                clear(body);
+                if (!d || !d.success) { body.appendChild(el('div', 'wr-muted', t('war-room.seen.unavailable'))); return; }
+                body.appendChild(el('div', 'wr-picker-head', t('war-room.seen.seen', { count: d.seen.length })));
+                if (!d.seen.length) body.appendChild(el('div', 'wr-muted', t('war-room.seen.nobody')));
+                d.seen.forEach(function (p) {
+                    var r = el('div', 'wr-seen-row');
+                    r.appendChild(el('span', 'wr-seen-name', p.name));
+                    r.appendChild(el('span', 'wr-msg-time', localTime(p.at)));
+                    body.appendChild(r);
+                });
+                if (d.not_yet) {
+                    body.appendChild(el('div', 'wr-picker-head wr-seen-gap', t('war-room.seen.not_yet', { count: d.not_yet.length })));
+                    d.not_yet.forEach(function (n) { body.appendChild(el('div', 'wr-seen-row wr-muted', n)); });
+                }
+            })
+            .catch(function () { clear(body); body.appendChild(el('div', 'wr-muted', t('war-room.menu.failed'))); });
     }
 
     /* ── pin, save, mark as unread (5.9.0, piece 2) ── */

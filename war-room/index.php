@@ -102,7 +102,7 @@ foreach ($channels as $ch) {
     <title><?php echo htmlspecialchars(pageTitle('war-room')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/war-room.css?v=10">
+    <link rel="stylesheet" href="../assets/css/war-room.css?v=11">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1"><!-- the shared file viewer (5.9.0) -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
     <style>
@@ -252,13 +252,14 @@ foreach ($channels as $ch) {
         window.WR_FOCUS_MISSING = <?php echo $focusMissing ? 'true' : 'false'; ?>;
         window.WR_LINK_BASE = <?php echo json_encode(BASE_URL . 'war-room/'); ?>;
         window.WR_TRANSLATE = <?php echo json_encode(['available' => $translateAvailable, 'on' => $translateOn, 'lang' => I18n::getLocale()]); ?>;
+        window.WR_SEEN_BY   = <?php echo warRoomSeenByEnabled($conn) ? 'true' : 'false'; ?>;
     </script>
     <!-- Attachments open in the viewer Files and Tickets use (5.9.0). Its own
          libraries (pdf.js and the rest) ship with FreeITSM and load on first use. -->
     <script src="../assets/js/float-window.js?v=2"></script>
     <script src="../assets/js/files-icons.js?v=4"></script>
     <script src="../assets/js/files-viewer.js?v=10"></script>
-    <script src="../assets/js/war-room.js?v=12"></script>
+    <script src="../assets/js/war-room.js?v=13"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

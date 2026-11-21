@@ -31,6 +31,10 @@ try {
             exit;
         }
         echo json_encode(['success' => true, 'items' => warRoomPins($conn, $channelId)]);
+    } elseif ($list === 'seen') {
+        // 5.9.0: who has read a message, and when.
+        $seen = warRoomSeenBy($conn, $analystId, (int) ($_GET['id'] ?? 0));
+        echo json_encode($seen === null ? ['success' => false, 'error' => 'not_available'] : ['success' => true] + $seen);
     } elseif ($list === 'saved') {
         echo json_encode(['success' => true, 'items' => warRoomSavedList($conn, $analystId)]);
     } else {

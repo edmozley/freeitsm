@@ -277,6 +277,13 @@ $translationNamespaces = ['common', 'war-room'];
                                 <p><?php echo htmlspecialchars(t('war-room.help.talking_thread_desc')); ?></p>
                             </div>
                         </div>
+                        <div class="help-step">
+                            <span class="help-step-num">10</span>
+                            <div>
+                                <h4><?php echo htmlspecialchars(t('war-room.help.talking_forward_title')); ?></h4>
+                                <p><?php echo htmlspecialchars(t('war-room.help.talking_forward_desc')); ?></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

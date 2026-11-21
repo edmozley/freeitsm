@@ -145,4 +145,16 @@ return [
         'link'     => 'war-room/',
         'check'    => ['rows', 'warroom_messages', 'thread_root_id IS NOT NULL'],
     ],
+    [
+        'id'       => 'war-room.forward',
+        'module'   => 'war-room',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Forward a message',
+        'what'     => 'Right-click a war room message and choose Forward to...: it goes to another conversation or a person, with its files and where it came from.',
+        'why'      => 'The update posted in one team\'s room is often exactly what another team needs - forwarding it keeps the wording and the context instead of retyping it.',
+        'done'     => 'A war room message has been forwarded.',
+        'link'     => 'war-room/',
+        'check'    => ['rows', 'warroom_messages', 'forwarded_from_id IS NOT NULL'],
+    ],
 ];

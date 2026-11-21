@@ -199,6 +199,8 @@ return [
         'talking_translate_desc' => 'Når din administrator har slået oversættelse til, vises beskeder skrevet på andre sprog på dit FreeITSM-sprog og toner frem, når oversættelsen kommer. Oversat fra ... · Vis original under en besked skifter den tilbage; Vis beskeder på mit sprog i panelet til venstre slår det fra for dig.',
         'talking_thread_title' => 'Svar i en tråd',
         'talking_thread_desc' => 'Svar i tråd (højreklik på en besked) åbner beskeden i panelet til højre med sit eget svarfelt, så en sidesamtale ikke fylder hovedsamtalen. Beskeden viser derefter, hvor mange svar den har - klik for at åbne tråden. Sæt flueben i Send også til denne samtale, når alle skal se et svar.',
+        'talking_forward_title' => 'Videresendelse, og hvem der har set det',
+        'talking_forward_desc' => 'Videresend til... sender en besked til en anden samtale eller en person, gerne med en kommentar; teksten og filerne følger med under, hvor den kom fra. Set af viser, hvem der har læst en besked og hvornår (og i en lille samtale, hvem der ikke har endnu) - medmindre din administrator har slået det fra.',
         'finding_heading' => 'At finde ting',
         'finding_intro' => 'To måder, afhængigt af om du leder efter noget, eller noget leder efter dig.',
         'finding_search_title' => 'Søgning',
@@ -268,6 +270,10 @@ return [
         'translate_privacy' => 'Slår du dette til, sendes teksten i krigsrummets beskeder til AI-udbyderen ovenfor for at blive oversat. Lad det være slået fra, hvis beskeder ikke må forlade denne server. Uden udbyderen, eller uden internet, ser alle bare beskederne, som de blev skrevet.',
         'translate_label' => 'Oversæt beskeder til hver persons sprog',
         'translate_hint' => 'Hver person kan stadig slå det fra for sig selv i krigsrummet.',
+        'seen_heading' => 'Set af',
+        'seen_intro' => 'Lader alle se, hvem der har læst hver besked, og hvornår - under et nedbrud er det halvdelen af værdien at vide, at en opdatering faktisk er set. Læsetider registreres kun, mens dette er slået til.',
+        'seen_label' => 'Vis, hvem der har læst hver besked',
+        'seen_hint' => 'Slås det fra, stopper registreringen af læsetider, og Set af skjules for alle.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -288,6 +294,8 @@ return [
         'link_copied' => 'Link kopieret',
         'copy_failed' => 'Kunne ikke kopiere - din browser blokerede det.',
         'thread' => 'Svar i tråd',
+        'forward' => 'Videresend til...',
+        'seen' => 'Set af',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -358,5 +366,22 @@ return [
         'in_thread' => 'svarede i en tråd',
         'placeholder' => 'Svar i denne tråd...',
         'also' => 'Send også til denne samtale',
+    ],
+    'forward' => [
+        'title' => 'Videresend besked',
+        'search' => 'Find en samtale eller en person',
+        'conversations' => 'Samtaler',
+        'people' => 'Personer',
+        'comment' => 'Tilføj en kommentar (valgfrit)',
+        'send' => 'Videresend',
+        'done' => 'Videresendt til {name}',
+        'from' => 'Videresendt fra {author} i {channel} · {time}',
+    ],
+    'seen' => [
+        'title' => 'Set af',
+        'seen' => 'Set ({count})',
+        'not_yet' => 'Ikke set endnu ({count})',
+        'nobody' => 'Ingen andre har læst den endnu.',
+        'unavailable' => 'Ikke tilgængelig for denne besked - Set af kan være slået fra, eller det er et svar i en tråd.',
     ],
 ];

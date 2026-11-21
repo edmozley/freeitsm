@@ -199,6 +199,8 @@ return [
         'talking_translate_desc' => 'Lorsque votre administrateur a activé la traduction, les messages écrits dans d\'autres langues s\'affichent dans votre langue FreeITSM, en fondu à l\'arrivée de la traduction. Traduit de ... · Afficher l\'original sous un message le rétablit ; Afficher les messages dans ma langue, dans le panneau de gauche, la désactive pour vous.',
         'talking_thread_title' => 'Répondre dans un fil',
         'talking_thread_desc' => 'Répondre dans un fil (clic droit sur un message) ouvre le message dans le panneau de droite avec sa propre zone de réponse, pour qu\'une discussion annexe n\'encombre pas la conversation principale. Le message indique ensuite combien de réponses il a : cliquez pour ouvrir le fil. Cochez Envoyer aussi dans cette conversation quand tout le monde doit voir une réponse.',
+        'talking_forward_title' => 'Transférer, et qui l\'a vu',
+        'talking_forward_desc' => 'Transférer à... envoie un message à une autre conversation ou à une personne, avec un commentaire si vous le souhaitez ; son texte et ses fichiers suivent, avec leur provenance. Vu par indique qui a lu un message et quand (et, dans une petite conversation, qui ne l\'a pas encore lu) - sauf si votre administrateur l\'a désactivé.',
         'finding_heading' => 'Trouver des informations',
         'finding_intro' => 'Deux façons, selon que vous cherchez quelque chose ou que quelque chose vous cherche.',
         'finding_search_title' => 'Recherche',
@@ -268,6 +270,10 @@ return [
         'translate_privacy' => 'Activer cette option envoie le texte des messages au fournisseur d\'IA ci-dessus pour traduction. Laissez-la désactivée si les messages ne doivent pas quitter ce serveur. Sans le fournisseur, ou sans internet, chacun voit simplement les messages tels qu\'ils ont été écrits.',
         'translate_label' => 'Traduire les messages dans la langue de chacun',
         'translate_hint' => 'Chacun peut toujours la désactiver pour lui-même dans la salle de crise.',
+        'seen_heading' => 'Vu par',
+        'seen_intro' => 'Permet à chacun de voir qui a lu chaque message, et quand - pendant une panne, savoir qu\'une mise à jour a vraiment été vue fait la moitié de sa valeur. Les heures de lecture ne sont enregistrées que tant que cette option est activée.',
+        'seen_label' => 'Afficher qui a lu chaque message',
+        'seen_hint' => 'La désactiver arrête l\'enregistrement des heures de lecture et masque Vu par pour tous.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -288,6 +294,8 @@ return [
         'link_copied' => 'Lien copié',
         'copy_failed' => 'Copie impossible - votre navigateur l\'a bloquée.',
         'thread' => 'Répondre dans un fil',
+        'forward' => 'Transférer à...',
+        'seen' => 'Vu par',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -358,5 +366,22 @@ return [
         'in_thread' => 'a répondu dans un fil',
         'placeholder' => 'Répondre dans ce fil...',
         'also' => 'Envoyer aussi dans cette conversation',
+    ],
+    'forward' => [
+        'title' => 'Transférer le message',
+        'search' => 'Trouver une conversation ou une personne',
+        'conversations' => 'Conversations',
+        'people' => 'Personnes',
+        'comment' => 'Ajouter un commentaire (facultatif)',
+        'send' => 'Transférer',
+        'done' => 'Transféré à {name}',
+        'from' => 'Transféré de {author} dans {channel} · {time}',
+    ],
+    'seen' => [
+        'title' => 'Vu par',
+        'seen' => 'Vu ({count})',
+        'not_yet' => 'Pas encore vu ({count})',
+        'nobody' => 'Personne d\'autre ne l\'a encore lu.',
+        'unavailable' => 'Non disponible pour ce message - Vu par est peut-être désactivé, ou c\'est une réponse dans un fil.',
     ],
 ];

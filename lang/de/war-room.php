@@ -199,6 +199,8 @@ return [
         'talking_translate_desc' => 'Wenn Ihre Administration die Übersetzung eingeschaltet hat, erscheinen Nachrichten in anderen Sprachen in Ihrer FreeITSM-Sprache und werden eingeblendet, sobald die Übersetzung da ist. Übersetzt aus ... · Original anzeigen unter einer Nachricht schaltet diese zurück; Nachrichten in meiner Sprache anzeigen im linken Bereich schaltet es für Sie aus.',
         'talking_thread_title' => 'Im Thread antworten',
         'talking_thread_desc' => 'Im Thread antworten (Rechtsklick auf eine Nachricht) öffnet die Nachricht im rechten Bereich mit einem eigenen Antwortfeld, sodass ein Nebengespräch die Hauptunterhaltung nicht füllt. Die Nachricht zeigt dann, wie viele Antworten sie hat - ein Klick öffnet den Thread. Setzen Sie das Häkchen bei Auch an diese Unterhaltung senden, wenn alle eine Antwort sehen sollen.',
+        'talking_forward_title' => 'Weiterleiten, und wer es gesehen hat',
+        'talking_forward_desc' => 'Weiterleiten an... sendet eine Nachricht an eine andere Unterhaltung oder eine Person, auf Wunsch mit Kommentar; Text und Dateien gehen mit, mit Angabe der Herkunft. Gesehen von zeigt, wer eine Nachricht wann gelesen hat (und in einer kleinen Unterhaltung, wer noch nicht) - sofern Ihre Administration es nicht ausgeschaltet hat.',
         'finding_heading' => 'Dinge finden',
         'finding_intro' => 'Zwei Wege — je nachdem, ob Sie etwas suchen oder etwas Sie sucht.',
         'finding_search_title' => 'Suche',
@@ -268,6 +270,10 @@ return [
         'translate_privacy' => 'Wenn Sie dies einschalten, wird der Text der War-Room-Nachrichten zur Übersetzung an den KI-Anbieter oben gesendet. Lassen Sie es aus, wenn Nachrichten diesen Server nicht verlassen dürfen. Ohne den Anbieter oder ohne Internet sehen alle die Nachrichten einfach so, wie sie geschrieben wurden.',
         'translate_label' => 'Nachrichten in die Sprache jeder Person übersetzen',
         'translate_hint' => 'Jede Person kann es im War Room trotzdem für sich ausschalten.',
+        'seen_heading' => 'Gesehen von',
+        'seen_intro' => 'Zeigt allen, wer jede Nachricht gelesen hat und wann - bei einem Ausfall ist das Wissen, dass ein Update wirklich gesehen wurde, die halbe Miete. Lesezeiten werden nur erfasst, solange dies eingeschaltet ist.',
+        'seen_label' => 'Anzeigen, wer jede Nachricht gelesen hat',
+        'seen_hint' => 'Ausschalten beendet das Erfassen der Lesezeiten und blendet Gesehen von für alle aus.',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -288,6 +294,8 @@ return [
         'link_copied' => 'Link kopiert',
         'copy_failed' => 'Kopieren nicht möglich - Ihr Browser hat es blockiert.',
         'thread' => 'Im Thread antworten',
+        'forward' => 'Weiterleiten an...',
+        'seen' => 'Gesehen von',
     ],
     'reactions' => [
         'label' => '{emoji} - {names}',
@@ -358,5 +366,22 @@ return [
         'in_thread' => 'hat in einem Thread geantwortet',
         'placeholder' => 'In diesem Thread antworten...',
         'also' => 'Auch an diese Unterhaltung senden',
+    ],
+    'forward' => [
+        'title' => 'Nachricht weiterleiten',
+        'search' => 'Unterhaltung oder Person suchen',
+        'conversations' => 'Unterhaltungen',
+        'people' => 'Personen',
+        'comment' => 'Kommentar hinzufügen (optional)',
+        'send' => 'Weiterleiten',
+        'done' => 'Weitergeleitet an {name}',
+        'from' => 'Weitergeleitet von {author} in {channel} · {time}',
+    ],
+    'seen' => [
+        'title' => 'Gesehen von',
+        'seen' => 'Gesehen ({count})',
+        'not_yet' => 'Noch nicht gesehen ({count})',
+        'nobody' => 'Noch niemand sonst hat sie gelesen.',
+        'unavailable' => 'Für diese Nachricht nicht verfügbar - Gesehen von ist vielleicht ausgeschaltet, oder es ist eine Antwort in einem Thread.',
     ],
 ];

@@ -885,3 +885,44 @@
 .wr-thread-composer textarea { width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit; }
 .wr-thread-composer .btn { align-self: flex-end; }
 .wr-thread-also { display: flex; gap: 6px; align-items: center; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
+
+/* Forward and Seen by (5.9.0, piece 4). */
+.wr-fwd {
+    display: block;
+    margin: 2px 0 2px;
+    font-size: var(--font-size-xs, 11px);
+    color: var(--text-muted, #666);
+    text-decoration: none;
+}
+.wr-fwd:hover { color: var(--accent, #ea580c); text-decoration: underline; }
+.wr-fwd-list {
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 8px 0;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 6px;
+}
+.wr-fwd-group {
+    padding: 6px 10px 2px;
+    font-size: var(--font-size-xs, 11px);
+    font-weight: 600;
+    color: var(--text-muted, #666);
+}
+.wr-fwd-target {
+    display: block;
+    width: 100%;
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    color: var(--text, #333);
+    font: inherit;
+    font-size: var(--font-size-md, 13px);
+    text-align: left;
+    cursor: pointer;
+}
+.wr-fwd-target:hover,
+.wr-fwd-target:focus-visible { background: var(--surface-hover, #f5f5f5); outline: none; }
+.wr-fwd-target.is-chosen { background: color-mix(in srgb, var(--accent, #ea580c) 14%, transparent); font-weight: 600; }
+.wr-fwd-note { width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit; }
+.wr-seen-row { display: flex; justify-content: space-between; gap: 8px; padding: 5px 2px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: var(--font-size-md, 13px); }
+.wr-seen-gap { margin-top: 14px; }
