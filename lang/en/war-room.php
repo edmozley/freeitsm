@@ -136,7 +136,7 @@ return [
         // "we could not reach the AI provider" is very likely the true and
         // expected answer, not a fault in FreeITSM, and saying so stops somebody
         // wasting minutes on it mid-incident.
-        'not_configured' => 'No AI provider is set up for the war room yet. An administrator can add one in War room → Settings → Situation report.',
+        'not_configured' => 'No AI provider is set up for the war room yet. An administrator can add one in War room → Settings → AI.',
         'unreachable'    => 'Could not reach the AI provider. If the internet is what has failed, this part will not work until it is back — the chat itself is unaffected.',
         'failed'         => 'Could not write the report',
     ],
@@ -313,13 +313,13 @@ return [
         'sitrep_check_body' => 'It is told to keep speculation labelled as speculation and never to invent a cause or an ETA, but it is a draft written from a chat transcript, and it goes out under your name. This is also the one part of the war room that needs the internet, so during a real outage it may not be available.',
 
         'settings_heading' => 'Settings',
-        'settings_intro'   => 'Two decisions for an administrator, and two for you.',
-        'settings_retention_title' => 'How long messages are kept',
-        'settings_retention_desc'  => 'From a week to forever. Old messages are removed as new ones arrive, so there is no scheduled job to set up, and files attached to a message go with it.',
-        'settings_ai_title'        => 'The AI provider',
-        'settings_ai_desc'         => 'One setting powers both Warbot\'s plain-English mode and the situation report. Leaving it unset is a perfectly good choice — the chat and Warbot\'s commands are unaffected.',
+        'settings_intro'   => 'What an administrator decides, under War room → Settings, and what each person decides for themselves.',
+        'settings_retention_title' => 'Message retention, and Seen by',
+        'settings_retention_desc'  => 'On the Message retention tab: how long messages are kept - a week to forever; old messages are removed as new ones arrive, and files attached to a message go with it. And Seen by - whether people can see who has read each message, on unless you turn it off; off stops recording read times.',
+        'settings_ai_title'        => 'AI',
+        'settings_ai_desc'         => 'On the AI tab: one AI provider for Warbot\'s plain-English mode, the situation report and translation. Translate messages - every reader seeing the room in their own language - is off until you switch it on there, because it sends message text to the provider. Leaving the provider unset is a perfectly good choice: the chat and Warbot\'s commands are unaffected.',
         'settings_personal_title'  => 'Your own preferences',
-        'settings_personal_desc'   => 'In the panel on the left: whether to show a desktop notification when you are mentioned, and whether picking a name inserts the first name or the full name.',
+        'settings_personal_desc'   => 'In the panel on the left: whether to show a desktop notification when you are mentioned, whether picking a name inserts the first name or the full name, and - when translation is on - whether to show messages in your own language.',
         'settings_check_title'     => 'Check it before you need it',
         'settings_check_desc'      => 'System → Debug Tools → D008 confirms the whole module is working — channels, attachments, retention and Warbot\'s lookups. Worth running on a quiet day, because this is a tool you open when things are already going wrong.',
     ],
@@ -348,6 +348,7 @@ return [
         'seen_intro' => 'Lets everyone see who has read each message, and when - in an outage, knowing an update has actually been seen is half its value. Read times are only recorded while this is on.',
         'seen_label' => 'Show who has read each message',
         'seen_hint' => 'Turning it off stops recording read times and hides Seen by for everyone.',
+        'ai_tab' => 'AI',
     ],
     // Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design
     'menu' => [
@@ -463,4 +464,6 @@ return [
         'no_access' => 'You don\'t have access to this file in Files',
         'gone' => 'No longer available in Files',
     ],
+    'schema_behind' => 'Some newer war room features are switched off until Database Verification has been run.',
+    'schema_behind_link' => 'Run Database Verification',
 ];

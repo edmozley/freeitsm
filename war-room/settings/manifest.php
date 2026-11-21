@@ -32,8 +32,10 @@ return [
         [
             'id'        => 'ai',
             'cap'       => capKey(Cap::WAR_ROOM_MANAGE),
-            'label_key' => 'war-room.settings.ai_heading',
-            'grant'     => 'Configure the war room situation report',
+            // "AI", not "Situation report" (5.9.0): the tab now also holds translation, and
+            // Ed could not find the switch under the old name. The section keeps ai_heading.
+            'label_key' => 'war-room.settings.ai_tab',
+            'grant'     => 'Configure the war room AI - situation report, Warbot and translation',
             'setting_keys' => [
                 'warroom_ai_provider', 'warroom_ai_model',
                 'warroom_ai_api_key', 'warroom_ai_verify_ssl',

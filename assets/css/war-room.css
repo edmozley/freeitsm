@@ -954,3 +954,15 @@
 .wr-filecard.is-locked .wr-filecard-name,
 .wr-filecard.is-gone .wr-filecard-name { color: var(--text-muted, #666); font-weight: 400; }
 .wr-filecard.is-gone .wr-filecard-icon { opacity: 0.45; }
+
+/* Database Verification not yet run since an upgrade (5.9.0) - administrators only. */
+.wr-schema-note {
+    margin: 0 0 8px;
+    padding: 8px 12px;
+    border-left: 3px solid var(--warning-accent, #d97706);
+    border-radius: 0 6px 6px 0;
+    background: var(--surface-hover, #f5f5f5);
+    font-size: var(--font-size-sm, 12px);
+    color: var(--text, #333);
+}
+.wr-schema-note a { margin-left: 6px; color: var(--accent, #ea580c); font-weight: 600; }

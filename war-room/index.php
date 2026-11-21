@@ -59,6 +59,9 @@ if ($focusId > 0) {
 }
 
 $myName    = $_SESSION['analyst_name'] ?? '';
+// Database Verification not run since an upgrade (5.9.0): administrators are told,
+// and the chat runs without the newer features rather than failing.
+$schemaBehind = warRoomSchemaBehind($conn);
 $canManage = analystHasCapability($conn, $analystId, Cap::WAR_ROOM_MANAGE);
 
 // Per-analyst preferences. Both are personal habits rather than administrator
@@ -102,7 +105,7 @@ foreach ($channels as $ch) {
     <title><?php echo htmlspecialchars(pageTitle('war-room')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/war-room.css?v=12">
+    <link rel="stylesheet" href="../assets/css/war-room.css?v=13">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1"><!-- the shared file viewer (5.9.0) -->
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
@@ -196,6 +199,12 @@ foreach ($channels as $ch) {
             </div>
 
             <p class="wr-intro"><?php echo htmlspecialchars(t('war-room.intro')); ?></p>
+            <?php if ($schemaBehind && (sessionIsAdmin() || $canManage)): ?>
+            <div class="wr-schema-note" role="status">
+                <?php echo htmlspecialchars(t('war-room.schema_behind')); ?>
+                <a href="<?php echo BASE_URL; ?>system/db-verify/"><?php echo htmlspecialchars(t('war-room.schema_behind_link')); ?></a>
+            </div>
+            <?php endif; ?>
 
             <div class="wr-messages" id="wrMessages">
                 <div class="wr-empty" id="wrEmpty"><?php echo htmlspecialchars(t('war-room.empty')); ?></div>
