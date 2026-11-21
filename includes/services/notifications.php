@@ -241,6 +241,9 @@ class NotificationsService
             // read - to the analysts who manage Hyper-V connections (VirtualEstateService::watch(),
             // the virt_watch job). Once per silence or failure, never every run.
             'hyperv.collector'           => ['default' => true,  'entity' => 'virt_connection'],
+            // Consumables (5.8.0): an item fell to its reorder point - to the analysts chosen in
+            // Assets -> Settings -> Consumables, once per dip (ConsumablesService::checkLow()).
+            'consumable.low_stock'       => ['default' => true,  'entity' => 'consumable'],
         ];
     }
 

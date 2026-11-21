@@ -1277,6 +1277,20 @@ try {
         ['asset_type_layout',      'fk_atl_type',                  'asset_types',       'asset_type_id',         'id', 'CASCADE'],
         ['asset_type_expected_fields', 'fk_ate_type',              'asset_types',       'asset_type_id',         'id', 'CASCADE'],   // GH #404
         ['asset_field_not_applicable', 'fk_afna_asset',            'assets',            'asset_id',              'id', 'CASCADE'],   // GH #404
+        // Consumables (5.8.0). The ledger's keys are RESTRICT on purpose: an item or a store with
+        // history is retired (is_active = 0), never deleted - deleting would take the ledger with it.
+        ['consumable_items',        'fk_consumable_items_type',         'consumable_types',     'type_id',     'id', 'SET NULL'],
+        ['consumable_stock',        'fk_consumable_stock_item',         'consumable_items',     'item_id',     'id', 'RESTRICT'],
+        ['consumable_stock',        'fk_consumable_stock_store',        'consumable_stores',    'store_id',    'id', 'RESTRICT'],
+        ['consumable_counts',       'fk_consumable_counts_store',       'consumable_stores',    'store_id',    'id', 'RESTRICT'],
+        ['consumable_count_lines',  'fk_consumable_count_lines_count',  'consumable_counts',    'count_id',    'id', 'RESTRICT'],
+        ['consumable_count_lines',  'fk_consumable_count_lines_item',   'consumable_items',     'item_id',     'id', 'RESTRICT'],
+        ['consumable_movements',    'fk_consumable_movements_item',     'consumable_items',     'item_id',     'id', 'RESTRICT'],
+        ['consumable_movements',    'fk_consumable_movements_store',    'consumable_stores',    'store_id',    'id', 'RESTRICT'],
+        ['consumable_movements',    'fk_consumable_movements_reverses', 'consumable_movements', 'reverses_id', 'id', 'RESTRICT'],
+        ['consumable_field_options','fk_consumable_field_options_field','consumable_fields',    'field_id',    'id', 'CASCADE'],
+        ['consumable_field_values', 'fk_cfv_item',                      'consumable_items',     'item_id',     'id', 'CASCADE'],
+        ['consumable_field_values', 'fk_cfv_field',                     'consumable_fields',    'field_id',    'id', 'RESTRICT'],
         // GH #200 parts C and D: a connection or a review case goes with either asset.
         ['asset_connections',      'fk_asset_connections_asset',   'assets',            'asset_id',              'id', 'CASCADE'],
         ['asset_connections',      'fk_asset_connections_other',   'assets',            'connected_asset_id',    'id', 'CASCADE'],

@@ -11393,6 +11393,208 @@ CREATE TABLE IF NOT EXISTS `report_downloads` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- ==========================================================
+-- Consumables (Assets -> Consumables, 5.8.0): the things a service desk COUNTS
+-- rather than tracks one by one - toner, paper, mice, RAM. Design and decisions:
+-- wiki Consumables-Design. includes/services/consumables.php is the only writer.
+--
+-- 🔑 STOCK IS A LEDGER. consumable_movements is append-only: a movement is never
+-- updated or deleted, a mistake is undone by a reversing movement. consumable_stock
+-- is the running total, changed only in the same transaction as the movement that
+-- explains it; ConsumablesService::verify() checks the two still agree.
+--
+-- 🔑 A STORE ON EVERY ROW. One store per company to start (Ed, 2026-11-21), made
+-- on first use - but stock and movements always name the store, so more stores per
+-- company later is screens and a transfer, not a data migration.
+-- ==========================================================
+
+CREATE TABLE IF NOT EXISTS `consumable_types` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `name`             VARCHAR(100) NOT NULL,
+    `description`      VARCHAR(255) NULL,
+    `is_active`        TINYINT(1) NOT NULL DEFAULT 1,
+    `display_order`    INT NOT NULL DEFAULT 0,
+    `created_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `consumable_stores` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`        INT NULL,          -- the company; NULL = the Default company's
+    `name`             VARCHAR(150) NOT NULL,
+    `location_id`      INT NULL,          -- later: a store per site (asset_locations)
+    `is_active`        TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_consumable_stores_tenant` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `consumable_items` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`             INT NULL,     -- the company it belongs to; NULL = the Default company's
+    `type_id`               INT NULL,
+    `name`                  VARCHAR(200) NOT NULL,
+    `part_number`           VARCHAR(100) NULL,
+    `unit`                  VARCHAR(30) NULL,          -- each, box, ream...
+    `supplier_id`           INT NULL,
+    `unit_cost`             DECIMAL(12,2) NULL,        -- the latest receipt's price, unless set by hand
+    `notes`                 TEXT NULL,
+    `is_active`             TINYINT(1) NOT NULL DEFAULT 1,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_consumable_items_tenant` (`tenant_id`),
+    KEY `idx_consumable_items_type` (`type_id`),
+    CONSTRAINT `fk_consumable_items_type` FOREIGN KEY (`type_id`) REFERENCES `consumable_types` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- On hand per item per store, with the levels that say when to reorder.
+CREATE TABLE IF NOT EXISTS `consumable_stock` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `item_id`               INT NOT NULL,
+    `store_id`              INT NOT NULL,
+    `on_hand`               INT NOT NULL DEFAULT 0,
+    `min_level`             INT NULL,     -- the least there should ever be
+    `reorder_point`         INT NULL,     -- at or below this: low, reorder
+    `low_notified_datetime` DATETIME NULL, -- the bell went for this dip; cleared when stock recovers
+    `updated_datetime`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_consumable_stock` (`item_id`, `store_id`),
+    KEY `idx_consumable_stock_store` (`store_id`),
+    CONSTRAINT `fk_consumable_stock_item` FOREIGN KEY (`item_id`) REFERENCES `consumable_items` (`id`),
+    CONSTRAINT `fk_consumable_stock_store` FOREIGN KEY (`store_id`) REFERENCES `consumable_stores` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Stock takes, and per item what was expected, what was there and what that was worth.
+CREATE TABLE IF NOT EXISTS `consumable_counts` (
+    `id`                     INT NOT NULL AUTO_INCREMENT,
+    `store_id`               INT NOT NULL,
+    `status`                 VARCHAR(12) NOT NULL DEFAULT 'open',   -- open | finished | cancelled
+    `note`                   VARCHAR(500) NULL,
+    `started_by_analyst_id`  INT NULL,
+    `started_datetime`       DATETIME NULL,
+    `finished_by_analyst_id` INT NULL,
+    `finished_datetime`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_consumable_counts_store` (`store_id`, `status`),
+    CONSTRAINT `fk_consumable_counts_store` FOREIGN KEY (`store_id`) REFERENCES `consumable_stores` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `consumable_count_lines` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `count_id`              INT NOT NULL,
+    `item_id`               INT NOT NULL,
+    `expected`              INT NOT NULL,          -- on hand when it was counted
+    `counted`               INT NOT NULL,
+    `difference`            INT NOT NULL,          -- counted - expected
+    `unit_cost`             DECIMAL(12,2) NULL,
+    `value_difference`      DECIMAL(14,2) NULL,    -- difference x unit_cost, fixed when counted
+    `counted_by_analyst_id` INT NULL,
+    `counted_datetime`      DATETIME NULL,
+    `movement_id`           INT NULL,              -- the Counted movement that posted it, once finished
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_consumable_count_line` (`count_id`, `item_id`),
+    KEY `idx_consumable_count_lines_item` (`item_id`),
+    CONSTRAINT `fk_consumable_count_lines_count` FOREIGN KEY (`count_id`) REFERENCES `consumable_counts` (`id`),
+    CONSTRAINT `fk_consumable_count_lines_item` FOREIGN KEY (`item_id`) REFERENCES `consumable_items` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The ledger. APPEND-ONLY - see the note at the top of this block.
+CREATE TABLE IF NOT EXISTS `consumable_movements` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `item_id`           INT NOT NULL,
+    `store_id`          INT NOT NULL,
+    `kind`              VARCHAR(12) NOT NULL,    -- receive | issue | return | adjust | count | reverse
+    `quantity`          INT NOT NULL,            -- signed: + into the store, - out of it
+    `balance_after`     INT NOT NULL,            -- on hand straight after it
+    `unit_cost`         DECIMAL(12,2) NULL,      -- valued at this, for ever
+    `ticket_id`         INT NULL,
+    `recipient_user_id` INT NULL,                -- issued to / returned by
+    `supplier_id`       INT NULL,
+    `invoice_ref`       VARCHAR(100) NULL,
+    `invoice_date`      DATE NULL,
+    `reason`            VARCHAR(500) NULL,
+    `reverses_id`       INT NULL,                -- the movement this one undoes
+    `count_id`          INT NULL,                -- the stock take that posted it
+    `analyst_id`        INT NULL,                -- who; NULL = FreeITSM itself
+    `source`            VARCHAR(20) NOT NULL DEFAULT 'app',   -- app | ticket | api
+    `created_datetime`  DATETIME NOT NULL,       -- UTC
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_consumable_movements_reverses` (`reverses_id`),   -- undone once, never twice
+    KEY `idx_consumable_movements_item` (`item_id`, `store_id`, `id`),
+    KEY `idx_consumable_movements_ticket` (`ticket_id`),
+    KEY `idx_consumable_movements_recipient` (`recipient_user_id`),
+    KEY `idx_consumable_movements_when` (`created_datetime`),
+    CONSTRAINT `fk_consumable_movements_item` FOREIGN KEY (`item_id`) REFERENCES `consumable_items` (`id`),
+    CONSTRAINT `fk_consumable_movements_store` FOREIGN KEY (`store_id`) REFERENCES `consumable_stores` (`id`),
+    CONSTRAINT `fk_consumable_movements_reverses` FOREIGN KEY (`reverses_id`) REFERENCES `consumable_movements` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Every change to an item, a type, a level or a stock take, field by field.
+CREATE TABLE IF NOT EXISTS `consumable_audit` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `item_id`          INT NULL,
+    `type_id`          INT NULL,
+    `count_id`         INT NULL,
+    `analyst_id`       INT NULL,
+    `field_name`       VARCHAR(100) NOT NULL,
+    `old_value`        VARCHAR(1000) NULL,
+    `new_value`        VARCHAR(1000) NULL,
+    `source`           VARCHAR(20) NOT NULL DEFAULT 'app',
+    `created_datetime` DATETIME NOT NULL,        -- UTC
+    PRIMARY KEY (`id`),
+    KEY `idx_consumable_audit_item` (`item_id`, `id`),
+    KEY `idx_consumable_audit_type` (`type_id`),
+    KEY `idx_consumable_audit_count` (`count_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Custom fields on consumable items: the shared TypedFields engine through
+-- RecordFieldsService, as companies and people have them. A field belongs to every
+-- type (consumable_type_id NULL) or one type - "properties based on the item type".
+CREATE TABLE IF NOT EXISTS `consumable_fields` (
+    `id`                 INT NOT NULL AUTO_INCREMENT,
+    `field_key`          VARCHAR(100) NOT NULL,
+    `label`              VARCHAR(150) NOT NULL,
+    `field_type`         VARCHAR(20) NOT NULL,
+    `config`             LONGTEXT NULL,
+    `help_text`          VARCHAR(500) NULL,
+    `is_required`        TINYINT(1) NOT NULL DEFAULT 0,
+    `display_order`      INT NOT NULL DEFAULT 0,
+    `consumable_type_id` INT NULL,               -- NULL = every type
+    `is_deleted`         TINYINT(1) NOT NULL DEFAULT 0,
+    `created_datetime`   DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_consumable_fields_type_key` (`consumable_type_id`, `field_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `consumable_field_options` (
+    `id`            INT NOT NULL AUTO_INCREMENT,
+    `field_id`      INT NOT NULL,
+    `option_value`  VARCHAR(255) NOT NULL,
+    `display_order` INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `ix_consumable_field_options_field` (`field_id`),
+    CONSTRAINT `fk_consumable_field_options_field` FOREIGN KEY (`field_id`) REFERENCES `consumable_fields` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `consumable_field_values` (
+    `id`            INT NOT NULL AUTO_INCREMENT,
+    `item_id`       INT NOT NULL,
+    `field_id`      INT NOT NULL,
+    `seq`           INT NOT NULL DEFAULT 0,
+    `value_text`    TEXT NULL,
+    `value_number`  DECIMAL(20,4) NULL,
+    `value_date`    DATETIME NULL,
+    `value_boolean` TINYINT(1) NULL,
+    `value_ref_id`  INT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_consumable_field_value` (`item_id`, `field_id`, `seq`),
+    KEY `ix_cfv_field_text` (`field_id`, `value_text`(64)),
+    CONSTRAINT `fk_cfv_item` FOREIGN KEY (`item_id`) REFERENCES `consumable_items` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_cfv_field` FOREIGN KEY (`field_id`) REFERENCES `consumable_fields` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ----------------------------------------------------------
 -- Seed: Default admin account
 -- ----------------------------------------------------------

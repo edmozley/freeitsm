@@ -98,6 +98,13 @@ enum Cap: string
     case ASSETS_RECONCILIATION = 'assets.reconciliation';
     case ASSETS_TAGS           = 'assets.tags';
     case ASSETS_LABELS         = 'assets.labels';
+    // Consumables (5.8.0, wiki Consumables-Design). CONSUMABLES is the settings tab - types,
+    // who hears about low stock, the reorder form. CONSUMABLES_ADJUST is everyday work that
+    // ALWAYS applies (no 'restrict' setting): adjusting stock and finishing a stock take, which
+    // change the books - administrators only until a role is given it (Ed, 2026-11-21).
+    // Receiving, issuing and returning are plain write access to Assets.
+    case ASSETS_CONSUMABLES        = 'assets.consumables';
+    case ASSETS_CONSUMABLES_ADJUST = 'assets.consumables_adjust';
 
     // ---- Contracts ---------------------------------------------------------
     case CONTRACTS_MANAGE             = 'contracts.manage';              // umbrella

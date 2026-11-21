@@ -140,8 +140,12 @@ $translationNamespaces = ['common', 'asset-management'];
                 <span class="help-nav-num">23</span>
                 <?php echo htmlspecialchars(t('asset-management.help.missing.nav')); ?>
             </a>
+            <a href="#consumables" class="help-nav-link" data-section="consumables">
+                <span class="help-nav-num">24</span>
+                <?php echo htmlspecialchars(t('asset-management.consumables.help_heading')); ?>
+            </a>
             <a href="#tips" class="help-nav-link" data-section="tips">
-                <span class="help-nav-num">23</span>
+                <span class="help-nav-num">25</span>
                 <?php echo htmlspecialchars(t('asset-management.help.nav_tips')); ?>
             </a>
         </div>
@@ -922,9 +926,22 @@ $translationNamespaces = ['common', 'asset-management'];
                     </div>
                 </div>
 
+<div class="help-section" id="consumables">   <!-- 5.8.0 -->
+                    <div class="help-section-header">
+                        <span class="help-section-num">24</span>
+                        <h3><?php echo htmlspecialchars(t('asset-management.consumables.help_heading')); ?></h3>
+                    </div>
+                    <p><?php echo t('asset-management.consumables.help_intro'); ?></p>
+                    <div class="help-list">
+                        <?php foreach (['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'] as $hp): ?>
+                        <div><?php echo t('asset-management.consumables.help_' . $hp); ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
 <div class="help-section" id="tips">
                     <div class="help-section-header">
-                        <span class="help-section-num">23</span>
+                        <span class="help-section-num">25</span>
                         <h3><?php echo htmlspecialchars(t('asset-management.help.nav_tips')); ?></h3>
                     </div>
                     <div class="help-cards">

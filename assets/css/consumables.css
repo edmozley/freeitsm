@@ -1,0 +1,127 @@
+/* Assets -> Consumables (5.8.0): the list, the item panel, stock takes and the report.
+   Colours are theme tokens only (tests/css-colour-guard.php); font sizes are tokens. */
+
+.cs-wrap { height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; padding: 22px 30px 40px; }
+.cs-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.cs-head h1 { margin: 0 0 4px; font-size: var(--font-size-3xl, 20px); font-weight: 600; color: var(--text, #333); }
+.cs-intro { margin: 0; color: var(--text-muted, #666); font-size: var(--font-size-lg, 14px); max-width: 760px; line-height: 1.5; }
+.cs-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cs-head-actions .btn { text-decoration: none; }
+
+.cs-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.cs-bar input[type=search], .cs-bar select {
+    padding: 7px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px;
+    background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px);
+}
+.cs-bar input[type=search] { min-width: 240px; }
+.cs-bar input[type=text] { padding: 7px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); min-width: 320px; }
+.cs-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
+.cs-count { margin-left: auto; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); }
+
+.cs-ticket-banner {
+    background: var(--info-bg, #e8f1fb); color: var(--info-text, #1e4e8c); border: 1px solid var(--info-border, #b6d0f0);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-md, 13px);
+}
+
+.cs-table { width: 100%; border-collapse: collapse; background: var(--surface, #fff); border-radius: 8px; overflow: hidden;
+            box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
+.cs-table th, .cs-table td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border-soft, #eee); font-size: var(--font-size-md, 13px); vertical-align: middle; }
+.cs-table th { background: var(--surface-2, #f7f7f7); font-weight: 600; color: var(--text, #333); }
+.cs-table .n { text-align: right; white-space: nowrap; }
+.cs-table tr:hover td { background: var(--surface-hover, #f5f7fa); }
+.cs-retired td { opacity: .6; }
+.cs-name { font-weight: 600; color: var(--accent, #1565c0); text-decoration: none; }
+.cs-name:hover { text-decoration: underline; }
+.cs-sub { display: block; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
+.cs-row-btn { padding: 4px 10px; font-size: var(--font-size-sm, 12px); }
+
+.cs-pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; white-space: nowrap; vertical-align: middle; }
+.cs-ok  { background: var(--success-bg, #e7f6ec); color: var(--success-text, #166534); }
+.cs-low { background: var(--warning-bg, #fff4e5); color: var(--warning-text, #8a4b00); }
+.cs-out { background: var(--danger-bg, #fdecec); color: var(--danger-text, #b42318); }
+
+.cs-empty { padding: 30px; text-align: center; color: var(--text-muted, #666); background: var(--surface, #fff); border-radius: 8px; }
+.cs-dim { color: var(--text-muted, #666); }
+.cs-error { margin-top: 10px; padding: 8px 12px; border-radius: 6px; background: var(--danger-bg, #fdecec); color: var(--danger-text, #b42318); font-size: var(--font-size-md, 13px); }
+
+/* The item panel slides in from the right over the list. */
+.cs-panel {
+    position: fixed; top: 48px; right: 0; bottom: 0; width: min(520px, 100vw); z-index: 900;
+    background: var(--surface, #fff); border-left: 1px solid var(--border, #ddd);
+    box-shadow: -6px 0 18px var(--shadow, rgba(0,0,0,0.12)); display: flex; flex-direction: column;
+}
+.cs-panel[hidden] { display: none; }
+.cs-panel-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 18px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
+.cs-panel-head h2 { margin: 0; flex: 1; font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333); }
+.cs-x { border: none; background: none; font-size: var(--font-size-3xl, 20px); line-height: 1; cursor: pointer; color: var(--text-muted, #666); padding: 0 4px; }
+.cs-panel-body { padding: 14px 18px 30px; overflow-y: auto; flex: 1; }
+.cs-onhand { margin-bottom: 12px; color: var(--text, #333); font-size: var(--font-size-lg, 14px); }
+.cs-big { font-size: var(--font-size-4xl, 24px); font-weight: 700; }
+.cs-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.cs-actions .btn { padding: 6px 12px; font-size: var(--font-size-md, 13px); }
+.cs-facts { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0 0 16px; font-size: var(--font-size-md, 13px); }
+.cs-facts dt { color: var(--text-muted, #666); }
+.cs-facts dd { margin: 0; color: var(--text, #333); word-break: break-word; }
+
+.cs-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border, #ddd); margin-bottom: 10px; }
+.cs-tabs button { border: none; background: none; padding: 7px 12px; cursor: pointer; color: var(--text-muted, #666); font-size: var(--font-size-md, 13px); border-bottom: 2px solid transparent; }
+.cs-tabs button[aria-selected="true"] { color: var(--accent, #1565c0); border-bottom-color: var(--accent, #1565c0); font-weight: 600; }
+
+.cs-moves { list-style: none; margin: 0; padding: 0; }
+.cs-moves li { padding: 9px 0; border-bottom: 1px solid var(--border-soft, #eee); font-size: var(--font-size-md, 13px); }
+.cs-move-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cs-when { margin-left: auto; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
+.cs-move-sub { color: var(--text-muted, #666); margin-top: 2px; }
+.cs-move-reason { color: var(--text, #333); margin-top: 3px; font-style: italic; }
+.cs-kind { font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #666); }
+.cs-pos { color: var(--success-text, #166534); }
+.cs-neg { color: var(--danger-text, #b42318); }
+.cs-undone .cs-move-top strong { text-decoration: line-through; }
+.cs-link { border: none; background: none; padding: 0; margin-top: 4px; color: var(--accent, #1565c0); cursor: pointer; font-size: var(--font-size-sm, 12px); text-decoration: underline; }
+
+/* Dialogs: the canonical layout from inbox.css; only the grid and the people search here. */
+.cs-modal-wide { max-width: 680px; width: 100%; }
+.cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.cs-span2 { grid-column: 1 / -1; }
+.cs-move-what { margin: 0 0 12px; color: var(--text-muted, #666); }
+.cs-person { position: relative; }
+.cs-person-results {
+    position: absolute; left: 0; right: 0; top: 100%; z-index: 5; max-height: 220px; overflow-y: auto;
+    background: var(--surface, #fff); border: 1px solid var(--border, #ccc); border-radius: 6px; box-shadow: 0 6px 16px var(--shadow, rgba(0,0,0,0.12));
+}
+.cs-person-results[hidden] { display: none; }
+.cs-person-results button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 7px 10px; cursor: pointer; color: var(--text, #333); font-size: var(--font-size-md, 13px); }
+.cs-person-results button:hover { background: var(--surface-hover, #f3f4f6); }
+.cs-person-results span { display: block; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
+.cs-person-results .cs-dim { padding: 8px 10px; }
+
+/* Stock take */
+.cs-count-input { width: 90px; padding: 5px 8px; border: 1px solid var(--border, #ccc); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); text-align: right; font-size: var(--font-size-md, 13px); }
+.cs-count-input.cs-saved { border-color: var(--success-border, #9fd9b3); }
+.cs-totals { display: flex; gap: 24px; flex-wrap: wrap; margin: 12px 0; font-size: var(--font-size-md, 13px); color: var(--text, #333); }
+.cs-totals strong { font-size: var(--font-size-xl, 16px); }
+
+/* Report */
+.cs-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.cs-card { background: var(--surface, #fff); border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
+.cs-card .cs-card-n { font-size: var(--font-size-3xl, 20px); font-weight: 700; color: var(--text, #333); }
+.cs-card .cs-card-l { color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
+.cs-chart { background: var(--surface, #fff); border-radius: 8px; padding: 14px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 16px; }
+.cs-chart svg { width: 100%; height: auto; max-height: 300px; display: block; }
+.cs-chart .cs-bar-loss { fill: var(--danger-accent, #dc2626); }
+.cs-chart .cs-bar-gain { fill: var(--success-accent, #16a34a); }
+.cs-chart .cs-axis { stroke: var(--border, #ccc); }
+.cs-chart text { fill: var(--text-muted, #666); font-size: var(--font-size-xs, 11px); }
+.cs-legend { display: flex; gap: 16px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin-top: 6px; }
+.cs-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.cs-seg { display: inline-flex; border: 1px solid var(--border, #ccc); border-radius: 6px; overflow: hidden; }
+.cs-seg button { border: none; background: var(--surface, #fff); color: var(--text, #333); padding: 6px 12px; cursor: pointer; font-size: var(--font-size-md, 13px); }
+.cs-seg button[aria-pressed="true"] { background: var(--accent, #1565c0); color: var(--on-accent, #fff); }
+.cs-h2 { font-size: var(--font-size-xl, 16px); font-weight: 600; margin: 20px 0 8px; color: var(--text, #333); }
+
+@media (max-width: 760px) {
+    .cs-wrap { padding: 14px 12px 30px; height: auto; }
+    .cs-grid { grid-template-columns: 1fr; }
+    .cs-table th:nth-child(2), .cs-table td:nth-child(2), .cs-table th:nth-child(6), .cs-table td:nth-child(6) { display: none; }
+    .cs-bar input[type=search] { min-width: 0; flex: 1 1 100%; font-size: var(--font-size-xl, 16px); }
+}

@@ -1195,6 +1195,10 @@ try {
         if (as.lease_show) {
             html += metric(as.lease_soon, window.t('watchtower.assets.metric_lease'), as.lease_soon > 0 ? '#d13438' : '#94a3b8', '../asset-management/table.php?due=lease');
         }
+        // Consumables (5.8.0): low or out of stock - opens exactly that list.
+        if (as.consumables_show) {
+            html += metric(as.consumables_low, window.t('watchtower.assets.metric_consumables'), as.consumables_low > 0 ? '#f59e0b' : '#94a3b8', '../asset-management/consumables/?status=low');
+        }
         html += '</div>';
 
         html += '<div class="wt-attention">';

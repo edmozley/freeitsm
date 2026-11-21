@@ -715,6 +715,9 @@ return [
             'help' => [
                 'unanswered' => 'The help assistant could not answer a question',
             ],
+            'consumable' => [
+                'low_stock' => 'Running low - time to reorder',
+            ],
             'hyperv' => [
                 'collector' => 'A Hyper-V collector needs your attention',
             ],
@@ -779,6 +782,9 @@ return [
             // The help assistant (wiki Help-Assistant-Design) - administrators only.
             'help' => [
                 'unanswered' => 'The help assistant cannot answer a question someone asked (administrators)',
+            ],
+            'consumable' => [
+                'low_stock' => 'A consumable falls to its reorder point (who is told is chosen in Assets -> Settings -> Consumables)',
             ],
             'hyperv' => [
                 'collector' => 'A Hyper-V collector stops reporting, or a cluster\'s storage cannot be read (people who manage Hyper-V connections)',

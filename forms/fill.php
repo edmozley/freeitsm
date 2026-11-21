@@ -502,6 +502,16 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
                     formData = data.form;
                     renderForm();
                     restoreDraft();
+                    // Opened by Reorder in Assets -> Consumables (5.8.0): its answers, keyed by
+                    // question id, handed over in this tab's sessionStorage - read once, then gone.
+                    try {
+                        const k = 'freeitsm.formPrefill.' + id, p = sessionStorage.getItem(k);
+                        if (p && !taskFill) {
+                            sessionStorage.removeItem(k);
+                            applyDraftValues(JSON.parse(p) || {});
+                            if (typeof applyVisibility === 'function') applyVisibility();
+                        }
+                    } catch (e) { /* the form opens empty, as before */ }
                 } else {
                     document.getElementById('formCard').innerHTML = '<p style="color:var(--danger-text, #c00);text-align:center">' + esc(data.error) + '</p>';
                 }

@@ -4227,6 +4227,7 @@ function buildLinkActions() {
                 ${ticketModuleOn('changes') ? `<button type="button" onclick="linkAddChoose('change')">Change</button>` : ''}
                 <button type="button" onclick="linkAddChoose('ticket')">Ticket</button>
                 ${ticketModuleOn('assets') ? `<button type="button" onclick="linkAddChoose('equipment')">${escapeHtml(t('tickets.assets.menu_item'))}</button>` : ''}
+                ${ticketModuleOn('assets') ? `<button type="button" onclick="linkAddChoose('consumables')">${escapeHtml(t('tickets.consumables.menu_item'))}</button>` : ''}
                 ${ticketModuleOn('cmdb') ? `<button type="button" onclick="linkAddChoose('cmdb')">${escapeHtml(t('tickets.cmdb.menu_item'))}</button>` : ''}
                 ${window.TICKETS_SHOW_DOMAINS ? `<button type="button" onclick="linkAddChoose('domain')">${escapeHtml(t('tickets.domains.menu_item'))}</button>` : ''}
                 ${window.TICKETS_SHOW_PROJECTS ? `<button type="button" onclick="linkAddChoose('project')">${escapeHtml(t('tickets.projects.menu_item'))}</button>` : ''}
@@ -4311,6 +4312,8 @@ function linkAddChoose(kind) {
     else if (kind === 'change') openLinkChangeModal(id, ref, subj);
     else if (kind === 'tracker') openEscalateTrackerModal(id, ref);
     else if (kind === 'equipment') openLinkAssetPicker(id);
+    // Consumables (5.8.0): issue stock against this ticket - its own screen, filled in with the ticket and requester.
+    else if (kind === 'consumables') window.open('../asset-management/consumables/?ticket=' + encodeURIComponent(id), '_blank');
     else if (kind === 'cmdb') openLinkCmdbPicker(id);
     else if (kind === 'domain') openLinkDomainPicker(id);
     else if (kind === 'project') openLinkProjectPicker(id);

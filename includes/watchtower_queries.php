@@ -808,7 +808,21 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
         } catch (Exception) { $wtShowLease = false; }
     }
 
+    // Consumables (5.8.0): items low or out in the active company - the number its link opens
+    // (asset-management/consumables/?status=low lists exactly these). Shown once there is an item.
+    $asConsLow = 0; $wtShowCons = false;
+    try {
+        require_once __DIR__ . '/services/consumables.php';
+        if (ConsumablesService::ready($conn) && (int)$analystId > 0) {
+            $ctx = new ActorContext((int)$analystId, null, 'ui');
+            $wtShowCons = (bool)ConsumablesService::listItems($conn, $ctx, []);
+            if ($wtShowCons) $asConsLow = ConsumablesService::lowCount($conn, $ctx);
+        }
+    } catch (Throwable) { $wtShowCons = false; }
+
     $assets = [
+        'consumables_low'  => $asConsLow,
+        'consumables_show' => $wtShowCons,
         'total'         => $asTotal,
         'not_seen_7d'   => $asNotSeen,
         'warranty_soon' => $asWarranty,

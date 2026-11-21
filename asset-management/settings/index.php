@@ -509,6 +509,11 @@ $translationNamespaces = ['common', 'asset-management'];
              @media rules win on ties. Every rule inside is gated at 768px. */ ?>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
     <script src="../../assets/js/qrcode.min.js"></script>
+    <style>
+        #consumables-tab input[type=text], #consumables-tab select { width: 100%; max-width: 420px; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); }
+        #consumables-tab p > .add-btn { margin-top: 12px; }
+        .cs-set-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 14px; margin: 8px 0 4px; font-size: var(--font-size-md, 13px); }
+    </style>
 </head>
 <?php /* The marker mobile.css LAYER 15e keys on. `.container` is far too common
          a class to restyle globally, so a settings page opts in by name. */ ?>
@@ -1056,6 +1061,75 @@ $translationNamespaces = ['common', 'asset-management'];
         </div>
         <?php endif; ?>
 
+        <?php if (settingsTabVisible($visibleTabs, 'consumables')): ?>
+        <?php
+        // Consumables (5.8.0): the analysts who may be told about low stock, and the forms
+        // (with their questions) that Reorder can open - read here, the page is admin-only.
+        $csConn = connectToDatabase();
+        $csAnalysts = $csConn->query("SELECT id, full_name FROM analysts WHERE is_active = 1 ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
+        $csForms = [];
+        try {
+            foreach ($csConn->query("SELECT id, title FROM forms WHERE is_active = 1 ORDER BY title LIMIT 500")->fetchAll(PDO::FETCH_ASSOC) as $f) {
+                $csForms[(int)$f['id']] = ['title' => $f['title'], 'fields' => []];
+            }
+            if ($csForms) {
+                $q = $csConn->query("SELECT form_id, id, label FROM form_fields WHERE is_deleted = 0
+                                     AND field_type IN ('text', 'textarea', 'number', 'select', 'dropdown', 'email', 'date')
+                                     AND form_id IN (" . implode(',', array_keys($csForms)) . ") ORDER BY form_id, sort_order, id");
+                foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $f) $csForms[(int)$f['form_id']]['fields'][] = ['id' => (int)$f['id'], 'label' => $f['label']];
+            }
+        } catch (Throwable $e) { $csForms = []; }
+        ?>
+        <!-- Consumables Tab (5.8.0) -->
+        <div class="tab-content<?php echo $activeTabId === 'consumables' ? ' active' : ''; ?>" id="consumables-tab" data-capability="<?php echo capKey(Cap::ASSETS_CONSUMABLES); ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('asset-management.consumables.set_types')); ?></h2>
+            </div>
+            <p class="settings-description" style="margin-bottom: 12px;"><?php echo htmlspecialchars(t('asset-management.consumables.set_intro')); ?></p>
+            <table>
+                <thead><tr>
+                    <th><?php echo htmlspecialchars(t('asset-management.consumables.set_type_name')); ?></th>
+                    <th><?php echo htmlspecialchars(t('asset-management.consumables.set_type_desc')); ?></th>
+                    <th><?php echo htmlspecialchars(t('asset-management.consumables.set_type_items')); ?></th>
+                    <th><?php echo htmlspecialchars(t('asset-management.common.actions')); ?></th>
+                </tr></thead>
+                <tbody id="csTypesList"></tbody>
+                <tfoot><tr>
+                    <td><input type="text" id="csTypeName" maxlength="100" aria-label="<?php echo htmlspecialchars(t('asset-management.consumables.set_type_name')); ?>"></td>
+                    <td><input type="text" id="csTypeDesc" maxlength="255" aria-label="<?php echo htmlspecialchars(t('asset-management.consumables.set_type_desc')); ?>"></td>
+                    <td></td>
+                    <td><button type="button" class="add-btn" onclick="csTypeSave(0)"><?php echo htmlspecialchars(t('asset-management.consumables.set_type_add')); ?></button></td>
+                </tr></tfoot>
+            </table>
+            <p class="settings-description"><a href="../../system/custom-fields/#consumable"><?php echo htmlspecialchars(t('asset-management.consumables.set_fields_link')); ?></a></p>
+
+            <div class="section-header" style="margin-top: 24px;"><h2><?php echo htmlspecialchars(t('asset-management.consumables.set_notify')); ?></h2></div>
+            <p class="settings-description"><?php echo htmlspecialchars(t('asset-management.consumables.set_notify_hint')); ?></p>
+            <div class="cs-set-people" id="csNotify">
+                <?php foreach ($csAnalysts as $a): ?>
+                <label><input type="checkbox" value="<?php echo (int)$a['id']; ?>"> <?php echo htmlspecialchars($a['full_name']); ?></label>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="section-header" style="margin-top: 24px;"><h2><?php echo htmlspecialchars(t('asset-management.consumables.set_reorder')); ?></h2></div>
+            <p class="settings-description"><?php echo htmlspecialchars(t('asset-management.consumables.set_reorder_hint')); ?></p>
+            <select id="csReorderForm" style="max-width: 360px;">
+                <option value=""><?php echo htmlspecialchars(t('asset-management.consumables.set_reorder_none')); ?></option>
+                <?php foreach ($csForms as $fid => $f): ?><option value="<?php echo $fid; ?>"><?php echo htmlspecialchars($f['title']); ?></option><?php endforeach; ?>
+            </select>
+            <div id="csReorderMap" hidden style="margin-top: 12px;">
+                <p class="settings-description"><strong><?php echo htmlspecialchars(t('asset-management.consumables.set_reorder_map')); ?></strong></p>
+                <table><tbody>
+                    <?php foreach (['item', 'part_number', 'supplier', 'quantity', 'unit_cost', 'note'] as $k): ?>
+                    <tr><td><?php echo htmlspecialchars(t('asset-management.consumables.set_map_' . $k)); ?></td>
+                        <td><select data-map="<?php echo $k; ?>"></select></td></tr>
+                    <?php endforeach; ?>
+                </tbody></table>
+            </div>
+            <p><button type="button" class="add-btn" onclick="csSettingsSave()"><?php echo htmlspecialchars(t('common.save')); ?></button></p>
+            <script>window.CS_FORMS = <?php echo json_encode((object)$csForms, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
+        </div>
+        <?php endif; ?>
         <?php if (settingsTabVisible($visibleTabs, 'vcenter')): ?>
         <!-- vCenter Tab -->
         <div class="tab-content<?php echo $activeTabId === 'vcenter' ? ' active' : ''; ?>" id="vcenter-tab" data-capability="<?php echo capKey(Cap::ASSETS_VCENTER); ?>">
@@ -3417,6 +3491,74 @@ $translationNamespaces = ['common', 'asset-management'];
             }
         }
         loadLayoutNotice();
+
+        // ════════════════════════════════════════════════════════════════
+        //  Consumables (5.8.0): types, who hears about low stock, the reorder form.
+        //  Types through api/assets/consumables.php (the only writer); the rest are
+        //  system settings, as every other tab here.
+        // ════════════════════════════════════════════════════════════════
+        const CS_API = '../../api/assets/consumables.php';
+        const csT = (k, p) => window.t('asset-management.consumables.' + k, p);
+        const csEsc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
+        async function csLoad() {
+            if (!document.getElementById('consumables-tab')) return;
+            const m = await fetch(CS_API + '?action=meta').then(r => r.json()).catch(() => null);
+            const body = document.getElementById('csTypesList');
+            if (!m || !m.success) { body.innerHTML = `<tr><td colspan="4">${csEsc(m ? m.error : '')}</td></tr>`; return; }
+            body.innerHTML = m.types.length ? m.types.map(t => `<tr data-type="${t.id}" style="${t.is_active ? '' : 'opacity:.55'}">
+                    <td><input type="text" maxlength="100" value="${csEsc(t.name)}" data-f="name"></td>
+                    <td><input type="text" maxlength="255" value="${csEsc(t.description || '')}" data-f="description"></td>
+                    <td>${t.items}</td>
+                    <td><button type="button" class="action-btn" onclick="csTypeSave(${t.id})">${csEsc(window.t('common.save'))}</button>
+                        <button type="button" class="action-btn" onclick="csTypeSave(${t.id}, ${t.is_active ? 0 : 1})">${csEsc(csT(t.is_active ? 'set_type_retire' : 'set_type_restore'))}</button></td>
+                </tr>`).join('') : `<tr><td colspan="4">${csEsc(csT('set_type_none'))}</td></tr>`;
+            const s = await fetch(API_SETTINGS + 'get_system_settings.php').then(r => r.json()).catch(() => null);
+            if (!s || !s.success) return;
+            const ids = String(s.settings.consumables_low_notify || '').split(',').filter(Boolean);
+            document.querySelectorAll('#csNotify input').forEach(b => { b.checked = ids.includes(b.value); });
+            document.getElementById('csReorderForm').value = s.settings.consumables_reorder_form || '';
+            let map = {};
+            try { map = JSON.parse(s.settings.consumables_reorder_map || '{}') || {}; } catch (e) { map = {}; }
+            csDrawMap(map);
+        }
+        function csDrawMap(map) {
+            const fid = document.getElementById('csReorderForm').value;
+            const form = fid && window.CS_FORMS[fid];
+            document.getElementById('csReorderMap').hidden = !form;
+            if (!form) return;
+            document.querySelectorAll('#csReorderMap [data-map]').forEach(sel => {
+                sel.innerHTML = `<option value="">${csEsc(csT('set_map_skip'))}</option>` + form.fields.map(f => `<option value="${f.id}">${csEsc(f.label)}</option>`).join('');
+                sel.value = map[sel.dataset.map] ? String(map[sel.dataset.map]) : '';
+            });
+        }
+        document.getElementById('csReorderForm')?.addEventListener('change', () => csDrawMap({}));
+        async function csTypeSave(id, active) {
+            let type;
+            if (id) {
+                const row = document.querySelector(`#csTypesList tr[data-type="${id}"]`);
+                type = { id, name: row.querySelector('[data-f=name]').value, description: row.querySelector('[data-f=description]').value };
+                if (active !== undefined) type.is_active = active;
+            } else {
+                type = { name: document.getElementById('csTypeName').value, description: document.getElementById('csTypeDesc').value };
+            }
+            const d = await fetch(CS_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'save_type', type }) }).then(r => r.json());
+            if (!d.success) { showToast(d.error, 'error'); return; }
+            if (!id) { document.getElementById('csTypeName').value = ''; document.getElementById('csTypeDesc').value = ''; }
+            showToast(csT('set_saved'), 'success');
+            csLoad();
+        }
+        async function csSettingsSave() {
+            const map = {};
+            document.querySelectorAll('#csReorderMap [data-map]').forEach(sel => { if (sel.value) map[sel.dataset.map] = parseInt(sel.value, 10); });
+            const settings = {
+                consumables_low_notify: Array.from(document.querySelectorAll('#csNotify input:checked')).map(b => b.value).join(','),
+                consumables_reorder_form: document.getElementById('csReorderForm').value,
+                consumables_reorder_map: JSON.stringify(map),
+            };
+            const d = await fetch(API_SETTINGS + 'save_system_settings.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ settings }) }).then(r => r.json());
+            if (d.success) showToast(csT('set_saved'), 'success'); else showToast(window.t('asset-management.toast.error', { error: d.error }), 'error');
+        }
+        csLoad();
 
         // ════════════════════════════════════════════════════════════════
         //  Review (GH #200 part D) - the cases matching refuses to guess.

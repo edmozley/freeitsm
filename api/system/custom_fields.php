@@ -2,9 +2,9 @@
 /**
  * API: custom fields on companies and people (GH #279) - System -> Custom fields.
  *
- * GET  ?entity=company|person            every field, for the settings screen
+ * GET  ?entity=company|person|consumable  every field, for the settings screen (consumable: with the types)
  * GET  ?entity=company&record=N          company N's fields with their answers (the Companies dialog)
- * POST {action: 'save', entity, id?, label, field_type, config, help_text, options, is_required, tenant_id?}
+ * POST {action: 'save', entity, id?, label, field_type, config, help_text, options, is_required, tenant_id?, scope_id? (consumable type)}
  * POST {action: 'delete', entity, id}
  * POST {action: 'reorder', entity, ids: [...]}
  *
@@ -44,6 +44,11 @@ try {
         if ($entity === 'person') {
             $out['companies'] = array_map(fn($t) => ['id' => (int)$t['id'], 'name' => $t['name']], getAllTenants($conn));
             $out['multi'] = isMultiTenant($conn);
+        }
+        if ($entity === 'consumable') {
+            // Assets -> Consumables (5.8.0): a field belongs to every type or one.
+            $out['types'] = array_map(fn($t) => ['id' => (int)$t['id'], 'name' => $t['name']],
+                $conn->query("SELECT id, name FROM consumable_types WHERE is_active = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC));
         }
         echo json_encode($out);
         exit;

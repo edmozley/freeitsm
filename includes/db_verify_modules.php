@@ -90,6 +90,7 @@ $DB_VERIFY_MODULE_PREFIXES = [
     'problem'          => 'problems',
     // --- Assets / device sync ---
     'asset'            => 'assets',
+    'consumable_'      => 'assets',   // Assets -> Consumables (5.8.0)
     'intune_'          => 'assets',
     'virt_'            => 'assets',   // GH #199: the virtual estate (Hyper-V first)
     // --- CMDB ---

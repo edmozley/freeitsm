@@ -9,12 +9,17 @@
  * everywhere, and the screens draw them with the same renderer
  * (assets/js/ticket-fields.js).
  *
- * ONE service, two kinds of record, described by ENTITIES below:
+ * ONE service, three kinds of record, described by ENTITIES below:
  *   - company: one list of fields for the whole install (Ed, 15 Nov 2026: a
  *     field "belonging to" one company would only ever be on that company's own
  *     record - a note, not a field);
  *   - person: fields shared by every company (tenant_id NULL) plus a company's
- *     own, so one client can have a "Badge number" the others do not.
+ *     own, so one client can have a "Badge number" the others do not;
+ *   - consumable: an item in Assets -> Consumables (5.8.0) - fields shared by every
+ *     consumable type (consumable_type_id NULL) plus a type's own, so toner can have
+ *     a "Yield (pages)" and paper a "Weight (gsm)".
+ * A kind's SCOPE ('scope_col') is the column that narrows its fields: people by
+ * company, consumables by type, companies by nothing.
  *
  * 🔑 A PERSON WHO MOVES COMPANY keeps the old company's answers, hidden: values
  * are only ever read for the fields that apply now, so moving back brings them
@@ -46,6 +51,7 @@ final class RecordFieldsService
             'values'     => 'company_field_values',
             'owner'      => 'tenant_id',
             'per_tenant' => false,
+            'scope_col'  => null,
             'audit'      => 'company_audit',
             'audit_fk'   => 'tenant_id',
             'noun'       => 'company',
@@ -56,14 +62,27 @@ final class RecordFieldsService
             'values'     => 'person_field_values',
             'owner'      => 'user_id',
             'per_tenant' => true,
+            'scope_col'  => 'tenant_id',
             'audit'      => 'user_audit',
             'audit_fk'   => 'user_id',
             'noun'       => 'person',
         ],
+        'consumable' => [
+            'defs'        => 'consumable_fields',
+            'options'     => 'consumable_field_options',
+            'values'      => 'consumable_field_values',
+            'owner'       => 'item_id',
+            'per_tenant'  => false,
+            'scope_col'   => 'consumable_type_id',   // NULL = every type
+            'scope_table' => 'consumable_types',
+            'audit'       => 'consumable_audit',
+            'audit_fk'    => 'item_id',
+            'noun'        => 'consumable item',
+        ],
     ];
 
     /**
-     * @param string $entity  'company' or 'person'
+     * @param string $entity  'company', 'person' or 'consumable'
      */
     private static function cfg(string $entity): array
     {
@@ -124,7 +143,8 @@ final class RecordFieldsService
      * definitions plus options and help text. A company has every company field;
      * a person has the shared person fields plus their own company's.
      *
-     * @param ?int $tenantId  a person's company (null = the Default company); ignored for a company
+     * @param ?int $tenantId  the scope: a person's company (null = the Default company); a consumable
+     *                        item's type (null = only the fields every type has); ignored for a company
      */
     public static function fieldsFor(PDO $conn, string $entity, ?int $tenantId = null): array
     {
@@ -137,6 +157,14 @@ final class RecordFieldsService
             $tenantId ??= getDefaultTenantId($conn);
             $where .= " AND (f.tenant_id IS NULL OR f.tenant_id = ?)";
             $params[] = $tenantId;
+        } elseif ($c['scope_col'] !== null) {
+            $col = $c['scope_col'];
+            if ($tenantId === null) {
+                $where .= " AND f.`$col` IS NULL";
+            } else {
+                $where .= " AND (f.`$col` IS NULL OR f.`$col` = ?)";
+                $params[] = $tenantId;
+            }
         }
         $stmt = $conn->prepare("SELECT f.* FROM `{$c['defs']}` f WHERE $where ORDER BY f.display_order, f.label, f.id");
         $stmt->execute($params);
@@ -171,6 +199,8 @@ final class RecordFieldsService
             'ref_target' => null,
             'help_text'  => $r['help_text'] ?? null,
             'tenant_id'  => array_key_exists('tenant_id', $r) && $r['tenant_id'] !== null ? (int)$r['tenant_id'] : null,
+            'scope_id'   => array_key_exists('consumable_type_id', $r) && $r['consumable_type_id'] !== null ? (int)$r['consumable_type_id']
+                            : (array_key_exists('tenant_id', $r) && $r['tenant_id'] !== null ? (int)$r['tenant_id'] : null),
         ];
     }
 
@@ -304,9 +334,11 @@ final class RecordFieldsService
         $before = self::values($conn, $entity, $ownerId, $defs);
         TypedFields::writeValues($conn, self::valueSchema($entity), $ownerId, $defs, $values);
         $after = self::values($conn, $entity, $ownerId, $defs);
-        $ins = $entity === 'company'
-            ? $conn->prepare("INSERT INTO company_audit (tenant_id, analyst_id, field_name, old_value, new_value, source, created_datetime) VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
-            : $conn->prepare("INSERT INTO user_audit (user_id, analyst_id, field_name, old_value, new_value, created_datetime) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())");
+        $ins = match ($entity) {
+            'company'    => $conn->prepare("INSERT INTO company_audit (tenant_id, analyst_id, field_name, old_value, new_value, source, created_datetime) VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"),
+            'consumable' => $conn->prepare("INSERT INTO consumable_audit (item_id, analyst_id, field_name, old_value, new_value, source, created_datetime) VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"),
+            default      => $conn->prepare("INSERT INTO user_audit (user_id, analyst_id, field_name, old_value, new_value, created_datetime) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"),
+        };
         foreach (array_keys($values) as $key) {
             $old = $before[$key] ?? null;
             $new = $after[$key] ?? null;
@@ -314,7 +346,7 @@ final class RecordFieldsService
             $d = $defs[$key];
             $args = [$ownerId, $ctx->actorId > 0 ? $ctx->actorId : null, mb_substr($d['label'], 0, 100),
                      self::auditText($d, $old), self::auditText($d, $new)];
-            if ($entity === 'company') $args[] = $source === 'api' ? 'api' : 'app';
+            if ($entity !== 'person') $args[] = in_array($source, ['api', 'ticket'], true) ? $source : 'app';
             $ins->execute($args);
         }
     }
@@ -367,11 +399,14 @@ final class RecordFieldsService
             $where .= " AND (f.tenant_id IS NULL OR f.tenant_id = ?)";
             $params[] = $tenantId;
         }
+        $typed = !$c['per_tenant'] && !empty($c['scope_table']);
         $stmt = $conn->prepare(
             "SELECT f.*, (SELECT COUNT(*) FROM `{$c['values']}` v WHERE v.field_id = f.id) AS answered"
             . ($c['per_tenant'] ? ", tn.name AS company_name" : "")
+            . ($typed ? ", st.name AS scope_name" : "")
             . " FROM `{$c['defs']}` f"
             . ($c['per_tenant'] ? " LEFT JOIN tenants tn ON tn.id = f.tenant_id" : "")
+            . ($typed ? " LEFT JOIN `{$c['scope_table']}` st ON st.id = f.`{$c['scope_col']}`" : "")
             . " WHERE $where ORDER BY f.display_order, f.label, f.id"
         );
         $stmt->execute($params);
@@ -386,6 +421,8 @@ final class RecordFieldsService
                 'answered'     => (int)$r['answered'],
                 'tenant_id'    => $d['tenant_id'],
                 'company_name' => $r['company_name'] ?? null,
+                'scope_id'     => $d['scope_id'],
+                'scope_name'   => $r['scope_name'] ?? null,   // consumables: the type's name; null = every type
             ];
         }
         return $out;
@@ -427,6 +464,13 @@ final class RecordFieldsService
             $tenantId = (int)$in['tenant_id'];
             if (!getTenantById($conn, $tenantId)) throw new ServiceError('validation', 'invalid_field', 'Unknown company.');
         }
+        $scopeId = null;
+        if (!$c['per_tenant'] && !empty($c['scope_table']) && isset($in['scope_id']) && $in['scope_id'] !== '' && $in['scope_id'] !== null) {
+            $scopeId = (int)$in['scope_id'];
+            $chk = $conn->prepare("SELECT 1 FROM `{$c['scope_table']}` WHERE id = ?");
+            $chk->execute([$scopeId]);
+            if (!$chk->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'Unknown type.');
+        }
 
         $owns = !$conn->inTransaction();
         if ($owns) $conn->beginTransaction();
@@ -446,9 +490,10 @@ final class RecordFieldsService
             } else {
                 $key = self::freeKey($conn, $entity, $label);
                 $order = (int)$conn->query("SELECT COALESCE(MAX(display_order), 0) + 1 FROM `{$c['defs']}`")->fetchColumn();
-                if ($c['per_tenant']) {
-                    $conn->prepare("INSERT INTO `{$c['defs']}` (field_key, label, field_type, config, help_text, is_required, display_order, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                         ->execute([$key, $label, $type, $config ? json_encode($config) : null, $help, $required, $order, $tenantId]);
+                if ($c['per_tenant'] || $c['scope_col'] !== null) {
+                    $col = $c['scope_col'];
+                    $conn->prepare("INSERT INTO `{$c['defs']}` (field_key, label, field_type, config, help_text, is_required, display_order, `$col`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+                         ->execute([$key, $label, $type, $config ? json_encode($config) : null, $help, $required, $order, $c['per_tenant'] ? $tenantId : $scopeId]);
                 } else {
                     $conn->prepare("INSERT INTO `{$c['defs']}` (field_key, label, field_type, config, help_text, is_required, display_order) VALUES (?, ?, ?, ?, ?, ?, ?)")
                          ->execute([$key, $label, $type, $config ? json_encode($config) : null, $help, $required, $order]);

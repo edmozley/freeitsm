@@ -1104,6 +1104,13 @@ return [
         'intro'           => 'Fields you make up for companies and for people. Answers are filled in on the company (System → Companies) and the person, and read and written through the REST API as custom_fields.',
         'tab_companies'   => 'Companies',
         'tab_people'      => 'People',
+        // Assets -> Consumables (5.8.0)
+        'tab_consumables' => 'Consumables',
+        'intro_consumables' => 'Fields on consumable items in Assets → Consumables. A field belongs to every type, or to one type - a toner can have a page yield and paper a weight.',
+        'f_consumable_type' => 'Type',
+        'f_consumable_type_hint' => 'Every type, or just one. Fixed once the field is made.',
+        'col_consumable_type' => 'Type',
+        'every_type' => 'Every type',
         'intro_companies' => 'One list for every company.',
         'intro_people'    => 'Shared by every company, or one company\'s own. A person who moves company keeps their old company\'s answers out of sight.',
         'col_name'        => 'Name',

@@ -262,6 +262,7 @@ return [
         'metric_total'    => 'Total',
         'metric_offline'  => 'Offline',
         'metric_lease'    => 'Lease',
+        'metric_consumables' => 'Low stock',   // Consumables (5.8.0)
         'metric_warranty' => 'Warranty',
         'warranty'        => '<span class="wt-attention-bold">{count}</span> asset(s) with warranty expired or expiring within {days} days',
         'lease'           => '<span class="wt-attention-bold">{count}</span> asset(s) with a lease ended or ending within {days} days',

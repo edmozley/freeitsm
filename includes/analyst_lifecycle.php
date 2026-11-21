@@ -80,6 +80,12 @@ function analystReferenceRegistry(): array {
         ['notifications', 'analyst_id', 'personal'],
         ['notifications', 'actor_analyst_id', 'history'],   // GH #365: who caused it - kept, like an audit line
         ['asset_field_not_applicable', 'set_by_analyst_id', 'history'],   // GH #404: who marked a field Not applicable
+        ['consumable_items', 'created_by_analyst_id', 'history'],      // Consumables: the audit trail
+        ['consumable_counts', 'started_by_analyst_id', 'history'],
+        ['consumable_counts', 'finished_by_analyst_id', 'history'],
+        ['consumable_count_lines', 'counted_by_analyst_id', 'history'],
+        ['consumable_movements', 'analyst_id', 'history'],
+        ['consumable_audit', 'analyst_id', 'history'],
         ['feature_bingo_dismissed', 'dismissed_by_analyst_id', 'personal'],
         ['watchtower_items', 'analyst_id', 'personal'],
         ['watchtower_item_members', 'analyst_id', 'personal'],

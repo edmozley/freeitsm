@@ -1045,6 +1045,10 @@ return [
     // Equipment linked to a ticket (discussion #57). Nested, like every other
     // section here — I18n::t() splits the key on every dot, so a flat
     // 'assets.section_title' key would never resolve.
+    // Link to... -> Consumables (5.8.0): issue stock against the ticket.
+    'consumables' => [
+        'menu_item' => 'Consumables',
+    ],
     'assets' => [
         'menu_item'          => 'Equipment',
         'section_title'      => 'Affected equipment',

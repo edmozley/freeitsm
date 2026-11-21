@@ -80,6 +80,15 @@ require_once $path_prefix . 'includes/waffle-menu.php';
             </svg>
             <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.leases') : 'Leases'); ?></span>
         </a>
+        <?php /* Consumables (5.8.0): the things you count - toner, paper, mice. */ ?>
+        <a href="<?php echo BASE_URL; ?>asset-management/consumables/" class="nav-btn <?php echo $current_page === 'consumables' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.consumables') : 'Consumables'); ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
+                <path d="M3 8v8l9 5 9-5V8"></path>
+                <line x1="12" y1="13" x2="12" y2="21"></line>
+            </svg>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.consumables') : 'Consumables'); ?></span>
+        </a>
         <?php
         // GH #404: Missing information - only once some asset type expects something, so an
         // install that does not use it sees no new button. One indexed LIMIT 1 lookup.

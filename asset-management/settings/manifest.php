@@ -198,11 +198,29 @@ return [
             'setting_keys' => [],
         ],
         [
+            // Consumables (5.8.0): the types, who is told when stock runs low, the reorder form.
+            'id'           => 'consumables',
+            'cap'          => capKey(Cap::ASSETS_CONSUMABLES),
+            'label_key'    => 'asset-management.consumables.settings_tab',
+            'grant'        => 'Set up consumables: types, low-stock alerts and the reorder form',
+            'setting_keys' => ['consumables_low_notify', 'consumables_reorder_form', 'consumables_reorder_map'],
+        ],
+        [
             // A per-analyst display preference — where your sidebar sits. Not
             // administration, so there is nothing here to grant and nobody to gate.
             'id'        => 'left-panel',
             'cap'       => null,
             'label_key' => 'common.left_panel.tab',
+        ],
+    ],
+
+    // Everyday work (#180 Part 3). No 'restrict': it always applies - an upgrade gives
+    // nobody the power to change the stock books; administrators hold it, and a role can.
+    'actions' => [
+        [
+            'cap'       => capKey(Cap::ASSETS_CONSUMABLES_ADJUST),
+            'grant'     => 'Adjust consumable stock and finish stock takes',
+            'sensitive' => true,
         ],
     ],
 ];
