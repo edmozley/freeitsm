@@ -61,6 +61,7 @@ return [
         'intro' => 'Hvem der rapporterer til hvem, ud fra den leder, der er registreret ved hver person - via katalogsynkronisering eller manuelt i Sager → Brugere.',
         'search' => 'Find en person',
         'search_ph' => 'Navn, e-mail, jobtitel...',
+        'search_ph_names' => 'Navn, jobtitel, afdeling...',   // the portal's search, which does not look in email (GH #414)
         'no_results' => 'Ingen matcher.',
         'view' => 'Vis',
         'view_tree' => 'Træ',
@@ -69,7 +70,9 @@ return [
         'loading' => 'Indlæser...',
         'empty' => 'Ingen har endnu en registreret leder, så der er intet diagram at tegne. Ledere kommer fra katalogsynkronisering eller angives i Sager → Brugere.',
         'not_found' => 'Den person er ikke i det diagram, du kan se.',
+        'on_own' => '{name} har ingen leder, og ingen refererer til dem, så de vises alene.',   // GH #414
         'leaver' => 'Fratrådt',
+        'you' => 'Dig',   // the reader, on the portal's chart (GH #414)
         'reports_n' => '{n} rapporterer til vedkommende',
         'reports_total' => '{n} rapporterer til vedkommende, {total} i alt under vedkommende',
         'expand' => 'Vis, hvem der rapporterer til {name}',

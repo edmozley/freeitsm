@@ -16,16 +16,6 @@ return [
     'org_chart' => [
         'title'        => 'Organigramme',
         'subtitle'     => 'Qui rend compte à qui. Recherchez un nom, un poste ou un service, ou ouvrez une équipe avec la flèche.',
-        'search'       => 'Rechercher des personnes',
-        'none'         => 'Personne ne figure encore dans l\'organigramme.',
-        'load_failed'  => 'L\'organigramme n\'a pas pu être chargé pour le moment. Veuillez réessayer dans une minute.',
-        'truncated'    => 'Il s\'agit d\'une très grande organisation, tout le monde n\'est donc pas affiché.',
-        'no_line'      => 'Hors ligne hiérarchique',
-        'you'          => 'Vous',
-        'reports'      => 'Rattachements directs : {count}',
-        'expand'       => 'Voir l\'équipe',
-        'collapse'     => 'Masquer l\'équipe',
-        'no_match'     => 'Aucun résultat.',
     ],
     'equipment' => [
         'title' => 'Mon équipement',
@@ -471,9 +461,9 @@ return [
         // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Organigramme',
         'org_p1' => 'Si votre équipe informatique l\'a activé, <strong>Organisation</strong> dans la navigation du haut montre qui rend compte à qui dans votre entreprise. Il s\'ouvre sur votre propre place, avec la ligne au-dessus de vous dépliée.',
-        'org_li1' => 'Cliquez sur la flèche à côté d\'une personne pour afficher ou masquer son équipe. Le nombre à côté d\'un nom indique combien de personnes lui rendent compte directement.',
+        'org_li1' => "Cliquez sur la flèche à côté d'une personne pour afficher ou masquer son équipe. Les nombres à côté d'un nom indiquent combien de personnes lui rendent compte directement et, après le point, combien se trouvent sous elle au total.",
         'org_li2' => 'Saisissez dans <strong>Rechercher des personnes</strong> un nom, un poste ou un service, puis choisissez la personne pour la retrouver dans l\'organigramme.',
-        'org_li3' => '<strong>Hors ligne hiérarchique</strong>, tout en bas, regroupe les personnes sans responsable et sans personne qui leur rend compte.',
+        'org_li3' => "<strong>Graphique</strong> dessine la même chose en cases et en traits, à partir de vous. Cliquez sur une personne pour voir qui elle est, double-cliquez pour dessiner à partir d'elle, et utilisez <strong>Exporter</strong> pour l'enregistrer en image ou en PDF.",
         'org_tip' => '<strong>Quelque chose ne va pas ?</strong> L\'organigramme est construit à partir du responsable enregistré pour chaque personne. Si le vôtre est faux, créez un ticket et l\'équipe informatique le corrigera.',
         'team_title' => 'Tickets de l\'équipe',
         'team_p1' => 'Vous pouvez voir les tickets créés par les personnes que vous encadrez. Ils se trouvent sous <strong>Tickets de l\'équipe</strong> dans le menu, séparés des vôtres sous Mes tickets.',

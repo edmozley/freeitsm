@@ -25,16 +25,6 @@ return [
     'org_chart' => [
         'title'        => 'Organisation chart',
         'subtitle'     => 'Who reports to whom. Search for a name, job title or department, or open a team with the arrow.',
-        'search'       => 'Search people',
-        'none'         => 'There is nobody on the organisation chart yet.',
-        'load_failed'  => 'The organisation chart could not be loaded just now. Please try again in a minute.',
-        'truncated'    => 'This is a very large organisation, so not everybody is shown.',
-        'no_line'      => 'Not in a reporting line',
-        'you'          => 'You',
-        'reports'      => 'Direct reports: {count}',
-        'expand'       => 'Show team',
-        'collapse'     => 'Hide team',
-        'no_match'     => 'Nobody matches that.',
     ],
     // ── My equipment (the assets assigned to this person) ───────────────
     'equipment' => [
@@ -563,9 +553,9 @@ return [
         // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Organisation chart',
         'org_p1' => 'If your IT team has switched it on, <strong>Organisation</strong> in the top navigation shows who reports to whom in your company. It opens on your own place, with the line above you expanded.',
-        'org_li1' => 'Click the arrow beside somebody to show or hide their team. The number beside a name is how many people report to them directly.',
+        'org_li1' => 'Click the arrow beside somebody to show or hide their team. The numbers beside a name are how many report to them directly and, after the dot, how many are under them in all.',
         'org_li2' => 'Type in <strong>Search people</strong> to find somebody by name, job title or department, then pick them to jump to them on the chart.',
-        'org_li3' => '<strong>Not in a reporting line</strong> at the bottom lists people with no manager and nobody reporting to them.',
+        'org_li3' => '<strong>Chart</strong> draws the same thing as boxes and lines, starting from you. Click somebody to see who they are, double-click to draw from them, and use <strong>Export</strong> to save it as a picture or a PDF.',
         'org_tip' => '<strong>Something wrong?</strong> The chart is built from the manager recorded against each person. If yours is wrong, raise a ticket and the IT team will put it right.',
         'team_title'         => 'Team tickets',
         'team_p1'            => 'You can see the tickets raised by the people you manage. They are under <strong>Team tickets</strong> in the menu, apart from your own under My Tickets.',

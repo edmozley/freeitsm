@@ -16,16 +16,6 @@ return [
     'org_chart' => [
         'title'        => 'Bagan organisasi',
         'subtitle'     => 'Siapa melapor kepada siapa. Cari nama, jabatan, atau departemen, atau buka tim dengan tanda panah.',
-        'search'       => 'Cari orang',
-        'none'         => 'Belum ada siapa pun di bagan organisasi.',
-        'load_failed'  => 'Bagan organisasi tidak dapat dimuat saat ini. Silakan coba lagi sebentar lagi.',
-        'truncated'    => 'Ini organisasi yang sangat besar, jadi tidak semua orang ditampilkan.',
-        'no_line'      => 'Tidak dalam garis pelaporan',
-        'you'          => 'Anda',
-        'reports'      => 'Bawahan langsung: {count}',
-        'expand'       => 'Tampilkan tim',
-        'collapse'     => 'Sembunyikan tim',
-        'no_match'     => 'Tidak ada yang cocok.',
     ],
     'equipment' => [
         'title' => 'Peralatan saya',
@@ -471,9 +461,9 @@ return [
         // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Bagan organisasi',
         'org_p1' => 'Jika tim TI Anda telah mengaktifkannya, <strong>Organisasi</strong> di navigasi atas menunjukkan siapa melapor kepada siapa di perusahaan Anda. Bagan terbuka di posisi Anda sendiri, dengan garis di atas Anda terbuka.',
-        'org_li1' => 'Klik panah di samping seseorang untuk menampilkan atau menyembunyikan timnya. Angka di samping nama adalah jumlah orang yang melapor langsung kepadanya.',
+        'org_li1' => 'Klik panah di samping seseorang untuk menampilkan atau menyembunyikan timnya. Angka di samping nama menunjukkan jumlah orang yang melapor langsung kepadanya dan, setelah titik, jumlah seluruh orang di bawahnya.',
         'org_li2' => 'Ketik di <strong>Cari orang</strong> untuk mencari seseorang menurut nama, jabatan, atau departemen, lalu pilih orangnya untuk melompat ke posisinya di bagan.',
-        'org_li3' => '<strong>Tidak dalam garis pelaporan</strong> di bagian bawah berisi orang tanpa atasan dan tanpa bawahan.',
+        'org_li3' => '<strong>Bagan</strong> menggambar hal yang sama sebagai kotak dan garis, dimulai dari Anda. Klik seseorang untuk melihat siapa dia, klik dua kali untuk menggambar dari orang itu, dan gunakan <strong>Ekspor</strong> untuk menyimpannya sebagai gambar atau PDF.',
         'org_tip' => '<strong>Ada yang salah?</strong> Bagan dibangun dari atasan yang tercatat untuk setiap orang. Jika milik Anda salah, ajukan tiket dan tim TI akan memperbaikinya.',
         'team_title' => 'Tiket tim',
         'team_p1' => 'Anda dapat melihat tiket yang dibuat oleh orang-orang yang Anda kelola. Tiket itu ada di bawah <strong>Tiket tim</strong> di menu, terpisah dari tiket Anda sendiri di Tiket Saya.',

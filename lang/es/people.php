@@ -61,6 +61,7 @@ return [
         'intro' => 'Quién depende de quién, a partir del responsable registrado para cada persona, por sincronización del directorio o a mano en Tickets → Usuarios.',
         'search' => 'Buscar a alguien',
         'search_ph' => 'Nombre, correo, puesto...',
+        'search_ph_names' => 'Nombre, puesto, departamento...',   // the portal's search, which does not look in email (GH #414)
         'no_results' => 'No hay coincidencias.',
         'view' => 'Vista',
         'view_tree' => 'Árbol',
@@ -69,7 +70,9 @@ return [
         'loading' => 'Cargando...',
         'empty' => 'Todavía nadie tiene un responsable registrado, así que no hay organigrama que dibujar. Los responsables proceden de la sincronización del directorio o se establecen en Tickets → Usuarios.',
         'not_found' => 'Esa persona no está en el organigrama que usted puede ver.',
+        'on_own' => '{name} no tiene responsable ni nadie a su cargo, así que se muestra por separado.',   // GH #414
         'leaver' => 'Baja',
+        'you' => 'Tú',   // the reader, on the portal's chart (GH #414)
         'reports_n' => '{n} a su cargo',
         'reports_total' => '{n} a su cargo, {total} en total por debajo',
         'expand' => 'Mostrar quién depende de {name}',

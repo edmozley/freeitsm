@@ -6,8 +6,10 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * The organisation chart on the self-service portal (GH #414).
  *
  * Pins who may see it - nobody until switched on, then everybody or only members
- * of chosen (active) People groups - and what it shows: the reader's own company,
- * current staff, names / job titles / departments / manager ids and nothing else.
+ * of chosen (active) People groups - and what the People chart's queries show when
+ * asked as the portal reader (PeopleOrgReader): the reader's own company, current
+ * staff only, never a leaver - not even one with a team - and search by name, title
+ * or department, not by a named person's email.
  * No email address comes back - except as the name of somebody who has no name, who is
  * shown by it so the missing name gets noticed and fixed (Ed, 2026-11-20).
  *
@@ -77,19 +79,39 @@ try {
 
     $set('all');
     ok('everyone: the reader sees it', portalOrgChartAllowed($conn, $me));
-    $chart = portalOrgChartPeople($conn, $me);
-    $ids = array_column($chart['people'], 'id');
-    ok('their manager and colleague are on it', in_array($boss, $ids, true) && in_array($peer, $ids, true));
-    ok('a leaver is not', !in_array($gone, $ids, true));
-    $nameless = array_values(array_filter($chart['people'], fn($p) => $p['id'] === $noName))[0] ?? null;
+    // The analyst chart's own queries, asked as the portal reader (includes/people.php).
+    $reader = PeopleOrgReader::portal($conn, $me);
+    $team = peopleOrgLevel($conn, $reader, $boss, true)['people'];   // true: asked for leavers, which the portal ignores
+    $ids = array_column($team, 'id');
+    ok('their colleague is in their manager\'s team', in_array($me, $ids, true) && in_array($peer, $ids, true));
+    ok('a leaver is not, even when leavers are asked for', !in_array($gone, $ids, true));
+    ok('nor reachable one at a time', !peopleOrgCanSee($conn, $reader, $gone));
+    $nameless = array_values(array_filter($team, fn($p) => $p['id'] === $noName))[0] ?? null;
     ok('somebody with no name is shown, by their email, so the gap gets fixed', ($nameless['name'] ?? '') === "$tag-secret@example.test");
-    $json = json_encode(array_values(array_filter($chart['people'], fn($p) => $p['id'] !== $noName)));
+    $json = json_encode(array_values(array_filter($team, fn($p) => $p['id'] !== $noName)));
     ok('nobody else\'s email address anywhere in the answer', !str_contains($json, '@example.test'));
-    $mine = array_values(array_filter($chart['people'], fn($p) => $p['id'] === $me))[0] ?? [];
-    ok('each person is name, job title, department and manager only', array_keys($mine) === ['id', 'name', 'job_title', 'department', 'manager_id'], json_encode(array_keys($mine)));
-    ok('the reader\'s manager id is there', ($mine['manager_id'] ?? null) === $boss);
-    if ($other) ok('nobody from another company', !in_array($away, $ids, true));
-    else echo "  SKIP  one company only: the company rule is not exercised\n";
+    $mine = array_values(array_filter($team, fn($p) => $p['id'] === $me))[0] ?? [];
+    ok('no company named on a box (it is always the reader\'s own)', array_key_exists('company', $mine) && $mine['company'] === null);
+    $path = peopleOrgPath($conn, $reader, $me, false);
+    ok('the line from the top runs down to the reader', ($path['ids'] ?? []) === [$boss, $me], json_encode($path));
+    // A leaver who still has somebody under them: the analyst chart shows them (the gap);
+    // the portal does not, and the person under them starts at the top instead.
+    $leftBoss = $person("$tag Left boss", null, $tenant, 0);
+    $under    = $person("$tag Under left boss", $leftBoss, $tenant);
+    $person("$tag Under them", $under, $tenant);
+    $top = array_column(peopleOrgLevel($conn, $reader, 0, true)['people'], 'id');
+    ok('a leaver with a team is not at the top', !in_array($leftBoss, $top, true));
+    ok('their team starts at the top instead', in_array($under, $top, true));
+    $found = array_column(portalOrgChartSearch($conn, $reader, "$tag Me"), 'id');
+    ok('search finds the reader by name', in_array($me, $found, true));
+    ok('search does not look in a named person\'s email', portalOrgChartSearch($conn, $reader, "$tag-") === [] || !array_diff(array_column(portalOrgChartSearch($conn, $reader, "$tag-"), 'id'), [$noName]));
+    ok('search finds somebody with no name by their email', in_array($noName, array_column(portalOrgChartSearch($conn, $reader, "$tag-secret"), 'id'), true));
+    if ($other) {
+        ok('nobody from another company', !peopleOrgCanSee($conn, $reader, $away)
+            && !in_array($away, array_column(portalOrgChartSearch($conn, $reader, "$tag Other"), 'id'), true)
+            && !in_array($away, $top, true));
+    } else echo "  SKIP  one company only: the company rule is not exercised
+";
 
     $prov = (int)$conn->query("SELECT id FROM auth_providers ORDER BY id LIMIT 1")->fetchColumn();
     if (!$prov) {

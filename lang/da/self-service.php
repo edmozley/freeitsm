@@ -16,16 +16,6 @@ return [
     'org_chart' => [
         'title'        => 'Organisationsdiagram',
         'subtitle'     => 'Hvem refererer til hvem. Søg efter et navn, en stillingsbetegnelse eller en afdeling, eller åbn et team med pilen.',
-        'search'       => 'Søg efter personer',
-        'none'         => 'Der er endnu ingen i organisationsdiagrammet.',
-        'load_failed'  => 'Organisationsdiagrammet kunne ikke indlæses lige nu. Prøv igen om et minut.',
-        'truncated'    => 'Det er en meget stor organisation, så ikke alle vises.',
-        'no_line'      => 'Ikke i en rapporteringslinje',
-        'you'          => 'Dig',
-        'reports'      => 'Direkte medarbejdere: {count}',
-        'expand'       => 'Vis team',
-        'collapse'     => 'Skjul team',
-        'no_match'     => 'Ingen matcher det.',
     ],
     'equipment' => [
         'title' => 'Mit udstyr',
@@ -471,9 +461,9 @@ return [
         // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Organisationsdiagram',
         'org_p1' => 'Hvis dit IT-team har slået det til, viser <strong>Organisation</strong> i topmenuen, hvem der refererer til hvem i din virksomhed. Det åbner på din egen plads med linjen over dig foldet ud.',
-        'org_li1' => 'Klik på pilen ud for en person for at vise eller skjule deres team. Tallet ud for et navn er, hvor mange der refererer direkte til dem.',
+        'org_li1' => 'Klik på pilen ud for en person for at vise eller skjule deres team. Tallene ud for et navn er, hvor mange der refererer direkte til dem, og efter prikken, hvor mange der er under dem i alt.',
         'org_li2' => 'Skriv i <strong>Søg efter personer</strong> for at finde nogen ud fra navn, stillingsbetegnelse eller afdeling, og vælg dem derefter for at hoppe til dem i diagrammet.',
-        'org_li3' => '<strong>Ikke i en rapporteringslinje</strong> nederst viser personer uden leder og uden nogen, der refererer til dem.',
+        'org_li3' => '<strong>Diagram</strong> tegner det samme som bokse og linjer, med udgangspunkt i dig. Klik på en person for at se, hvem de er, dobbeltklik for at tegne fra dem, og brug <strong>Eksportér</strong> til at gemme det som billede eller PDF.',
         'org_tip' => '<strong>Er noget forkert?</strong> Diagrammet bygger på den leder, der er registreret for hver person. Hvis din er forkert, så opret en sag, så retter IT-teamet det.',
         'team_title' => 'Teamets sager',
         'team_p1' => 'Du kan se de sager, som de personer, du er leder for, har oprettet. De står under <strong>Teamets sager</strong> i menuen, adskilt fra dine egne under Mine sager.',

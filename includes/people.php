@@ -1207,6 +1207,59 @@ function peopleBareDate(?string $d): string
 //  Organisation chart
 // ---------------------------------------------------------------------------
 //
+// WHO IS READING (GH #414). Every function below takes the reader as an analyst id
+// (the People module) or a PeopleOrgReader (the self-service portal), and asks only
+// two things of it: peopleOrgScope() - which companies' people - and
+// peopleOrgCanSee() - may they see this one person. The portal reader sees its own
+// company's CURRENT staff (peopleOrgShownSql() hides every leaver for it), and its
+// endpoint offers no contact details and no gaps - api/self-service/org.php.
+
+/** A portal user reading the organisation chart: their own company, current staff only. */
+final class PeopleOrgReader
+{
+    /** @param int $tenantId  the reader's company (the Default company's id when theirs is unset) */
+    public function __construct(public readonly int $tenantId) {}
+
+    /** The reader for a signed-in portal user. */
+    public static function portal(PDO $conn, int $userId): self
+    {
+        $st = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
+        $st->execute([$userId]);
+        $tenant = (int)($st->fetchColumn() ?: 0);
+        return new self($tenant ?: (isMultiTenant($conn) ? getDefaultTenantId($conn) : 0));
+    }
+}
+
+/**
+ * " AND <col> ..." limiting people to the reader's: an analyst's accessible companies,
+ * or a portal reader's own company.
+ *
+ * @param int|PeopleOrgReader $reader  an analyst id, or the portal reader
+ * @param string $qualified  the company column, alias included, e.g. 'u.tenant_id'
+ */
+function peopleOrgScope(PDO $conn, int|PeopleOrgReader $reader, string $qualified): array
+{
+    if (!$reader instanceof PeopleOrgReader) return peopleScope($conn, $reader, $qualified);
+    return peopleCompanyMatch($conn, $reader->tenantId, $qualified);
+}
+
+/**
+ * May the reader see this one person? An analyst: analystCanAccessUser(). The portal:
+ * somebody current in the reader's own company.
+ *
+ * @param int|PeopleOrgReader $reader  an analyst id, or the portal reader
+ * @param int $userId  users.id of the person
+ */
+function peopleOrgCanSee(PDO $conn, int|PeopleOrgReader $reader, int $userId): bool
+{
+    if (!$reader instanceof PeopleOrgReader) return analystCanAccessUser($conn, $reader, $userId);
+    if ($userId <= 0) return false;
+    [$scope, $args] = peopleOrgScope($conn, $reader, 'u.tenant_id');
+    $st = $conn->prepare("SELECT 1 FROM users u WHERE u.id = ? AND u.is_active = 1$scope");
+    $st->execute(array_merge([$userId], $args));
+    return (bool)$st->fetchColumn();
+}
+//
 // The reporting lines in users.manager_id, read one level at a time. Stored once,
 // pointing UP, so a level is "who has this person as their manager".
 //
@@ -1260,10 +1313,12 @@ const PEOPLE_ORG_GAPS_LIMIT = 50;
  * @param string $a  the users alias, e.g. 'u'
  * @param bool $leavers  true to show everybody, leavers included
  */
-function peopleOrgShownSql(PDO $conn, int $analystId, string $a, bool $leavers): array
+function peopleOrgShownSql(PDO $conn, int|PeopleOrgReader $analystId, string $a, bool $leavers): array
 {
+    // The portal never shows a leaver - not even one with people still under them (GH #414).
+    if ($analystId instanceof PeopleOrgReader) return [" AND $a.is_active = 1", []];
     if ($leavers) return ['', []];
-    [$scope, $args] = peopleScope($conn, $analystId, "{$a}k.tenant_id");
+    [$scope, $args] = peopleOrgScope($conn, $analystId, "{$a}k.tenant_id");
     return [" AND ($a.is_active = 1 OR EXISTS (SELECT 1 FROM users {$a}k WHERE {$a}k.manager_id = $a.id AND {$a}k.is_active = 1$scope))", $args];
 }
 
@@ -1276,11 +1331,11 @@ function peopleOrgShownSql(PDO $conn, int $analystId, string $a, bool $leavers):
  * @param int $limit  the most rows to return
  * @param string $having  an optional HAVING on the result, e.g. 'reports > 0'
  */
-function peopleOrgNodes(PDO $conn, int $analystId, string $where, array $whereArgs, bool $leavers, int $limit, string $having = ''): array
+function peopleOrgNodes(PDO $conn, int|PeopleOrgReader $analystId, string $where, array $whereArgs, bool $leavers, int $limit, string $having = ''): array
 {
-    [$scopeU, $argsU] = peopleScope($conn, $analystId, 'u.tenant_id');
+    [$scopeU, $argsU] = peopleOrgScope($conn, $analystId, 'u.tenant_id');
     [$showU, $argsS]  = peopleOrgShownSql($conn, $analystId, 'u', $leavers);
-    [$scopeR, $argsR] = peopleScope($conn, $analystId, 'r.tenant_id');
+    [$scopeR, $argsR] = peopleOrgScope($conn, $analystId, 'r.tenant_id');
     [$showR, $argsSR] = peopleOrgShownSql($conn, $analystId, 'r', $leavers);
     $st = $conn->prepare(
         "SELECT u.id, u.display_name, u.preferred_name, u.email, u.username, u.job_title, u.department,
@@ -1308,7 +1363,7 @@ function peopleOrgNodes(PDO $conn, int $analystId, string $where, array $whereAr
     return array_map(fn($r) => [
         'id' => (int)$r['id'], 'name' => peopleName($r),
         'job_title' => $r['job_title'], 'department' => $r['department'],
-        'company' => $multi ? ($r['company_name'] ?? $defaultName) : null,
+        'company' => $multi && !($analystId instanceof PeopleOrgReader) ? ($r['company_name'] ?? $defaultName) : null,
         'is_active' => (int)$r['is_active'] === 1, 'reports' => (int)$r['reports'],
         'total' => max((int)$r['reports'], $totals[(int)$r['id']] ?? 0),
     ], $rows);
@@ -1327,13 +1382,13 @@ function peopleOrgNodes(PDO $conn, int $analystId, string $where, array $whereAr
  * @param bool $leavers  true to count leavers too
  * @return array<int,int>  id => how many people are under them; absent means none
  */
-function peopleOrgTotals(PDO $conn, int $analystId, array $ids, bool $leavers): array
+function peopleOrgTotals(PDO $conn, int|PeopleOrgReader $analystId, array $ids, bool $leavers): array
 {
     $ids = array_values(array_unique(array_filter($ids, fn($i) => $i > 0)));
     if (!$ids) return [];
-    [$scopeR, $argsR] = peopleScope($conn, $analystId, 'r.tenant_id');
+    [$scopeR, $argsR] = peopleOrgScope($conn, $analystId, 'r.tenant_id');
     [$showR, $argsSR] = peopleOrgShownSql($conn, $analystId, 'r', $leavers);
-    [$scopeC, $argsC] = peopleScope($conn, $analystId, 'c.tenant_id');
+    [$scopeC, $argsC] = peopleOrgScope($conn, $analystId, 'c.tenant_id');
     [$showC, $argsSC] = peopleOrgShownSql($conn, $analystId, 'c', $leavers);
     $marks = implode(',', array_fill(0, count($ids), '?'));
     $st = $conn->prepare(
@@ -1362,13 +1417,13 @@ function peopleOrgTotals(PDO $conn, int $analystId, array $ids, bool $leavers): 
  * @param bool $leavers  true to show leavers too
  * @return array ['people' => nodes, 'more' => bool]
  */
-function peopleOrgLevel(PDO $conn, int $analystId, int $managerId, bool $leavers): array
+function peopleOrgLevel(PDO $conn, int|PeopleOrgReader $analystId, int $managerId, bool $leavers): array
 {
     if ($managerId > 0) {
-        if (!analystCanAccessUser($conn, $analystId, $managerId)) return ['people' => [], 'more' => false];
+        if (!peopleOrgCanSee($conn, $analystId, $managerId)) return ['people' => [], 'more' => false];
         $rows = peopleOrgNodes($conn, $analystId, 'u.manager_id = ? AND u.id <> ?', [$managerId, $managerId], $leavers, PEOPLE_ORG_LEVEL_LIMIT + 1);
     } else {
-        [$scopeM, $argsM] = peopleScope($conn, $analystId, 'm.tenant_id');
+        [$scopeM, $argsM] = peopleOrgScope($conn, $analystId, 'm.tenant_id');
         [$showM, $argsSM] = peopleOrgShownSql($conn, $analystId, 'm', $leavers);
         $rows = peopleOrgNodes($conn, $analystId,
             "(u.manager_id IS NULL OR u.manager_id = u.id
@@ -1391,9 +1446,9 @@ function peopleOrgLevel(PDO $conn, int $analystId, int $managerId, bool $leavers
  * @param bool $leavers  true to show leavers too
  * @return array|null ['ids' => users.id top first, ending with $userId, 'is_active' => bool, 'name' => string]
  */
-function peopleOrgPath(PDO $conn, int $analystId, int $userId, bool $leavers = true): ?array
+function peopleOrgPath(PDO $conn, int|PeopleOrgReader $analystId, int $userId, bool $leavers = true): ?array
 {
-    if ($userId <= 0 || !analystCanAccessUser($conn, $analystId, $userId)) return null;
+    if ($userId <= 0 || !peopleOrgCanSee($conn, $analystId, $userId)) return null;
     $st = $conn->prepare("SELECT id, manager_id, is_active, display_name, preferred_name, email, username FROM users WHERE id = ?");
     $st->execute([$userId]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
@@ -1407,7 +1462,7 @@ function peopleOrgPath(PDO $conn, int $analystId, int $userId, bool $leavers = t
     $seen = [$userId => true];
     $cur = (int)($row['manager_id'] ?? 0);
     for ($i = 0; $i < PEOPLE_ORG_MAX_DEPTH && $cur > 0 && !isset($seen[$cur]); $i++) {
-        if (!analystCanAccessUser($conn, $analystId, $cur)) break;
+        if (!peopleOrgCanSee($conn, $analystId, $cur)) break;
         if ($shown) {
             $shown->execute(array_merge([$cur], $showArgs));
             if (!$shown->fetchColumn()) break;
@@ -1429,9 +1484,9 @@ function peopleOrgPath(PDO $conn, int $analystId, int $userId, bool $leavers = t
  *
  * @param int $userId  users.id of the person
  */
-function peopleOrgPerson(PDO $conn, int $analystId, int $userId): ?array
+function peopleOrgPerson(PDO $conn, int|PeopleOrgReader $analystId, int $userId): ?array
 {
-    if ($userId <= 0 || !analystCanAccessUser($conn, $analystId, $userId)) return null;
+    if ($userId <= 0 || !peopleOrgCanSee($conn, $analystId, $userId)) return null;
     $st = $conn->prepare(
         "SELECT u.email, u.phone, u.mobile, u.office, u.employee_id, u.deactivated_datetime, tn.name AS company_name
            FROM users u LEFT JOIN tenants tn ON tn.id = u.tenant_id WHERE u.id = ?"
@@ -1464,7 +1519,7 @@ function peopleOrgPerson(PDO $conn, int $analystId, int $userId): ?array
  * @param int $levels  how many levels below them, already through peopleOrgChartLevels()
  * @return array|null ['root' => node, 'manager' => ['id','name']|null, 'total' => int, 'truncated' => bool]
  */
-function peopleOrgBranch(PDO $conn, int $analystId, int $rootId, bool $leavers, int $levels = PEOPLE_ORG_CHART_LEVELS): ?array
+function peopleOrgBranch(PDO $conn, int|PeopleOrgReader $analystId, int $rootId, bool $leavers, int $levels = PEOPLE_ORG_CHART_LEVELS): ?array
 {
     if ($rootId === 0) {
         // Its count is the top row, set below from the first level asked for.
@@ -1472,7 +1527,7 @@ function peopleOrgBranch(PDO $conn, int $analystId, int $rootId, bool $leavers, 
                  'is_active' => true, 'reports' => 0];
         $total = 0;
     } else {
-        if ($rootId < 0 || !analystCanAccessUser($conn, $analystId, $rootId)) return null;
+        if ($rootId < 0 || !peopleOrgCanSee($conn, $analystId, $rootId)) return null;
         // The root is shown even as a leaver: somebody asked for them by name.
         $root = peopleOrgNodes($conn, $analystId, 'u.id = ?', [$rootId], true, 1)[0] ?? null;
         if (!$root) return null;
@@ -1528,7 +1583,7 @@ function peopleOrgBranch(PDO $conn, int $analystId, int $rootId, bool $leavers, 
     $st = $conn->prepare("SELECT m.id, m.display_name, m.preferred_name, m.email, m.username
                             FROM users u JOIN users m ON m.id = u.manager_id WHERE u.id = ? AND m.id <> u.id");
     $st->execute([$rootId]);
-    if (($m = $st->fetch(PDO::FETCH_ASSOC)) && analystCanAccessUser($conn, $analystId, (int)$m['id'])) {
+    if (($m = $st->fetch(PDO::FETCH_ASSOC)) && peopleOrgCanSee($conn, $analystId, (int)$m['id'])) {
         $manager = ['id' => (int)$m['id'], 'name' => peopleName($m)];
     }
     return ['root' => $build($rootId), 'manager' => $manager, 'total' => $total, 'truncated' => $truncated];
@@ -1553,7 +1608,7 @@ const PEOPLE_ORG_CONTEXT_PEERS = 12;
  * @param int $levels  how many levels below them, already through peopleOrgChartLevels()
  * @return array|null ['root' => node, 'focus' => $userId, 'manager' => null, 'total' => int, 'truncated' => bool]
  */
-function peopleOrgContext(PDO $conn, int $analystId, int $userId, bool $leavers, int $levels = PEOPLE_ORG_CHART_LEVELS): ?array
+function peopleOrgContext(PDO $conn, int|PeopleOrgReader $analystId, int $userId, bool $leavers, int $levels = PEOPLE_ORG_CHART_LEVELS): ?array
 {
     $path = peopleOrgPath($conn, $analystId, $userId, $leavers);
     $branch = $path ? peopleOrgBranch($conn, $analystId, $userId, $leavers, $levels) : null;
@@ -1600,9 +1655,9 @@ function peopleOrgContext(PDO $conn, int $analystId, int $userId, bool $leavers,
  *
  * @return string[]  department names, sorted, at most 200
  */
-function peopleOrgDepartments(PDO $conn, int $analystId): array
+function peopleOrgDepartments(PDO $conn, int|PeopleOrgReader $analystId): array
 {
-    [$scope, $args] = peopleScope($conn, $analystId, 'u.tenant_id');
+    [$scope, $args] = peopleOrgScope($conn, $analystId, 'u.tenant_id');
     $st = $conn->prepare(
         "SELECT DISTINCT TRIM(u.department) AS d FROM users u
           WHERE u.is_active = 1 AND u.department IS NOT NULL AND TRIM(u.department) <> '' $scope

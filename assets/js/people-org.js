@@ -9,6 +9,11 @@
  * From the server it needs only window.PEOPLE_ORG, which the page sets first:
  *   api, list               the endpoints (api/people/org.php, api/people/list.php)
  *   levelsDefault, levelsMax  PEOPLE_ORG_CHART_LEVELS and _MAX (includes/people.php)
+ * and, for the self-service portal's copy of the page (GH #414, self-service/org-chart.php):
+ *   personPage: false       no links to People's person page - names are plain text
+ *   contact: false          no contact details in the side panel
+ *   me                      users.id of the reader: opened on them, marked You
+ * The portal page also leaves out the leavers box and the gaps, so both are optional here.
  * and window.t() for the strings, as every page has.
  *
  * @wiki Organisation-Chart-Developer-Guide
@@ -23,7 +28,15 @@
     var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
     var $ = function (id) { return document.getElementById(id); };
     var treeEl = $('orgTree'), chartEl = $('orgChart'), statusEl = $('orgStatus'), titleEl = $('orgTitle');
-    var leaversEl = $('orgLeavers'), searchEl = $('orgSearch'), resultsEl = $('orgResults');
+    // No leavers box on the portal (GH #414): a stand-in that is never ticked.
+    var leaversEl = $('orgLeavers') || { checked: false, addEventListener: function () {} };
+    var searchEl = $('orgSearch'), resultsEl = $('orgResults'), gapsEl = $('orgGaps');
+    var PAGES = CFG.personPage !== false, ME = CFG.me || 0;
+    // A name that opens the person's page - or, where there is none to open (the portal), just the name.
+    function personLink(id, inner, cls) {
+        var c = cls ? ' class="' + cls + '"' : '';
+        return PAGES ? '<a' + c + ' href="person.php?id=' + id + '">' + inner + '</a>' : '<span' + c + '>' + inner + '</span>';
+    }
     var params = new URLSearchParams(location.search);
 
     // Layout choices are this browser's own - a convenience, never relied on.
@@ -58,6 +71,8 @@
     if (params.get('dir')) state.chartDir = params.get('dir') === 'h' ? 'h' : 'v';
     if (params.get('levels')) state.chartLevels = params.get('levels');
     state.chartLevels = levelsValue(state.chartLevels) || String(LEVELS_DEFAULT);
+    // The portal opens on the reader, as nobody there needs the whole organisation first.
+    if (!state.person && ME) state.person = ME;
     if (['cards', 'compact', 'columns'].indexOf(state.treeMode) < 0) state.treeMode = 'cards';
     // ...and is kept as the choice, as a click would be: the address loses it at once (remember()).
     if (params.get('tree')) setPref('tree', state.treeMode);
@@ -117,7 +132,10 @@
         return PALETTE[h % PALETTE.length];
     }
     function avatar(n, size) { return '<span class="ppl-org-av ' + size + '" style="background:' + colour(n) + '" aria-hidden="true">' + esc(initials(n.name)) + '</span>'; }
-    function leaverPill(n) { return n.is_active ? '' : ' <span class="ppl-pill bad">' + esc(T('org.leaver')) + '</span>'; }
+    function leaverPill(n) {
+        return (n.is_active ? '' : ' <span class="ppl-pill bad">' + esc(T('org.leaver')) + '</span>')
+            + (ME && n.id === ME ? ' <span class="ppl-pill coloured" style="--pill: var(--ppl-accent)">' + esc(T('org.you')) + '</span>' : '');
+    }
     // The small button on a tree row that opens the chart from that person.
     function asChart(n) {
         return '<button type="button" class="ppl-org-as-chart" data-chart="' + n.id + '" title="' + esc(T('org.as_chart')) + '" aria-label="' + esc(T('org.as_chart') + ': ' + n.name) + '">'
@@ -128,14 +146,14 @@
     // under them already drawn, each a button that opens their panel instead.
     function detailHtml(n, boss, actions, team) {
         return '<div class="ppl-org-detail-who">' + avatar(n, 'l') + '<div><div class="ppl-org-detail-name">' + esc(n.name) + leaverPill(n) + '</div><div class="ppl-dim">' + esc(meta(n)) + '</div></div></div>'
-            + '<dl class="ppl-fields ppl-org-contact" data-contact="' + n.id + '"></dl>'
+            + (CFG.contact === false ? '' : '<dl class="ppl-fields ppl-org-contact" data-contact="' + n.id + '"></dl>')
             + '<dl class="ppl-fields">'
-            + (boss ? '<dt>' + esc(T('org.detail_reports_to')) + '</dt><dd><a href="person.php?id=' + boss.id + '">' + esc(boss.name) + '</a></dd>' : '')
+            + (boss ? '<dt>' + esc(T('org.detail_reports_to')) + '</dt><dd>' + personLink(boss.id, esc(boss.name)) + '</dd>' : '')
             + '<dt>' + esc(T('org.col_under')) + '</dt><dd>' + (n.reports > 0 ? esc(underText(n)) : esc(T('org.detail_none'))) + '</dd></dl>'
             + (team && team.length ? '<div class="ppl-org-team"><h5>' + esc(T('org.detail_team')) + '</h5>' + team.map(function (c) {
                 return '<button type="button" data-select="' + c.id + '">' + avatar(c, 's') + '<span>' + esc(c.name) + '</span></button>';
             }).join('') + '</div>' : '')
-            + '<div class="ppl-org-detail-actions"><a class="ppl-btn" href="person.php?id=' + n.id + '">' + esc(T('org.open_page')) + '</a>' + (actions || '') + '</div>';
+            + '<div class="ppl-org-detail-actions">' + (PAGES ? '<a class="ppl-btn" href="person.php?id=' + n.id + '">' + esc(T('org.open_page')) + '</a>' : '') + (actions || '') + '</div>';
     }
     // How to reach them, fetched once per person and filled into the panel's
     // placeholder - only if the panel still shows that person by then.
@@ -195,7 +213,7 @@
         var toggle = n.reports > 0
             ? '<button type="button" class="ppl-org-toggle" aria-expanded="false" aria-label="' + esc(T('org.expand', { name: n.name })) + '"></button>'
             : '<span class="ppl-org-toggle none" aria-hidden="true"></span>';
-        var link = '<a class="ppl-org-name" href="person.php?id=' + n.id + '">' + esc(n.name) + '</a>' + leaverPill(n);
+        var link = personLink(n.id, esc(n.name), 'ppl-org-name') + leaverPill(n);
         var row = state.treeMode === 'compact'
             ? toggle + avatar(n, 's') + '<span class="ppl-org-who">' + link + '</span>'
                 + '<span class="ppl-org-cells"><span>' + esc(n.job_title || '') + '</span><span>' + esc(n.department || '') + '</span>'
@@ -365,9 +383,15 @@
             return (state.treeMode === 'columns' ? jumpCols(d.ids) : jumpTree(d.ids)).then(function (found) {
                 // A current person can have a place only with leavers shown - one
                 // whose only reports have left - so try once more with them.
-                if (found || leaversEl.checked) return;
-                leaversEl.checked = true; setPref('leavers', '1');
-                return loadTree().then(function () { return jumpTo(id); });
+                if (found) return;
+                if (!leaversEl.checked) {
+                    leaversEl.checked = true; setPref('leavers', '1');
+                    return loadTree().then(function () { return jumpTo(id); });
+                }
+                // Still nowhere: nobody above them and nobody under them, so the tree
+                // has no place for them. Shown on their own in the chart rather than
+                // "not in the chart" - everybody is shown somewhere (Ed, 2026-11-20).
+                return setView('chart').then(function () { say(T('org.on_own', { name: d.name })); });
             });
         });
     }
@@ -529,7 +553,7 @@
             }).join('') + '</div>';
         var head = '<div class="ppl-org-chart-head"><div class="ppl-org-chart-title"><span><strong>' + esc(title) + '</strong>'
             + (whole ? '' : (focus && meta(focus) ? ' <span class="ppl-dim">' + esc(meta(focus)) + '</span>' : '')
-                + ' · <a href="person.php?id=' + focus.id + '">' + esc(T('org.open_page')) + '</a>'
+                + (PAGES ? ' · <a href="person.php?id=' + focus.id + '">' + esc(T('org.open_page')) + '</a>' : '')
                 + (!context && b.manager
                     ? ' · <a href="#" data-up="' + b.manager.id + '">' + esc(T('org.chart_up', { name: b.manager.name })) + '</a>'
                     : ' · <a href="#" data-up="0">' + esc(T('org.chart_all')) + '</a>'))
@@ -919,8 +943,9 @@
     // ---------------------------------------------------------------- gaps
     function loadGaps() {
         return fetch(API + '?action=gaps', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (d) {
-            if (!d.success) { $('orgGaps').innerHTML = '<p class="ppl-dim ppl-org-small">' + esc(d.error) + '</p>'; return; }
+            if (!d.success) { if (gapsEl) gapsEl.innerHTML = '<p class="ppl-dim ppl-org-small">' + esc(d.error) + '</p>'; return; }
             (d.departments || []).forEach(function (name, i) { state.depts[String(name).trim().toLowerCase()] = i; });
+            if (!gapsEl) return;   // the portal: the colours, but no gaps to list
             // A refresh redraws these: the ones that were open stay open.
             var wasOpen = {};
             $('orgGaps').querySelectorAll('details[open]').forEach(function (el) { wasOpen[el.dataset.gap] = true; });
@@ -942,7 +967,7 @@
                 + (d.gaps.no_source && d.gaps.no_source.total ? block('no_source', d.gaps.no_source, null, true) : '');
         }).catch(function () {});
     }
-    $('orgGaps').addEventListener('click', function (e) {
+    if (gapsEl) gapsEl.addEventListener('click', function (e) {
         var a = e.target.closest('[data-find]');
         if (a) { e.preventDefault(); find(parseInt(a.dataset.find, 10)); }
     });
@@ -960,7 +985,7 @@
         if (!q) { resultsEl.hidden = true; return; }
         timer = setTimeout(function () {
             var my = ++seq;
-            fetch(LIST + '?status=all&q=' + encodeURIComponent(q), { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (d) {
+            fetch(LIST + (LIST.indexOf('?') < 0 ? '?' : '&') + 'status=all&q=' + encodeURIComponent(q), { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (d) {
                 if (my !== seq) return;
                 var people = (d.success ? d.people : []).slice(0, 10);
                 resultsEl.innerHTML = people.length ? people.map(function (p) {

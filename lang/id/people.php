@@ -61,6 +61,7 @@ return [
         'intro' => 'Siapa melapor kepada siapa, berdasarkan manajer yang tercatat pada setiap orang - melalui sinkronisasi direktori, atau secara manual di Tiket → Pengguna.',
         'search' => 'Cari seseorang',
         'search_ph' => 'Nama, email, jabatan...',
+        'search_ph_names' => 'Nama, jabatan, departemen...',   // the portal's search, which does not look in email (GH #414)
         'no_results' => 'Tidak ada yang cocok.',
         'view' => 'Tampilan',
         'view_tree' => 'Pohon',
@@ -69,7 +70,9 @@ return [
         'loading' => 'Memuat...',
         'empty' => 'Belum ada orang yang memiliki manajer tercatat, jadi tidak ada bagan yang dapat digambar. Manajer berasal dari sinkronisasi direktori, atau diatur di Tiket → Pengguna.',
         'not_found' => 'Orang itu tidak ada di bagan yang dapat Anda lihat.',
+        'on_own' => '{name} tidak punya atasan dan tidak punya bawahan, jadi ditampilkan sendiri.',   // GH #414
         'leaver' => 'Sudah keluar',
+        'you' => 'Anda',   // the reader, on the portal's chart (GH #414)
         'reports_n' => '{n} melapor kepadanya',
         'reports_total' => '{n} melapor kepadanya, {total} secara keseluruhan di bawahnya',
         'expand' => 'Tampilkan siapa yang melapor kepada {name}',

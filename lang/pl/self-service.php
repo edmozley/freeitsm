@@ -16,16 +16,6 @@ return [
     'org_chart' => [
         'title'        => 'Schemat organizacyjny',
         'subtitle'     => 'Kto komu podlega. Wyszukaj imię i nazwisko, stanowisko lub dział albo rozwiń zespół strzałką.',
-        'search'       => 'Szukaj osób',
-        'none'         => 'W schemacie organizacyjnym nie ma jeszcze nikogo.',
-        'load_failed'  => 'Nie udało się teraz wczytać schematu organizacyjnego. Spróbuj ponownie za minutę.',
-        'truncated'    => 'To bardzo duża organizacja, więc nie wszyscy są widoczni.',
-        'no_line'      => 'Poza linią podległości',
-        'you'          => 'Ty',
-        'reports'      => 'Bezpośredni podwładni: {count}',
-        'expand'       => 'Pokaż zespół',
-        'collapse'     => 'Ukryj zespół',
-        'no_match'     => 'Nikt nie pasuje.',
     ],
     'equipment' => [
         'title' => 'Mój sprzęt',
@@ -471,9 +461,9 @@ return [
         // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Schemat organizacyjny',
         'org_p1' => 'Jeśli zespół IT go włączył, <strong>Organizacja</strong> w górnym menu pokazuje, kto komu podlega w Twojej firmie. Schemat otwiera się na Twoim miejscu, z rozwiniętą linią nad Tobą.',
-        'org_li1' => 'Kliknij strzałkę obok osoby, aby pokazać lub ukryć jej zespół. Liczba obok nazwiska to liczba osób bezpośrednio jej podległych.',
+        'org_li1' => 'Kliknij strzałkę obok osoby, aby pokazać lub ukryć jej zespół. Liczby obok nazwiska to liczba osób bezpośrednio jej podległych oraz, po kropce, łączna liczba osób pod nią.',
         'org_li2' => 'Wpisz w <strong>Szukaj osób</strong> imię i nazwisko, stanowisko lub dział, a następnie wybierz osobę, aby przejść do niej w schemacie.',
-        'org_li3' => '<strong>Poza linią podległości</strong> na dole to osoby bez przełożonego i bez podwładnych.',
+        'org_li3' => '<strong>Schemat</strong> rysuje to samo jako pola i linie, zaczynając od Ciebie. Kliknij osobę, aby zobaczyć, kim jest, kliknij dwukrotnie, aby rysować od niej, i użyj <strong>Eksportuj</strong>, aby zapisać go jako obraz lub PDF.',
         'org_tip' => '<strong>Coś się nie zgadza?</strong> Schemat powstaje na podstawie przełożonego zapisanego przy każdej osobie. Jeśli Twój jest błędny, utwórz zgłoszenie, a zespół IT to poprawi.',
         'team_title' => 'Zgłoszenia zespołu',
         'team_p1' => 'Możesz zobaczyć zgłoszenia utworzone przez osoby, którymi zarządzasz. Znajdziesz je w menu pod pozycją <strong>Zgłoszenia zespołu</strong>, oddzielnie od własnych w Moich zgłoszeniach.',

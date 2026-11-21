@@ -61,6 +61,7 @@ return [
         'intro' => 'Kto komu podlega, na podstawie przełożonego zapisanego przy każdej osobie - przez synchronizację katalogu lub ręcznie w Zgłoszenia → Użytkownicy.',
         'search' => 'Znajdź kogoś',
         'search_ph' => 'Imię i nazwisko, e-mail, stanowisko...',
+        'search_ph_names' => 'Imię i nazwisko, stanowisko, dział...',   // the portal's search, which does not look in email (GH #414)
         'no_results' => 'Nikt nie pasuje.',
         'view' => 'Widok',
         'view_tree' => 'Drzewo',
@@ -69,7 +70,9 @@ return [
         'loading' => 'Ładowanie...',
         'empty' => 'Nikt nie ma jeszcze zapisanego przełożonego, więc nie ma schematu do narysowania. Przełożeni pochodzą z synchronizacji katalogu lub są ustawiani w Zgłoszenia → Użytkownicy.',
         'not_found' => 'Tej osoby nie ma na schemacie, który możesz zobaczyć.',
+        'on_own' => '{name} nie ma przełożonego ani podwładnych, więc jest pokazana osobno.',   // GH #414
         'leaver' => 'Odchodzący',
+        'you' => 'Ty',   // the reader, on the portal's chart (GH #414)
         'reports_n' => 'Podlega mu: {n}',
         'reports_total' => 'Podlega mu: {n}, łącznie pod nim: {total}',
         'expand' => 'Pokaż, kto podlega: {name}',
