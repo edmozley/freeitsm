@@ -47,6 +47,7 @@ return [
         'heading' => 'Курсы',
         'upload' => 'Загрузить',
         'create' => 'Создать',
+        'new_tip' => 'Новый курс',
         'col_title' => 'Название',
         'col_version' => 'Версия SCORM',
         'col_uploaded' => 'Загружено',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'Учебные группы',
         'new' => 'Создать',
+        'new_tip' => 'Новая группа',
         'col_name' => 'Название',
         'col_description' => 'Описание',
         'col_members' => 'Участники',

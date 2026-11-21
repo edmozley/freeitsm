@@ -49,6 +49,7 @@ return [
     ],
     'modal' => [
         'new_incident' => 'Новый инцидент',
+        'new_incident_tip' => 'Новый инцидент',
         'edit_incident' => 'Редактировать инцидент',
         'title' => 'Заголовок',
         'title_placeholder' => 'Краткое описание инцидента',

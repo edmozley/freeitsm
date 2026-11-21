@@ -33,8 +33,17 @@ return [
     ],
     'sidebar' => [
         'new_process' => '+ Новый процесс',
+        'new_process_tip' => 'Новый процесс',
         'search_placeholder' => 'Поиск процессов…',
         'no_processes_yet' => 'Пока нет процессов',
+        'search_key_tip' => 'Нажмите / или Alt+Shift+O на любой странице, чтобы искать процессы',
+    ],
+    'preview' => [
+        'steps' => 'Шаги',
+        'lanes' => 'Дорожки',
+        'created_by' => 'Автор',
+        'created' => 'Создано',
+        'updated' => 'Последнее обновление',
     ],
     'new_modal' => [
         'title' => 'Новый процесс',
