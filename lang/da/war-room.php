@@ -343,6 +343,7 @@ return [
         'by' => 'Fastgjort af {name}, {time}',
         'none' => 'Intet er fastgjort i denne samtale.',
         'full' => 'Denne samtale har allerede {max} fastgjorte beskeder. Frigør en først.',
+        'jump' => 'Gå til den fastgjorte besked',
     ],
     'saved' => [
         'button' => 'Gemte',

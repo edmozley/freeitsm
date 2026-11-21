@@ -781,22 +781,47 @@
 /* Pin, save, mark as unread (5.9.0, piece 2). */
 .wr-msg-mark { font-size: var(--font-size-xs, 11px); cursor: default; }
 .wr-pinbar {
-    display: block;
-    width: 100%;
+    display: flex;
+    align-items: stretch;
     margin: 0 0 6px;
-    padding: 5px 10px;
     border: 1px solid var(--border, #e0e0e0);
     border-radius: 6px;
     background: var(--surface, #fff);
     color: var(--text, #333);
-    font: inherit;
     font-size: var(--font-size-sm, 12px);
-    font-weight: 600;
-    text-align: left;
+    overflow: hidden;
+}
+.wr-pinbar[hidden] { display: none; }
+.wr-pinbar-msg, .wr-pinbar-all {
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
     cursor: pointer;
 }
+/* One line: the author, then as much of the message as fits, ending in an ellipsis. */
+.wr-pinbar-msg {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+.wr-pinbar-icon { flex-shrink: 0; }
+.wr-pinbar-who { flex-shrink: 0; font-weight: 600; }
+.wr-pinbar-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted, #666); }
+.wr-pinbar-all {
+    flex-shrink: 0;
+    border-left: 1px solid var(--border, #e0e0e0);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.wr-pinbar-all[hidden] { display: none; }
+.wr-pinbar-msg:hover .wr-pinbar-text, .wr-pinbar-msg:focus-visible .wr-pinbar-text { color: var(--text, #333); }
+.wr-pinbar-all:hover, .wr-pinbar-all:focus-visible { color: var(--accent, #ea580c); }
 .wr-pinbar:hover { border-color: var(--accent, #ea580c); }
-.wr-pinbar[hidden] { display: none; }
 .wr-list-item { display: flex; align-items: flex-start; gap: 6px; }
 .wr-list-open {
     flex: 1;

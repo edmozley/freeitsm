@@ -343,6 +343,7 @@ return [
         'by' => 'Disematkan oleh {name}, {time}',
         'none' => 'Tidak ada yang disematkan di percakapan ini.',
         'full' => 'Percakapan ini sudah memiliki {max} pesan yang disematkan. Lepas satu terlebih dahulu.',
+        'jump' => 'Buka pesan yang disematkan',
     ],
     'saved' => [
         'button' => 'Tersimpan',

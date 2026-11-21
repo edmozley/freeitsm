@@ -124,6 +124,13 @@ try {
     ok('the message says who pinned it and when', $pm4 && $pm4['by'] !== '' && $pm4['at'] !== '');
     ok('the channel counts its pins', warRoomPinCount($conn, $all) === 1);
     ok('pinning twice still counts once', warRoomPin($conn, $a, $m4, true) === 'ok' && warRoomPinCount($conn, $all) === 1);
+    $top = warRoomPinTop($conn, $all);
+    ok('the pinned bar previews the newest pin - who and what', $top !== null && $top['id'] === $m4 && $top['text'] === 'ZZ watched' && $top['author'] !== '');
+    $m4b = warRoomSend($conn, $a, $all, 'ZZ pinned later');
+    warRoomPin($conn, $a, $m4b, true);
+    ok('...and a newer pin takes over the preview', (warRoomPinTop($conn, $all)['id'] ?? 0) === $m4b);
+    warRoomDeleteMessage($conn, $a, $m4b);
+    ok('...a deleted pin hands it back and is not counted', (warRoomPinTop($conn, $all)['id'] ?? 0) === $m4 && warRoomPinCount($conn, $all) === 1);
     $list = warRoomPins($conn, $all);
     ok('the pinned list has it, with the text', count($list) === 1 && $list[0]['id'] === $m4 && $list[0]['text'] === 'ZZ watched');
     ok('nobody can pin in a channel they cannot post in', warRoomPin($conn, $b, $pm, true) === 'no');

@@ -103,7 +103,7 @@ foreach ($channels as $ch) {
     <title><?php echo htmlspecialchars(pageTitle('war-room')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/war-room.css?v=14">
+    <link rel="stylesheet" href="../assets/css/war-room.css?v=15">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1"><!-- the shared file viewer (5.9.0) -->
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=201">
@@ -249,7 +249,7 @@ foreach ($channels as $ch) {
     <script src="../assets/js/files-viewer.js?v=10"></script>
     <!-- + -> Files (5.9.0): the Files picker, as Tickets uses it. -->
     <script src="../assets/js/files-picker.js?v=3"></script>
-    <script src="../assets/js/war-room.js?v=15"></script>
+    <script src="../assets/js/war-room.js?v=16"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

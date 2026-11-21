@@ -343,6 +343,7 @@ return [
         'by' => 'Przypiął(a): {name}, {time}',
         'none' => 'W tej rozmowie nic nie jest przypięte.',
         'full' => 'Ta rozmowa ma już {max} przypiętych wiadomości. Najpierw odepnij jedną.',
+        'jump' => 'Przejdź do przypiętej wiadomości',
     ],
     'saved' => [
         'button' => 'Zapisane',

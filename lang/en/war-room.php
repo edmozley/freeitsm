@@ -412,6 +412,7 @@ return [
         'by' => 'Pinned by {name}, {time}',
         'none' => 'Nothing is pinned in this conversation.',
         'full' => 'This conversation already has {max} pinned messages. Unpin one first.',
+        'jump' => 'Go to this pinned message',
     ],
     'saved' => [
         'button' => 'Saved',

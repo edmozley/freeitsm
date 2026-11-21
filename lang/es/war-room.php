@@ -343,6 +343,7 @@ return [
         'by' => 'Fijado por {name}, {time}',
         'none' => 'No hay nada fijado en esta conversación.',
         'full' => 'Esta conversación ya tiene {max} mensajes fijados. Desfije uno primero.',
+        'jump' => 'Ir al mensaje fijado',
     ],
     'saved' => [
         'button' => 'Guardados',

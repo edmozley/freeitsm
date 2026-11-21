@@ -87,6 +87,7 @@ try {
         'messages' => $messages,
         'present'  => warRoomPresent($conn, $analystId, $channelId),
         'pins'     => warRoomPinCount($conn, $channelId),   // 5.9.0: the pinned bar
+        'pin_top'  => warRoomPinTop($conn, $channelId, $viewerLang),   // 5.9.0: ...and its preview
         'thread'   => $thread,                              // 5.9.0: the open thread's new or changed messages
         'focus_root' => $focusRoot,                         // 5.9.0: the linked message is in this thread
         'channels' => $channels,

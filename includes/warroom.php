@@ -1130,16 +1130,67 @@ function warRoomPin(PDO $conn, int $analystId, int $messageId, bool $on): string
     return 'ok';
 }
 
-/** How many messages are pinned in a channel - the poll sends it for the pinned bar. */
+/**
+ * How many messages are pinned in a channel - the poll sends it for the pinned bar.
+ * Deleted messages are not counted, matching the pinned list (warRoomPins()).
+ */
 function warRoomPinCount(PDO $conn, int $channelId): int
 {
     try {
-        $st = $conn->prepare("SELECT COUNT(*) FROM warroom_pins WHERE channel_id = ?");
+        $st = $conn->prepare(
+            "SELECT COUNT(*) FROM warroom_pins p JOIN warroom_messages m ON m.id = p.message_id
+              WHERE p.channel_id = ? AND m.deleted_datetime IS NULL"
+        );
         $st->execute([$channelId]);
         return (int) $st->fetchColumn();
     } catch (Throwable $e) {
         return 0;
     }
+}
+
+/**
+ * The newest pin of a channel, for the preview in the pinned bar (5.9.0): who wrote it
+ * and the start of what they wrote, with its stored translation into the viewer's
+ * language when there is one. Null when nothing is pinned.
+ *
+ * @param string $viewerLang  the viewer's language, or '' when translation is off
+ * @return ?array{id:int,author:string,text:string,lang:?string,tr:?string}
+ */
+function warRoomPinTop(PDO $conn, int $channelId, string $viewerLang = ''): ?array
+{
+    try {
+        $st = $conn->prepare(
+            "SELECT m.id, m.body, m.is_bot" . (warRoomHasCol($conn, 'lang') ? ", m.lang" : '') . ", a.full_name
+               FROM warroom_pins p
+               JOIN warroom_messages m ON m.id = p.message_id
+               LEFT JOIN analysts a ON a.id = m.analyst_id
+              WHERE p.channel_id = ? AND m.deleted_datetime IS NULL
+              ORDER BY p.id DESC LIMIT 1"
+        );
+        $st->execute([$channelId]);
+        $r = $st->fetch(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return null;   // before Database Verification
+    }
+    if (!$r) return null;
+    $tr = null;
+    if ($viewerLang !== '') {
+        try {
+            $t = $conn->prepare("SELECT body FROM warroom_translations WHERE message_id = ? AND lang = ?");
+            $t->execute([(int) $r['id'], warRoomLangKey($viewerLang)]);
+            $v = $t->fetchColumn();
+            if ($v !== false) $tr = mb_substr((string) $v, 0, 300);
+        } catch (Throwable $e) {
+            // before Database Verification
+        }
+    }
+    return [
+        'id'     => (int) $r['id'],
+        'author' => !empty($r['is_bot']) ? WARBOT_NAME : ($r['full_name'] ?? (function_exists('t') ? t('war-room.former_analyst') : 'Former analyst')),
+        'text'   => mb_substr(trim((string) $r['body']), 0, 300),
+        'lang'   => $r['lang'] ?? null,
+        'tr'     => $tr,
+    ];
 }
 
 /**

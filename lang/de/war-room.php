@@ -343,6 +343,7 @@ return [
         'by' => 'Angeheftet von {name}, {time}',
         'none' => 'In dieser Unterhaltung ist nichts angeheftet.',
         'full' => 'Diese Unterhaltung hat bereits {max} angeheftete Nachrichten. Lösen Sie zuerst eine.',
+        'jump' => 'Zur angehefteten Nachricht',
     ],
     'saved' => [
         'button' => 'Gespeichert',

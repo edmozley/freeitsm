@@ -343,6 +343,7 @@ return [
         'by' => 'Épinglé par {name}, {time}',
         'none' => 'Rien n\'est épinglé dans cette conversation.',
         'full' => 'Cette conversation a déjà {max} messages épinglés. Désépinglez-en un d\'abord.',
+        'jump' => 'Aller au message épinglé',
     ],
     'saved' => [
         'button' => 'Enregistrés',

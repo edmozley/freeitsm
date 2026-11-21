@@ -515,7 +515,7 @@
                 renderChannels();
                 applyChannelHeader();
                 renderPresence(d.present);
-                renderPinBar(d.pins || 0);
+                renderPinBar(d.pins || 0, d.pin_top || null);
             })
             .catch(function () {
                 // ⚠️ Say so. The one thing this module must never do is let
@@ -1542,17 +1542,53 @@
         }).catch(function () { toast(t('war-room.menu.failed')); });
     }
 
-    // The pinned bar, above the conversation: "Pinned (3)", opening the list.
-    var pinBar = el('button', 'wr-pinbar');
-    pinBar.type = 'button';
+    // The pinned bar, above the conversation (5.9.0). It previews the NEWEST pin - in a
+    // war room a pin usually means "read this first", so the bar says what it is rather
+    // than just "Pinned (3)". The preview goes to that message; "Pinned (3)" opens the list,
+    // shown only when there is more than one.
+    var pinBar = el('div', 'wr-pinbar');
     pinBar.hidden = true;
-    pinBar.addEventListener('click', openPins);
+    var pinMsg = el('button', 'wr-pinbar-msg');
+    pinMsg.type = 'button';
+    pinMsg.title = t('war-room.pins.jump');
+    var pinIcon = el('span', 'wr-pinbar-icon', '\uD83D\uDCCC');
+    var pinWho = el('span', 'wr-pinbar-who');
+    var pinText = el('span', 'wr-pinbar-text');
+    pinMsg.appendChild(pinIcon); pinMsg.appendChild(pinWho); pinMsg.appendChild(pinText);
+    var pinAll = el('button', 'wr-pinbar-all');
+    pinAll.type = 'button';
+    pinAll.title = t('war-room.pins.title');
+    pinBar.appendChild(pinMsg); pinBar.appendChild(pinAll);
+    var pinTopId = 0;
+    pinMsg.addEventListener('click', function () { if (pinTopId) highlightMessage(pinTopId, false); });
+    pinAll.addEventListener('click', openPins);
     els.wrMessages.parentNode.insertBefore(pinBar, els.wrMessages);
 
-    /** Shows the pinned bar with its count, or hides it when nothing is pinned. */
-    function renderPinBar(n) {
+    /**
+     * Shows the pinned bar - the newest pin's author and first line, in the reader's
+     * language when translated - or hides it when nothing is pinned.
+     * @param {number} n    pinned messages in this conversation
+     * @param {?Object} top {id, author, text, lang, tr} of the newest pin, from the poll
+     */
+    function renderPinBar(n, top) {
         pinBar.hidden = !n;
-        pinBar.textContent = '\uD83D\uDCCC ' + t('war-room.pins.bar', { count: n });
+        if (!n) { pinTopId = 0; return; }
+        if (!top) {   // an older server: the count alone, as before
+            pinTopId = 0;
+            pinWho.textContent = ''; pinText.textContent = '';
+            pinAll.textContent = t('war-room.pins.bar', { count: n });
+            pinAll.hidden = false;
+            return;
+        }
+        // The drawn message when it is on the page (it may have been translated this visit).
+        var src = messageById[top.id] || { id: top.id, body: top.text, lang: top.lang, tr: top.tr, deleted: false };
+        var shown = String(translationOf(src) || src.body || '').replace(/\s+/g, ' ').trim();
+        pinTopId = top.id;
+        pinWho.textContent = top.author + ':';
+        pinText.textContent = shown;
+        pinMsg.setAttribute('aria-label', t('war-room.pins.jump') + ' - ' + top.author + ': ' + shown);
+        pinAll.hidden = n < 2;
+        pinAll.textContent = t('war-room.pins.bar', { count: n }) + ' \u25B8';
     }
 
     /** A clickable row for the pinned and saved lists: where, who, when, the start of the text. */
