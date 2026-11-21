@@ -47,6 +47,7 @@ return [
         'heading' => 'કોર્સ',
         'upload' => 'અપલોડ',
         'create' => 'બનાવો',
+        'new_tip' => 'નવો કોર્સ',
         'col_title' => 'શીર્ષક',
         'col_version' => 'SCORM આવૃત્તિ',
         'col_uploaded' => 'અપલોડ થયેલ',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'શિક્ષણ જૂથો',
         'new' => 'નવું',
+        'new_tip' => 'નવું જૂથ',
         'col_name' => 'નામ',
         'col_description' => 'વર્ણન',
         'col_members' => 'સભ્યો',

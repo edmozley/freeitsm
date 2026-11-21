@@ -49,6 +49,7 @@ return [
     ],
     'modal' => [
         'new_incident' => 'નવી ઘટના',
+        'new_incident_tip' => 'નવી ઘટના',
         'edit_incident' => 'ઘટના સંપાદિત કરો',
         'title' => 'શીર્ષક',
         'title_placeholder' => 'ઘટનાનું સંક્ષિપ્ત વર્ણન',

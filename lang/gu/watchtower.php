@@ -107,6 +107,7 @@ return [
         'aborted' => 'છેલ્લા 24 કલાકમાં loop protection દ્વારા <span class="wt-attention-bold">{count}</span> રન અટકાવાયા',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook(s) એ ફરી પ્રયાસ કરવાનું છોડી દીધું — સંદેશ ક્યારેય પહોંચ્યો નહીં',
         'failures' => '{count} નિષ્ફળતા(ઓ)',
+        'attention' => '<span class="wt-attention-bold">{count}</span> રન(સ)એ તેમના કામનો એક ભાગ છોડ્યો અને નોંધ મૂકી - તાજેતરનું: {name}',
     ],
     'mc' => [
         'metric_done' => 'પૂર્ણ',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'કુલ',
         'metric_offline' => 'ઓફલાઇન',
         'metric_lease' => 'લીઝ',
+        'metric_consumables' => 'ઓછો સ્ટોક',
         'metric_warranty' => 'વોરંટી',
         'warranty' => '<span class="wt-attention-bold">{count}</span> સંપત્તિની વોરંટી સમાપ્ત થઈ ગઈ છે અથવા {days} દિવસની અંદર સમાપ્ત થઈ રહી છે',
         'lease' => '<span class="wt-attention-bold">{count}</span> એસેટ્સની લીઝ સમાપ્ત થઈ છે અથવા {days} દિવસમાં થશે',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'તેમને બતાવવાનું ચાલુ રાખો',
         'impersonal_hide' => 'તેમને છુપાવો',
         'impersonal_note' => 'સર્વિસ સ્ટેટસ, વર્કફ્લો, સાધનો, વહેંચાયેલ કૅલેન્ડર, કરારો, નોલેજ, સોફ્ટવેર લાઇસન્સ અને ડોમેન વ્યક્તિના નહીં પણ ટીમના છે, તેથી તે તમારા સુધી સીમિત થઈ શકતા નથી. તેમને રાખવા વધુ સલામત જવાબ છે: તમે અંગત દૃશ્ય પર ગયા તેથી ખરાબ થયેલી સેવા સૌથી છેલ્લે ગાયબ થવી જોઈએ.',
+        'refresh_heading' => 'Watchtower દર આટલા સમયે રિફ્રેશ થાય છે',
+        'refresh_minutes' => '{n} મિનિટ',
+        'refresh_note' => 'દીવાલ પરની સ્ક્રીન માટે ટૂંકો સમય યોગ્ય છે: ફક્ત તેના માટે સાઇન ઇન કરેલ વપરાશકર્તા સાઇન ઇન રહે છે, અને ડેશબોર્ડ પોતે અપડેટ થાય છે.',
     ],
 ];
