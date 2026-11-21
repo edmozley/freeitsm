@@ -16,7 +16,7 @@
 
 /** Modules with a database/demo-data/{module}.json file. Order is display order. */
 const DEMO_MODULES = [
-    'core', 'tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks',
+    'core', 'tickets', 'assets', 'consumables', 'knowledge', 'changes', 'calendar', 'checks',
     'checklists',
     'contracts', 'domains', 'cost-centres', 'services', 'software', 'forms', 'software-assets',
     'dashboards', 'tasks', 'starters', 'process-mapper', 'cmdb', 'lms', 'workflow',
@@ -37,6 +37,7 @@ const DEMO_MODULES = [
  */
 function demoAfterImport(PDO $conn, string $module): void {
     if ($module === 'starters') { demoAfterStarters($conn); return; }
+    if ($module === 'consumables') { demoAfterConsumables($conn); return; }
     if ($module !== 'tasks') return;
     try { $rows = $conn->query("SELECT id, project_id, snapshot FROM project_baselines WHERE is_demo = 1")->fetchAll(PDO::FETCH_ASSOC); }
     catch (Throwable) { return; }   // before Database Verification
@@ -99,6 +100,201 @@ function demoAfterStarters(PDO $conn): void {
         $link->execute([$task->fetchColumn() ?: null, $submission, (int)$c['id']]);
         StartersService::refreshTaskText($conn, (int)$c['id']);
     }
+}
+
+/**
+ * Before a module's previous demo rows are cleared, inside the import's transaction (5.8.0).
+ *
+ * consumables: the history demoAfterConsumables() built hangs off the demo items with
+ * RESTRICT keys, so it goes first - children before parents, the undo before the
+ * movement it undoes (id DESC: an undo is always newer).
+ *
+ * @param string $module  the DEMO_MODULES key about to be imported
+ */
+function demoBeforeImport(PDO $conn, string $module): void {
+    if ($module !== 'consumables') return;
+    try { $conn->query("SELECT is_demo FROM consumable_movements LIMIT 0"); }
+    catch (Throwable) { return; }   // before Database Verification - the import says so itself
+    $conn->exec("DELETE FROM ticket_audit WHERE is_demo = 1 AND field_name LIKE 'Consumable%'");
+    $conn->exec("DELETE FROM notifications WHERE entity_type = 'consumable' AND entity_id IN (SELECT id FROM consumable_items WHERE is_demo = 1)");
+    $conn->exec("DELETE FROM consumable_audit WHERE is_demo = 1");
+    $conn->exec("DELETE FROM consumable_count_lines WHERE is_demo = 1");
+    $conn->exec("DELETE FROM consumable_movements WHERE is_demo = 1 ORDER BY id DESC");
+    $conn->exec("DELETE FROM consumable_counts WHERE is_demo = 1");
+    $conn->exec("DELETE FROM consumable_deliveries WHERE is_demo = 1");
+    $conn->exec("DELETE FROM consumable_stock WHERE is_demo = 1");
+}
+
+/**
+ * consumables (5.8.0): four months of a stock room, so every screen has something to
+ * show - Deliveries, the item histories, Low stock, the stock takes and the Differences
+ * report. JSON can only insert rows; a history has to ADD UP (each movement's balance,
+ * the stock on hand, a stock take's expected figure), so it is played through
+ * ConsumablesService - exactly what a person doing it would have written, audit and all -
+ * and each step is then moved back to the day it happened.
+ *
+ * Stock is used on the demo tickets (Tickets demo data) and handed to the demo people
+ * where those are in place; without them it is simply used, as stock on a shelf is.
+ * Everything made here is stamped is_demo = 1, and demoBeforeImport() clears it.
+ */
+function demoAfterConsumables(PDO $conn): void {
+    require_once __DIR__ . '/services/consumables.php';
+    require_once __DIR__ . '/services/notifications.php';
+    $ctx = ActorContext::fromSession($conn);
+    if ($ctx->actorId <= 0) {   // run from a script: the first administrator acts
+        $ctx->actorId = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 ORDER BY id LIMIT 1")->fetchColumn();
+    }
+    $item = [];
+    foreach ($conn->query("SELECT id, part_number FROM consumable_items WHERE is_demo = 1")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $item[$r['part_number']] = (int)$r['id'];
+    }
+    if (count($item) < 15) return;
+    $default = getDefaultTenantId($conn);
+    $store = ConsumablesService::storeFor($conn, $default);
+
+    // The demo supplier from the Contracts demo, if it is here.
+    $supplier = $conn->query("SELECT id FROM suppliers WHERE is_demo = 1 AND trading_name = 'TechDirect' ORDER BY id LIMIT 1")->fetchColumn() ?: null;
+    if ($supplier) $conn->prepare("UPDATE consumable_items SET supplier_id = ? WHERE is_demo = 1")->execute([$supplier]);
+
+    // People to hand things to, and tickets to use things on - the default company's.
+    $people = $conn->query("SELECT id FROM users WHERE is_demo = 1 ORDER BY id LIMIT 12")->fetchAll(PDO::FETCH_COLUMN);
+    $tq = $conn->prepare("SELECT id, user_id, created_datetime FROM tickets
+                           WHERE is_demo = 1 AND deleted_datetime IS NULL AND COALESCE(tenant_id, ?) = ? ORDER BY created_datetime");
+    $tq->execute([$default, $default]);
+    $tickets = $tq->fetchAll(PDO::FETCH_ASSOC);
+
+    // [part number => [reorder point, minimum level]]
+    $levels = ['CF226A' => [4, 2], 'W2211A' => [2, 1], 'W2213A' => [2, 1], 'W2212A' => [1, 1], 'TN2420' => [2, 1],
+               '910-002238' => [5, 3], '920-002479' => [4, 2], '23089-999-979' => [2, 1], '492-BBUS' => [1, 1],
+               'CAT6-2M-BL' => [15, 10], 'HDMI-2M' => [5, 3], 'USBC-HDMI-4K' => [3, 2], 'AA-LR6-4PK' => [4, 2],
+               'CR2032' => [5, 3], 'DTX/32GB' => [8, 5]];
+    $ins = $conn->prepare("INSERT INTO consumable_stock (item_id, store_id, on_hand, reorder_point, min_level) VALUES (?, ?, 0, ?, ?)
+                           ON DUPLICATE KEY UPDATE reorder_point = VALUES(reorder_point), min_level = VALUES(min_level)");
+    foreach ($levels as $pn => [$rp, $min]) $ins->execute([$item[$pn], $store, $rp, $min]);
+
+    // Where each step's rows start, so they can be dated and stamped afterwards.
+    $tables = ['consumable_movements' => ['created_datetime'], 'consumable_audit' => ['created_datetime'],
+               'consumable_deliveries' => ['created_datetime'], 'consumable_counts' => ['started_datetime', 'finished_datetime'],
+               'consumable_count_lines' => ['counted_datetime'], 'ticket_audit' => ['created_datetime']];
+    $max = fn(string $t) => (int)$conn->query("SELECT COALESCE(MAX(id), 0) FROM `$t`")->fetchColumn();
+    $first = $mark = [];
+    foreach ($tables as $t => $_) $first[$t] = $mark[$t] = $max($t);
+    $seq = 0;
+    $dated = function (int $daysAgo) use ($conn, $tables, &$mark, $max, &$seq) {
+        $when = gmdate('Y-m-d H:i:s', strtotime(gmdate('Y-m-d', time() - $daysAgo * 86400) . ' 09:00:00 UTC') + 60 * (13 * $seq++ % 420));
+        foreach ($tables as $t => $cols) {
+            $set = implode(', ', array_map(fn($c) => "`$c` = IF(`$c` IS NULL, NULL, '$when')", $cols));
+            $conn->exec("UPDATE `$t` SET $set WHERE id > " . (int)$mark[$t]);
+            $mark[$t] = $max($t);
+        }
+    };
+    $day = fn(int $daysAgo) => gmdate('Y-m-d', time() - $daysAgo * 86400);
+
+    // Deliveries: [days ago, order number, invoice, supplier?, note, [part => [qty, unit cost]]]
+    $deliveries = [
+        [120, 'PO-1042', 'INV-55810', true, null, ['CF226A' => [10, 62.50], 'W2211A' => [4, 58.00], 'W2213A' => [4, 58.00], 'W2212A' => [4, 58.00],
+            'TN2420' => [6, 45.90], '910-002238' => [20, 12.99], '920-002479' => [15, 9.49], 'CAT6-2M-BL' => [50, 1.85], 'HDMI-2M' => [20, 4.20], 'AA-LR6-4PK' => [12, 3.60]]],
+        [95, null, 'Card receipt 0412', false, 'Bought over the counter on the company card - no purchase order.',
+            ['23089-999-979' => [6, 64.00], '492-BBUS' => [5, 39.00], 'USBC-HDMI-4K' => [8, 14.50], 'CR2032' => [20, 0.80], 'DTX/32GB' => [25, 5.75]]],
+        [60, 'PO-1107', 'INV-56977', true, 'Black toner has gone up.', ['CF226A' => [8, 64.00], '910-002238' => [10, 12.99], 'CAT6-2M-BL' => [30, 1.85], '920-002479' => [5, 9.49]]],
+        [4, 'PO-1163', 'INV-58120', true, null, ['W2211A' => [2, 58.00], 'W2213A' => [2, 58.00], 'AA-LR6-4PK' => [10, 3.60]]],
+    ];
+    // Use: [days ago, part, quantity]
+    $uses = [
+        [118, '910-002238', 2], [116, '920-002479', 1], [115, 'TN2420', 1], [112, 'CAT6-2M-BL', 4], [110, 'CF226A', 1], [109, 'AA-LR6-4PK', 2],
+        [108, '910-002238', 1], [106, 'HDMI-2M', 1], [105, 'W2211A', 1], [103, '920-002479', 1], [101, 'CAT6-2M-BL', 3], [100, 'CF226A', 1],
+        [99, 'AA-LR6-4PK', 2], [98, 'TN2420', 1], [97, '910-002238', 1], [96, 'HDMI-2M', 2], [94, '920-002479', 1], [93, 'CAT6-2M-BL', 5],
+        [92, '910-002238', 1], [91, '23089-999-979', 1], [89, '492-BBUS', 1], [88, 'CF226A', 1], [87, 'USBC-HDMI-4K', 1], [86, 'CR2032', 2],
+        [85, '910-002238', 1], [85, 'W2213A', 1], [84, '23089-999-979', 1], [83, 'DTX/32GB', 2], [82, 'CAT6-2M-BL', 6], [81, 'TN2420', 1],
+        [80, 'W2211A', 1], [79, '920-002479', 1], [77, '910-002238', 1], [76, 'HDMI-2M', 1], [75, 'CF226A', 1], [74, 'AA-LR6-4PK', 2],
+        [73, '23089-999-979', 1], [72, 'DTX/32GB', 3], [71, '920-002479', 1], [70, 'CF226A', 1], [70, 'W2212A', 1], [69, '910-002238', 2],
+        [68, 'CR2032', 3], [67, 'CAT6-2M-BL', 4], [66, 'CF226A', 1], [65, '920-002479', 1], [64, 'TN2420', 1], [63, '910-002238', 1],
+        [62, 'USBC-HDMI-4K', 1], [61, 'HDMI-2M', 2], [59, 'DTX/32GB', 2], [58, '492-BBUS', 1], [55, '910-002238', 1], [54, 'CAT6-2M-BL', 5],
+        [53, 'AA-LR6-4PK', 2], [52, '920-002479', 1], [51, 'CR2032', 2], [50, 'W2211A', 1], [49, 'HDMI-2M', 1], [48, '910-002238', 1],
+        [47, 'TN2420', 1], [46, 'DTX/32GB', 2], [45, 'CF226A', 1], [44, 'CAT6-2M-BL', 3], [43, '920-002479', 1], [41, '910-002238', 1],
+        [40, 'W2213A', 1], [39, 'CR2032', 2], [38, 'USBC-HDMI-4K', 1], [37, '492-BBUS', 1], [36, 'HDMI-2M', 1], [35, 'CF226A', 1],
+        [34, 'DTX/32GB', 3], [33, '910-002238', 2], [31, 'CAT6-2M-BL', 6], [30, 'W2211A', 1], [29, '920-002479', 1], [28, 'TN2420', 1],
+        [27, 'AA-LR6-4PK', 1], [26, '910-002238', 1], [25, 'CR2032', 1], [23, 'HDMI-2M', 1], [22, 'W2212A', 1], [21, 'CAT6-2M-BL', 4],
+        [20, 'CF226A', 1], [19, '920-002479', 1], [18, '910-002238', 1], [17, 'DTX/32GB', 1], [16, 'USBC-HDMI-4K', 1], [11, '910-002238', 1],
+        [10, 'CR2032', 2], [9, '920-002479', 1], [8, 'CF226A', 1], [7, 'CAT6-2M-BL', 2], [6, '910-002238', 1], [5, 'HDMI-2M', 1],
+        [3, '910-002238', 1], [2, 'CF226A', 1], [2, 'AA-LR6-4PK', 1], [1, 'W2211A', 1],
+    ];
+    // Stock takes: [days ago, note, [part => how many were on the shelf against what was expected]]
+    $counts = [
+        [90, 'Quarter-end count of the basement store', ['CAT6-2M-BL' => -3, 'AA-LR6-4PK' => -2, '910-002238' => 1]],
+        [14, 'Basement store count', ['CF226A' => -2, 'HDMI-2M' => -1, 'CR2032' => -4, 'DTX/32GB' => -3]],
+    ];
+    // Hardware goes out against a ticket; the rest is used off the shelf.
+    $againstTicket = ['910-002238', '920-002479', '23089-999-979', '492-BBUS', 'USBC-HDMI-4K'];
+
+    // One timeline, oldest first; a day's deliveries come in before its use goes out.
+    $events = [];
+    foreach ($deliveries as $d) $events[] = [$d[0], 0, 'delivery', $d];
+    foreach ($counts as $c) $events[] = [$c[0], 1, 'count', $c];
+    foreach ($uses as $i => $u) $events[] = [$u[0], 2, 'use', $u, $i];
+    $events[] = [30, 3, 'adjust', ['23089-999-979', -1, 'Dropped in the car park - the headband snapped. Thrown away.']];
+    $events[] = [24, 3, 'mistake', '23089-999-979'];
+    usort($events, fn($a, $b) => [$b[0], $a[1]] <=> [$a[0], $b[1]]);
+
+    $mayAdjust = analystHasCapability($conn, $ctx->actorId, Cap::ASSETS_CONSUMABLES_ADJUST);
+    NotificationsService::duringBulk(function () use ($conn, $ctx, $events, $item, $store, $supplier, $people, $tickets, $againstTicket, $mayAdjust, $dated, $day) {
+        $n = 0;
+        foreach ($events as $e) {
+            [$ago, , $kind, $x] = $e;
+            if ($kind === 'delivery') {
+                [, $order, $invoice, $fromSupplier, $note, $lines] = $x;
+                ConsumablesService::receiveDelivery($conn, $ctx, [
+                    'supplier_id' => $fromSupplier ? $supplier : null, 'order_ref' => $order, 'invoice_ref' => $invoice,
+                    'invoice_date' => $day($ago + 2), 'received_date' => $day($ago), 'note' => $note,
+                    'lines' => array_map(fn($pn, $l) => ['item_id' => $item[$pn], 'quantity' => $l[0], 'unit_cost' => $l[1]], array_keys($lines), $lines),
+                ]);
+            } elseif ($kind === 'use') {
+                [, $pn, $qty] = $x;
+                $in = ['quantity' => $qty];
+                $when = $day($ago) . ' 23:59:59';
+                $ticket = null;
+                if (in_array($pn, $againstTicket, true)) {
+                    foreach ($tickets as $t) if ($t['created_datetime'] <= $when) $ticket = $t;   // the latest raised by then
+                }
+                if ($ticket && $n % 2 === 0) { $in['ticket_id'] = (int)$ticket['id']; $in['recipient_user_id'] = $ticket['user_id'] ? (int)$ticket['user_id'] : null; }
+                elseif ($people && $pn !== 'CAT6-2M-BL' && !str_starts_with($pn, 'W2') && !in_array($pn, ['CF226A', 'TN2420'], true)) {
+                    $in['recipient_user_id'] = (int)$people[$n % count($people)];
+                }
+                $n++;
+                ConsumablesService::move($conn, $ctx, 'issue', $item[$pn], $in);
+            } elseif ($kind === 'adjust' && $mayAdjust) {
+                ConsumablesService::move($conn, $ctx, 'adjust', $item[$x[0]], ['quantity' => $x[1], 'reason' => $x[2]]);
+            } elseif ($kind === 'mistake') {
+                // Given to the wrong person, put right: the undo sits beside the mistake.
+                $to = $people ? (int)$people[0] : null;
+                $m = ConsumablesService::move($conn, $ctx, 'issue', $item[$x], ['quantity' => 1, 'recipient_user_id' => $to]);
+                ConsumablesService::reverse($conn, $ctx, (int)$m['movement_id'], 'Booked to the wrong person - it went to the Leeds office.');
+                ConsumablesService::move($conn, $ctx, 'issue', $item[$x], ['quantity' => 1, 'recipient_user_id' => $people ? (int)$people[count($people) - 1] : null]);
+            } elseif ($kind === 'count' && $mayAdjust) {
+                // Started straight into the default company's store: startCount() takes the
+                // analyst's active company, which on a multi-company install may be another.
+                [, $note, $diffs] = $x;
+                $conn->prepare("INSERT INTO consumable_counts (store_id, status, note, started_by_analyst_id, started_datetime) VALUES (?, 'open', ?, ?, UTC_TIMESTAMP())")
+                     ->execute([$store, $note, $ctx->actorId]);
+                $cid = (int)$conn->lastInsertId();
+                $onHand = $conn->prepare("SELECT on_hand FROM consumable_stock WHERE item_id = ? AND store_id = ?");
+                foreach ($item as $pn => $iid) {
+                    $onHand->execute([$iid, $store]);
+                    $have = (int)$onHand->fetchColumn();
+                    ConsumablesService::countLine($conn, $ctx, $cid, $iid, max(0, $have + ($diffs[$pn] ?? 0)));
+                }
+                ConsumablesService::finishCount($conn, $ctx, $cid);
+            }
+            $dated($ago);
+        }
+    });
+
+    // Stamp it all as demo data - the next import clears exactly this.
+    foreach ($first as $t => $from) {
+        $where = $t === 'ticket_audit' ? " AND field_name LIKE 'Consumable%'" : '';
+        $conn->exec("UPDATE `$t` SET is_demo = 1 WHERE id > " . (int)$from . $where);
+    }
+    $conn->prepare("UPDATE consumable_stock SET is_demo = 1 WHERE store_id = ? AND item_id IN (SELECT id FROM consumable_items WHERE is_demo = 1)")->execute([$store]);
 }
 
 /**

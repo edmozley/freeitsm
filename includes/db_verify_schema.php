@@ -7453,6 +7453,7 @@ return [
         'is_active'                => 'TINYINT(1) NOT NULL DEFAULT 1',
         'display_order'            => 'INT NOT NULL DEFAULT 0',
         'created_datetime'         => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_stores' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7476,6 +7477,7 @@ return [
         'created_by_analyst_id'    => 'INT NULL',
         'created_datetime'         => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'         => 'DATETIME NULL',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_stock' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7486,6 +7488,7 @@ return [
         'reorder_point'            => 'INT NULL',
         'low_notified_datetime'    => 'DATETIME NULL',
         'updated_datetime'         => 'DATETIME NULL',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_counts' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7496,6 +7499,7 @@ return [
         'started_datetime'         => 'DATETIME NULL',
         'finished_by_analyst_id'   => 'INT NULL',
         'finished_datetime'        => 'DATETIME NULL',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_count_lines' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7509,6 +7513,7 @@ return [
         'counted_by_analyst_id'    => 'INT NULL',
         'counted_datetime'         => 'DATETIME NULL',
         'movement_id'              => 'INT NULL',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_deliveries' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7522,6 +7527,7 @@ return [
         'note'                     => 'VARCHAR(500) NULL',
         'created_by_analyst_id'    => 'INT NULL',
         'created_datetime'         => 'DATETIME NOT NULL',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_movements' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7543,6 +7549,7 @@ return [
         'analyst_id'               => 'INT NULL',
         'source'                   => 'VARCHAR(20) NOT NULL DEFAULT \'app\'',
         'created_datetime'         => 'DATETIME NOT NULL',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_audit' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7556,6 +7563,7 @@ return [
         'new_value'                => 'VARCHAR(1000) NULL',
         'source'                   => 'VARCHAR(20) NOT NULL DEFAULT \'app\'',
         'created_datetime'         => 'DATETIME NOT NULL',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_fields' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7569,12 +7577,14 @@ return [
         'consumable_type_id'       => 'INT NULL',
         'is_deleted'               => 'TINYINT(1) NOT NULL DEFAULT 0',
         'created_datetime'         => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_field_options' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
         'field_id'                 => 'INT NOT NULL',
         'option_value'             => 'VARCHAR(255) NOT NULL',
         'display_order'            => 'INT NOT NULL DEFAULT 0',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
     'consumable_field_values' => [
         'id'                       => 'INT NOT NULL AUTO_INCREMENT',
@@ -7586,5 +7596,6 @@ return [
         'value_date'               => 'DATETIME NULL',
         'value_boolean'            => 'TINYINT(1) NULL',
         'value_ref_id'             => 'INT NULL',
+        'is_demo'                  => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (5.8.0)
     ],
 ];

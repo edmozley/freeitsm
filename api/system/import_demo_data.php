@@ -263,6 +263,8 @@ try {
     // orphan locked the same user out of SSO permanently (#1296). With checks on,
     // a delete that would strand a real row fails loudly and the whole import
     // rolls back, which is the outcome we want.
+    // Rows a module's after-import step made, which its JSON does not list (consumables).
+    demoBeforeImport($conn, $module);
     foreach (array_reverse($tablesToClean) as $tableName) {
         try {
             $conn->exec("DELETE FROM `$tableName` WHERE is_demo = 1");

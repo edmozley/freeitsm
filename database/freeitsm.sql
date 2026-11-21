@@ -11415,6 +11415,7 @@ CREATE TABLE IF NOT EXISTS `consumable_types` (
     `is_active`        TINYINT(1) NOT NULL DEFAULT 1,
     `display_order`    INT NOT NULL DEFAULT 0,
     `created_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -11443,6 +11444,7 @@ CREATE TABLE IF NOT EXISTS `consumable_items` (
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`      DATETIME NULL,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     KEY `idx_consumable_items_tenant` (`tenant_id`),
     KEY `idx_consumable_items_type` (`type_id`),
@@ -11459,6 +11461,7 @@ CREATE TABLE IF NOT EXISTS `consumable_stock` (
     `reorder_point`         INT NULL,     -- at or below this: low, reorder
     `low_notified_datetime` DATETIME NULL, -- the bell went for this dip; cleared when stock recovers
     `updated_datetime`      DATETIME NULL,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_consumable_stock` (`item_id`, `store_id`),
     KEY `idx_consumable_stock_store` (`store_id`),
@@ -11476,6 +11479,7 @@ CREATE TABLE IF NOT EXISTS `consumable_counts` (
     `started_datetime`       DATETIME NULL,
     `finished_by_analyst_id` INT NULL,
     `finished_datetime`      DATETIME NULL,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     KEY `idx_consumable_counts_store` (`store_id`, `status`),
     CONSTRAINT `fk_consumable_counts_store` FOREIGN KEY (`store_id`) REFERENCES `consumable_stores` (`id`)
@@ -11493,6 +11497,7 @@ CREATE TABLE IF NOT EXISTS `consumable_count_lines` (
     `counted_by_analyst_id` INT NULL,
     `counted_datetime`      DATETIME NULL,
     `movement_id`           INT NULL,              -- the Counted movement that posted it, once finished
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_consumable_count_line` (`count_id`, `item_id`),
     KEY `idx_consumable_count_lines_item` (`item_id`),
@@ -11516,6 +11521,7 @@ CREATE TABLE IF NOT EXISTS `consumable_deliveries` (
     `note`                  VARCHAR(500) NULL,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL, -- UTC
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     KEY `idx_consumable_deliveries_store` (`store_id`, `received_date`),
     KEY `idx_consumable_deliveries_tenant` (`tenant_id`),
@@ -11544,6 +11550,7 @@ CREATE TABLE IF NOT EXISTS `consumable_movements` (
     `analyst_id`        INT NULL,                -- who; NULL = FreeITSM itself
     `source`            VARCHAR(20) NOT NULL DEFAULT 'app',   -- app | ticket | api
     `created_datetime`  DATETIME NOT NULL,       -- UTC
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_consumable_movements_reverses` (`reverses_id`),   -- undone once, never twice
     KEY `idx_consumable_movements_item` (`item_id`, `store_id`, `id`),
@@ -11570,6 +11577,7 @@ CREATE TABLE IF NOT EXISTS `consumable_audit` (
     `new_value`        VARCHAR(1000) NULL,
     `source`           VARCHAR(20) NOT NULL DEFAULT 'app',
     `created_datetime` DATETIME NOT NULL,        -- UTC
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     KEY `idx_consumable_audit_item` (`item_id`, `id`),
     KEY `idx_consumable_audit_type` (`type_id`),
@@ -11592,6 +11600,7 @@ CREATE TABLE IF NOT EXISTS `consumable_fields` (
     `consumable_type_id` INT NULL,               -- NULL = every type
     `is_deleted`         TINYINT(1) NOT NULL DEFAULT 0,
     `created_datetime`   DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_consumable_fields_type_key` (`consumable_type_id`, `field_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -11601,6 +11610,7 @@ CREATE TABLE IF NOT EXISTS `consumable_field_options` (
     `field_id`      INT NOT NULL,
     `option_value`  VARCHAR(255) NOT NULL,
     `display_order` INT NOT NULL DEFAULT 0,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     KEY `ix_consumable_field_options_field` (`field_id`),
     CONSTRAINT `fk_consumable_field_options_field` FOREIGN KEY (`field_id`) REFERENCES `consumable_fields` (`id`) ON DELETE CASCADE
@@ -11616,6 +11626,7 @@ CREATE TABLE IF NOT EXISTS `consumable_field_values` (
     `value_date`    DATETIME NULL,
     `value_boolean` TINYINT(1) NULL,
     `value_ref_id`  INT NULL,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (5.8.0)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_consumable_field_value` (`item_id`, `field_id`, `seq`),
     KEY `ix_cfv_field_text` (`field_id`, `value_text`(64)),

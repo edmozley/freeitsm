@@ -1,0 +1,61 @@
+{
+    "_comment": "Consumables demo (5.8.0). The catalogue is here; the four months of history - deliveries, use on tickets, two stock takes, an adjustment and an undo - are built by demoAfterConsumables() in includes/demo_data.php through ConsumablesService, then backdated. Every item is in the default company.",
+    "tier1": {
+        "consumable_types": [
+            { "_ref": "toner", "name": "Toner and ink", "description": "Printer cartridges", "is_active": 1, "display_order": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "peripherals", "name": "Peripherals", "description": "Mice, keyboards, headsets, chargers", "is_active": 1, "display_order": 2, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "cables", "name": "Cables and adapters", "description": "Patch leads, display cables, dongles", "is_active": 1, "display_order": 3, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "power", "name": "Batteries", "description": "For mice, keyboards, presenters and door fobs", "is_active": 1, "display_order": 4, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "storage", "name": "Storage", "description": "USB drives and memory cards", "is_active": 1, "display_order": 5, "created_datetime": "__RELATIVE_DATE:-130d__" }
+        ]
+    },
+    "tier2": {
+        "consumable_fields": [
+            { "_ref": "colour", "field_key": "colour", "label": "Colour", "field_type": "dropdown", "help_text": "The cartridge's colour", "is_required": 0, "display_order": 1, "consumable_type_id": "@consumable_types.toner" },
+            { "_ref": "printer", "field_key": "fits_printer", "label": "Fits printer", "field_type": "text", "help_text": "The printer model it goes in", "is_required": 0, "display_order": 2, "consumable_type_id": "@consumable_types.toner" },
+            { "_ref": "yield", "field_key": "page_yield", "label": "Page yield", "field_type": "number", "help_text": "Pages per cartridge, as the maker says", "is_required": 0, "display_order": 3, "consumable_type_id": "@consumable_types.toner" }
+        ],
+        "consumable_items": [
+            { "_ref": "t1", "type_id": "@consumable_types.toner", "name": "HP 26A black toner", "part_number": "CF226A", "unit": "cartridge", "unit_cost": 62.50, "notes": "For the LaserJets on every floor. Keep two spare in the basement store.", "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "t2", "type_id": "@consumable_types.toner", "name": "HP 207A cyan toner", "part_number": "W2211A", "unit": "cartridge", "unit_cost": 58.00, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "t3", "type_id": "@consumable_types.toner", "name": "HP 207A magenta toner", "part_number": "W2213A", "unit": "cartridge", "unit_cost": 58.00, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "t4", "type_id": "@consumable_types.toner", "name": "HP 207A yellow toner", "part_number": "W2212A", "unit": "cartridge", "unit_cost": 58.00, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "t5", "type_id": "@consumable_types.toner", "name": "Brother TN-2420 black toner", "part_number": "TN2420", "unit": "cartridge", "unit_cost": 45.90, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "p1", "type_id": "@consumable_types.peripherals", "name": "Logitech M185 wireless mouse", "part_number": "910-002238", "unit": "each", "unit_cost": 12.99, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "p2", "type_id": "@consumable_types.peripherals", "name": "Logitech K120 USB keyboard", "part_number": "920-002479", "unit": "each", "unit_cost": 9.49, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "p3", "type_id": "@consumable_types.peripherals", "name": "Jabra Evolve2 30 headset", "part_number": "23089-999-979", "unit": "each", "unit_cost": 64.00, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "p4", "type_id": "@consumable_types.peripherals", "name": "Dell 65W USB-C laptop charger", "part_number": "492-BBUS", "unit": "each", "unit_cost": 39.00, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "c1", "type_id": "@consumable_types.cables", "name": "Cat6 patch cable, 2m, blue", "part_number": "CAT6-2M-BL", "unit": "each", "unit_cost": 1.85, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "c2", "type_id": "@consumable_types.cables", "name": "HDMI cable, 2m", "part_number": "HDMI-2M", "unit": "each", "unit_cost": 4.20, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "c3", "type_id": "@consumable_types.cables", "name": "USB-C to HDMI adapter", "part_number": "USBC-HDMI-4K", "unit": "each", "unit_cost": 14.50, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "b1", "type_id": "@consumable_types.power", "name": "AA batteries, pack of 4", "part_number": "AA-LR6-4PK", "unit": "pack", "unit_cost": 3.60, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "b2", "type_id": "@consumable_types.power", "name": "CR2032 coin cell", "part_number": "CR2032", "unit": "each", "unit_cost": 0.80, "notes": "Door fobs and motherboard clocks.", "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" },
+            { "_ref": "s1", "type_id": "@consumable_types.storage", "name": "Kingston 32GB USB drive", "part_number": "DTX/32GB", "unit": "each", "unit_cost": 5.75, "is_active": 1, "created_datetime": "__RELATIVE_DATE:-130d__" }
+        ]
+    },
+    "tier3": {
+        "consumable_field_options": [
+            { "field_id": "@consumable_fields.colour", "option_value": "Black", "display_order": 0 },
+            { "field_id": "@consumable_fields.colour", "option_value": "Cyan", "display_order": 1 },
+            { "field_id": "@consumable_fields.colour", "option_value": "Magenta", "display_order": 2 },
+            { "field_id": "@consumable_fields.colour", "option_value": "Yellow", "display_order": 3 }
+        ],
+        "consumable_field_values": [
+            { "item_id": "@consumable_items.t1", "field_id": "@consumable_fields.colour", "value_text": "Black" },
+            { "item_id": "@consumable_items.t1", "field_id": "@consumable_fields.printer", "value_text": "HP LaserJet Pro M402" },
+            { "item_id": "@consumable_items.t1", "field_id": "@consumable_fields.yield", "value_number": 3100 },
+            { "item_id": "@consumable_items.t2", "field_id": "@consumable_fields.colour", "value_text": "Cyan" },
+            { "item_id": "@consumable_items.t2", "field_id": "@consumable_fields.printer", "value_text": "HP Colour LaserJet Pro M255" },
+            { "item_id": "@consumable_items.t2", "field_id": "@consumable_fields.yield", "value_number": 1250 },
+            { "item_id": "@consumable_items.t3", "field_id": "@consumable_fields.colour", "value_text": "Magenta" },
+            { "item_id": "@consumable_items.t3", "field_id": "@consumable_fields.printer", "value_text": "HP Colour LaserJet Pro M255" },
+            { "item_id": "@consumable_items.t3", "field_id": "@consumable_fields.yield", "value_number": 1250 },
+            { "item_id": "@consumable_items.t4", "field_id": "@consumable_fields.colour", "value_text": "Yellow" },
+            { "item_id": "@consumable_items.t4", "field_id": "@consumable_fields.printer", "value_text": "HP Colour LaserJet Pro M255" },
+            { "item_id": "@consumable_items.t4", "field_id": "@consumable_fields.yield", "value_number": 1250 },
+            { "item_id": "@consumable_items.t5", "field_id": "@consumable_fields.colour", "value_text": "Black" },
+            { "item_id": "@consumable_items.t5", "field_id": "@consumable_fields.printer", "value_text": "Brother HL-L2350DW" },
+            { "item_id": "@consumable_items.t5", "field_id": "@consumable_fields.yield", "value_number": 3000 }
+        ]
+    }
+}

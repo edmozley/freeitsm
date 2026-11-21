@@ -374,6 +374,16 @@ if (!isset($_SESSION['analyst_id'])) {
                 <div class="error-text" id="err-assets" style="display:none"></div>
             </div>
 
+            <div class="module-card" data-module="consumables">
+                <h4>Consumables</h4>
+                <p class="module-desc">A stock room with four months of history: 15 items (toner, mice, keyboards, cables, batteries), four deliveries with order numbers, stock used on tickets and handed to people, two stock takes that found some missing, and a few items running low. Best imported after <strong>Core</strong>, <strong>Tickets</strong> and <strong>Contracts</strong>, so the stock goes to real demo people and tickets and comes from a demo supplier.</p>
+                <div class="module-footer">
+                    <span class="record-count">~42 records</span>
+                    <button class="import-btn" id="btn-consumables" onclick="importModule('consumables', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
+                </div>
+                <div class="error-text" id="err-consumables" style="display:none"></div>
+            </div>
+
             <div class="module-card" data-module="knowledge">
                 <h4>Knowledge Base</h4>
                 <p class="module-desc">5 articles covering VPN, Outlook, passwords, printing, and onboarding with tags.</p>
@@ -665,7 +675,7 @@ if (!isset($_SESSION['analyst_id'])) {
         }
 
         function enableModuleButtons() {
-            const modules = ['tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'checklists', 'contracts', 'domains', 'cost-centres', 'services', 'software', 'forms', 'tasks', 'starters', 'process-mapper', 'cmdb', 'lms', 'workflow', 'network-mapper'];
+            const modules = ['tickets', 'assets', 'consumables', 'knowledge', 'changes', 'calendar', 'checks', 'checklists', 'contracts', 'domains', 'cost-centres', 'services', 'software', 'forms', 'tasks', 'starters', 'process-mapper', 'cmdb', 'lms', 'workflow', 'network-mapper'];
             modules.forEach(function(m) {
                 const btn = document.getElementById('btn-' + m);
                 if (btn && !btn.classList.contains('success')) {
