@@ -3,9 +3,9 @@
 # @module      knowledge
 # @changes     yes
 # @level       advanced
-# @endpoints   POST /knowledge/folders, POST /knowledge/articles, POST /knowledge/articles/{id}/images,
-#              GET /knowledge/articles/{id}, PATCH /knowledge/articles/{id}
-# @permissions knowledge_folders.create, knowledge.create, knowledge_images.create, knowledge.read, knowledge.update
+# @endpoints   GET /knowledge/images/constraints, POST /knowledge/folders, POST /knowledge/articles,
+#              POST /knowledge/articles/{id}/images, GET /knowledge/articles/{id}, PATCH /knowledge/articles/{id}
+# @permissions knowledge_images.read, knowledge_folders.create, knowledge.create, knowledge_images.create, knowledge.read, knowledge.update
 #
 # WHAT IT EXPECTS: an export folder from your old system, in this simple shape
 # (write a small exporter for your old tool, or reshape its export into this):
@@ -27,6 +27,9 @@
 #   them into links to the new FreeITSM articles.
 #
 # HOW IT WORKS - the order matters:
+#   0. Every picture is checked against what THIS install accepts - its size
+#      limit and formats, read from the API - before anything is written, so a
+#      picture that would be refused is found now, not half way through.
 #   1. Folders, parents first.
 #   2. Each article as a DRAFT (only analysts can see it), already in its folder,
 #      with its audience and access list - so a restricted article is never
@@ -98,6 +101,49 @@ foreach ($a in $export.articles) {
     if ($a.restricted_to_team -and -not $TeamMap.ContainsKey($a.restricted_to_team)) {
         throw "Article $($a.id) is restricted to '$($a.restricted_to_team)', which is not in -TeamMap."
     }
+}
+
+# ---- 0. Will FreeITSM take every picture? -----------------------------------------
+# The largest picture is an administrator's choice (Knowledge -> Settings -> Images,
+# 10 MB unless changed) and only some formats are accepted - never SVG, which can
+# carry a script. So ask the install rather than guessing, and check every picture
+# NOW: a refused picture otherwise stops the run half way, with drafts already made.
+$limits = Invoke-FreeItsm 'GET' '/knowledge/images/constraints'
+$accepted = @($limits.formats | ForEach-Object { $_.extension })
+$limitMb = $limits.max_bytes / 1MB
+Write-Host "`n0. Pictures - this install takes up to $limitMb MB each: $(($accepted | Sort-Object) -join ', ')" -ForegroundColor Yellow
+if (-not $limits.within_server_limits) {
+    # FreeITSM's limit is fine but the server's PHP is set too low to carry it.
+    Write-Host "  ! This server's PHP settings are too low for pictures that big - see the warning" -ForegroundColor DarkYellow
+    Write-Host "    under Knowledge -> Settings -> Images, or keep the pictures smaller." -ForegroundColor DarkYellow
+}
+
+$refused = @()
+foreach ($a in $export.articles) {
+    $articleFile = Join-Path $ExportFolder $a.file
+    $articleDir = Split-Path $articleFile -Parent
+    $html = [IO.File]::ReadAllText($articleFile, [Text.Encoding]::UTF8)
+    foreach ($m in [regex]::Matches($html, 'src="((?!https?:|data:)[^"]+)"')) {
+        $rel = $m.Groups[1].Value
+        $file = [IO.Path]::GetFullPath((Join-Path $articleDir $rel))
+        $ext = [IO.Path]::GetExtension($file).TrimStart('.').ToLower()
+        if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+            $refused += "$($a.id): $rel - the file is not in the export"
+        } elseif ($accepted -notcontains $ext) {
+            $refused += "$($a.id): $rel - .$ext pictures are not accepted (convert it to PNG or JPEG)"
+        } elseif ((Get-Item -LiteralPath $file).Length -gt $limits.max_bytes) {
+            $refused += "$($a.id): $rel - {0:N1} MB, over the $limitMb MB limit" -f ((Get-Item -LiteralPath $file).Length / 1MB)
+        }
+    }
+}
+
+if ($refused.Count) {
+    Write-Host "  $($refused.Count) picture(s) would be refused:" -ForegroundColor Red
+    foreach ($line in $refused) { Write-Host "    - $line" }
+    Write-Host '  Shrink or convert them, or raise the limit under Knowledge -> Settings -> Images.'
+    if ($Apply) { throw 'Nothing was written. Fix the pictures above and run again.' }
+} else {
+    Write-Host '  every picture fits'
 }
 
 # ---- 1. Folders -----------------------------------------------------------------

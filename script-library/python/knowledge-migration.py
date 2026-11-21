@@ -3,9 +3,9 @@
 # @module      knowledge
 # @changes     yes
 # @level       advanced
-# @endpoints   POST /knowledge/folders, POST /knowledge/articles, POST /knowledge/articles/{id}/images,
-#              GET /knowledge/articles/{id}, PATCH /knowledge/articles/{id}
-# @permissions knowledge_folders.create, knowledge.create, knowledge_images.create, knowledge.read, knowledge.update
+# @endpoints   GET /knowledge/images/constraints, POST /knowledge/folders, POST /knowledge/articles,
+#              POST /knowledge/articles/{id}/images, GET /knowledge/articles/{id}, PATCH /knowledge/articles/{id}
+# @permissions knowledge_images.read, knowledge_folders.create, knowledge.create, knowledge_images.create, knowledge.read, knowledge.update
 #
 # WHAT IT EXPECTS: an export folder from your old system, in this simple shape
 # (write a small exporter for your old tool, or reshape its export into this):
@@ -27,6 +27,9 @@
 #   them into links to the new FreeITSM articles.
 #
 # HOW IT WORKS - the order matters:
+#   0. Every picture is checked against what THIS install accepts - its size
+#      limit and formats, read from the API - before anything is written, so a
+#      picture that would be refused is found now, not half way through.
 #   1. Folders, parents first.
 #   2. Each article as a DRAFT (only analysts can see it), already in its folder,
 #      with its audience and access list - so a restricted article is never
@@ -114,6 +117,43 @@ print(f"{len(articles)} articles from {export} -> {BASE}   [{mode}]")
 for a in articles:
     if a.get("restricted_to_team") and a["restricted_to_team"] not in team_map:
         sys.exit(f"Article {a['id']} is restricted to '{a['restricted_to_team']}', which is not in --team-map.")
+
+# ---- 0. Will FreeITSM take every picture? -----------------------------------------
+# The largest picture is an administrator's choice (Knowledge -> Settings -> Images,
+# 10 MB unless changed) and only some formats are accepted - never SVG, which can
+# carry a script. So ask the install rather than guessing, and check every picture
+# NOW: a refused picture otherwise stops the run half way, with drafts already made.
+limits = api("GET", "/knowledge/images/constraints")
+accepted = {f["extension"] for f in limits["formats"]}
+limit_mb = limits["max_bytes"] / 1048576
+print(f"\n0. Pictures - this install takes up to {limit_mb:g} MB each: {', '.join(sorted(accepted))}")
+if not limits["within_server_limits"]:
+    # FreeITSM's limit is fine but the server's PHP is set too low to carry it.
+    print("  ! This server's PHP settings are too low for pictures that big - see the warning")
+    print("    under Knowledge -> Settings -> Images, or keep the pictures smaller.")
+
+refused = []
+for a in articles:
+    article_file = export / a["file"]
+    for rel in re.findall(r'src="((?!https?:|data:)[^"]+)"', article_file.read_text(encoding="utf-8")):
+        file = (article_file.parent / rel).resolve()
+        ext = file.suffix.lower().lstrip(".")
+        if not file.is_file():
+            refused.append(f"{a['id']}: {rel} - the file is not in the export")
+        elif ext not in accepted:
+            refused.append(f"{a['id']}: {rel} - .{ext} pictures are not accepted (convert it to PNG or JPEG)")
+        elif file.stat().st_size > limits["max_bytes"]:
+            refused.append(f"{a['id']}: {rel} - {file.stat().st_size / 1048576:.1f} MB, over the {limit_mb:g} MB limit")
+
+if refused:
+    print(f"  {len(refused)} picture(s) would be refused:")
+    for line in refused:
+        print(f"    - {line}")
+    print("  Shrink or convert them, or raise the limit under Knowledge -> Settings -> Images.")
+    if args.apply:
+        sys.exit("Nothing was written. Fix the pictures above and run again.")
+else:
+    print("  every picture fits")
 
 # ---- 1. Folders -----------------------------------------------------------------
 # "Networking/VPN" needs "Networking" first. The cache stops us asking twice.
