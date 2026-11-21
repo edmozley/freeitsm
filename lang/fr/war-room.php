@@ -252,7 +252,7 @@ return [
         'settings_ai_title' => 'IA',
         'settings_ai_desc' => 'Dans l\'onglet IA : un fournisseur d\'IA pour le mode langage clair de Warbot, le rapport de situation et la traduction. Traduire les messages - chaque lecteur voit la salle dans sa propre langue - reste désactivé tant que vous ne l\'activez pas là, car le texte des messages est envoyé au fournisseur. Ne configurer aucun fournisseur est tout à fait valable : la discussion et les commandes de Warbot ne sont pas concernées.',
         'settings_personal_title' => 'Vos propres préférences',
-        'settings_personal_desc' => 'Dans le panneau de gauche : afficher ou non une notification de bureau quand on vous mentionne, insérer le prénom ou le nom complet en choisissant un nom et, quand la traduction est activée, afficher ou non les messages dans votre langue.',
+        'settings_personal_desc' => 'Dans Préférences (votre menu utilisateur), onglet War Room - le panneau de gauche du War Room y mène directement : afficher ou non une notification de bureau quand on vous mentionne, insérer le prénom ou le nom complet quand vous choisissez un nom, et - quand la traduction est activée - afficher ou non les messages dans votre propre langue.',
         'settings_check_title' => 'Vérifiez-le avant d\'en avoir besoin',
         'settings_check_desc' => 'Système → Outils de débogage → D008 confirme que tout le module fonctionne — canaux, pièces jointes, rétention et recherches de Warbot. Vaut la peine d\'être lancé un jour calme, car c\'est un outil que vous ouvrez quand les choses vont déjà mal.',
     ],
@@ -397,4 +397,14 @@ return [
     ],
     'schema_behind' => 'Certaines fonctions récentes du War Room sont désactivées tant que la vérification de la base de données n\'a pas été lancée.',
     'schema_behind_link' => 'Lancer la vérification de la base de données',
+    // Preferences -> War room (5.9.0): the personal choices, moved from the chat's left panel.
+    'prefs' => [
+        'link' => 'Préférences',
+        'mentions_heading' => 'Quand quelqu\'un vous mentionne',
+        'mentions_desc' => 'Les mentions du War Room ont leur propre bouton en haut de chaque page, distinct de la cloche. Activez cette option pour recevoir aussi une notification de bureau de votre navigateur à chaque nouvelle mention, tant que FreeITSM est ouvert dans un onglet. Votre navigateur demande l\'autorisation la première fois.',
+        'translate_heading' => 'Messages dans d\'autres langues',
+        'translate_desc' => 'Les messages écrits dans une autre langue s\'affichent dans la vôtre - celle choisie sous Langue de l\'interface. La traduction est fournie par le fournisseur d\'IA choisi par votre administrateur, et l\'original n\'est jamais qu\'à un clic.',
+        'names_heading' => 'Choisir un nom',
+        'names_desc' => 'Quand vous tapez @ et choisissez quelqu\'un dans la liste, ce réglage décide de ce qui est inséré dans votre message.',
+    ],
 ];

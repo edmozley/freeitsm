@@ -741,21 +741,6 @@
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
     });
 
-    /* ── mention style preference ─────────────────────────────────────────────── */
-
-    var styleSel = document.getElementById('wrMentionStyle');
-    if (styleSel) {
-        styleSel.addEventListener('change', function () {
-            mentionStyle = styleSel.value;
-            fetch(window.WR_PREF_URL, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key: 'warroom_mention_style', value: mentionStyle })
-            });
-        });
-    }
-
     /* ── doing things with a message (5.9.0) ──────────────────────────────────
        wiki War-Room-Message-Actions-Design. Right-click, the ⋯ button, or a long
        press on a phone opens one menu: ten quick reactions and + for the full
@@ -1234,27 +1219,6 @@
               .catch(function () { /* the originals stay; asked again in a minute */ });
         };
         next(want);
-    }
-
-    var trToggle = document.getElementById('wrTranslateMine');
-    // TRAP: saves go one after another. Two quick clicks sent side by side could land
-    // in the wrong order and leave the preference opposite to the box (caught testing).
-    var trSaving = Promise.resolve();
-    if (trToggle) {
-        trToggle.addEventListener('change', function () {
-            TR.on = trToggle.checked;
-            var value = TR.on ? '1' : '0';
-            trSaving = trSaving.then(function () {
-                return fetch(window.WR_PREF_URL, {
-                    method: 'POST', credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: 'warroom_translate', value: value })
-                }).catch(function () { /* the box still shows the choice for this visit */ });
-            });
-            // Redraw what is on the page in the chosen language, then fill any gaps.
-            refreshRows(Object.keys(messageById).map(function (k) { return messageById[k]; }));
-            scheduleTranslate();
-        });
     }
 
     /* ── threads (5.9.0, piece 3) ── */
@@ -2184,42 +2148,6 @@
         actions.appendChild(cancel);
         body.appendChild(actions);
     });
-
-    /* ── desktop notifications (per-analyst, off by default) ─────────────────── */
-
-    var alertsBox = document.getElementById('wrDesktopAlerts');
-    if (alertsBox) {
-        alertsBox.addEventListener('change', function () {
-            var on = alertsBox.checked;
-            /** Saves the analyst's desktop-alerts preference (warroom_desktop_alerts) through WR_PREF_URL. */
-            var save = function (value) {
-                fetch(window.WR_PREF_URL, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: 'warroom_desktop_alerts', value: value ? '1' : '0' })
-                });
-            };
-            if (!on) { save(false); return; }
-
-            // Permission is asked for HERE, on a deliberate click, not on page
-            // load: a browser refuses a prompt that was not user-initiated, and
-            // an unprompted permission popup is what teaches people to click Block.
-            if (!('Notification' in window)) { alertsBox.checked = false; return; }
-            if (Notification.permission === 'granted') { save(true); return; }
-            if (Notification.permission === 'denied') {
-                alertsBox.checked = false;
-                alert(t('war-room.mention.desktop_blocked'));
-                return;
-            }
-            Notification.requestPermission().then(function (p) {
-                var ok = (p === 'granted');
-                alertsBox.checked = ok;
-                save(ok);
-                if (!ok) alert(t('war-room.mention.desktop_blocked'));
-            });
-        });
-    }
 
     /* ── go ────────────────────────────────────────────────────────────────── */
 

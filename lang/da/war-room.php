@@ -252,7 +252,7 @@ return [
         'settings_ai_title' => 'AI',
         'settings_ai_desc' => 'På fanen AI: én AI-udbyder til Warbots almindelige sprog, situationsrapporten og oversættelse. Oversæt beskeder - at hver læser ser rummet på sit eget sprog - er slået fra, til du slår det til der, fordi det sender beskedtekst til udbyderen. Det er helt fint at lade udbyderen være tom: chatten og Warbots kommandoer påvirkes ikke.',
         'settings_personal_title' => 'Dine egne præferencer',
-        'settings_personal_desc' => 'I panelet til venstre: om der skal vises en skrivebordsnotifikation, når du nævnes, om valg af et navn indsætter fornavnet eller det fulde navn, og - når oversættelse er slået til - om beskeder skal vises på dit eget sprog.',
+        'settings_personal_desc' => 'I Indstillinger (din brugermenu), på fanen Krisecenter - krisecentrets venstre panel linker direkte dertil: om der skal vises en skrivebordsnotifikation, når du bliver nævnt, om et valgt navn indsætter fornavnet eller det fulde navn, og - når oversættelse er slået til - om beskeder skal vises på dit eget sprog.',
         'settings_check_title' => 'Tjek det, før du får brug for det',
         'settings_check_desc' => 'System → Debug Tools → D008 bekræfter, at hele modulet fungerer — kanaler, vedhæftede filer, opbevaring og Warbots opslag. Værd at køre på en rolig dag, for dette er et værktøj, du åbner, når noget allerede er gået galt.',
     ],
@@ -397,4 +397,14 @@ return [
     ],
     'schema_behind' => 'Nogle nyere funktioner i krisecentret er slået fra, indtil databasebekræftelse er kørt.',
     'schema_behind_link' => 'Kør databasebekræftelse',
+    // Preferences -> War room (5.9.0): the personal choices, moved from the chat's left panel.
+    'prefs' => [
+        'link' => 'Indstillinger',
+        'mentions_heading' => 'Når nogen nævner dig',
+        'mentions_desc' => 'Omtaler i krisecentret har deres egen knap øverst på hver side, adskilt fra klokken. Slå dette til for også at få en skrivebordsnotifikation fra din browser for hver ny omtale, mens FreeITSM er åben i en fane. Din browser beder om tilladelse første gang.',
+        'translate_heading' => 'Beskeder på andre sprog',
+        'translate_desc' => 'Beskeder skrevet på et andet sprog vises på dit - det, der er valgt under Grænsefladesprog. Oversættelsen kommer fra den AI-udbyder, din administrator har valgt, og originalen er altid ét klik væk.',
+        'names_heading' => 'Når du vælger et navn',
+        'names_desc' => 'Når du skriver @ og vælger en person på listen, afgør dette, hvad der sættes ind i din besked.',
+    ],
 ];

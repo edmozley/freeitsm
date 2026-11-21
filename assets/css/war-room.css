@@ -354,33 +354,16 @@
 /* Someone in the war room but in another channel: present, but not reading this. */
 .wr-presence-name.wr-away { color: var(--text-dim, #999); }
 
-.wr-desktop-opt {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
+/* Your own war room choices live in Preferences -> War room (5.9.0); the panel links there. */
+.wr-prefs-link {
+    display: inline-block;
     margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-soft, #f0f0f0);
+    padding-left: 12px;   /* lines up with "Nobody else is here" above */
     font-size: var(--font-size-sm, 12px);
-    line-height: 1.4;
     color: var(--text-muted, #666);
-    cursor: pointer;
+    text-decoration: none;
 }
-.wr-desktop-opt input { margin-top: 2px; flex-shrink: 0; }
-
-.wr-pref { margin-top: 12px; }
-.wr-pref-label { display: block; margin-bottom: 4px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
-.wr-pref select {
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid var(--border, #ddd);
-    border-radius: 6px;
-    background: var(--surface, #fff);
-    color: var(--text, #333);
-    font: inherit;
-    font-size: var(--font-size-sm, 12px);
-}
-.wr-pref-hint { margin-top: 5px; font-size: var(--font-size-xs, 11px); line-height: 1.4; color: var(--text-dim, #999); }
+.wr-prefs-link:hover, .wr-prefs-link:focus-visible { color: var(--accent); text-decoration: underline; }
 
 /* ---- composer ---- */
 /* `align-items: stretch` (the default) is what actually keeps the box and the

@@ -10,6 +10,7 @@ require_once '../../includes/i18n.php';
 require_once '../../includes/timezone.php';
 require_once '../../includes/money.php';
 require_once '../../includes/ticket_workspace.php';
+require_once '../../includes/warroom.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -20,7 +21,8 @@ $path_prefix = '../../';
 // with no owner (#58). The setting is a personal preference, so it lives on this
 // screen rather than in Watchtower's own admin settings; its strings still
 // belong to that module. Without the namespace the labels render as raw keys.
-$translationNamespaces = ['common', 'system', 'watchtower'];
+// 'war-room' likewise, for the War room tab (5.9.0).
+$translationNamespaces = ['common', 'system', 'watchtower', 'war-room'];
 $locales = I18n::getSupportedLocales();
 $currentLocale = I18n::getLocale();
 
@@ -122,6 +124,11 @@ $prefDefaults = [
     // GH #267: how often the page checks what everybody else changed - '15', '30', '60'
     // seconds or '0' for off. Read by livePulseSeconds() (includes/live_pulse.php).
     'live_updates'               => '15',
+    // War room (5.9.0) - moved here from the chat's left panel, which had no room to
+    // explain them. Same keys and values the war room has always read.
+    'warroom_desktop_alerts'     => '0',     // '1' = desktop notification for a mention
+    'warroom_translate'          => '1',     // '1' = show messages in my language (when an admin has translation on)
+    'warroom_mention_style'      => 'short', // short | full | strip
     // Which front door "/" sends you to (discussion #63). Empty string means
     // "whatever the administrator chose" — the only value that is NOT a landing
     // key, because "follow the install default" is a real third choice here.
@@ -500,6 +507,24 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 'display'       => t('system.preferences.tab_display'),
                 'details'       => t('system.preferences.tab_details'),
             ];
+            // War room (5.9.0): only for someone who can open it. 'translate' says whether
+            // the language switch means anything - an administrator has translation on.
+            $wrPrefs = null;
+            if (isset($_SESSION['analyst_id'])) {
+                try {
+                    $wrConn = connectToDatabase();
+                    if (analystCanAccessModule($wrConn, (int)$_SESSION['analyst_id'], 'war-room')) {
+                        $wrPrefs = ['translate' => warRoomTranslateEnabled($wrConn)];
+                    }
+                } catch (Throwable $e) {
+                    $wrPrefs = null;
+                }
+            }
+            if ($wrPrefs !== null) {
+                $prefTabs = array_slice($prefTabs, 0, 3, true)
+                          + ['war-room' => t('war-room.title')]
+                          + array_slice($prefTabs, 3, null, true);
+            }
         ?>
         <div class="tabs">
             <?php $first = true; foreach ($prefTabs as $tabId => $tabLabel): ?>
@@ -1272,6 +1297,52 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 </div>
             </div>
         </div><!-- /#details-tab -->
+
+        <?php if ($wrPrefs !== null): ?>
+        <!-- War room (5.9.0). These were three cramped controls under the war room's
+             channel list, with no room to say what they do; the panel now links here. -->
+        <div class="tab-content" id="war-room-tab">
+            <div class="pref-section">
+                <h3 id="war-room-mentions"><?php echo htmlspecialchars(t('war-room.prefs.mentions_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('war-room.prefs.mentions_desc')); ?></p>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="wrAlertsLabel" id="wrAlertsToggle" <?php echo $prefs['warroom_desktop_alerts'] === '1' ? 'checked' : ''; ?>>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label" id="wrAlertsLabel"><?php echo htmlspecialchars(t('war-room.mention.desktop')); ?></span>
+                </div>
+                <span class="pref-saving-hint" id="wrAlertsHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+            </div>
+
+            <?php if ($wrPrefs['translate']): ?>
+            <div class="pref-section">
+                <h3 id="war-room-translate"><?php echo htmlspecialchars(t('war-room.prefs.translate_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('war-room.prefs.translate_desc')); ?></p>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="wrTranslateLabel" id="wrTranslateToggle" <?php echo $prefs['warroom_translate'] !== '0' ? 'checked' : ''; ?>>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label" id="wrTranslateLabel"><?php echo htmlspecialchars(t('war-room.translate.toggle')); ?></span>
+                </div>
+                <span class="pref-saving-hint" id="wrTranslateHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+            </div>
+            <?php endif; ?>
+
+            <div class="pref-section">
+                <h3 id="war-room-names"><?php echo htmlspecialchars(t('war-room.prefs.names_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('war-room.prefs.names_desc')); ?></p>
+                <select id="wrMentionStyleSelect" class="pref-language-select" aria-label="<?php echo htmlspecialchars(t('war-room.mention.style_label')); ?>">
+                    <?php foreach (['short', 'full', 'strip'] as $opt): ?>
+                        <option value="<?php echo $opt; ?>" <?php echo $prefs['warroom_mention_style'] === $opt ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('war-room.mention.style_' . $opt)); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="pref-saving-hint" id="wrMentionStyleHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);"><?php echo htmlspecialchars(t('war-room.mention.style_hint')); ?></p>
+            </div>
+        </div><!-- /#war-room-tab -->
+        <?php endif; ?>
     </div>
     </div><!-- /.settings-shell -->
 
@@ -1577,6 +1648,48 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 taskEmailHint.classList.add('show');
                 await savePref('task_assigned_email', taskEmailToggle.checked ? 'on' : '');
                 setTimeout(() => taskEmailHint.classList.remove('show'), 1200);
+            });
+        }
+
+        // ===== War room (5.9.0): its three personal choices, moved from the chat's left panel =====
+        const wrAlerts = document.getElementById('wrAlertsToggle');
+        if (wrAlerts) {
+            wrAlerts.addEventListener('change', async function () {
+                // Permission is asked for on this deliberate click, never on page load.
+                if (wrAlerts.checked) {
+                    if (!('Notification' in window) || !window.isSecureContext) { wrAlerts.checked = false; return; }
+                    let perm = Notification.permission;
+                    if (perm === 'default') {
+                        try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
+                    }
+                    if (perm !== 'granted') {
+                        wrAlerts.checked = false;
+                        showToast(window.t('war-room.mention.desktop_blocked'), 'error');
+                        return;
+                    }
+                }
+                const hint = document.getElementById('wrAlertsHint');
+                hint.classList.add('show');
+                await savePref('warroom_desktop_alerts', wrAlerts.checked ? '1' : '0');
+                setTimeout(() => hint.classList.remove('show'), 1200);
+            });
+        }
+        const wrTranslate = document.getElementById('wrTranslateToggle');
+        if (wrTranslate) {
+            wrTranslate.addEventListener('change', async function () {
+                const hint = document.getElementById('wrTranslateHint');
+                hint.classList.add('show');
+                await savePref('warroom_translate', wrTranslate.checked ? '1' : '0');
+                setTimeout(() => hint.classList.remove('show'), 1200);
+            });
+        }
+        const wrStyle = document.getElementById('wrMentionStyleSelect');
+        if (wrStyle) {
+            wrStyle.addEventListener('change', async function () {
+                const hint = document.getElementById('wrMentionStyleHint');
+                hint.classList.add('show');
+                await savePref('warroom_mention_style', wrStyle.value);
+                setTimeout(() => hint.classList.remove('show'), 1200);
             });
         }
 

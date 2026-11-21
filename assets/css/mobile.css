@@ -3170,11 +3170,8 @@
     .wr-msg-acts { position: static; opacity: 1; margin-top: 6px; }
     .wr-msg-act { min-height: 32px; padding: 4px 12px; font-size: var(--font-size-sm, 12px); }
 
-    .wr-desktop-opt { font-size: var(--font-size-md, 13px); }
-    .wr-desktop-opt input { width: 20px; height: 20px; }
-    /* 16px again: a select under it and iOS zooms the page, which is what takes
-       the whole mobile layer off. */
-    .wr-pref select { font-size: 16px !important; min-height: 44px; }
+    /* The personal choices moved to Preferences -> War room (5.9.0); a tappable link stays. */
+    .wr-prefs-link { display: flex; align-items: center; min-height: 44px; margin-top: 4px; font-size: var(--font-size-md, 13px); }
 
     .wr-modal { padding: 0; align-items: stretch; }
     .wr-modal-card { max-width: none; max-height: none; border-radius: 0; }

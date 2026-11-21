@@ -252,7 +252,7 @@ return [
         'settings_ai_title' => 'IA',
         'settings_ai_desc' => 'En la pestaña IA: un proveedor de IA para el modo de lenguaje sencillo de Warbot, el informe de situación y la traducción. Traducir mensajes - que cada lector vea la sala en su propio idioma - está desactivado hasta que lo active allí, porque envía el texto de los mensajes al proveedor. Dejar el proveedor sin configurar es perfectamente válido: el chat y los comandos de Warbot no se ven afectados.',
         'settings_personal_title' => 'Sus propias preferencias',
-        'settings_personal_desc' => 'En el panel de la izquierda: si mostrar una notificación de escritorio cuando le mencionan, si al elegir un nombre se inserta el nombre de pila o el completo y, cuando la traducción está activada, si mostrar los mensajes en su propio idioma.',
+        'settings_personal_desc' => 'En Preferencias (su menú de usuario), en la pestaña Sala de crisis - el panel izquierdo de la sala de crisis enlaza directamente con ella: si mostrar una notificación de escritorio cuando le mencionan, si al elegir un nombre se inserta el nombre de pila o el nombre completo y - cuando la traducción está activada - si mostrar los mensajes en su propio idioma.',
         'settings_check_title' => 'Compruébelo antes de necesitarlo',
         'settings_check_desc' => 'Sistema → Herramientas de depuración → D008 confirma que todo el módulo funciona: canales, adjuntos, retención y las consultas de Warbot. Merece la pena ejecutarlo un día tranquilo, porque esta es una herramienta que se abre cuando las cosas ya van mal.',
     ],
@@ -397,4 +397,14 @@ return [
     ],
     'schema_behind' => 'Algunas funciones nuevas de la sala de crisis están desactivadas hasta que se ejecute la verificación de la base de datos.',
     'schema_behind_link' => 'Ejecutar la verificación de la base de datos',
+    // Preferences -> War room (5.9.0): the personal choices, moved from the chat's left panel.
+    'prefs' => [
+        'link' => 'Preferencias',
+        'mentions_heading' => 'Cuando alguien le menciona',
+        'mentions_desc' => 'Las menciones de la sala de crisis tienen su propio botón en la parte superior de cada página, aparte de la campana. Actívelo para recibir además una notificación de escritorio del navegador por cada mención nueva mientras FreeITSM esté abierto en una pestaña. El navegador pide permiso la primera vez.',
+        'translate_heading' => 'Mensajes en otros idiomas',
+        'translate_desc' => 'Los mensajes escritos en otro idioma se muestran en el suyo: el elegido en Idioma de la interfaz. La traducción la hace el proveedor de IA que eligió su administrador, y el original siempre está a un clic.',
+        'names_heading' => 'Al elegir un nombre',
+        'names_desc' => 'Cuando escribe @ y elige a alguien de la lista, esto decide qué se inserta en su mensaje.',
+    ],
 ];

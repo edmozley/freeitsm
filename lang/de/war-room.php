@@ -252,7 +252,7 @@ return [
         'settings_ai_title' => 'KI',
         'settings_ai_desc' => 'Auf dem Reiter KI: ein KI-Anbieter für Warbots Klartext-Modus, den Lagebericht und die Übersetzung. Nachrichten übersetzen - jede Person liest den Raum in ihrer eigenen Sprache - ist aus, bis Sie es dort einschalten, weil dabei Nachrichtentext an den Anbieter geht. Den Anbieter leer zu lassen ist völlig in Ordnung: Chat und Warbot-Befehle sind davon nicht betroffen.',
         'settings_personal_title' => 'Ihre eigenen Einstellungen',
-        'settings_personal_desc' => 'Im linken Bereich: ob eine Desktop-Benachrichtigung erscheint, wenn Sie erwähnt werden, ob die Namensauswahl den Vornamen oder den vollen Namen einfügt, und - wenn die Übersetzung eingeschaltet ist - ob Nachrichten in Ihrer eigenen Sprache angezeigt werden.',
+        'settings_personal_desc' => 'Unter Einstellungen (Ihr Benutzermenü), auf dem Reiter Lagezentrum - das linke Feld des Lagezentrums verlinkt direkt dorthin: ob bei einer Erwähnung eine Desktop-Benachrichtigung erscheint, ob beim Auswählen eines Namens der Vorname oder der vollständige Name eingefügt wird und - wenn die Übersetzung eingeschaltet ist - ob Nachrichten in Ihrer eigenen Sprache angezeigt werden.',
         'settings_check_title' => 'Prüfen Sie es, bevor Sie es brauchen',
         'settings_check_desc' => 'System → Debug-Werkzeuge → D008 bestätigt, dass das gesamte Modul funktioniert — Kanäle, Anhänge, Aufbewahrung und Warbots Abfragen. Es lohnt sich, das an einem ruhigen Tag auszuführen, denn dies ist ein Werkzeug, das man öffnet, wenn ohnehin schon etwas schiefgeht.',
     ],
@@ -397,4 +397,14 @@ return [
     ],
     'schema_behind' => 'Einige neuere Funktionen des Lagezentrums sind ausgeschaltet, bis die Datenbankprüfung ausgeführt wurde.',
     'schema_behind_link' => 'Datenbankprüfung ausführen',
+    // Preferences -> War room (5.9.0): the personal choices, moved from the chat's left panel.
+    'prefs' => [
+        'link' => 'Einstellungen',
+        'mentions_heading' => 'Wenn Sie jemand erwähnt',
+        'mentions_desc' => 'Erwähnungen im Lagezentrum haben eine eigene Schaltfläche oben auf jeder Seite, getrennt von der Glocke. Schalten Sie dies ein, um für jede neue Erwähnung zusätzlich eine Desktop-Benachrichtigung Ihres Browsers zu erhalten, solange FreeITSM in einem Tab geöffnet ist. Ihr Browser fragt beim ersten Mal nach der Erlaubnis.',
+        'translate_heading' => 'Nachrichten in anderen Sprachen',
+        'translate_desc' => 'Nachrichten in einer anderen Sprache werden in Ihrer angezeigt - der unter Sprache der Oberfläche gewählten. Die Übersetzung stammt vom KI-Anbieter, den Ihr Administrator gewählt hat, und das Original ist immer nur einen Klick entfernt.',
+        'names_heading' => 'Einen Namen auswählen',
+        'names_desc' => 'Wenn Sie @ eingeben und jemanden aus der Liste auswählen, legt dies fest, was in Ihre Nachricht eingefügt wird.',
+    ],
 ];

@@ -252,7 +252,7 @@ return [
         'settings_ai_title' => 'AI',
         'settings_ai_desc' => 'Di tab AI: satu penyedia AI untuk mode bahasa sederhana Warbot, laporan situasi, dan terjemahan. Terjemahkan pesan - setiap pembaca melihat ruang dalam bahasanya sendiri - nonaktif sampai Anda mengaktifkannya di sana, karena teks pesan dikirim ke penyedia. Tidak mengatur penyedia sama sekali tidak masalah: obrolan dan perintah Warbot tidak terpengaruh.',
         'settings_personal_title' => 'Preferensi Anda sendiri',
-        'settings_personal_desc' => 'Di panel kiri: apakah menampilkan notifikasi desktop saat Anda disebut, apakah memilih nama menyisipkan nama depan atau nama lengkap, dan - bila terjemahan aktif - apakah menampilkan pesan dalam bahasa Anda sendiri.',
+        'settings_personal_desc' => 'Di Preferensi (menu pengguna Anda), pada tab War room - panel kiri war room menautkan langsung ke sana: apakah menampilkan notifikasi desktop saat Anda disebut, apakah memilih nama memasukkan nama depan atau nama lengkap, dan - saat terjemahan aktif - apakah menampilkan pesan dalam bahasa Anda sendiri.',
         'settings_check_title' => 'Periksa sebelum Anda membutuhkannya',
         'settings_check_desc' => 'System → Debug Tools → D008 memastikan seluruh modul berfungsi — kanal, lampiran, retensi, dan pencarian Warbot. Layak dijalankan pada hari yang tenang, karena ini alat yang Anda buka saat keadaan sudah buruk.',
     ],
@@ -397,4 +397,14 @@ return [
     ],
     'schema_behind' => 'Beberapa fitur war room yang lebih baru dinonaktifkan sampai Verifikasi Basis Data dijalankan.',
     'schema_behind_link' => 'Jalankan Verifikasi Basis Data',
+    // Preferences -> War room (5.9.0): the personal choices, moved from the chat's left panel.
+    'prefs' => [
+        'link' => 'Preferensi',
+        'mentions_heading' => 'Saat seseorang menyebut Anda',
+        'mentions_desc' => 'Sebutan di war room punya tombolnya sendiri di bagian atas setiap halaman, terpisah dari lonceng. Aktifkan ini untuk juga mendapat notifikasi desktop dari browser untuk setiap sebutan baru selama FreeITSM terbuka di sebuah tab. Browser Anda meminta izin pada kali pertama.',
+        'translate_heading' => 'Pesan dalam bahasa lain',
+        'translate_desc' => 'Pesan yang ditulis dalam bahasa lain ditampilkan dalam bahasa Anda - yang dipilih di Bahasa antarmuka. Terjemahannya berasal dari penyedia AI yang dipilih administrator Anda, dan aslinya selalu hanya sekali klik.',
+        'names_heading' => 'Memilih nama',
+        'names_desc' => 'Saat Anda mengetik @ dan memilih seseorang dari daftar, ini menentukan apa yang dimasukkan ke pesan Anda.',
+    ],
 ];

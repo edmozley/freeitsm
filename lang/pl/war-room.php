@@ -252,7 +252,7 @@ return [
         'settings_ai_title' => 'AI',
         'settings_ai_desc' => 'Na karcie AI: jeden dostawca AI dla trybu prostego języka Warbota, raportu sytuacyjnego i tłumaczenia. Tłumaczenie wiadomości - każdy czytelnik widzi pokój we własnym języku - jest wyłączone, dopóki go tam nie włączysz, bo tekst wiadomości trafia do dostawcy. Pozostawienie dostawcy nieustawionego jest całkowicie w porządku: czat i polecenia Warbota działają bez zmian.',
         'settings_personal_title' => 'Twoje własne preferencje',
-        'settings_personal_desc' => 'W panelu po lewej: czy pokazywać powiadomienie na pulpicie, gdy ktoś Cię wspomni, czy wybór osoby wstawia imię czy pełne nazwisko oraz - gdy tłumaczenie jest włączone - czy pokazywać wiadomości w Twoim języku.',
+        'settings_personal_desc' => 'W Preferencjach (menu użytkownika), na karcie Sztab kryzysowy - lewy panel sztabu kryzysowego prowadzi tam bezpośrednio: czy pokazywać powiadomienie na pulpicie, gdy ktoś Cię wspomni, czy wybór osoby wstawia imię czy pełne imię i nazwisko oraz - gdy tłumaczenie jest włączone - czy pokazywać wiadomości w Twoim języku.',
         'settings_check_title' => 'Sprawdź to, zanim będzie potrzebne',
         'settings_check_desc' => 'System → Narzędzia diagnostyczne → D008 potwierdza, że cały moduł działa — kanały, załączniki, przechowywanie i zapytania Warbota. Warto uruchomić w spokojny dzień, bo to narzędzie otwierane wtedy, gdy sprawy już idą źle.',
     ],
@@ -397,4 +397,14 @@ return [
     ],
     'schema_behind' => 'Niektóre nowsze funkcje sztabu kryzysowego są wyłączone do czasu uruchomienia weryfikacji bazy danych.',
     'schema_behind_link' => 'Uruchom weryfikację bazy danych',
+    // Preferences -> War room (5.9.0): the personal choices, moved from the chat's left panel.
+    'prefs' => [
+        'link' => 'Preferencje',
+        'mentions_heading' => 'Gdy ktoś Cię wspomni',
+        'mentions_desc' => 'Wzmianki w sztabie kryzysowym mają własny przycisk u góry każdej strony, oddzielny od dzwonka. Włącz tę opcję, aby dodatkowo dostawać powiadomienie na pulpicie z przeglądarki o każdej nowej wzmiance, gdy FreeITSM jest otwarty w karcie. Za pierwszym razem przeglądarka poprosi o zgodę.',
+        'translate_heading' => 'Wiadomości w innych językach',
+        'translate_desc' => 'Wiadomości napisane w innym języku są pokazywane w Twoim - tym wybranym w polu Język interfejsu. Tłumaczenie pochodzi od dostawcy AI wybranego przez administratora, a oryginał jest zawsze o jedno kliknięcie.',
+        'names_heading' => 'Wybieranie osoby',
+        'names_desc' => 'Gdy wpiszesz @ i wybierzesz kogoś z listy, to ustawienie decyduje, co trafi do wiadomości.',
+    ],
 ];

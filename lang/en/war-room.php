@@ -319,7 +319,7 @@ return [
         'settings_ai_title'        => 'AI',
         'settings_ai_desc'         => 'On the AI tab: one AI provider for Warbot\'s plain-English mode, the situation report and translation. Translate messages - every reader seeing the room in their own language - is off until you switch it on there, because it sends message text to the provider. Leaving the provider unset is a perfectly good choice: the chat and Warbot\'s commands are unaffected.',
         'settings_personal_title'  => 'Your own preferences',
-        'settings_personal_desc'   => 'In the panel on the left: whether to show a desktop notification when you are mentioned, whether picking a name inserts the first name or the full name, and - when translation is on - whether to show messages in your own language.',
+        'settings_personal_desc'   => 'In Preferences (your user menu), on the War room tab - the war room\'s left panel links straight to it: whether to show a desktop notification when you are mentioned, whether picking a name inserts the first name or the full name, and - when translation is on - whether to show messages in your own language.',
         'settings_check_title'     => 'Check it before you need it',
         'settings_check_desc'      => 'System → Debug Tools → D008 confirms the whole module is working — channels, attachments, retention and Warbot\'s lookups. Worth running on a quiet day, because this is a tool you open when things are already going wrong.',
     ],
@@ -466,4 +466,14 @@ return [
     ],
     'schema_behind' => 'Some newer war room features are switched off until Database Verification has been run.',
     'schema_behind_link' => 'Run Database Verification',
+    // Preferences -> War room (5.9.0): the personal choices, moved from the chat's left panel.
+    'prefs' => [
+        'link' => 'Preferences',
+        'mentions_heading' => 'When someone mentions you',
+        'mentions_desc' => 'War room mentions have their own button at the top of every page, separate from the bell. Switch this on to also get a desktop notification from your browser for each new mention while FreeITSM is open in a tab. Your browser asks for permission the first time.',
+        'translate_heading' => 'Messages in other languages',
+        'translate_desc' => 'Messages written in another language are shown in yours - the one chosen under Interface language. The translation comes from the AI provider your administrator chose, and the original is always one click away.',
+        'names_heading' => 'Picking a name',
+        'names_desc' => 'When you type @ and pick someone from the list, this decides what goes into your message.',
+    ],
 ];

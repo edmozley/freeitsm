@@ -18,10 +18,12 @@ I18n::setLocale('en');
 $root = dirname(__DIR__);
 $source = file_get_contents($root . '/system/preferences/index.php');
 preg_match_all('~<(?:label|div) class="toggle-group">.*?<span class="toggle-label"[^>]*>.*?</span>\s*</(?:label|div)>~s', $source, $matches);
-if (count($matches[0]) !== 8) throw new RuntimeException('Expected all eight Preferences switch templates.');
+if (count($matches[0]) !== 10) throw new RuntimeException('Expected all ten Preferences switch templates (5.9.0 added the two war room ones).');
 preg_match('~<style>(.*?)</style>~s', $source, $style);
 $prefs = array_fill_keys(['search_panel_close_outside', 'remember_module_section', 'remember_company', 'desktop_notifications', 'task_assigned_email'], '');
 $prefs['ticket_workspace'] = '0';
+$prefs['warroom_desktop_alerts'] = '0';
+$prefs['warroom_translate'] = '0';
 $sbPrefs = ['on' => false];
 $on = false;
 $markup = '';
@@ -63,7 +65,7 @@ exit(ticketWorkspaceBrowser(['index.html' => $html], ['verify' => function (stri
             $checks[] = ['label' => "$theme viewport width", 'pass' => $actualWidth === $width, 'detail' => $actualWidth];
             echo "Checking $theme at $actualWidth px...\n";
             $count = $read('document.querySelectorAll(".toggle-group").length');
-            if ($count !== 9) throw new RuntimeException('Not all switch fixtures rendered.');   // 8 templates, the notification one drawn twice
+            if ($count !== 11) throw new RuntimeException('Not all switch fixtures rendered.');   // 10 templates, the notification one drawn twice
             for ($i = 0; $i < $count; $i++) {
                 $prefix = "$theme/$width switch $i";
                 $read('(()=>{window.group=document.querySelectorAll(".toggle-group")[' . $i . '];window.input=group.querySelector("input");input.checked=false;window.changes=0;group.scrollIntoView({block:"center"});return true;})()');

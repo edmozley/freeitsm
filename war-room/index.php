@@ -74,8 +74,6 @@ $dp = $conn->prepare(
 $dp->execute([':a' => $analystId]);
 foreach ($dp->fetchAll(PDO::FETCH_ASSOC) as $r) $prefs[$r['preference_key']] = (string) $r['preference_value'];
 
-$desktopAlerts = ($prefs['warroom_desktop_alerts'] ?? '') === '1';
-
 // Translation (5.9.0): offered only when an administrator has switched it on and an
 // AI provider is set up; then each person chooses, on unless they turn it off.
 $translateAvailable = warRoomTranslateEnabled($conn);
@@ -105,10 +103,10 @@ foreach ($channels as $ch) {
     <title><?php echo htmlspecialchars(pageTitle('war-room')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/war-room.css?v=13">
+    <link rel="stylesheet" href="../assets/css/war-room.css?v=14">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1"><!-- the shared file viewer (5.9.0) -->
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=201">
     <style>
         /* Pin the shared accent to the module's amber so buttons and focus
            rings are on-brand, the same way every other module does it. */
@@ -157,31 +155,10 @@ foreach ($channels as $ch) {
                  rather than competing with the message you are typing. -->
             <div class="wr-presence" id="wrPresence"></div>
 
-            <!-- Per-analyst, not per-install: whether a popup is welcome or
-                 infuriating is a personal answer, not an administrator's. -->
-            <label class="wr-desktop-opt">
-                <input type="checkbox" id="wrDesktopAlerts"<?php echo $desktopAlerts ? ' checked' : ''; ?>>
-                <span><?php echo htmlspecialchars(t('war-room.mention.desktop')); ?></span>
-            </label>
-
-            <?php if ($translateAvailable): ?>
-            <label class="wr-desktop-opt" title="<?php echo htmlspecialchars(t('war-room.translate.hint')); ?>">
-                <input type="checkbox" id="wrTranslateMine"<?php echo $translateOn ? ' checked' : ''; ?>>
-                <span><?php echo htmlspecialchars(t('war-room.translate.toggle')); ?></span>
-            </label>
-            <?php endif; ?>
-
-            <div class="wr-pref">
-                <label class="wr-pref-label" for="wrMentionStyle"><?php echo htmlspecialchars(t('war-room.mention.style_label')); ?></label>
-                <select id="wrMentionStyle">
-                    <?php foreach (['short', 'full', 'strip'] as $opt): ?>
-                        <option value="<?php echo $opt; ?>"<?php echo $mentionStyle === $opt ? ' selected' : ''; ?>>
-                            <?php echo htmlspecialchars(t('war-room.mention.style_' . $opt)); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <div class="wr-pref-hint"><?php echo htmlspecialchars(t('war-room.mention.style_hint')); ?></div>
-            </div>
+            <!-- Your own choices - desktop notification, your language, how a picked name
+                 is written - live in Preferences -> War room (5.9.0): this panel had no
+                 room to explain them. Still per analyst, never an administrator's. -->
+            <a class="wr-prefs-link" href="<?php echo BASE_URL; ?>system/preferences/#war-room">&#9881; <?php echo htmlspecialchars(t('war-room.prefs.link')); ?></a>
         </aside>
 
         <main class="wr-main">
@@ -272,7 +249,7 @@ foreach ($channels as $ch) {
     <script src="../assets/js/files-viewer.js?v=10"></script>
     <!-- + -> Files (5.9.0): the Files picker, as Tickets uses it. -->
     <script src="../assets/js/files-picker.js?v=3"></script>
-    <script src="../assets/js/war-room.js?v=14"></script>
+    <script src="../assets/js/war-room.js?v=15"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>
