@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => 'Voor <code>ticket.status_changed</code> / <code>ticket.priority_changed</code>: ook <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => 'Voor <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code>: ook <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => 'Voor <code>ticket.assigned</code>: ook <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>Beste werkwijze:</strong> laat in <code>ticket_id</code>-velden van acties de standaardwaarde <code>{{ticket.id}}</code> staan in plaats van een specifieke id te typen &mdash; zo werkt de workflow op het ticket dat hem activeerde, niet op een vast ticket.',
         'variables_chain_heading' => 'Gebruikmaken van wat een eerdere actie opleverde',

@@ -354,7 +354,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => 'For <code>ticket.status_changed</code> / <code>ticket.priority_changed</code>: også <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => 'For <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code>: også <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => 'For <code>ticket.assigned</code>: også <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>Bedste praksis:</strong> i handlingers <code>ticket_id</code>-felter skal du lade standarden <code>{{ticket.id}}</code> stå i stedet for at skrive et specifikt id &mdash; på den måde arbejder arbejdsgangen på den sag, der udløste den, og ikke en fast sag.',
         'variables_chain_heading' => 'Brug af det, en tidligere handling producerede',

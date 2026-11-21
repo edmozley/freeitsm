@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => 'Для <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> также: <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => 'Для <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code> также: <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => 'Для <code>ticket.assigned</code> также: <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>Рекомендация:</strong> в полях <code>ticket_id</code> действий оставляйте значение по умолчанию <code>{{ticket.id}}</code>, а не вводите конкретный идентификатор &mdash; тогда рабочий процесс работает с той заявкой, которая его запустила, а не с фиксированной.',
         'variables_chain_heading' => 'Использование результата предыдущего действия',

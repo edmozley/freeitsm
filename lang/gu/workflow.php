@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> માટે: <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code> પણ',
+        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code> માટે: <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code> પણ',
         'variables_li5' => '<code>ticket.assigned</code> માટે: <code>{{analyst_id}}</code>, <code>{{team_id}}</code> પણ',
         'variables_tip' => '<strong>શ્રેષ્ઠ પ્રથા:</strong> ક્રિયાના <code>ticket_id</code> ફીલ્ડમાં, ચોક્કસ id ટાઇપ કરવાને બદલે ડિફોલ્ટ <code>{{ticket.id}}</code> રહેવા દો &mdash; આ રીતે વર્કફ્લો કોઈ નિશ્ચિત ટિકિટ પર નહીં, પણ જે ટિકિટે તેને ટ્રિગર કર્યું તેના પર જ કામ કરે છે.',
         'variables_chain_heading' => 'અગાઉની ક્રિયાએ જે ઉત્પન્ન કર્યું તેનો ઉપયોગ',

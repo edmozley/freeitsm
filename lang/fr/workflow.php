@@ -354,7 +354,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => 'Pour <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> : aussi <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => 'Pour <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code> : aussi <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => 'Pour <code>ticket.assigned</code> : aussi <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>Bonne pratique :</strong> dans les champs <code>ticket_id</code> d\'une action, laissez la valeur par défaut <code>{{ticket.id}}</code> plutôt que de taper un identifiant précis &mdash; ainsi le workflow agit sur le ticket qui l\'a déclenché, pas sur un ticket fixe.',
         'variables_chain_heading' => 'Utiliser ce qu\'une action précédente a produit',

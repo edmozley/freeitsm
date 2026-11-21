@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code>-এর জন্য আরও: <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code>-এর জন্য আরও: <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => '<code>ticket.assigned</code>-এর জন্য আরও: <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>সেরা চর্চা:</strong> অ্যাকশনের <code>ticket_id</code> ফিল্ডে নির্দিষ্ট আইডি টাইপ না করে ডিফল্ট <code>{{ticket.id}}</code> রেখে দিন &mdash; এতে ওয়ার্কফ্লো স্থির কোনো টিকিটে নয়, যে টিকিট এটি চালু করেছে সেটিতেই কাজ করে।',
         'variables_chain_heading' => 'আগের অ্যাকশনের ফলাফল ব্যবহার করা',

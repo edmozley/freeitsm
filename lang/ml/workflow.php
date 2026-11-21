@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code>-ന്: <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code> കൂടി',
+        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code>-ന്: <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code> കൂടി',
         'variables_li5' => '<code>ticket.assigned</code>-ന്: <code>{{analyst_id}}</code>, <code>{{team_id}}</code> കൂടി',
         'variables_tip' => '<strong>മികച്ച രീതി:</strong> ആക്ഷന്റെ <code>ticket_id</code> ഫീൽഡുകളിൽ, ഒരു നിശ്ചിത ഐഡി ടൈപ്പ് ചെയ്യുന്നതിനുപകരം സ്ഥിരസ്ഥിതി <code>{{ticket.id}}</code> വിടുക &mdash; അങ്ങനെയെങ്കിൽ ഏത് ടിക്കറ്റാണോ ട്രിഗർ ചെയ്തത് അതിലാണ് വർക്ക്ഫ്ലോ പ്രവർത്തിക്കുന്നത്, ഒരു നിശ്ചിതത്തിലല്ല.',
         'variables_chain_heading' => 'നേരത്തെയുള്ള ഒരു ആക്ഷൻ ഉൽപ്പാദിപ്പിച്ചത് ഉപയോഗിക്കൽ',

@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => 'For <code>ticket.status_changed</code> / <code>ticket.priority_changed</code>: i tillegg <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => 'For <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code>: i tillegg <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => 'For <code>ticket.assigned</code>: i tillegg <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>Beste praksis:</strong> i <code>ticket_id</code>-feltene i handlinger bør du la standardverdien <code>{{ticket.id}}</code> stå i stedet for å skrive inn en bestemt id &mdash; da jobber arbeidsflyten på den saken som utløste den, ikke på én fast sak.',
         'variables_chain_heading' => 'Bruke det en tidligere handling produserte',

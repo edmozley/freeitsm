@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => 'Untuk <code>ticket.status_changed</code> / <code>ticket.priority_changed</code>: turut ada <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => 'Untuk <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code>: turut ada <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => 'Untuk <code>ticket.assigned</code>: turut ada <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>Amalan terbaik:</strong> dalam medan <code>ticket_id</code> tindakan, biarkan lalai <code>{{ticket.id}}</code> dan bukannya menaip id tertentu &mdash; dengan cara itu workflow beroperasi ke atas tiket mana sahaja yang mencetuskannya, bukan satu yang tetap.',
         'variables_chain_heading' => 'Menggunakan apa yang dihasilkan oleh tindakan sebelumnya',

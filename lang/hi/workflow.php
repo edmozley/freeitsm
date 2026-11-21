@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> के लिए: साथ ही <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code> के लिए: साथ ही <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => '<code>ticket.assigned</code> के लिए: साथ ही <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>सर्वोत्तम तरीका:</strong> क्रिया के <code>ticket_id</code> फ़ील्ड में, कोई खास id टाइप करने के बजाय डिफ़ॉल्ट <code>{{ticket.id}}</code> ही रहने दें &mdash; इस तरह वर्कफ़्लो उसी टिकट पर काम करता है जिसने उसे ट्रिगर किया, किसी तय टिकट पर नहीं।',
         'variables_chain_heading' => 'पहले की किसी क्रिया ने जो बनाया उसका उपयोग करना',

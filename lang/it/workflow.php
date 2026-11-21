@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => 'Per <code>ticket.status_changed</code> / <code>ticket.priority_changed</code>: anche <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => 'Per <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code>: anche <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => 'Per <code>ticket.assigned</code>: anche <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>Buona pratica:</strong> nei campi <code>ticket_id</code> delle azioni lascia il valore predefinito <code>{{ticket.id}}</code> invece di digitare un ID specifico &mdash; così il workflow agisce sul ticket che l\'ha attivato, non su uno fisso.',
         'variables_chain_heading' => 'Usare ciò che ha prodotto un\'azione precedente',

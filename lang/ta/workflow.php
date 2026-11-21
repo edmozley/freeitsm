@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> க்கு: மேலும் <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code> க்கு: மேலும் <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => '<code>ticket.assigned</code> க்கு: மேலும் <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>சிறந்த நடைமுறை:</strong> செயல் <code>ticket_id</code> புலங்களில், குறிப்பிட்ட ஐடியைத் தட்டச்சு செய்வதற்குப் பதிலாக இயல்புநிலை <code>{{ticket.id}}</code> ஐ விடுங்கள் &mdash; அப்போது பணிப்பாய்வு நிலையான டிக்கெட்டில் அல்லாமல், அதைத் தூண்டிய டிக்கெட்டில் செயல்படும்.',
         'variables_chain_heading' => 'முந்தைய செயல் உருவாக்கியதைப் பயன்படுத்துதல்',

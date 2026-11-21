@@ -307,7 +307,7 @@ return [
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
         'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> साठी: तसेच <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li4' => '<code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code> साठी: तसेच <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => '<code>ticket.assigned</code> साठी: तसेच <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>सर्वोत्तम पद्धत:</strong> क्रियेच्या <code>ticket_id</code> फील्डमध्ये विशिष्ट ID टाइप करण्याऐवजी डीफॉल्ट <code>{{ticket.id}}</code> ठेवा &mdash; म्हणजे वर्कफ्लो ठराविक तिकिटावर नव्हे, तर ज्या तिकिटाने तो सुरू केला त्यावर काम करतो.',
         'variables_chain_heading' => 'आधीच्या क्रियेने तयार केलेले वापरणे',
