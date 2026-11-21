@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3075 | Core | Improvement | **File stores: one list, one helper - step 1 of choosing where files are kept (wiki File-Storage-Locations-Design; Ed: "let's start step 1").** New `includes/file_stores.php`: `FILE_STORES` (every upload store by a stable id - its folder today; branding and LMS content marked `fixed`, they stay in the app per Ed) and `fileStoreDir()` / `fileStorePath()`, which in step 1 always give today's folder - nothing moves, nothing read from the database. First three stores converted: form pictures (`api/forms/upload_image.php`, `image.php`, `card_image.php`), label fonts (`api/assets/label_designs.php`, `label_font.php`), war room (`WARROOM_ATTACH_DIR` from the helper). `includes/uploads.php` loads the helper. Guard `tests/file-stores.php` 37/37 (in CI, Web exposure): today's folders, every store persisted on Docker, and no converted store's folder in a PHP string outside the allow-list (tokenizer, so comments do not count; positive controls). On prtest: a label font served at its exact size; a form picture uploaded through the real endpoint landed in `forms/images/25/` and read back byte-identical (temporary field and file removed); war room folder resolves to the same place. asset-label-designs 52, catalogue-card 71, docker-storage-volumes 52, system-storage 30, web-exposure-guard 31 pass. Wiki File-Stores-Developer-Guide (new). |
 
 
 

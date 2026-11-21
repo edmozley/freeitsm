@@ -14,6 +14,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/asset_label_designs.php';
+require_once '../../includes/file_stores.php';   // fileStorePath()
 
 if (!isset($_SESSION['analyst_id'])) { http_response_code(401); exit; }
 requireModuleAccessJson('assets');
@@ -24,7 +25,7 @@ $tenantId = getActiveTenantId($conn, (int)$_SESSION['analyst_id']);
 $s = $conn->prepare("SELECT stored_name, format FROM asset_label_fonts WHERE id = ? AND (tenant_id <=> ? OR tenant_id IS NULL)");
 $s->execute([(int)($_GET['id'] ?? 0), $tenantId]);
 $f = $s->fetch(PDO::FETCH_ASSOC);
-$path = $f ? __DIR__ . '/../../system/uploads/label-fonts/' . basename((string)$f['stored_name']) : '';
+$path = $f ? fileStorePath('label-fonts', basename((string)$f['stored_name'])) : '';
 if (!$f || !is_file($path)) { http_response_code(404); exit; }
 
 $types = ['ttf' => 'font/ttf', 'otf' => 'font/otf', 'woff' => 'font/woff', 'woff2' => 'font/woff2'];

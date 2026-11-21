@@ -69,6 +69,11 @@ jobs:
       - name: morning check schedules
         run: php tests/morning-check-schedule.php
 
+      # wiki File-Storage-Locations-Design step 1: every converted store's path comes
+      # from includes/file_stores.php, never built by hand. No database.
+      - name: file stores - one helper
+        run: php tests/file-stores.php
+
       # GH #392: no page repeats an element id. getElementById() finds only the first,
       # so a second dialog's button is silently wired to the first one's - "Add
       # someone" on a project did nothing in 5.5.0. Files only.

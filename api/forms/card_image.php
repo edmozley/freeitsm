@@ -72,7 +72,7 @@ try {
     if (!isset(UPLOAD_TYPES_IMAGE[$m[3]]))                         cardImageNotFound();
     if (!catalogueImageBelongs($conn, $formId, (int)$m[1]))         cardImageNotFound();
 
-    $path = dirname(dirname(__DIR__)) . '/forms/images/' . $rel;
+    $path = fileStorePath('form-images', $rel);
     if (!is_file($path)) cardImageNotFound();
 
     // The type from OUR whitelist, never the file; nosniff on top.

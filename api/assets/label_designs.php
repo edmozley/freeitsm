@@ -156,7 +156,7 @@ try {
             // The real check: the file's own first bytes, whatever this server's fileinfo calls it.
             if (!assetLabelFontLooksValid($file['tmp_name'], $ext)) aldFail(t('asset-management.label_designs.font_invalid'));
             if ((int)$file['size'] > 20 * 1024 * 1024) aldFail(t('asset-management.label_designs.font_too_big'));
-            $dir = __DIR__ . '/../../system/uploads/label-fonts';
+            $dir = fileStoreDir('label-fonts');
             uploadPrepareDir($dir);
             $stored = bin2hex(random_bytes(16)) . '.' . $ext;
             if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $stored)) aldFail(t('asset-management.label_designs.font_not_saved'));
@@ -177,7 +177,7 @@ try {
             $using = $u->fetchAll(PDO::FETCH_COLUMN);
             if ($using) aldFail(t('asset-management.label_designs.font_in_use', ['designs' => implode(', ', $using)]));
             $conn->prepare("DELETE FROM asset_label_fonts WHERE id = ?")->execute([$id]);
-            $path = __DIR__ . '/../../system/uploads/label-fonts/' . basename((string)$font['stored_name']);
+            $path = fileStorePath('label-fonts', basename((string)$font['stored_name']));
             if (is_file($path)) @unlink($path);
             echo json_encode(['success' => true]);
             exit;

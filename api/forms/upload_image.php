@@ -66,7 +66,7 @@ try {
 
     $stored = uploadStoreFile(
         $_FILES['image'],
-        dirname(dirname(__DIR__)) . '/forms/images/' . $formId,
+        fileStorePath('form-images', (string)$formId),
         UPLOAD_TYPES_IMAGE,
         FORM_IMAGE_MAX_BYTES
     );

@@ -30,6 +30,8 @@
 // the sender saw "its contents do not match its doc extension". CDFV2 is the container,
 // not a type: it is equally the shape of .msi and .msg, which is why it is listed only
 // against extensions that are already on the allow-list rather than accepted globally.
+require_once __DIR__ . '/file_stores.php';   // fileStoreDir() / fileStorePath() - where each store's files live
+
 const UPLOAD_TYPES_DOCUMENT = [
     'pdf'  => ['application/pdf'],
     'doc'  => ['application/msword', 'application/CDFV2', 'application/CDFV2-corrupt'],

@@ -96,7 +96,7 @@ try {
     if ((int)$m[1] !== (int)$row['form_id'])        imageNotFound();
     if (!isset(UPLOAD_TYPES_IMAGE[$m[3]]))          imageNotFound();
 
-    $path = dirname(dirname(__DIR__)) . '/forms/images/' . $rel;
+    $path = fileStorePath('form-images', $rel);
     if (!is_file($path)) imageNotFound();
 
     /* The type comes from OUR extension whitelist, not from the file and not

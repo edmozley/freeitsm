@@ -58,7 +58,8 @@ const WARBOT_NAME = 'Warbot';
 const WARROOM_MAX_ATTACHMENTS = 5;
 
 /** Where attachment bytes live. Never served from here — see warRoomAttachmentPath. */
-define('WARROOM_ATTACH_DIR', __DIR__ . '/../war-room/attachments');
+require_once __DIR__ . '/file_stores.php';
+define('WARROOM_ATTACH_DIR', fileStoreDir('war-room'));   // the one place: includes/file_stores.php
 
 /** The four kinds of channel. Stored as a string so db_verify stays simple. */
 const WARROOM_KIND_ALL    = 'all';      // the one all-hands room
