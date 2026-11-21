@@ -246,6 +246,53 @@ try {
     FilesRecycleService::retryPendingBytes($conn, time() + 30);
     ok('...which removes it', !is_file("$store/{$late['key']}") && $queued([$late['key']]) === 0);
 
+    // ── Storage that answers but refuses: every run for a while, then once a day ──
+    // A read-only folder makes the local store refuse (it answers, and says no), like
+    // a bucket key without delete rights. An outage is not a refusal and never counts.
+    $max = FilesRecycleService::PURGE_MAX_REFUSALS;
+    $attempts = function (string $key) use ($conn): ?int {
+        $q = $conn->prepare("SELECT attempts FROM files_purge_pending WHERE storage_path = ?");
+        $q->execute([$key]);
+        $a = $q->fetchColumn();
+        return $a === false ? null : (int)$a;
+    };
+    $no = item($conn, $store, $proj, 'zz-refused.txt');
+    $noDir = dirname("$store/{$no['key']}");
+    softDelete($conn, 'item', $no['id'], $U1);
+    chmod($noDir, 0555);
+    $logFile = tempnam(sys_get_temp_dir(), 'zzlog');
+    $prevLog = ini_set('error_log', $logFile);
+    try {
+        $p = FilesRecycleService::purge($conn, $U1, 'item', $no['id']);
+        ok('refused: the purge succeeds for the person, the stored file waits, one refusal counted',
+           !rowExists($conn, 'files_items', $no['id']) && is_file("$store/{$no['key']}") && $p['pending'] === 1 && $attempts($no['key']) === 1, json_encode([$p, $attempts($no['key'])]));
+        setSetting($conn, 'files_storage_previous', encryptValue(json_encode([
+            'driver' => 's3', 'endpoint' => 'http://127.0.0.1:9', 'region' => 'us-east-1', 'bucket' => 'zz',
+            'access_key_id' => 'zz', 'secret' => 'zz', 'prefix' => '', 'path_style' => true])));
+        FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        setSetting($conn, 'files_storage_previous', null);
+        ok('...an outage on the next try does not count as a refusal', $attempts($no['key']) === 1, (string)$attempts($no['key']));
+        $conn->prepare("UPDATE files_purge_pending SET attempts = ? WHERE storage_path = ?")->execute([$max - 2, $no['key']]);
+        $b = FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        ok('...below the limit it is still tried every run, as waiting', $attempts($no['key']) === $max - 1 && $b['still_pending'] >= 1, json_encode($b));
+        $b = FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        ok("...the {$max}th refusal moves it to once a day: counted as refused, not as waiting",
+           $attempts($no['key']) === $max && $b['refused'] >= 1 && $b['still_pending'] === 0, json_encode($b));
+        ok('...and the log says so, once', substr_count((string)file_get_contents($logFile), 'now tries it once a day') === 1);
+        $b = FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        ok('...so the next run leaves it alone, but still counts it', $attempts($no['key']) === $max && $b['refused'] >= 1, json_encode($b));
+        $d = FilesRecycleService::describe($conn);
+        ok('the Recycle bin settings tab shows it as refused, not as waiting for storage', $d['refused_bytes'] >= 1 && $d['refused_bytes'] === $b['refused'], json_encode($d));
+        chmod($noDir, 0775);   // someone fixed the storage
+        $conn->prepare("UPDATE files_purge_pending SET updated_datetime = UTC_TIMESTAMP() - INTERVAL 25 HOUR WHERE storage_path = ?")->execute([$no['key']]);
+        $b = FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        ok('a day later it is tried again, and goes once storage lets it', !is_file("$store/{$no['key']}") && $attempts($no['key']) === null && $b['deleted'] === 1, json_encode($b));
+    } finally {
+        @chmod($noDir, 0775);
+        ini_set('error_log', $prevLog === false ? '' : $prevLog);
+        @unlink($logFile);
+    }
+
     // ── Retention ──────────────────────────────────────────────────────
     $oldFile = item($conn, $store, $proj, 'zz-40-days.txt');
     $newFile = item($conn, $store, $proj, 'zz-10-days.txt');

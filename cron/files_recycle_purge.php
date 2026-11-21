@@ -6,6 +6,9 @@
  * Files -> Settings -> Recycle bin allows (rows, shortcuts and the stored bytes),
  * then tries again to delete stored bytes whose first deletion found storage
  * unreachable (files_purge_pending). See includes/services/files_recycle.php.
+ * A stored file storage keeps refusing to delete (not unreachable - it said no) is
+ * tried once a day after FilesRecycleService::PURGE_MAX_REFUSALS refusals, and every
+ * run says so and ends partial until it is gone.
  *
  * Started by the built-in scheduler (cron/run.php) hourly, but only once the
  * Recycle bin tab has been saved with a period, or while bytes are waiting.
@@ -44,16 +47,19 @@ try {
     $p = FilesRecycleService::purgeExpired($conn, $deadline);
     $b = FilesRecycleService::retryPendingBytes($conn, $deadline);
 
-    $summary = sprintf('%d deleted for good (%d files, %s bytes), %d failed; %d waiting stored files removed%s%s%s.',
+    $summary = sprintf('%d deleted for good (%d files, %s bytes), %d failed; %d waiting stored files removed%s%s%s%s.',
                        $p['entries'], $p['files'], number_format($p['bytes']), $p['failed'], $b['deleted'],
                        $b['still_pending'] ? ', ' . $b['still_pending'] . ' still waiting (see the PHP error log)' : '',
+                       $b['refused'] ? '; ' . $b['refused'] . ' stored file(s) storage keeps refusing to delete, now tried once a day (see the PHP error log)' : '',
                        $p['done'] ? '' : ' (more to do: the next run carries on)',
                        // Held back on purpose, not a failure: say where they are listed.
                        $p['held'] ? '; ' . $p['held'] . ' deleted folder(s) kept because whoever deleted them could not delete everything in them - see System -> Maintenance -> Deleted folders kept' : '');
     $problems = $p['failed'] + $b['still_pending'];
-    JobRun::finish($conn, $runId, $problems ? ($p['entries'] + $b['deleted'] > 0 ? 'partial' : 'failed') : 'ok',
+    // Refused stored files are not this run failing - the job is working - but someone has
+    // to look at the storage, so the run is partial for as long as any are waiting.
+    JobRun::finish($conn, $runId, $problems ? ($p['entries'] + $b['deleted'] > 0 ? 'partial' : 'failed') : ($b['refused'] ? 'partial' : 'ok'),
                    ['entries' => $p['entries'], 'files' => $p['files'], 'bytes' => $p['bytes'], 'failed' => $p['failed'], 'held' => $p['held'],
-                    'bytes_retried' => $b['deleted'], 'bytes_waiting' => $b['still_pending']], $summary);
+                    'bytes_retried' => $b['deleted'], 'bytes_waiting' => $b['still_pending'], 'bytes_refused' => $b['refused']], $summary);
     echo "Files recycle bin: $summary\n";
 } catch (Throwable $e) {
     JobRun::fail($conn, $runId, $e);

@@ -221,6 +221,7 @@ return [
         'recycle_forever' => 'Deleted items are kept until someone deletes them permanently.',
         'recycle_pending' => 'Stored files waiting to be removed because storage could not be reached: {n}.',
         'recycle_pending_unknown' => 'Stored files waiting to be removed: unknown until Database Verification has been run.',
+        'recycle_refused' => 'Stored files storage keeps refusing to delete, now tried again once a day: {n}. The PHP error log says why.',
         'recycle_held' => 'Deleted folders kept past this period because whoever deleted them could not delete everything in them: {n}. An administrator can see them in System -> Maintenance -> Deleted folders kept.',
         'recycle_due_confirm' => 'Items already in the recycle bin longer than this will be deleted permanently within the hour, with their stored files (Items: {n}). Continue?',
         'take' => 'Take ownership',
@@ -539,6 +540,7 @@ return [
             'p5' => 'Deleting permanently removes every version of the file too. A link to the file from a ticket, a task or any other record says the file has been deleted while it is in the bin, and works again once it is restored; after a permanent delete the link stays on the record, so it still shows something was there, but it can never be opened.',
             'p6' => 'If a folder of yours went into the bin with a folder above it that you cannot open, it shows in your bin on its own as **Deleted along with a folder above it** - without the other folder\'s name. **Restore** brings it back by itself, to where that folder was, and exactly the same people can open it as before.',
             'p7' => 'The background job never deletes a folder holding anything the person who deleted it could not have deleted themselves. Such a folder stays in the bin past its date, and an administrator sees it in System -> Maintenance -> Deleted folders kept, with what to do.',
+            'p8' => 'When storage cannot be reached, the stored files of a permanent delete are removed by the background job once it answers again. When storage answers but refuses to delete a stored file (its account may not delete, for example), the job tries again every hour for a day, then once a day. Files -> Settings -> Recycle bin shows how many are waiting like that, the job is shown as partly failing in Background jobs until they are gone, and the PHP error log says why.',
         ],
         'audit' => [
             'nav' => 'Audit trail',

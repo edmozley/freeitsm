@@ -319,6 +319,8 @@
                 (r.pending_bytes ? ' ' + L('settings.recycle_pending', 'Stored files waiting to be removed because storage could not be reached: {n}.', { n: r.pending_bytes })
                     // null: the queue's table is missing (before Database Verification) - unknown, never "none".
                     : r.pending_bytes === null ? ' ' + L('settings.recycle_pending_unknown', 'Stored files waiting to be removed: unknown until Database Verification has been run.') : '') +
+                // Storage answered and said no, again and again: someone has to look at it.
+                (r.refused_bytes ? ' ' + L('settings.recycle_refused', 'Stored files storage keeps refusing to delete, now tried again once a day: {n}. The PHP error log says why.', { n: r.refused_bytes }) : '') +
                 (r.held ? ' ' + L('settings.recycle_held', 'Deleted folders kept past this period because whoever deleted them could not delete everything in them: {n}. An administrator can see them in System -> Maintenance -> Deleted folders kept.', { n: r.held }) : '');
         };
         api('settings.php?tab=recycle').then(rbRender).catch(function (e) { document.getElementById('rbState').textContent = e.message; });
