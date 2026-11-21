@@ -284,4 +284,16 @@ return [
         'link'     => 'system/api/',
         'check'    => ['rows', 'api_keys', "active = 1 AND permissions LIKE '%change_attachments%'"],
     ],
+    [
+        'id'       => 'changes.move_company',   // GH #390
+        'module'   => 'changes',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Move a change to another company',
+        'what'     => 'Move to company on a change\'s right-click menu (or POST /changes/{id}/move-to-company in the API) takes the change and the tasks linked to it to another company in one go, refusing - and saying why - while a linked ticket is in a different company or a task cannot go with it.',
+        'why'      => 'A change filed under the wrong client no longer has to be deleted and raised again, losing its approvals, history and links.',
+        'done'     => 'At least one change has been moved to another company.',
+        'link'     => 'change-management/',
+        'check'    => ['rows', 'change_audit', "field_name = 'Company'"],
+    ],
 ];

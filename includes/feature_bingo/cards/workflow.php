@@ -571,4 +571,18 @@ return [
         'link'     => 'workflow/',
         'check'    => ['rows', 'workflows', "$live AND (trigger_event = 'ticket.category_changed' OR conditions LIKE '%ticket.category_id%')"],
     ],
+    // GH #364: branching - If / Otherwise and Choose by value, stored in the actions JSON
+    // as a step of type branch_if or branch_switch (at the top level or inside another branch).
+    [
+        'id'       => 'workflow.branching',
+        'module'   => 'workflow',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'Branch a workflow',
+        'what'     => 'A step that chooses what a workflow does: If / Otherwise, where each branch has its own conditions and actions, or Choose by value, where each case of one field - the requester\'s email, the priority, the category - has its own. Otherwise and Default always catch the rest, and the run history shows which path was taken and why.',
+        'why'      => 'One workflow sends abc.com\'s tickets to Team A, xyz.com\'s to Team B and the rest to the general team, instead of three near-identical workflows that drift apart.',
+        'done'     => 'At least one active workflow has an If / Otherwise or Choose by value step.',
+        'link'     => 'workflow/',
+        'check'    => ['any', [$action('branch_if'), $action('branch_switch')]],
+    ],
 ];
