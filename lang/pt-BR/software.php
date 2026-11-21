@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Fabricante',
         'col_installed' => 'Instalado em',
         'col_seats' => 'Assentos',
+        'col_installations' => 'Instalações',
+        'col_licence_seats' => 'Licenças disponíveis',
         'col_actions' => '',
         'add_app' => 'Adicionar aplicativo',
         'new_app' => 'Novo aplicativo',
@@ -418,5 +420,10 @@ return [
         'tip5_t' => 'Não apenas olhe os gráficos — clique neles. Cada segmento de gráfico é interativo. Clicar em uma barra ou fatia de pizza leva você às máquinas por trás daquele ponto de dados, para que possa investigar mais a fundo.',
         'tip6_b' => 'Atualizações automáticas',
         'tip6_t' => 'Os dados de software são atualizados sempre que o script PowerShell é executado em uma máquina. Defina a tarefa agendada para ser executada diariamente e seu inventário sempre refletirá o estado atual do seu parque.',
+    ],
+    'watch_filter' => [
+        'expiring' => 'Renovação em até {days} dias',
+        'notice' => 'Prazo de aviso começa em até {days} dias',
+        'remove' => 'Remover este filtro',
     ],
 ];

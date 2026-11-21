@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Escolher visualização',
         'views_flow_click' => 'Clicar no evento',
         'views_tip' => 'Clique em qualquer evento do calendário para abrir um pop-up de visualização rápida mostrando o título, o horário, o local e a descrição. A partir daí, você pode abrir o formulário completo de edição.',
+        'views_table' => 'A visualização <strong>Tabela</strong> lista os eventos como linhas que você pode ordenar, filtrar e para as quais pode escolher colunas. <strong>Salvar exibição</strong> guarda um arranjo com um nome e <strong>Exibições</strong> abre a biblioteca; a tabela lembra a exibição que você escolheu por último e a abre com ela da próxima vez, em qualquer navegador - até você escolher outra ou usar <strong>Redefinir</strong>, depois do que ela abre novamente com a sua exibição padrão.',
         'creating_heading' => 'Criando eventos',
         'creating_intro' => 'Adicionar eventos ao calendário é simples. Clique no botão <strong>+ Novo evento</strong> na barra lateral para abrir o formulário de evento. Preencha os detalhes e salve &mdash; o evento aparece no calendário imediatamente.',
         'creating_step1' => '<strong>Clique em + Novo evento</strong> &mdash; o botão fica na barra lateral do calendário, à esquerda. Isso abre o modal de criação de evento.',
