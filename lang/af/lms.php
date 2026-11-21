@@ -47,6 +47,7 @@ return [
         'heading' => 'Kursusse',
         'upload' => 'Laai op',
         'create' => 'Skep',
+        'new_tip' => 'Nuwe kursus',
         'col_title' => 'Titel',
         'col_version' => 'SCORM-weergawe',
         'col_uploaded' => 'Opgelaai',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'Leergroepe',
         'new' => 'Nuut',
+        'new_tip' => 'Nuwe groep',
         'col_name' => 'Naam',
         'col_description' => 'Beskrywing',
         'col_members' => 'Lede',

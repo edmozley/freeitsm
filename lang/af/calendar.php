@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Kies aansig',
         'views_flow_click' => 'Klik gebeurtenis',
         'views_tip' => 'Klik enige gebeurtenis op die kalender om \'n vinnige-aansig-opspringer oop te maak wat die titel, tyd, ligging en beskrywing wys. Van daar af kan jy die volledige wysigvorm oopmaak.',
+        'views_table' => 'Die <strong>Tabel</strong>-aansig lys die gebeurtenisse as rye wat jy kan sorteer, filtreer en kolomme voor kan kies. <strong>Stoor aansig</strong> hou \'n rangskikking onder \'n naam en <strong>Aansigte</strong> maak die biblioteek oop; die tabel onthou die aansig wat jy laas gekies het en maak volgende keer daarmee oop, op enige blaaier - totdat jy \'n ander kies of <strong>Herstel</strong> gebruik, waarna dit weer met jou verstekaansig oopmaak.',
         'creating_heading' => 'Skep gebeurtenisse',
         'creating_intro' => 'Om gebeurtenisse by die kalender te voeg is eenvoudig. Klik die <strong>+ Nuwe gebeurtenis</strong>-knoppie in die kantbalk om die gebeurtenisvorm oop te maak. Vul die besonderhede in en stoor &mdash; die gebeurtenis verskyn onmiddellik op die kalender.',
         'creating_step1' => '<strong>Klik + Nuwe gebeurtenis</strong> &mdash; die knoppie is in die kalender se kantbalk aan die linkerkant. Dit maak die skepmodaal vir gebeurtenisse oop.',

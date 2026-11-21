@@ -33,8 +33,17 @@ return [
     ],
     'sidebar' => [
         'new_process' => '+ Nuwe proses',
+        'new_process_tip' => 'Nuwe proses',
         'search_placeholder' => 'Soek prosesse...',
         'no_processes_yet' => 'Nog geen prosesse nie',
+        'search_key_tip' => 'Druk / of Alt+Shift+O van enige plek op die bladsy af om prosesse te soek',
+    ],
+    'preview' => [
+        'steps' => 'Stappe',
+        'lanes' => 'Bane',
+        'created_by' => 'Geskep deur',
+        'created' => 'Geskep',
+        'updated' => 'Laas bygewerk',
     ],
     'new_modal' => [
         'title' => 'Nuwe proses',

@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Uitgewer',
         'col_installed' => 'Geïnstalleer op',
         'col_seats' => 'Setels',
+        'col_installations' => 'Installasies',
+        'col_licence_seats' => 'Lisensieplekke',
         'col_actions' => '',
         'add_app' => 'Voeg toepassing by',
         'new_app' => 'Nuwe toepassing',
@@ -418,5 +420,10 @@ return [
         'tip5_t' => 'Moenie net na grafieke kyk nie — klik daarin in. Elke grafieksegment is interaktief. Deur op \'n staaf of sirkelsny te klik, neem dit jou na die masjiene agter daardie datapunt, sodat jy verder kan ondersoek.',
         'tip6_b' => 'Outomatiese opdaterings',
         'tip6_t' => 'Sagtewaredata verfris elke keer wanneer die PowerShell-skrip op \'n masjien loop. Stel die geskeduleerde taak om daagliks te loop en jou inventaris sal altyd die huidige toestand van jou landgoed weerspieël.',
+    ],
+    'watch_filter' => [
+        'expiring' => 'Hernuwing binne {days} dae',
+        'notice' => 'Kennisgewingtydperk begin binne {days} dae',
+        'remove' => 'Verwyder hierdie filter',
     ],
 ];

@@ -49,6 +49,7 @@ return [
     ],
     'modal' => [
         'new_incident' => 'Nuwe voorval',
+        'new_incident_tip' => 'Nuwe voorval',
         'edit_incident' => 'Wysig voorval',
         'title' => 'Titel',
         'title_placeholder' => 'Kort beskrywing van die voorval',

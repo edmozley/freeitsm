@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> lopie(s) is in die afgelope 24h deur lusbeskerming gestaak',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhaak(ies) het opgehou probeer — die boodskap het nooit aangekom nie',
         'failures' => '{count} mislukking(s)',
+        'attention' => '<span class="wt-attention-bold">{count}</span> uitvoering(e) het deel van hul werk oorgeslaan en \'n nota gelaat - laaste: {name}',
     ],
     'mc' => [
         'metric_done' => 'Klaar',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'Totaal',
         'metric_offline' => 'Vanlyn',
         'metric_lease' => 'Huurkontrak',
+        'metric_consumables' => 'Lae voorraad',
         'metric_warranty' => 'Waarborg',
         'warranty' => '<span class="wt-attention-bold">{count}</span> bate(s) met waarborg wat verstryk het of binne {days} dae verstryk',
         'lease' => '<span class="wt-attention-bold">{count}</span> bate(s) met \'n huurkontrak wat geëindig het of binne {days} dae eindig',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'Hou aan om hulle te wys',
         'impersonal_hide' => 'Versteek hulle',
         'impersonal_note' => 'Diensstatus, werkvloeie, toerusting, die gedeelde kalender, kontrakte, kennis, sagtewarelisensies en domeine behoort aan die span eerder as aan \'n persoon, so hulle kan nie tot jou beperk word nie. Om hulle te hou is die veiliger antwoord: \'n afgetakelde diens is die laaste ding wat moet verdwyn omdat jy na \'n persoonlike aansig oorgeskakel het.',
+        'refresh_heading' => 'Watchtower verfris elke',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Vinniger pas \'n skerm teen die muur: \'n gebruiker wat net daarvoor aangemeld is bly aangemeld, en die paneelbord werk homself by.',
     ],
 ];
