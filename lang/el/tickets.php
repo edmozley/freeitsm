@@ -2472,8 +2472,6 @@ supplier.co.uk',
             'company_none' => 'Καμία εταιρεία (τα αιτήματα πηγαίνουν στη διαλογή)',
             // GH #398: add a company from the person editor
             'company_new' => '+ Νέα εταιρεία...',
-            'company_new_name' => 'Όνομα της νέας εταιρείας',
-            'company_new_failed' => 'Δεν ήταν δυνατή η προσθήκη της εταιρείας.',
             'cost_centre' => 'Κέντρο κόστους',
             'cost_centre_none' => 'Κανένα',
             'cost_centre_inactive' => 'ανενεργό',

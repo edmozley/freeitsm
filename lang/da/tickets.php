@@ -2472,8 +2472,6 @@ Dette kan ikke fortrydes. Vil du fortsætte?',
             'company_none' => 'Ingen virksomhed (sager går til triage)',
             // GH #398: add a company from the person editor
             'company_new' => '+ Ny virksomhed...',
-            'company_new_name' => 'Navn på den nye virksomhed',
-            'company_new_failed' => 'Virksomheden kunne ikke tilføjes.',
             'cost_centre' => 'Omkostningssted',
             'cost_centre_none' => 'Ingen',
             'cost_centre_inactive' => 'inaktivt',

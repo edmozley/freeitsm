@@ -2883,8 +2883,6 @@ return [
             'company_none'               => 'No company (tickets go to triage)',
             // GH #398: add a company from the person editor
             'company_new' => '+ New company...',
-            'company_new_name' => 'Name of the new company',
-            'company_new_failed' => 'The company could not be added.',
             'cost_centre'                => 'Cost centre',
             'cost_centre_none'           => 'None',
             'cost_centre_inactive'       => 'inactive',

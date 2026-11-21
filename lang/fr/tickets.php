@@ -2472,8 +2472,6 @@ Ceci ne peut pas être annulé. Continuer ?',
             'company_none' => 'Aucune entreprise (les tickets partent en triage)',
             // GH #398: add a company from the person editor
             'company_new' => '+ Nouvelle entreprise...',
-            'company_new_name' => 'Nom de la nouvelle entreprise',
-            'company_new_failed' => 'L\'entreprise n\'a pas pu être ajoutée.',
             'cost_centre' => 'Centre de coûts',
             'cost_centre_none' => 'Aucun',
             'cost_centre_inactive' => 'inactif',

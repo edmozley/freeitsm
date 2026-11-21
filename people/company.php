@@ -14,6 +14,7 @@ require_once '../includes/timezone.php';
 require_once '../includes/people.php';
 require_once '../includes/recent_trail.php';
 require_once 'includes/render.php';
+require_once '../includes/company_editor.php';   // GH #419: Edit in place, administrators
 I18n::initFromSession();
 Tz::init();
 
@@ -65,6 +66,13 @@ $sections = $data['sections'] ?? [];
                 </div>
                 <?php if ($company['is_default'] && $company['multi_company']): ?><div class="ppl-hero-contact ppl-dim"><?php echo pplE(t('people.company.default_note')); ?></div><?php endif; ?>
             </div>
+            <?php if (sessionIsAdmin()): ?>
+            <div class="ppl-hero-actions">
+                <?php /* GH #419: the ONE company editor (includes/company_editor.php), here -
+                         administrators only, as System -> Companies is. */ ?>
+                <button type="button" class="ppl-btn ppl-btn-primary" onclick="pplEditCompany(<?php echo (int)$tenantId; ?>)"><?php echo pplE(t('common.edit')); ?></button>
+            </div>
+            <?php endif; ?>
         </div>
 
         <?php echo pplStats($sections, false); ?>
@@ -113,6 +121,13 @@ $sections = $data['sections'] ?? [];
         });
     })();
     </script>
+    <?php if ($company && sessionIsAdmin()): companyEditorRender(); ?>
+    <script>
+    /* GH #419: edit in place; the page is drawn from the saved record, so reload to show it. */
+    function pplEditCompany(id) { CompanyEditor.openById(id, { onSaved: function () { location.reload(); } }); }
+    </script>
+    <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
+    <?php endif; ?>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=87"></script>
 </body>
 </html>

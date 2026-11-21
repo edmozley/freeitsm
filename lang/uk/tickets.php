@@ -2472,8 +2472,6 @@ supplier.co.uk',
             'company_none' => 'Без компанії (заявки надходять до сортування)',
             // GH #398: add a company from the person editor
             'company_new' => '+ Нова компанія...',
-            'company_new_name' => 'Назва нової компанії',
-            'company_new_failed' => 'Не вдалося додати компанію.',
             'cost_centre' => 'Центр витрат',
             'cost_centre_none' => 'Немає',
             'cost_centre_inactive' => 'неактивний',

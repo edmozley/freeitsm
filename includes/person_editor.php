@@ -39,6 +39,7 @@
  */
 
 require_once __DIR__ . '/users.php';   // USER_PERSON_FIELDS
+require_once __DIR__ . '/company_editor.php';   // GH #419: "+ New company..." opens the full company form
 
 /** Print the editor's markup, styles and script. Call once, inside <body>. */
 function personEditorRender(): void
@@ -66,7 +67,6 @@ function personEditorRender(): void
         'company_auto'       => $m('company_auto'),
         'company_none'       => $m('company_none'),
         'company_new'        => $m('company_new'),        // GH #398
-        'company_new_failed' => $m('company_new_failed'),
         'cost_centre_none'   => $m('cost_centre_none'),
         'location_none'      => $m('location_none'),
         'cost_centre_inactive' => $m('cost_centre_inactive'),
@@ -179,15 +179,6 @@ function personEditorRender(): void
                     <div class="form-group" id="peCompanyGroup" hidden>
                         <label for="peCompany"><?php echo htmlspecialchars($m('company')); ?></label>
                         <select id="peCompany"></select>
-                        <?php /* GH #398: a company that does not exist yet, made here - administrators only,
-                                 as on System -> Companies (save_tenant.php refuses anybody else). */ ?>
-                        <?php if (sessionIsAdmin()): ?>
-                        <div class="pe-newco" id="peNewCo" hidden>
-                            <input type="text" id="peNewCoName" maxlength="150" autocomplete="off" placeholder="<?php echo htmlspecialchars($m('company_new_name')); ?>" aria-label="<?php echo htmlspecialchars($m('company_new_name')); ?>">
-                            <button type="button" class="btn btn-primary" id="peNewCoAdd"><?php echo htmlspecialchars(t('common.add')); ?></button>
-                            <button type="button" class="btn btn-secondary" id="peNewCoCancel"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                        </div>
-                        <?php endif; ?>
                         <small class="pe-help"><?php echo htmlspecialchars($m('company_help')); ?></small>
                     </div>
 
@@ -226,8 +217,12 @@ function personEditorRender(): void
         </div>
     </div>
 
-    <?php /* GH #279: the shared field renderer (also loaded by the Tickets page). */ ?>
-    <script src="<?php echo htmlspecialchars($base); ?>assets/js/ticket-fields.js?v=2"></script>
+    <?php /* GH #279: the shared field renderer (also loaded by the Tickets page) - once, as
+             the company editor below wants it too. */
+          ticketFieldsScriptOnce();
+          // GH #398 / #419: "+ New company..." opens the ONE company editor, for administrators
+          // (it prints nothing for anybody else, and the option is then not offered).
+          companyEditorRender(); ?>
     <script>
     window.PersonEditor = (function () {
         const API = <?php echo json_encode($base . 'api/'); ?>;
@@ -265,42 +260,36 @@ function personEditorRender(): void
                 if (!c.is_active && String(c.id) !== String(tenantId)) return;   // retired, unless already filed there
                 html += '<option value="' + c.id + '">' + esc(c.name) + '</option>';
             });
-            // GH #398: an administrator can add the company from here (the box below the list).
-            if ($('peNewCo')) html += '<option value="__new">' + esc(T.company_new) + '</option>';
+            // GH #398 / #419: an administrator can add the company from here, with the full form.
+            if (window.CompanyEditor) html += '<option value="__new">' + esc(T.company_new) + '</option>';
             sel.innerHTML = html;
             sel.value = (tenantId === null || tenantId === undefined) ? '' : String(tenantId);
             sel.dataset.was = sel.value;
             group.hidden = false;
         }
 
-        // GH #398: "+ New company..." - a name, then the company is made (save_tenant.php, the
-        // same rules as System -> Companies) and chosen, which refills the lists that depend on it.
-        if ($('peNewCo')) {
+        // GH #398 / #419: "+ New company..." opens the full company form (includes/company_editor.php)
+        // over this one - tax ID, outside reference and custom fields included - suggesting a name
+        // and the mail routing from this person's email. Saved: it is chosen here, which refills
+        // the lists that depend on the company. "Use" on its duplicate warning chooses that one.
+        if (window.CompanyEditor) {
             $('peCompany').addEventListener('change', e => {
-                if ($('peCompany').value !== '__new') { $('peCompany').dataset.was = $('peCompany').value; return; }
+                const sel = $('peCompany');
+                if (sel.value !== '__new') { sel.dataset.was = sel.value; return; }
                 e.stopImmediatePropagation();
-                $('peNewCo').hidden = false;
-                $('peNewCoName').value = '';
-                $('peNewCoName').focus();
+                sel.value = sel.dataset.was || '';            // until a company is actually made or chosen
+                const choose = async id => {
+                    companies = null;
+                    await loadCompanies();
+                    paintCompanies(id);
+                    sel.dispatchEvent(new Event('change'));
+                };
+                window.CompanyEditor.open(null, {
+                    prefill: { email: $('peEmail').value.trim() },
+                    onSaved: saved => choose(saved.id),
+                    onUseExisting: c => choose(c.id)
+                });
             }, true);
-            const cancelNew = () => { $('peNewCo').hidden = true; $('peCompany').value = $('peCompany').dataset.was || ''; };
-            $('peNewCoCancel').addEventListener('click', cancelNew);
-            $('peNewCoName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('peNewCoAdd').click(); } if (e.key === 'Escape') { e.stopPropagation(); cancelNew(); } });
-            $('peNewCoAdd').addEventListener('click', async () => {
-                const name = $('peNewCoName').value.trim();
-                if (!name) { $('peNewCoName').focus(); return; }
-                let d = null;
-                try {
-                    const r = await fetch(API + 'system/save_tenant.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, is_active: 1 }) });
-                    d = await r.json();
-                } catch (e) { d = null; }
-                if (!d || !d.success) { toast((d && d.error) || T.company_new_failed, 'error'); return; }
-                companies = null;
-                await loadCompanies();
-                paintCompanies(d.id);
-                $('peNewCo').hidden = true;
-                $('peCompany').dispatchEvent(new Event('change'));
-            });
         }
 
         // ── Cost centre (GH #160) ───────────────────────────────────────────

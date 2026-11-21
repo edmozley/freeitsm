@@ -2472,8 +2472,6 @@ Tej operacji nie da się cofnąć. Kontynuować?',
             'company_none' => 'Brak firmy (zgłoszenia trafiają do wstępnej selekcji)',
             // GH #398: add a company from the person editor
             'company_new' => '+ Nowa firma...',
-            'company_new_name' => 'Nazwa nowej firmy',
-            'company_new_failed' => 'Nie udało się dodać firmy.',
             'cost_centre' => 'Centrum kosztów',
             'cost_centre_none' => 'Brak',
             'cost_centre_inactive' => 'nieaktywne',

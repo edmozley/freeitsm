@@ -3453,6 +3453,19 @@ return [
         'freemail_add_failed'     => 'Failed to add domain',
         'freemail_remove_failed'  => 'Failed to remove domain',
         'freemail_builtin_toggle' => 'Show the {count} built-in providers',
+        // GH #419: the shared company editor - is it already here, and routing the person's mail.
+        'dup_heading' => 'Already in FreeITSM?',
+        'dup_name' => 'A very similar name',
+        'dup_tax' => 'The same tax ID',
+        'dup_ref' => 'The same outside reference',
+        'dup_domain' => 'Already receives mail from {domain}',
+        'dup_use' => 'Use',
+        'dup_open' => 'Open',
+        'route_domain_label' => 'Also route {domain} to this company',
+        'route_domain_help' => 'Email from anyone at {domain} is filed to this company, now and in future. Taken from the person\'s email address.',
+        'route_sender_label' => 'Always file mail from {address} here',
+        'route_sender_help' => '{domain} is a public email provider, so only this exact address is routed, not the whole domain.',
+        'route_failed' => 'The company was saved, but its mail routing was not: {error}',
     ],
 
     // Email routing test — dry-run diagnostic (system/email-routing-test/).

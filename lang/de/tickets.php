@@ -2472,8 +2472,6 @@ Das lässt sich nicht rückgängig machen. Fortfahren?',
             'company_none' => 'Kein Unternehmen (Tickets gehen in die Triage)',
             // GH #398: add a company from the person editor
             'company_new' => '+ Neues Unternehmen...',
-            'company_new_name' => 'Name des neuen Unternehmens',
-            'company_new_failed' => 'Das Unternehmen konnte nicht hinzugefügt werden.',
             'cost_centre' => 'Kostenstelle',
             'cost_centre_none' => 'Keine',
             'cost_centre_inactive' => 'inaktiv',
