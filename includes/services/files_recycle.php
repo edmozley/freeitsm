@@ -194,23 +194,24 @@ final class FilesRecycleService
      */
     public static function binUsage(PDO $conn): array
     {
-        $tree = FilesAcl::tree($conn);
-        $rows = $conn->query("SELECT v.storage_path, v.size_bytes, i.folder_id, i.deleted_datetime
-                                FROM files_versions v JOIN files_items i ON i.id = v.item_id")->fetchAll(PDO::FETCH_ASSOC);
-        $live = []; $size = [];
-        foreach ($rows as $r) {
-            $p = $r['storage_path'];
-            $isLive = $r['deleted_datetime'] === null && isset($tree[(int)$r['folder_id']]);
-            $live[$p] = ($live[$p] ?? false) || $isLive;
-            $size[$p] = max($size[$p] ?? 0, (int)$r['size_bytes']);
-        }
-        $n = 0; $bytes = 0;
-        foreach ($live as $p => $l) {
-            if ($l) continue;
-            $n++;
-            $bytes += $size[$p];
-        }
-        return ['files' => $n, 'bytes' => $bytes];
+        // Worked out by the database: the Storage and Recycle bin tabs ask on every
+        // load, and reading every version into PHP grows with the whole of Files.
+        // A folder is live when it and every folder above it are (as FilesAcl::tree()).
+        $r = $conn->query("WITH RECURSIVE live_folders (id) AS (
+                               SELECT id FROM files_folders WHERE parent_id IS NULL AND deleted_datetime IS NULL
+                               UNION ALL
+                               SELECT f.id FROM files_folders f JOIN live_folders l ON f.parent_id = l.id
+                                WHERE f.deleted_datetime IS NULL
+                           )
+                           SELECT COUNT(*), COALESCE(SUM(size_bytes), 0) FROM (
+                               SELECT MAX(v.size_bytes) AS size_bytes
+                                 FROM files_versions v
+                                 JOIN files_items i ON i.id = v.item_id
+                                 LEFT JOIN live_folders lf ON lf.id = i.folder_id
+                                GROUP BY v.storage_path
+                               HAVING MAX(i.deleted_datetime IS NULL AND lf.id IS NOT NULL) = 0
+                           ) binned")->fetch(PDO::FETCH_NUM);
+        return ['files' => (int)$r[0], 'bytes' => (int)$r[1]];
     }
 
     /**

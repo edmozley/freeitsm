@@ -311,8 +311,22 @@ try {
        && !rowExists($conn, 'files_items', $fresh['id']), json_encode($r));
 
     // ── Empty, and the Storage tab's figures ───────────────────────────
+    $binnedCopy = item($conn, $store, $proj, 'zz-binned copy.pdf', $plan['key']);   // shares a live file's stored file
+    softDelete($conn, 'item', $binnedCopy['id'], $U1);
     $u = FilesRecycleService::binUsage($conn);
     ok('binUsage counts what only deleted files use', $u['files'] >= 2, json_encode($u));   // zz-10-days + the hidden folder's file
+    // The same figures worked out the long way, in PHP, from every version row: a stored
+    // file counts when no version of a live file (its folder and every folder above live) uses it.
+    $tree = FilesAcl::tree($conn);
+    $live = []; $size = [];
+    foreach ($conn->query("SELECT v.storage_path, v.size_bytes, i.folder_id, i.deleted_datetime
+                             FROM files_versions v JOIN files_items i ON i.id = v.item_id")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $live[$row['storage_path']] = ($live[$row['storage_path']] ?? false) || ($row['deleted_datetime'] === null && isset($tree[(int)$row['folder_id']]));
+        $size[$row['storage_path']] = max($size[$row['storage_path']] ?? 0, (int)$row['size_bytes']);
+    }
+    $want = ['files' => 0, 'bytes' => 0];
+    foreach ($live as $k => $l) if (!$l) { $want['files']++; $want['bytes'] += $size[$k]; }
+    ok('...and agrees with walking every version (a live file inside a deleted folder counts, a shared copy does not)', $u === $want, json_encode([$u, $want]));
     $r = FilesRecycleService::emptyBin($conn, $U2, time() + 30);
     ok('emptying as View-only purges nothing', $r['entries'] === 0 && rowExists($conn, 'files_items', $newFile['id']), json_encode($r));
     $r = FilesRecycleService::emptyBin($conn, $U1, time() + 30);
