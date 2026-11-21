@@ -305,6 +305,7 @@ return [
         'lookup_src_cmdb' => 'Αντικείμενα CMDB',
         'lookup_src_asset' => 'Πάγια',
         'lookup_src_location' => 'Τοποθεσίες',
+        'lookup_src_consumable' => 'Αναλώσιμα',   // 5.8.0
         'lookup_pick' => 'Επιλέξτε…',
         'lookup_source' => 'Σε ποιες εγγραφές γίνεται αναζήτηση',
         'options_dropdown' => 'Επιλογές αναπτυσσόμενης λίστας',

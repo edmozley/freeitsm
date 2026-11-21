@@ -933,7 +933,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     </div>
                     <p><?php echo t('asset-management.consumables.help_intro'); ?></p>
                     <div class="help-list">
-                        <?php foreach (['p1', 'p2', 'p8', 'p3', 'p4', 'p5', 'p6', 'p7'] as $hp): ?>
+                        <?php foreach (['p1', 'p2', 'p8', 'p3', 'p9', 'p4', 'p5', 'p6', 'p7'] as $hp): ?>
                         <div><?php echo t('asset-management.consumables.help_' . $hp); ?></div>
                         <?php endforeach; ?>
                     </div>

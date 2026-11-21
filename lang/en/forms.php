@@ -349,6 +349,7 @@ return [
         'lookup_src_cmdb' => 'CMDB objects',
         'lookup_src_asset' => 'Assets',
         'lookup_src_location' => 'Locations',   // GH #311
+        'lookup_src_consumable' => 'Consumable items',   // 5.8.0
         'lookup_pick' => 'Choose…',
         'lookup_source' => 'Search which records',
         'options_dropdown'  => 'Dropdown options',

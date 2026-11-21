@@ -865,6 +865,22 @@ return [
     // Link to... -> Consumables (5.8.0): issue stock against the ticket.
     'consumables' => [
         'menu_item' => 'Verbrauchsmaterial',
+        'use' => 'Verbrauchsmaterial verwenden',
+        'loading' => 'Wird geladen...',
+        'none' => 'In diesem Unternehmen gibt es noch kein Verbrauchsmaterial.',
+        'out' => 'Nicht vorrätig',
+        'in_stock' => '{n} vorrätig',
+        'used' => '{n} x {name} für das Ticket verwendet ({left} übrig).',
+        'failed' => 'Das hat nicht geklappt. Bitte erneut versuchen.',
+        'used_title' => 'Verwendet von {who}',
+        'pill' => '{n} x {name}',
+        'undo_title' => 'Diese Verwendung rückgängig machen',
+        'undo_message' => 'Es geht zurück in den Bestand. Die Verwendung bleibt mit der Rücknahme daneben im Verlauf.',
+        'undo' => 'Rückgängig',
+        'undo_reason' => 'Warum (erforderlich)',
+        'undone' => 'Rückgängig gemacht.',
+        'asked' => 'Angefordert: {name}',
+        'asked_title' => 'Angefordert über "{form}" - {n} vorrätig. Klicken, um eines zu verwenden.',
     ],
     'assets' => [
         'menu_item' => 'Geräte',

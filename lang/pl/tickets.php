@@ -865,6 +865,22 @@ return [
     // Link to... -> Consumables (5.8.0): issue stock against the ticket.
     'consumables' => [
         'menu_item' => 'Materiały eksploatacyjne',
+        'use' => 'Użyj materiału eksploatacyjnego',
+        'loading' => 'Wczytywanie...',
+        'none' => 'W tej firmie nie ma jeszcze materiałów eksploatacyjnych.',
+        'out' => 'Brak w magazynie',
+        'in_stock' => 'Na stanie: {n}',
+        'used' => 'Użyto {n} x {name} w zgłoszeniu (pozostało: {left}).',
+        'failed' => 'Nie udało się. Spróbuj ponownie.',
+        'used_title' => 'Użył(a): {who}',
+        'pill' => '{n} x {name}',
+        'undo_title' => 'Cofnij to użycie',
+        'undo_message' => 'Wraca na stan. Użycie zostaje w historii z cofnięciem obok.',
+        'undo' => 'Cofnij',
+        'undo_reason' => 'Powód (wymagany)',
+        'undone' => 'Cofnięto.',
+        'asked' => 'Zamówiono: {name}',
+        'asked_title' => 'Zamówiono w formularzu „{form}” - na stanie: {n}. Kliknij, aby użyć jednego.',
     ],
     'assets' => [
         'menu_item' => 'Sprzęt',

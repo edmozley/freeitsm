@@ -305,6 +305,7 @@ return [
         'lookup_src_cmdb' => 'Objetos de la CMDB',
         'lookup_src_asset' => 'Activos',
         'lookup_src_location' => 'Ubicaciones',
+        'lookup_src_consumable' => 'Consumibles',   // 5.8.0
         'lookup_pick' => 'Elige…',
         'lookup_source' => 'Buscar en qué registros',
         'options_dropdown' => 'Opciones del desplegable',

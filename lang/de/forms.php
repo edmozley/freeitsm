@@ -305,6 +305,7 @@ return [
         'lookup_src_cmdb' => 'CMDB-Objekte',
         'lookup_src_asset' => 'Assets',
         'lookup_src_location' => 'Standorte',
+        'lookup_src_consumable' => 'Verbrauchsmaterial',   // 5.8.0
         'lookup_pick' => 'Auswählen…',
         'lookup_source' => 'Welche Datensätze durchsuchen',
         'options_dropdown' => 'Dropdown-Optionen',

@@ -3742,6 +3742,7 @@ function displayEmail(email, recordings) {
     loadTicketDomains(email.ticket_id);
     loadTicketProjects(email.ticket_id);
     loadTicketAssets(email.ticket_id);
+    loadTicketConsumables(email.ticket_id);   // Consumables (5.8.0)
     loadTicketTasks(email.ticket_id);
     loadTimeEntries(email.ticket_id);
     loadSlaState(email.ticket_id);
@@ -4196,6 +4197,7 @@ function buildLinksSection(email, workspace = false) {
         <span class="links-strip-pills">
             ${body}
             <span class="strip-pill-group" id="stripAssetPills"></span>
+            <span class="strip-pill-group" id="stripConsumablePills"></span>
             <span class="strip-pill-group" id="stripCmdbPills"></span>
             <span class="strip-pill-group" id="stripDomainPills"></span>
             <span class="strip-pill-group" id="stripProjectPills"></span>
@@ -4250,7 +4252,8 @@ function syncLinksStripEmpty() {
     const c = document.getElementById('stripCmdbPills');
     const dm = document.getElementById('stripDomainPills');
     const pj = document.getElementById('stripProjectPills');
-    const has = (a && a.children.length) || (c && c.children.length) || (dm && dm.children.length) || (pj && pj.children.length);
+    const cs = document.getElementById('stripConsumablePills');
+    const has = (a && a.children.length) || (c && c.children.length) || (dm && dm.children.length) || (pj && pj.children.length) || (cs && cs.children.length);
     note.hidden = !!has;
 }
 
@@ -6926,6 +6929,131 @@ async function removeCmdbObject(ev, linkId, ticketId) {
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
     }
+}
+
+// ─── Use a consumable (Assets -> Consumables, 5.8.0) ──────────────────────────
+// Ed: "right click and choose Use a consumable... the sub menu would list say 10
+// items and have an inline search". One ticket at a time: an issue is to ONE
+// requester. Picking an item issues one of it against the ticket, to its requester
+// (ConsumablesService::issueToTicket() - from the ticket's own company's stock,
+// never below zero, recorded in the ledger and the ticket's history). The ticket's
+// Links strip then shows it, with a cross to undo it.
+const CONSUMABLES_API = '../api/assets/consumables.php';
+
+/** Fills the "Use a consumable" flyout for the right-clicked ticket: the first 10 and a search. */
+async function populateContextConsumablesSubmenu() {
+    const item = document.getElementById('ctxConsumablesItem');
+    const sub = document.getElementById('ctxConsumablesSubmenu');
+    if (!item || !sub) return;
+    item.style.display = ctxActsOnSelection ? 'none' : '';
+    if (ctxActsOnSelection || !ctxTargetTicketId) return;
+    const forTicket = ctxTargetTicketId;
+    sub.innerHTML = '<div class="ticket-context-submenu-item" style="cursor:default;color:var(--text-muted, #888);">' + escapeHtml(t('tickets.consumables.loading')) + '</div>';
+    let d = null;
+    try { d = await (await fetch(CONSUMABLES_API + '?action=ticket_items&id=' + encodeURIComponent(forTicket))).json(); } catch (e) { d = null; }
+    if (ctxTargetTicketId !== forTicket) return;   // the menu moved on to another ticket
+    if (!d || !d.success) {
+        // No consumables yet (or tables not made): the item would lead nowhere.
+        item.style.display = 'none';
+        return;
+    }
+    if (!d.items.length) {
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="cursor:default;font-style:italic;color:var(--text-muted, #888);">' + escapeHtml(t('tickets.consumables.none')) + '</div>';
+        return;
+    }
+    sub.innerHTML = d.items.map(i => {
+        const out = i.on_hand <= 0;
+        const stock = out ? t('tickets.consumables.out') : t('tickets.consumables.in_stock', { n: i.on_hand });
+        return `<div class="ticket-context-submenu-item${out ? ' ctx-disabled' : ''}" ${out ? 'aria-disabled="true"' : `onclick="useConsumableFromContext(${i.id})"`}
+                     title="${escapeHtml(i.part_number || '')}">
+            <span class="ctx-status-name">${escapeHtml(i.name)}</span>
+            <span class="ctx-sub-note${out ? ' ctx-sub-out' : ''}">${escapeHtml(stock)}</span>
+        </div>`;
+    }).join('');
+    // The search box: assets/js/select-search.js, which only multi-company pages load -
+    // so fetched here the first time it is needed (a page that never uses this menu is unchanged).
+    await ensureSelectSearch();
+    if (ctxTargetTicketId !== forTicket) return;
+    if (window.FreeitsmSelectSearch) FreeitsmSelectSearch.filterList(sub, '.ticket-context-submenu-item', { cap: 10, always: true });
+}
+
+/** Loads assets/js/select-search.js once, if the page has not already. */
+function ensureSelectSearch() {
+    if (window.FreeitsmSelectSearch) return Promise.resolve();
+    if (ensureSelectSearch.p) return ensureSelectSearch.p;
+    ensureSelectSearch.p = new Promise(done => {
+        const s = document.createElement('script');
+        s.src = '../assets/js/select-search.js?v=' + Date.now().toString().slice(0, 7);
+        s.onload = s.onerror = () => done();
+        document.head.appendChild(s);
+    });
+    return ensureSelectSearch.p;
+}
+
+/** Uses one of an item on the right-clicked ticket. */
+async function useConsumableFromContext(itemId) {
+    closeTicketContextMenu();
+    if (!ctxTargetTicketId) return;
+    await useConsumableOnTicket(ctxTargetTicketId, itemId, 1);
+}
+
+/** Issues `qty` of an item against a ticket, to its requester; says so, and refreshes its pills. */
+async function useConsumableOnTicket(ticketId, itemId, qty) {
+    try {
+        const d = await (await fetch(CONSUMABLES_API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'issue_to_ticket', ticket_id: ticketId, item_id: itemId, quantity: qty }) })).json();
+        if (!d.success) { showToast(d.error || t('tickets.consumables.failed'), 'error'); return; }
+        showToast(t('tickets.consumables.used', { n: qty, name: d.name, left: d.on_hand }), 'success');
+        if (currentEmail && currentEmail.ticket_id == ticketId) loadTicketConsumables(ticketId);
+    } catch (e) {
+        showToast(t('tickets.consumables.failed'), 'error');
+    }
+}
+
+/**
+ * The ticket's consumables as pills in the Links strip: each one used (with a cross to
+ * undo it - a reason is asked for, as everywhere in Consumables), and each one its form
+ * asked for that has not been used yet (click to use one).
+ */
+async function loadTicketConsumables(ticketId) {
+    const host = document.getElementById('stripConsumablePills');
+    if (!host || !ticketModuleOn('assets')) return;
+    let d = null;
+    try { d = await (await fetch(CONSUMABLES_API + '?action=ticket&id=' + encodeURIComponent(ticketId))).json(); } catch (e) { d = null; }
+    if (!currentEmail || currentEmail.ticket_id != ticketId) return;
+    if (!d || !d.success) { host.innerHTML = ''; syncLinksStripEmpty(); return; }
+    const undone = new Set(d.issued.filter(m => m.kind === 'reverse').map(m => m.reverses_id));
+    const used = d.issued.filter(m => m.kind === 'issue' && !undone.has(m.id));
+    const asked = d.requested.filter(r => r.issued_here === 0);
+    host.innerHTML = used.map(m => `<a class="pm-ticket-badge" href="../asset-management/consumables/?item=${m.item_id}" title="${escapeHtml(t('tickets.consumables.used_title', { who: m.analyst_name || '' }))}">
+            📦 <span class="pill-text">${escapeHtml(t('tickets.consumables.pill', { n: -m.quantity, name: m.item_name }))}</span>
+            <span class="pm-ticket-unlink" title="${escapeHtml(t('tickets.consumables.undo_title'))}" onclick="event.preventDefault();event.stopPropagation();undoTicketConsumable(${m.id}, ${ticketId});">✕</span>
+        </a>`).join('')
+        + asked.map(r => `<span class="pm-ticket-badge pm-badge-asked" role="button" tabindex="0" title="${escapeHtml(t('tickets.consumables.asked_title', { form: r.form, n: r.on_hand }))}"
+                onclick="useConsumableOnTicket(${ticketId}, ${r.item_id}, 1)">
+            📦 <span class="pill-text">${escapeHtml(t('tickets.consumables.asked', { name: r.name }))}</span>
+        </span>`).join('');
+    syncLinksStripEmpty();
+}
+
+/** Undo one use of a consumable on the ticket - with a reason, kept in the ledger beside it. */
+function undoTicketConsumable(movementId, ticketId) {
+    showConfirm({
+        title: t('tickets.consumables.undo_title'),
+        message: t('tickets.consumables.undo_message'),
+        okLabel: t('tickets.consumables.undo'),
+        textarea: { placeholder: t('tickets.consumables.undo_reason'), label: t('tickets.consumables.undo_reason'), focus: true },
+        onConfirm: async ({ text }) => {
+            if (!text || !text.trim()) { showToast(t('tickets.consumables.undo_reason'), 'error'); return; }
+            try {
+                const d = await (await fetch(CONSUMABLES_API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'reverse', movement_id: movementId, reason: text.trim() }) })).json();
+                if (!d.success) { showToast(d.error || t('tickets.consumables.failed'), 'error'); return; }
+                showToast(t('tickets.consumables.undone'), 'success');
+                loadTicketConsumables(ticketId);
+            } catch (e) { showToast(t('tickets.consumables.failed'), 'error'); }
+        }
+    });
 }
 
 // ─── Linked assets (discussion #57) ──────────────────────────────────────────
@@ -11297,6 +11425,7 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
     populateContextChecklistSubmenu();
     if (typeof populateContextWatchItem === 'function') populateContextWatchItem();   // GH #277
     if (typeof populateContextFormsSubmenu === 'function') populateContextFormsSubmenu(ctxActsOnSelection ? selectedTicketIds() : [ctxTargetTicketId]);   // GH #272
+    populateContextConsumablesSubmenu();   // Consumables (5.8.0)
 
     // On a phone the menu is a full-screen sheet, not a popup at the finger:
     // a 220px flyout menu with hover submenus cannot be used with a thumb.

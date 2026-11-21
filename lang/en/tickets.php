@@ -1048,6 +1048,22 @@ return [
     // Link to... -> Consumables (5.8.0): issue stock against the ticket.
     'consumables' => [
         'menu_item' => 'Consumables',
+        'use' => 'Use a consumable',
+        'loading' => 'Loading...',
+        'none' => 'No consumables in this company yet.',
+        'out' => 'Out of stock',
+        'in_stock' => '{n} in stock',
+        'used' => 'Used {n} x {name} on the ticket ({left} left).',
+        'failed' => 'That did not work. Please try again.',
+        'used_title' => 'Used by {who}',
+        'pill' => '{n} x {name}',
+        'undo_title' => 'Undo this use',
+        'undo_message' => 'It goes back into stock. The use stays in the history with the undo beside it.',
+        'undo' => 'Undo',
+        'undo_reason' => 'Why (required)',
+        'undone' => 'Undone.',
+        'asked' => 'Asked for: {name}',
+        'asked_title' => 'Asked for on "{form}" - {n} in stock. Click to use one.',
     ],
     'assets' => [
         'menu_item'          => 'Equipment',

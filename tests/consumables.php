@@ -24,6 +24,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/services/consumables.php';
 require_once __DIR__ . '/../includes/documents.php';
+require_once __DIR__ . '/../includes/services/forms.php';
 
 $pass = 0; $fail = 0;
 function ok(string $what, bool $cond, string $detail = ''): void {
@@ -187,6 +188,48 @@ try {
     ok('undoing the delivery takes all three back out', $n === 3 && $onHand($mouse) === 3 && $onHand($kb) === 1);
     ok('...once', refused(fn() => ConsumablesService::reverseDelivery($conn, $A, $del['delivery_id'], 'again')) === 'already_reversed');
     ok('the undos stay with the delivery', count(ConsumablesService::getDelivery($conn, $A, $del['delivery_id'])['lines']) === 6);
+
+    // ---- using consumables on a ticket (Ed: "we definitely need a way of using consumables") ----
+    $tk = $conn->query("SELECT id, tenant_id, user_id FROM tickets WHERE deleted_datetime IS NULL AND user_id IS NOT NULL ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    if ($tk) {
+        $tkId = (int)$tk['id'];
+        // the ticket's company must be the item's: put the item in it
+        $conn->prepare("UPDATE consumable_items SET tenant_id = ? WHERE id IN (?, ?)")->execute([$tk['tenant_id'] !== null ? (int)$tk['tenant_id'] : getDefaultTenantId($conn), $mouse, $kb]);
+        ConsumablesService::move($conn, $A, 'receive', $mouse, ['quantity' => 5]);
+        $listed = array_column(ConsumablesService::ticketItems($conn, $A, $tkId), 'id');
+        ok('the ticket\'s menu lists its company\'s items', in_array($mouse, $listed, true));
+        $before = $onHand($mouse);
+        $u = ConsumablesService::issueToTicket($conn, $A, $tkId, $mouse, 1);
+        $mv = $conn->query("SELECT ticket_id, recipient_user_id, source FROM consumable_movements WHERE id = " . (int)$u['movement_id'])->fetch(PDO::FETCH_ASSOC);
+        ok('using one issues it against the ticket, to its requester', $onHand($mouse) === $before - 1 && (int)$mv['ticket_id'] === $tkId
+            && (int)$mv['recipient_user_id'] === (int)$tk['user_id'] && $mv['source'] === 'ticket');
+        ok('...and the ticket lists it as used', in_array((int)$u['movement_id'], array_column(ConsumablesService::forTicket($conn, $A, $tkId)['issued'], 'id'), true));
+        // an item in ANOTHER company's stock cannot go on this ticket
+        $other = (int)$conn->query("SELECT id FROM tenants WHERE id <> " . ($tk['tenant_id'] !== null ? (int)$tk['tenant_id'] : getDefaultTenantId($conn)) . " ORDER BY id LIMIT 1")->fetchColumn();
+        if ($other) {
+            $conn->prepare("UPDATE consumable_items SET tenant_id = ? WHERE id = ?")->execute([$other, $kb]);
+            ok('an item from another company\'s stock is refused on the ticket', refused(fn() => ConsumablesService::issueToTicket($conn, $A, $tkId, $kb, 1)) === 'invalid_field');
+            $conn->prepare("UPDATE consumable_items SET tenant_id = ? WHERE id = ?")->execute([$tk['tenant_id'], $kb]);
+        }
+        // a form on the ticket asks for a keyboard: the ticket shows it, not yet used
+        $conn->prepare("INSERT INTO forms (title) VALUES (?)")->execute(["$tag Supplies request"]);
+        $fid = (int)$conn->lastInsertId();
+        $conn->prepare("INSERT INTO form_fields (form_id, field_type, label, config) VALUES (?, 'lookup', 'Which item?', ?)")->execute([$fid, json_encode(['lookup_source' => 'consumable'])]);
+        $ffid = (int)$conn->lastInsertId();
+        $conn->prepare("INSERT INTO form_submissions (form_id, ticket_id) VALUES (?, ?)")->execute([$fid, $tkId]);
+        $sid = (int)$conn->lastInsertId();
+        $conn->prepare("INSERT INTO form_submission_data (submission_id, field_id, field_value) VALUES (?, ?, ?)")->execute([$sid, $ffid, json_encode(['id' => $kb, 'label' => "$tag Keyboard"])]);
+        $req = ConsumablesService::forTicket($conn, $A, $tkId)['requested'];
+        $r0 = array_values(array_filter($req, fn($r) => $r['item_id'] === $kb))[0] ?? null;
+        ok('a consumable asked for on the ticket\'s form is listed, not yet used', $r0 && $r0['issued_here'] === 0 && $r0['form'] === "$tag Supplies request", json_encode($req));
+        ok('asking moves no stock', $onHand($kb) === 1);
+        ConsumablesService::issueToTicket($conn, $A, $tkId, $kb, 1);
+        $r1 = array_values(array_filter(ConsumablesService::forTicket($conn, $A, $tkId)['requested'], fn($r) => $r['item_id'] === $kb))[0] ?? null;
+        ok('once used, it says so', $r1 && $r1['issued_here'] === 1);
+        ok('the forms lookup offers consumables', isset(FormsService::LOOKUP_SOURCES['consumable']) && !empty(FormsService::LOOKUP_SOURCES['consumable']['portal_safe']));
+    } else {
+        echo "  SKIP  no ticket with a requester: the ticket checks\n";
+    }
 
     // ---- the books balance --------------------------------------------------------
     ok('on hand equals the ledger', $onHand($item) === $ledger($item));

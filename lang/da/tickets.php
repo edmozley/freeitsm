@@ -865,6 +865,22 @@ return [
     // Link to... -> Consumables (5.8.0): issue stock against the ticket.
     'consumables' => [
         'menu_item' => 'Forbrugsvarer',
+        'use' => 'Brug en forbrugsvare',
+        'loading' => 'Indlæser...',
+        'none' => 'Ingen forbrugsvarer i denne virksomhed endnu.',
+        'out' => 'Ikke på lager',
+        'in_stock' => '{n} på lager',
+        'used' => 'Brugte {n} x {name} på sagen ({left} tilbage).',
+        'failed' => 'Det lykkedes ikke. Prøv igen.',
+        'used_title' => 'Brugt af {who}',
+        'pill' => '{n} x {name}',
+        'undo_title' => 'Fortryd denne brug',
+        'undo_message' => 'Den går tilbage på lager. Brugen bliver i historikken med fortrydelsen ved siden af.',
+        'undo' => 'Fortryd',
+        'undo_reason' => 'Hvorfor (påkrævet)',
+        'undone' => 'Fortrudt.',
+        'asked' => 'Bedt om: {name}',
+        'asked_title' => 'Bedt om på "{form}" - {n} på lager. Klik for at bruge en.',
     ],
     'assets' => [
         'menu_item' => 'Udstyr',

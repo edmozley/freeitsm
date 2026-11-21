@@ -152,3 +152,12 @@
     .ticket-context-menu.ctx-scroll { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
     .ticket-context-menu.ctx-scroll::-webkit-scrollbar { display: none; }
 }
+/* Use a consumable (5.8.0): how many are on the shelf beside each item, an empty one
+   greyed out, and an item the ticket's form asked for as a dashed pill to click. */
+.ticket-context-submenu-item .ctx-sub-note { margin-left: auto; padding-left: 12px; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #888); white-space: nowrap; }
+.ticket-context-submenu-item .ctx-sub-out { color: var(--danger-text, #b42318); }
+.ticket-context-submenu-item.ctx-disabled { opacity: .55; cursor: default; }
+.ticket-context-submenu-item.ctx-disabled:hover { background: none; }
+.pm-ticket-badge.pm-badge-asked { border-style: dashed; cursor: pointer; }
+#ctxConsumablesSubmenu { min-width: 300px; }
+#ctxConsumablesSubmenu .ctx-status-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

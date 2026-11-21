@@ -305,6 +305,7 @@ return [
         'lookup_src_cmdb' => 'CMDB-objekter',
         'lookup_src_asset' => 'Aktiver',
         'lookup_src_location' => 'Lokationer',
+        'lookup_src_consumable' => 'Forbrugsvarer',   // 5.8.0
         'lookup_pick' => 'Vælg…',
         'lookup_source' => 'Søg i hvilke poster',
         'options_dropdown' => 'Dropdown-valgmuligheder',

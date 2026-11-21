@@ -305,6 +305,7 @@ return [
         'lookup_src_cmdb' => 'Об\'єкти CMDB',
         'lookup_src_asset' => 'Активи',
         'lookup_src_location' => 'Розташування',
+        'lookup_src_consumable' => 'Витратні матеріали',   // 5.8.0
         'lookup_pick' => 'Оберіть…',
         'lookup_source' => 'Які записи шукати',
         'options_dropdown' => 'Варіанти списку',

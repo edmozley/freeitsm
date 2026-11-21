@@ -11,6 +11,8 @@
  *   GET  ?action=counts | count&id=N | differences&months=N   stock takes and the differences report
  *   GET  ?action=verify                                    items whose stock and ledger disagree (should be none)
  *   GET  ?action=deliveries&q= | delivery&id=N               deliveries: one order, its lines and documents
+ *   GET  ?action=ticket&id=N                               a ticket's consumables: requested on its forms, and issued against it
+ *   GET  ?action=ticket_items&id=N                         the items the ticket's company has, for "Use a consumable"
  *
  *   POST {action: save_item | save_type | move | reverse | count_start | count_line | count_finish | count_cancel
  *               | receive_delivery | save_delivery | reverse_delivery, ...}
@@ -94,6 +96,14 @@ try {
             case 'differences':
                 $out = ['report' => ConsumablesService::differences($conn, $ctx, $int('months') ?: 12)];
                 break;
+            case 'ticket':
+                if (!analystCanAccessTicket($conn, $aid, $int('id'))) throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+                $out = ConsumablesService::forTicket($conn, $ctx, $int('id'));
+                break;
+            case 'ticket_items':
+                if (!analystCanAccessTicket($conn, $aid, $int('id'))) throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+                $out = ['items' => ConsumablesService::ticketItems($conn, $ctx, $int('id'))];
+                break;
             case 'deliveries':
                 $out = ['deliveries' => ConsumablesService::deliveries($conn, $ctx, ['q' => $str('q')])];
                 break;
@@ -126,6 +136,11 @@ try {
         case 'move':
             unset($in['delivery_id']);   // a receipt joins a delivery only through receive_delivery
             $out = ConsumablesService::move($conn, $ctx, (string)($in['kind'] ?? ''), (int)($in['item_id'] ?? 0), $in);
+            break;
+        case 'issue_to_ticket':
+            // Use a consumable on a ticket (right-click, or the ticket's Consumables pills): to its requester.
+            if (!analystCanAccessTicket($conn, $aid, (int)($in['ticket_id'] ?? 0))) throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+            $out = ConsumablesService::issueToTicket($conn, $ctx, (int)($in['ticket_id'] ?? 0), (int)($in['item_id'] ?? 0), $in['quantity'] ?? 1);
             break;
         case 'receive_delivery':
             $out = ConsumablesService::receiveDelivery($conn, $ctx, (array)($in['delivery'] ?? []));

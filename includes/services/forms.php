@@ -296,6 +296,20 @@ class FormsService
             // Place names - a customer saying which office they are in needs them.
             'portal_safe'     => true,
         ],
+        // Assets -> Consumables (5.8.0): "which toner / which mouse" on a request form. The
+        // ticket raised from it lists what was asked for, with Issue beside it - asking never
+        // moves stock (ConsumablesService::forTicket()). Item names and part numbers only, the
+        // ones in use, the requester's own company's.
+        'consumable' => [
+            'table'       => 'consumable_items',
+            'id_col'      => 'id',
+            'label_col'   => 'name',
+            'search_cols' => ['name', 'part_number'],
+            'tenant_col'  => 'tenant_id',
+            'where'       => '`is_active` = 1',
+            // What a customer asks for - toner, paper, a mouse. Nothing private in a name.
+            'portal_safe' => true,
+        ],
         'user' => [
             'table'       => 'users',
             'id_col'      => 'id',

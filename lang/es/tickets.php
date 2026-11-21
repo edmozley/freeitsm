@@ -865,6 +865,22 @@ return [
     // Link to... -> Consumables (5.8.0): issue stock against the ticket.
     'consumables' => [
         'menu_item' => 'Consumibles',
+        'use' => 'Usar un consumible',
+        'loading' => 'Cargando...',
+        'none' => 'Todavía no hay consumibles en esta empresa.',
+        'out' => 'Sin existencias',
+        'in_stock' => '{n} en existencias',
+        'used' => 'Se han usado {n} x {name} en el ticket (quedan {left}).',
+        'failed' => 'No ha funcionado. Inténtelo de nuevo.',
+        'used_title' => 'Usado por {who}',
+        'pill' => '{n} x {name}',
+        'undo_title' => 'Deshacer este uso',
+        'undo_message' => 'Vuelve a las existencias. El uso queda en el historial con la anulación al lado.',
+        'undo' => 'Deshacer',
+        'undo_reason' => 'Motivo (obligatorio)',
+        'undone' => 'Deshecho.',
+        'asked' => 'Solicitado: {name}',
+        'asked_title' => 'Solicitado en "{form}" - {n} en existencias. Haga clic para usar uno.',
     ],
     'assets' => [
         'menu_item' => 'Equipo',

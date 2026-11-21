@@ -445,6 +445,12 @@ final class ConsumablesService
             if ($ctx->actorId > 0 && !analystCanAccessTicket($conn, $ctx->actorId, $ticketId)) {
                 throw new ServiceError('not_found', 'not_found', 'That ticket does not exist, or you cannot see it.');
             }
+            // A ticket takes stock only from its own company's store.
+            $tt = self::ticketTenant($conn, $ticketId);
+            if (!$tt) throw new ServiceError('not_found', 'not_found', 'That ticket does not exist, or you cannot see it.');
+            if ($tt['tenant'] !== ((int)$item['tenant_id'] ?: getDefaultTenantId($conn))) {
+                throw new ServiceError('validation', 'invalid_field', "That item is in another company's stock than the ticket.");
+            }
         }
         $userId = null;
         if (!empty($in['recipient_user_id'])) {
@@ -810,6 +816,120 @@ final class ConsumablesService
         }
         return count($ids);
     }
+    // ====================================================================
+    //  On a ticket: what was asked for, and what went out (Ed: "we definitely need a
+    //  way of using consumables")
+    // ====================================================================
+
+    /**
+     * A ticket's consumables. ISSUED: every issue and return against it, as the ledger
+     * has them. REQUESTED: the consumables its forms asked for - a Forms lookup question
+     * on the Consumables source, answered on the catalogue request the ticket was raised
+     * from (form_submissions.ticket_id) or on a form filled in on the ticket
+     * (ticket_forms) - each with whether some of it has been issued here yet. A request
+     * never moves stock: issuing is a person handing it over (see the wiki: "Issued
+     * should mean somebody handed it over").
+     *
+     * @param int $ticketId  a ticket the caller has already been allowed to see
+     * @return array {issued: movements, requested: [{item_id, name, part_number, unit, on_hand, status, issued_here, form}]}
+     */
+    public static function forTicket(PDO $conn, ActorContext $ctx, int $ticketId): array
+    {
+        $issued = array_values(array_filter(self::movements($conn, ['ticket' => $ticketId], 200),
+            fn($m) => in_array($m['kind'], ['issue', 'return', 'reverse'], true)));
+        $requested = [];
+        try {
+            $st = $conn->prepare(
+                "SELECT d.field_value, f.title AS form_title
+                   FROM form_submission_data d
+                   JOIN form_fields ff ON ff.id = d.field_id AND ff.field_type = 'lookup'
+                   JOIN form_submissions s ON s.id = d.submission_id
+                   JOIN forms f ON f.id = s.form_id
+                  WHERE (s.ticket_id = ? OR s.id IN (SELECT tf.submission_id FROM ticket_forms tf WHERE tf.ticket_id = ? AND tf.submission_id IS NOT NULL))
+                    AND JSON_UNQUOTE(JSON_EXTRACT(ff.config, '$.lookup_source')) = 'consumable'"
+            );
+            $st->execute([$ticketId, $ticketId]);
+            $asked = [];
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $v = json_decode((string)$r['field_value'], true);
+                $id = is_array($v) ? (int)($v['id'] ?? 0) : 0;
+                if ($id > 0 && !isset($asked[$id])) $asked[$id] = (string)$r['form_title'];
+            }
+            foreach ($asked as $id => $form) {
+                try { $it = self::item($conn, $ctx, $id); } catch (ServiceError $e) { continue; }   // gone, or out of reach
+                $store = self::itemStore($conn, $it);
+                $s = $conn->prepare("SELECT on_hand, reorder_point FROM consumable_stock WHERE item_id = ? AND store_id = ?");
+                $s->execute([$id, $store]);
+                $stock = $s->fetch(PDO::FETCH_ASSOC) ?: ['on_hand' => 0, 'reorder_point' => null];
+                $out = 0;
+                foreach ($issued as $m) if ($m['item_id'] === $id) $out -= $m['quantity'];   // issues are negative
+                $requested[] = [
+                    'item_id' => $id, 'name' => $it['name'], 'part_number' => $it['part_number'], 'unit' => $it['unit'],
+                    'on_hand' => (int)$stock['on_hand'],
+                    'status' => self::status((int)$stock['on_hand'], $stock['reorder_point'] !== null ? (int)$stock['reorder_point'] : null),
+                    'issued_here' => max(0, $out), 'form' => $form,
+                ];
+            }
+        } catch (Throwable $e) {
+            error_log('consumables forTicket: ' . $e->getMessage());   // no forms tables: nothing requested
+        }
+        return ['issued' => $issued, 'requested' => $requested];
+    }
+
+    /** A ticket's company - NULL is the Default company's, as everywhere. */
+    private static function ticketTenant(PDO $conn, int $ticketId): ?array
+    {
+        $st = $conn->prepare("SELECT id, tenant_id, user_id FROM tickets WHERE id = ? AND deleted_datetime IS NULL");
+        $st->execute([$ticketId]);
+        $t = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$t) return null;
+        $t['tenant'] = (int)$t['tenant_id'] ?: getDefaultTenantId($conn);
+        return $t;
+    }
+
+    /**
+     * The items a ticket can use: those in use in the TICKET's company (not the analyst's
+     * active one - a ticket only ever takes from its own company's store), with what is on
+     * hand. For the ticket list's right-click "Use a consumable" (Ed, 2026-11-21).
+     */
+    public static function ticketItems(PDO $conn, ActorContext $ctx, int $ticketId): array
+    {
+        $t = self::ticketTenant($conn, $ticketId);
+        if (!$t) throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+        $store = self::storeFor($conn, $t['tenant']);
+        $st = $conn->prepare(
+            "SELECT i.id, i.name, i.part_number, i.unit, COALESCE(s.on_hand, 0) AS on_hand, s.reorder_point
+               FROM consumable_items i
+               LEFT JOIN consumable_stock s ON s.item_id = i.id AND s.store_id = ?
+              WHERE i.is_active = 1 AND COALESCE(i.tenant_id, ?) = ?
+              ORDER BY i.name LIMIT " . self::LIST_LIMIT
+        );
+        $st->execute([$store, getDefaultTenantId($conn), $t['tenant']]);
+        return array_map(fn($r) => ['id' => (int)$r['id'], 'name' => $r['name'], 'part_number' => $r['part_number'], 'unit' => $r['unit'],
+            'on_hand' => (int)$r['on_hand'], 'status' => self::status((int)$r['on_hand'], $r['reorder_point'] !== null ? (int)$r['reorder_point'] : null)],
+            $st->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /**
+     * Use a consumable on a ticket: issue it against the ticket, to the ticket's requester,
+     * in one step - the right-click menu and the ticket's Consumables pills.
+     *
+     * @return array move()'s answer plus the item's name
+     */
+    public static function issueToTicket(PDO $conn, ActorContext $ctx, int $ticketId, int $itemId, $quantity = 1): array
+    {
+        $t = self::ticketTenant($conn, $ticketId);
+        if (!$t) throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+        $ctx->source = 'ticket';
+        $r = self::move($conn, $ctx, 'issue', $itemId, [
+            'quantity' => $quantity, 'ticket_id' => $ticketId,
+            'recipient_user_id' => $t['user_id'] !== null ? (int)$t['user_id'] : null,
+        ]);
+        $st = $conn->prepare("SELECT name FROM consumable_items WHERE id = ?");
+        $st->execute([$itemId]);
+        return $r + ['name' => (string)$st->fetchColumn()];
+    }
+
     // ====================================================================
     //  Running low
     // ====================================================================

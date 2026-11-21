@@ -305,6 +305,7 @@ return [
         'lookup_src_cmdb' => 'Obiekty CMDB',
         'lookup_src_asset' => 'Zasoby',
         'lookup_src_location' => 'Lokalizacje',
+        'lookup_src_consumable' => 'Materiały eksploatacyjne',   // 5.8.0
         'lookup_pick' => 'Wybierz…',
         'lookup_source' => 'Przeszukiwane rekordy',
         'options_dropdown' => 'Opcje listy rozwijanej',

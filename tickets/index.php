@@ -70,7 +70,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
-    <link rel="stylesheet" href="../assets/css/reading-pane.css?v=8">
+    <link rel="stylesheet" href="../assets/css/reading-pane.css?v=10">
     <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=4">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=7">
@@ -876,6 +876,15 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
             <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
             <div class="ticket-context-submenu" id="ctxFormsSubmenu" role="menu"></div>
         </div>
+        <?php if ($ticketsModuleOn['assets']): /* Assets -> Consumables (5.8.0; Ed: "right click and choose Use a consumable",
+            the first 10 with a search). One ticket at a time; filled by populateContextConsumablesSubmenu(). */ ?>
+        <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0" id="ctxConsumablesItem">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><line x1="12" y1="13" x2="12" y2="21"/></svg>
+            <span><?php echo htmlspecialchars(t('tickets.consumables.use')); ?></span>
+            <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            <div class="ticket-context-submenu" id="ctxConsumablesSubmenu" role="menu"></div>
+        </div>
+        <?php endif; ?>
         <?php if ($ticketsModuleOn['time-tracking']): /* GH #217 */ ?>
         <button class="ticket-context-menu-item" type="button" onclick="openContextRecordTime()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1212,7 +1221,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
         } catch (Throwable $e) { $__linkStatus = null; }
     } ?>
     <script>window.TICKET_LINK_STATUS = <?php echo json_encode($__linkStatus, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
-    <script src="../assets/js/inbox.js?v=220"></script>
+    <script src="../assets/js/inbox.js?v=222"></script>
     <script src="../assets/js/ticket-folders-pane.js?v=2"></script>   <!-- discussion #292 -->
     <script src="../assets/js/ticket-watchers.js?v=2"></script>
     <script src="../assets/js/ticket-forms.js?v=5"></script>

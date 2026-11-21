@@ -865,6 +865,22 @@ return [
     // Link to... -> Consumables (5.8.0): issue stock against the ticket.
     'consumables' => [
         'menu_item' => 'Barang habis pakai',
+        'use' => 'Gunakan barang habis pakai',
+        'loading' => 'Memuat...',
+        'none' => 'Belum ada barang habis pakai di perusahaan ini.',
+        'out' => 'Stok habis',
+        'in_stock' => '{n} tersedia',
+        'used' => 'Menggunakan {n} x {name} pada tiket (sisa {left}).',
+        'failed' => 'Gagal. Silakan coba lagi.',
+        'used_title' => 'Digunakan oleh {who}',
+        'pill' => '{n} x {name}',
+        'undo_title' => 'Batalkan penggunaan ini',
+        'undo_message' => 'Barang kembali ke stok. Penggunaannya tetap di riwayat dengan pembatalan di sebelahnya.',
+        'undo' => 'Batalkan',
+        'undo_reason' => 'Alasan (wajib)',
+        'undone' => 'Dibatalkan.',
+        'asked' => 'Diminta: {name}',
+        'asked_title' => 'Diminta pada "{form}" - {n} tersedia. Klik untuk menggunakan satu.',
     ],
     'assets' => [
         'menu_item' => 'Perangkat',

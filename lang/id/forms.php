@@ -305,6 +305,7 @@ return [
         'lookup_src_cmdb' => 'Objek CMDB',
         'lookup_src_asset' => 'Aset',
         'lookup_src_location' => 'Lokasi',
+        'lookup_src_consumable' => 'Barang habis pakai',   // 5.8.0
         'lookup_pick' => 'Pilih…',
         'lookup_source' => 'Cari rekaman yang mana',
         'options_dropdown' => 'Opsi dropdown',

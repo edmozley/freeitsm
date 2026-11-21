@@ -276,7 +276,8 @@
         var old = container.querySelector('.ss-filter');
         if (old) old.parentNode.removeChild(old);
         var items = Array.prototype.slice.call(container.querySelectorAll(itemSel));
-        if (items.length <= AFTER) return;
+        // opts.always: the search box whatever the length (Use a consumable, 5.8.0 - Ed asked for it there).
+        if (!opts.always && items.length <= AFTER) return;
         var wrap = document.createElement('div');
         wrap.className = 'ss-filter';
         var input = document.createElement('input');
