@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Uitgever',
         'col_installed' => 'Geïnstalleerd op',
         'col_seats' => 'Plekken',
+        'col_installations' => 'Installaties',
+        'col_licence_seats' => 'Licentieplaatsen',
         'col_actions' => '',
         'add_app' => 'Toepassing toevoegen',
         'new_app' => 'Nieuwe toepassing',
@@ -418,5 +420,10 @@ return [
         'tip5_t' => 'Kijk niet alleen naar grafieken — klik erin. Elk grafieksegment is interactief. Door op een staaf of taartpunt te klikken, gaat u naar de machines achter dat gegevenspunt, zodat u verder onderzoek kunt doen.',
         'tip6_b' => 'Automatische updates',
         'tip6_t' => 'Softwaregegevens worden vernieuwd telkens wanneer het PowerShell-script op een machine draait. Stel de geplande taak in om dagelijks te draaien en uw inventaris weerspiegelt altijd de huidige staat van uw omgeving.',
+    ],
+    'watch_filter' => [
+        'expiring' => 'Verlenging binnen {days} dagen',
+        'notice' => 'Opzegtermijn begint binnen {days} dagen',
+        'remove' => 'Dit filter verwijderen',
     ],
 ];

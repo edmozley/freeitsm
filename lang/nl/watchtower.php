@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> run(s) afgebroken door lusbeveiliging in de afgelopen 24 uur',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook(s) gaven het opnieuw proberen op — het bericht is nooit aangekomen',
         'failures' => '{count} fout(en)',
+        'attention' => '<span class="wt-attention-bold">{count}</span> run(s) hebben een deel van hun taak overgeslagen en een notitie achtergelaten - laatste: {name}',
     ],
     'mc' => [
         'metric_done' => 'Klaar',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'Totaal',
         'metric_offline' => 'Offline',
         'metric_lease' => 'Lease',
+        'metric_consumables' => 'Lage voorraad',
         'metric_warranty' => 'Garantie',
         'warranty' => '<span class="wt-attention-bold">{count}</span> asset(s) met verlopen garantie of verloopt binnen {days} dagen',
         'lease' => '<span class="wt-attention-bold">{count}</span> asset(s) met een lease die is afgelopen of binnen {days} dagen afloopt',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'Blijven tonen',
         'impersonal_hide' => 'Verbergen',
         'impersonal_note' => 'Servicestatus, workflows, apparatuur, de gedeelde agenda, contracten, kennis, softwarelicenties en domeinen horen bij het team en niet bij een persoon, dus ze kunnen niet tot jou worden beperkt. Ze houden is het veiligere antwoord: een verstoorde service is het laatste wat zou moeten verdwijnen doordat je overschakelt op een persoonlijke weergave.',
+        'refresh_heading' => 'Watchtower vernieuwt elke',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Korter past bij een scherm aan de muur: een gebruiker die alleen daarvoor is aangemeld blijft aangemeld en het dashboard werkt zichzelf bij.',
     ],
 ];

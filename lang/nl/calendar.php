@@ -159,6 +159,7 @@ return [
         'views_flow_choose' => 'Weergave kiezen',
         'views_flow_click' => 'Item aanklikken',
         'views_tip' => 'Klik op een item in de agenda om een snelweergave te openen met de titel, tijd, locatie en omschrijving. Van daaruit kun je het volledige bewerkformulier openen.',
+        'views_table' => 'De weergave <strong>Tabel</strong> toont de items als rijen die je kunt sorteren, filteren en waarvoor je kolommen kunt kiezen. Met <strong>Weergave opslaan</strong> bewaar je een indeling onder een naam en <strong>Weergaven</strong> opent de bibliotheek; de tabel onthoudt de weergave die je het laatst koos en opent er de volgende keer mee, in elke browser - tot je een andere kiest of <strong>Resetten</strong> gebruikt, waarna hij weer opent met je standaardweergave.',
         'creating_heading' => 'Items aanmaken',
         'creating_intro' => 'Items aan de agenda toevoegen is eenvoudig. Klik op de knop <strong>+ Nieuw item</strong> in de zijbalk om het itemformulier te openen. Vul de gegevens in en sla op &mdash; het item verschijnt direct in de agenda.',
         'creating_step1' => '<strong>Klik op + Nieuw item</strong> &mdash; de knop staat in de zijbalk van de agenda aan de linkerkant. Hiermee opent het venster om een item aan te maken.',
