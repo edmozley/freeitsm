@@ -475,6 +475,18 @@ Karena kedua daftar berarti kebalikan satu sama lain, {people} yang terdaftar se
         'embed_success' => 'Berhasil menghasilkan embedding untuk {count} artikel!',
         'embed_errors' => 'Selesai dengan {errors} kesalahan dari {total} artikel.',
         'embed_get_failed' => 'Gagal mendapatkan artikel',
+        // GH #417: Settings -> Images, the largest image the REST API accepts.
+        'tab_images' => 'Gambar',
+        'images_heading' => 'Gambar yang diunggah melalui API',
+        'images_intro' => 'Integrasi - misalnya skrip yang memindahkan artikel dari basis pengetahuan lain - mengunggah gambar artikel melalui REST API. Ini adalah ukuran gambar terbesar yang boleh mereka kirim. Gambar yang ditambahkan di editor artikel tidak terpengaruh: editor mengecilkannya sendiri.',
+        'images_max_label' => 'Gambar terbesar',
+        'images_size' => '{n} MB',
+        'images_size_default' => '{n} MB (bawaan)',
+        'images_server_ok' => 'Server ini dapat menerima gambar sebesar ini.',
+        'images_server_request' => 'post_max_size PHP di sini {have}, tetapi gambar sebesar ini menjadi sekitar {need} setelah dikodekan untuk API. PHP tetap menerimanya, tetapi memberi peringatan pada setiap unggahan seperti itu - dan jika PHP menampilkan galat di layar, peringatan itu merusak balasan. Naikkan post_max_size menjadi setidaknya {need}.',
+        'images_server_memory' => 'PHP mengizinkan memori {have} per permintaan; unggahan sebesar ini memerlukan sekitar {need}. Naikkan memory_limit menjadi setidaknya {need}.',
+        'images_server_note' => 'FreeITSM tidak pernah mengubah sendiri pengaturan server ini. Server web atau proxy di depan PHP (misalnya client_max_body_size di nginx) dapat menetapkan batas lebih rendah yang tidak dapat dilihat FreeITSM.',
+        'images_api_note' => 'Integrasi membaca batas saat ini dan format yang diterima dari GET /api/v1/knowledge/images/constraints.',
     ],
     'assistant' => [
         'browser_title' => 'Asisten pengetahuan',

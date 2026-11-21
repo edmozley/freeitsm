@@ -98,6 +98,17 @@ try {
         $settingsToSave['knowledge_recycle_bin_days'] = (string)$days;
     }
 
+    // GH #417: the largest image the API accepts - one of the dropdown's sizes, nothing typed.
+    if (isset($settings['image_max_mb'])) {
+        require_once '../../includes/services/knowledge_images.php';
+        $mb = (int)$settings['image_max_mb'];
+        if (!in_array($mb, KnowledgeImageService::SIZE_CHOICES_MB, true)) {
+            echo json_encode(['success' => false, 'error' => 'Choose one of the listed sizes.']);
+            exit;
+        }
+        $settingsToSave[KnowledgeImageService::SETTING_KEY] = (string)$mb;
+    }
+
     // Authorise EVERY key this request would write, BEFORE writing any of them — so a
     // partly-permitted save is refused whole rather than half-applied. A key no tab claims
     // is refused outright.

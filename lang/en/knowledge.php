@@ -530,6 +530,18 @@ return [
         'embed_success'      => 'Successfully generated embeddings for {count} articles!',
         'embed_errors'       => 'Completed with {errors} errors out of {total} articles.',
         'embed_get_failed'   => 'Failed to get articles',
+        // GH #417: Settings -> Images, the largest image the REST API accepts.
+        'tab_images' => 'Images',
+        'images_heading' => 'Images uploaded through the API',
+        'images_intro' => 'Integrations - for example a script moving articles in from another knowledge base - upload an article\'s pictures through the REST API. This is the largest picture they may send. Pictures added in the article editor are not affected: the editor scales them down itself.',
+        'images_max_label' => 'Largest image',
+        'images_size' => '{n} MB',
+        'images_size_default' => '{n} MB (default)',
+        'images_server_ok' => 'This server can take images of this size.',
+        'images_server_request' => 'PHP\'s post_max_size here is {have}, but an image of this size arrives as about {need} once encoded for the API. PHP still accepts it, but warns on every such upload - and where PHP shows errors on screen, the warning spoils the reply. Raise post_max_size to at least {need}.',
+        'images_server_memory' => 'PHP allows {have} of memory per request; an upload of this size needs about {need}. Raise memory_limit to at least {need}.',
+        'images_server_note' => 'FreeITSM never changes these server settings itself. A web server or proxy in front of PHP (nginx\'s client_max_body_size, for example) can set a lower limit that FreeITSM cannot see.',
+        'images_api_note' => 'Integrations read the current limit and the accepted formats from GET /api/v1/knowledge/images/constraints.',
     ],
 
     // ── Knowledge assistant (knowledge/assistant/index.php) ─────────────

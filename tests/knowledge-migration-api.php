@@ -337,11 +337,84 @@ try {
     $st = $conn->prepare('SELECT COUNT(*) FROM knowledge_articles WHERE id = ?');
     $st->execute([$pendingId]);
     kbCheck('caller rollback removes the whole staged save', (int)$st->fetchColumn() === 0);
+
+    // ---- GH #417: the administrator's image size limit, the constraints endpoint, the stable error
+    require_once dirname(__DIR__) . '/includes/services/knowledge_images.php';
+    $create417 = ['client_reference' => $prefix . ':article417', 'title' => 'ZZ size limit article'] + $create;
+    [$status, $reply] = kbRequest('POST', '/knowledge/articles', $key, $create417);
+    $sizeArticle = (int)($reply['data']['id'] ?? 0);
+    if ($sizeArticle) $articles[] = $sizeArticle;
+    $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'knowledge_image_max_mb'");
+    $st->execute();
+    $kbImgOriginal = $st->fetchColumn();   // false = no row; put back exactly as found in finally
+    $setMb = function ($v) use ($conn) {
+        $conn->prepare("DELETE FROM system_settings WHERE setting_key = 'knowledge_image_max_mb'")->execute();
+        if ($v !== null) $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('knowledge_image_max_mb', ?)")->execute([(string)$v]);
+    };
+    $sized = function (int $n) use ($png) { return $png . str_repeat("\0", $n - strlen($png)); };   // a real PNG, padded to exactly $n bytes
+
+    $setMb(null);
+    [$status, $reply] = kbRequest('GET', '/knowledge/images/constraints', $readKey);
+    $c = $reply['data'] ?? [];
+    kbCheck('#417 constraints: 10 MiB when no administrator has chosen (an upgrade changes nothing)', $status === 200
+        && ($c['max_bytes'] ?? 0) === 10485760 && ($c['default_max_bytes'] ?? 0) === 10485760 && ($c['max_base64_length'] ?? 0) === 13981016);
+    $exts = array_column($c['formats'] ?? [], 'extension');
+    kbCheck('#417 constraints list the formats, and never SVG', in_array('png', $exts, true) && in_array('heic', $exts, true) && !in_array('svg', $exts, true));
+    kbCheck('#417 constraints report the request ceiling and whether it fits', array_key_exists('request_max_bytes', $c) && is_bool($c['within_server_limits'] ?? null));
+    $setMb('7');
+    [, $reply] = kbRequest('GET', '/knowledge/images/constraints', $readKey);
+    kbCheck('#417 a stored size that is not one of the choices falls back to 10 MiB', ($reply['data']['max_bytes'] ?? 0) === 10485760);
+
+    // Exact boundary through the service itself - independent of PHP's request limits.
+    $setMb('5');
+    $ctx417 = new ActorContext($actor, null, 'api');
+    try {
+        $r = KnowledgeImageService::create($conn, $ctx417, $sizeArticle, ['filename' => 'ZZ exact.png', 'content_base64' => base64_encode($sized(5242880))]);
+        $exactOk = $r['id'] > 0;
+    } catch (ServiceError $e) { $exactOk = false; fwrite(STDERR, $e->getMessage() . "\n"); }
+    kbCheck('#417 an image of exactly the limit is accepted', $exactOk);
+    try {
+        KnowledgeImageService::create($conn, $ctx417, $sizeArticle, ['filename' => 'ZZ over.png', 'content_base64' => base64_encode($sized(5242881))]);
+        $overCode = '';
+    } catch (ServiceError $e) { $overCode = $e->errorCode; }
+    kbCheck('#417 one byte over is image_too_large', $overCode === 'image_too_large');
+
+    // Over HTTP at 5 MiB (fits an 8 MB post_max_size): the stable error.
+    [$status, $reply] = kbRequest('POST', '/knowledge/articles/' . $sizeArticle . '/images', $key, ['filename' => 'ZZ over.png', 'content_base64' => base64_encode($sized(5242881))]);
+    kbCheck('#417 oversized upload: 413 image_too_large stating the limit', $status === 413 && ($reply['error']['code'] ?? '') === 'image_too_large'
+        && ($reply['error']['details']['max_bytes'] ?? 0) === 5242880 && str_contains($reply['error']['message'] ?? '', '5242880'));
+    [$status, $reply] = kbRequest('POST', '/knowledge/articles/' . $sizeArticle . '/images', $key, ['filename' => 'ZZ.png', 'content_base64' => '%%%']);
+    kbCheck('#417 malformed base64 is still invalid_image (422), not a size error', $status === 422 && ($reply['error']['code'] ?? '') === 'invalid_image');
+
+    // Raised above the old fixed 10 MiB: a 10 MiB + 1 image round-trips - where PHP here can take it.
+    $setMb('20');
+    [, $reply] = kbRequest('GET', '/knowledge/images/constraints', $readKey);
+    $c = $reply['data'] ?? [];
+    kbCheck('#417 the chosen size is reported', ($c['max_bytes'] ?? 0) === 20971520);
+    if (!empty($c['within_server_limits'])) {
+        $big = $sized(10485761);
+        $bigIn = ['filename' => 'ZZ big.png', 'content_base64' => base64_encode($big), 'client_reference' => $prefix . ':big'];
+        [$status, $reply] = kbRequest('POST', '/knowledge/articles/' . $sizeArticle . '/images', $key, $bigIn);
+        $bigId = (int)($reply['data']['id'] ?? 0);
+        kbCheck('#417 above 10 MiB uploads once the limit is raised', $status === 201 && $bigId > 0 && ($reply['data']['size_bytes'] ?? 0) === 10485761);
+        [$status, $reply] = kbRequest('POST', '/knowledge/articles/' . $sizeArticle . '/images', $key, $bigIn);
+        kbCheck('#417 ...replays to the same image', $status === 200 && ($reply['data']['id'] ?? 0) === $bigId);
+        [$status, , $raw] = kbRequest('GET', '/knowledge/images/' . $bigId . '/content', $key);
+        kbCheck('#417 ...and downloads byte for byte', $status === 200 && $raw === $big);
+        [$status] = kbRequest('GET', '/knowledge/images/' . $bigId . '/content', $readerKey);
+        kbCheck('#417 ...with the same access rules (the reader has no access by now)', in_array($status, [403, 404], true));
+    } else {
+        echo "  SKIP  #417 10 MiB + 1 round trip: PHP here cannot take it (request_max_bytes " . var_export($c['request_max_bytes'] ?? null, true) . ")\n";
+    }
 } catch (Throwable $e) {
     $failed++;
     fwrite(STDERR, $e->getMessage() . "\n");
 } finally {
     if ($conn->inTransaction()) $conn->rollBack();
+    if (isset($kbImgOriginal)) {   // GH #417: the image size setting, exactly as it was
+        $conn->prepare("DELETE FROM system_settings WHERE setting_key = 'knowledge_image_max_mb'")->execute();
+        if ($kbImgOriginal !== false) $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('knowledge_image_max_mb', ?)")->execute([$kbImgOriginal]);
+    }
     foreach ($articles as $id) {
         $st = $conn->prepare('SELECT stored_name FROM knowledge_images WHERE article_id = ?');
         $st->execute([$id]);

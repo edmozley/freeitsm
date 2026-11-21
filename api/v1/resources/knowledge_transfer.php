@@ -144,6 +144,18 @@ function apiKnowledgeImagesList(PDO $conn, array $apiKey, array $params, array $
     } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
+/**
+ * GET /knowledge/images/constraints (GH #417): the size limit and formats in force, so a
+ * client never hard-codes them.
+ */
+function apiKnowledgeImagesConstraints(PDO $conn, array $apiKey, array $params, array $body): void
+{
+    try {
+        KnowledgeTransferService::requireActor($conn, ActorContext::fromApiKey($apiKey), false);
+        apiRespond(KnowledgeImageService::constraints($conn));
+    } catch (ServiceError $e) { apiFailFromService($e); }
+}
+
 function apiKnowledgeImagesCreate(PDO $conn, array $apiKey, array $params, array $body): void
 {
     try {
@@ -155,7 +167,13 @@ function apiKnowledgeImagesCreate(PDO $conn, array $apiKey, array $params, array
         $out = KnowledgeImageService::describe($row) + ['replayed' => $result['replayed']];
         if ($result['replayed']) apiRespond($out, 200);
         apiRespond($out, 201);
-    } catch (ServiceError $e) { apiFailFromService($e); }
+    } catch (ServiceError $e) {
+        if ($e->errorCode === 'image_too_large') {
+            $max = KnowledgeImageService::maxBytes($conn);
+            apiError(413, 'image_too_large', $e->getMessage(), ['max_bytes' => $max, 'max_base64_length' => KnowledgeImageService::maxBase64Length($max)]);
+        }
+        apiFailFromService($e);
+    }
 }
 
 function apiKnowledgeImagesGet(PDO $conn, array $apiKey, array $params, array $body): void

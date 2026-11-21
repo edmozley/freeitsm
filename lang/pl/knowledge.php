@@ -475,6 +475,18 @@ Ponieważ obie listy oznaczają coś przeciwnego, {people} wymienionych obecnie 
         'embed_success' => 'Pomyślnie wygenerowano osadzenia dla {count} artykułów!',
         'embed_errors' => 'Zakończono z {errors} błędami na {total} artykułów.',
         'embed_get_failed' => 'Nie udało się pobrać artykułów',
+        // GH #417: Settings -> Images, the largest image the REST API accepts.
+        'tab_images' => 'Obrazy',
+        'images_heading' => 'Obrazy przesyłane przez API',
+        'images_intro' => 'Integracje - na przykład skrypt przenoszący artykuły z innej bazy wiedzy - przesyłają obrazy artykułu przez REST API. To największy obraz, jaki mogą wysłać. Nie dotyczy to obrazów dodawanych w edytorze artykułów: edytor sam je zmniejsza.',
+        'images_max_label' => 'Największy obraz',
+        'images_size' => '{n} MB',
+        'images_size_default' => '{n} MB (domyślnie)',
+        'images_server_ok' => 'Ten serwer może przyjmować obrazy tej wielkości.',
+        'images_server_request' => 'post_max_size w PHP wynosi tu {have}, ale obraz tej wielkości po zakodowaniu dla API ma około {need}. PHP nadal go przyjmie, ale przy każdym takim przesłaniu zgłosi ostrzeżenie - a tam, gdzie PHP pokazuje błędy na ekranie, ostrzeżenie psuje odpowiedź. Zwiększ post_max_size do co najmniej {need}.',
+        'images_server_memory' => 'PHP pozwala na {have} pamięci na żądanie; przesłanie tej wielkości potrzebuje około {need}. Zwiększ memory_limit do co najmniej {need}.',
+        'images_server_note' => 'FreeITSM nigdy sam nie zmienia tych ustawień serwera. Serwer WWW lub proxy przed PHP (na przykład client_max_body_size w nginx) może ustawić niższy limit, którego FreeITSM nie widzi.',
+        'images_api_note' => 'Integracje odczytują bieżący limit i dozwolone formaty z GET /api/v1/knowledge/images/constraints.',
     ],
     'assistant' => [
         'browser_title' => 'Asystent bazy wiedzy',

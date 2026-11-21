@@ -475,6 +475,18 @@ Como las dos listas significan lo contrario, las {people} que figuran ahora se b
         'embed_success' => '¡Se generaron embeddings correctamente para {count} artículos!',
         'embed_errors' => 'Completado con {errors} errores de {total} artículos.',
         'embed_get_failed' => 'No se pudieron obtener los artículos',
+        // GH #417: Settings -> Images, the largest image the REST API accepts.
+        'tab_images' => 'Imágenes',
+        'images_heading' => 'Imágenes subidas mediante la API',
+        'images_intro' => 'Las integraciones - por ejemplo, un script que trae artículos desde otra base de conocimiento - suben las imágenes de un artículo mediante la API REST. Este es el tamaño máximo de imagen que pueden enviar. Las imágenes añadidas en el editor de artículos no se ven afectadas: el editor las reduce por sí mismo.',
+        'images_max_label' => 'Imagen más grande',
+        'images_size' => '{n} MB',
+        'images_size_default' => '{n} MB (predeterminado)',
+        'images_server_ok' => 'Este servidor puede recibir imágenes de este tamaño.',
+        'images_server_request' => 'El post_max_size de PHP aquí es {have}, pero una imagen de este tamaño ocupa unos {need} una vez codificada para la API. PHP la acepta igualmente, pero avisa en cada subida así, y donde PHP muestra los errores en pantalla, el aviso estropea la respuesta. Aumente post_max_size hasta al menos {need}.',
+        'images_server_memory' => 'PHP permite {have} de memoria por solicitud; una subida de este tamaño necesita unos {need}. Aumente memory_limit hasta al menos {need}.',
+        'images_server_note' => 'FreeITSM nunca cambia estos ajustes del servidor por sí mismo. Un servidor web o proxy delante de PHP (por ejemplo, client_max_body_size de nginx) puede fijar un límite menor que FreeITSM no puede ver.',
+        'images_api_note' => 'Las integraciones leen el límite actual y los formatos admitidos en GET /api/v1/knowledge/images/constraints.',
     ],
     'assistant' => [
         'browser_title' => 'Asistente de conocimiento',

@@ -321,4 +321,17 @@ return [
             ['rows', 'knowledge_images'],
         ]],
     ],
+    [
+        // GH #417 (5.9.0): the largest picture the REST API accepts is the administrator's choice.
+        'id'       => 'knowledge.api_image_size',
+        'module'   => 'knowledge',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Choose how big a migrated picture may be',
+        'what'     => 'Knowledge > Settings > Images sets the largest picture an integration may upload through the REST API - 5 to 50 MB - and shows whether this server\'s PHP can take that size.',
+        'why'      => 'High-resolution diagrams and screenshots from an old knowledge base can be bigger than the 10 MB default. Raising the limit brings them across intact instead of being refused.',
+        'done'     => 'An administrator has chosen a size under Knowledge > Settings > Images.',
+        'link'     => 'knowledge/settings/',
+        'check'    => ['setting', 'knowledge_image_max_mb', 'nonempty'],
+    ],
 ];

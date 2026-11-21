@@ -511,6 +511,42 @@ $translationNamespaces = ['common', 'knowledge'];
         <!-- Left panel tab — per-analyst preference -->
         <?php endif; ?>
 
+        <!-- Images uploaded through the API (GH #417) -->
+        <?php if (settingsTabVisible($visibleTabs, 'images')):
+            require_once '../../includes/services/knowledge_images.php';
+            $kbImgMb = intdiv(KnowledgeImageService::maxBytes(connectToDatabase()), 1048576);
+            // Per choice, what PHP must allow - one formula, in the service, for the page and the API.
+            $kbImgFit = [];
+            foreach (KnowledgeImageService::SIZE_CHOICES_MB as $mb) $kbImgFit[$mb] = KnowledgeImageService::serverFit($mb * 1048576);
+        ?>
+        <div class="tab-content<?php echo $activeTabId === 'images' ? ' active' : ''; ?>" id="images-tab" data-capability="<?php echo capKey(Cap::KNOWLEDGE_MANAGE); ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('knowledge.settings.images_heading')); ?></h2>
+            </div>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.images_intro')); ?></p>
+            <form id="kbImagesForm">
+                <div class="form-group">
+                    <label for="kbImageMaxMb"><?php echo htmlspecialchars(t('knowledge.settings.images_max_label')); ?></label>
+                    <select id="kbImageMaxMb" style="max-width: 200px;">
+                        <?php foreach (KnowledgeImageService::SIZE_CHOICES_MB as $mb): ?>
+                            <option value="<?php echo $mb; ?>"<?php echo $mb === $kbImgMb ? ' selected' : ''; ?>><?php echo htmlspecialchars(t($mb * 1048576 === KnowledgeImageService::MAX_BYTES ? 'knowledge.settings.images_size_default' : 'knowledge.settings.images_size', ['n' => $mb])); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <!-- Whether PHP on THIS server can take an image of the chosen size. -->
+                <div id="kbImagesServer"></div>
+                <div class="form-group">
+                    <small><?php echo htmlspecialchars(t('knowledge.settings.images_server_note')); ?></small>
+                    <small style="display:block; margin-top:6px;"><?php echo htmlspecialchars(t('knowledge.settings.images_api_note')); ?></small>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('knowledge.settings.save')); ?></button>
+                </div>
+            </form>
+            <script>window.KB_IMAGE_FIT = <?php echo json_encode($kbImgFit); ?>;</script>
+        </div>
+        <?php endif; ?>
+
         <?php if (settingsTabVisible($visibleTabs, 'permissions')): ?>
         <div class="tab-content<?php echo $activeTabId === 'permissions' ? ' active' : ''; ?>" id="permissions-tab" data-capability="<?php echo capKey(Cap::KNOWLEDGE_MANAGE); ?>">
             <div class="section-header">
@@ -1126,6 +1162,47 @@ $translationNamespaces = ['common', 'knowledge'];
             btn.disabled = false;
             btn.textContent = window.t('knowledge.settings.generate');
         }
+
+        // === Images uploaded through the API (GH #417) ===
+        (function () {
+            const sel = document.getElementById('kbImageMaxMb');
+            const box = document.getElementById('kbImagesServer');
+            const form = document.getElementById('kbImagesForm');
+            if (!sel || !box || !form) return;
+            /** A byte count as "13.5 MB" in the page's language. */
+            const size = function (b) { return window.t('knowledge.settings.images_size', { n: Math.ceil(b / 104857.6) / 10 }); };
+            /** Says whether PHP here can take an image of the chosen size, and what to raise if not. */
+            function check() {
+                const f = (window.KB_IMAGE_FIT || {})[sel.value];
+                box.textContent = '';
+                if (!f) return;
+                const lines = [];
+                if (f.request_max !== null && f.request_max < f.request_needed) lines.push(window.t('knowledge.settings.images_server_request', { have: size(f.request_max), need: size(f.request_needed) }));
+                if (f.memory_max !== null && f.memory_max < f.memory_needed) lines.push(window.t('knowledge.settings.images_server_memory', { have: size(f.memory_max), need: size(f.memory_needed) }));
+                if (!lines.length) lines.push(window.t('knowledge.settings.images_server_ok'));
+                box.className = 'test-result ' + (f.within ? 'success' : 'error');
+                box.style.display = 'block';
+                box.style.marginBottom = '16px';
+                lines.forEach(function (l) { const d = document.createElement('div'); d.textContent = l; box.appendChild(d); });
+            }
+            sel.addEventListener('change', check);
+            check();
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                try {
+                    const response = await fetch(API_BASE + 'save_email_settings.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ settings: { image_max_mb: parseInt(sel.value, 10) } })
+                    });
+                    const data = await response.json();
+                    if (data.success) showToast(window.t('knowledge.settings.toast_settings_saved'), 'success');
+                    else showToast(window.t('knowledge.settings.toast_error', { message: data.error }), 'error');
+                } catch (error) {
+                    showToast(window.t('knowledge.settings.toast_save_failed'), 'error');
+                }
+            });
+        })();
 
         // === Recycle Bin Settings ===
 

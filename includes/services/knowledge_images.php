@@ -2,10 +2,122 @@
 /** Article-owned raster images. All reads go through the article's visibility rule. */
 require_once __DIR__ . '/knowledge_transfer.php';
 require_once __DIR__ . '/../uploads.php';
+require_once __DIR__ . '/../service_context.php';   // throws ServiceError itself (tests/service-error-loaded.php)
 
 class KnowledgeImageService
 {
+    /**
+     * The default ceiling - and, before GH #417 (5.9.0), the only one: 10 MiB decoded.
+     * The ceiling in force is maxBytes(), which an administrator chooses.
+     */
     public const MAX_BYTES = 10485760;
+
+    /**
+     * GH #417: the sizes an administrator may choose, in MiB - a dropdown, never a typed
+     * number. Bounded at 50 because the whole upload is held in memory several times over
+     * (JSON body, decoded copy, stored copy: ~4.3x measured), so a bigger choice would
+     * mostly be a way to exhaust PHP's memory.
+     */
+    public const SIZE_CHOICES_MB = [5, 10, 20, 25, 50];
+
+    /** system_settings key holding the chosen size in MiB; absent or not a choice = the default. */
+    public const SETTING_KEY = 'knowledge_image_max_mb';
+
+    /** Allowance for the JSON around the base64 (filename, client_reference, quoting). */
+    public const REQUEST_OVERHEAD_BYTES = 65536;
+
+    /**
+     * The largest decoded image this install accepts through the REST API, in bytes.
+     * An upgrade, a missing row or a value that is not one of SIZE_CHOICES_MB gives the
+     * 10 MiB default - so nothing changes until an administrator chooses otherwise.
+     */
+    public static function maxBytes(PDO $conn): int
+    {
+        try {
+            $st = $conn->prepare('SELECT setting_value FROM system_settings WHERE setting_key = ?');
+            $st->execute([self::SETTING_KEY]);
+            $mb = (int)$st->fetchColumn();
+        } catch (Throwable $e) {
+            $mb = 0;
+        }
+        return in_array($mb, self::SIZE_CHOICES_MB, true) ? $mb * 1048576 : self::MAX_BYTES;
+    }
+
+    /** The longest content_base64 that can decode to $maxBytes or fewer. */
+    public static function maxBase64Length(int $maxBytes): int
+    {
+        return 4 * (int)ceil($maxBytes / 3);
+    }
+
+    /**
+     * A php.ini size ("8M", "128M", "1G", "-1", "0") in bytes; null = no limit.
+     *
+     * @param string $value  ini_get() of post_max_size or memory_limit
+     */
+    public static function iniBytes(string $value): ?int
+    {
+        $value = trim($value);
+        if ($value === '' || $value === '-1' || $value === '0') return null;
+        $n = (int)$value;
+        switch (strtoupper(substr($value, -1))) {
+            case 'G': $n *= 1024;   // fall through
+            case 'M': $n *= 1024;   // fall through
+            case 'K': $n *= 1024;
+        }
+        return $n > 0 ? $n : null;
+    }
+
+    /**
+     * What PHP should allow for an image of $maxBytes: memory to hold it ~5 times plus
+     * headroom (measured ~4.3x on 10 and 20 MiB images: JSON body, decoded copy, stored
+     * copy), and a post_max_size at least the request size.
+     *
+     * TRAP: post_max_size does NOT refuse a JSON body - PHP 8.4 still hands the whole body
+     * to php://input (proved on mod_php, 21 Nov 2026). It only raises a startup warning, and
+     * where display_errors is on that warning is printed before FreeITSM runs, which spoils
+     * the reply (HTTP 200 and HTML before the JSON). So it is reported as "raise it", never
+     * as "uploads are refused". FreeITSM reports these limits; it never changes them.
+     *
+     * @return array{request_needed:int, memory_needed:int, request_max:?int, memory_max:?int, within:bool}
+     */
+    public static function serverFit(int $maxBytes): array
+    {
+        $post = self::iniBytes((string)ini_get('post_max_size'));
+        $mem  = self::iniBytes((string)ini_get('memory_limit'));
+        $req  = self::maxBase64Length($maxBytes) + self::REQUEST_OVERHEAD_BYTES;
+        $need = 5 * $maxBytes + 33554432;
+        return ['request_needed' => $req, 'memory_needed' => $need, 'request_max' => $post, 'memory_max' => $mem,
+            'within' => ($post === null || $post >= $req) && ($mem === null || $mem >= $need)];
+    }
+
+    /**
+     * GET /knowledge/images/constraints (GH #417): everything a client needs so it does not
+     * hard-code a size or a format.
+     */
+    public static function constraints(PDO $conn): array
+    {
+        $max = self::maxBytes($conn);
+        $formats = [];
+        foreach (UPLOAD_TYPES_IMAGE as $ext => $mimes) $formats[] = ['extension' => $ext, 'mime_types' => array_values($mimes)];
+        $fit = self::serverFit($max);
+        return [
+            'max_bytes'          => $max,
+            'default_max_bytes'  => self::MAX_BYTES,
+            'max_base64_length'  => self::maxBase64Length($max),
+            'encoding'           => 'base64',
+            'formats'            => $formats,
+            'request_max_bytes'  => $fit['request_max'],
+            'within_server_limits' => $fit['within'],
+        ];
+    }
+
+    /** The image_too_large message: the limit, never anything about the content. */
+    public static function tooLargeMessage(int $maxBytes): string
+    {
+        return 'The image is larger than this installation\'s limit of ' . $maxBytes . ' bytes ('
+            . round($maxBytes / 1048576, 1) . ' MiB) decoded. GET /knowledge/images/constraints returns the current limit; '
+            . 'an administrator can change it in Knowledge > Settings > Images.';
+    }
 
     public static function directory(): string
     {
@@ -17,23 +129,32 @@ class KnowledgeImageService
     {
         $article = KnowledgeTransferService::object($conn, $ctx, 'article', $articleId, true);
         if ((int)$article['is_archived']) throw new ServiceError('conflict', 'archived', 'Restore the article before uploading images.');
+        // GH #417: the ceiling is the administrator's choice (default 10 MiB), and a
+        // too-large image gets its own stable code that states the limit.
+        $max = self::maxBytes($conn);
         $encoded = $in['content_base64'] ?? null;
-        if (!is_string($encoded) || strlen($encoded) > 4 * (int)ceil(self::MAX_BYTES / 3)) {
-            throw new ServiceError('validation', 'invalid_image', 'Supply a base64 image of at most 10 MiB.');
+        if (!is_string($encoded)) {
+            throw new ServiceError('validation', 'invalid_image', 'Supply the image as a base64 string in content_base64.');
+        }
+        if (strlen($encoded) > self::maxBase64Length($max)) {
+            throw new ServiceError('validation', 'image_too_large', self::tooLargeMessage($max));
         }
         $bytes = base64_decode($encoded, true);
-        if ($bytes === false || $bytes === '' || strlen($bytes) > self::MAX_BYTES) {
-            throw new ServiceError('validation', 'invalid_image', 'The image is empty, too large or not valid base64.');
+        if ($bytes === false || $bytes === '') {
+            throw new ServiceError('validation', 'invalid_image', 'The image is empty or not valid base64.');
+        }
+        if (strlen($bytes) > $max) {
+            throw new ServiceError('validation', 'image_too_large', self::tooLargeMessage($max));
         }
         if (!is_string($in['filename'] ?? null)) throw new ServiceError('validation', 'invalid_image', 'filename is required.');
         $stored = null;
         try {
             return KnowledgeTransferService::createOnce($conn, $ctx, 'image', $articleId, $in,
-                static function () use ($conn, $ctx, $articleId, $in, $bytes, &$stored) {
+                static function () use ($conn, $ctx, $articleId, $in, $bytes, $max, &$stored) {
                     // Lock the parent, serializing image changes with article finalization.
                     $article = KnowledgeTransferService::object($conn, $ctx, 'article', $articleId, true);
                     if ((int)$article['is_archived']) throw new ServiceError('conflict', 'archived', 'Restore the article before uploading images.');
-                    $stored = uploadStoreBytes($bytes, $in['filename'], self::directory(), ATTACHMENT_POLICY_DROP, UPLOAD_TYPES_IMAGE, self::MAX_BYTES);
+                    $stored = uploadStoreBytes($bytes, $in['filename'], self::directory(), ATTACHMENT_POLICY_DROP, UPLOAD_TYPES_IMAGE, $max);
                     if (!$stored['stored'] || $stored['quarantined']) {
                         throw new ServiceError('validation', 'invalid_image', 'Image refused: ' . $stored['reason']);
                     }

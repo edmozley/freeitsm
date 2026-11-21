@@ -86,6 +86,15 @@ return [
             'setting_keys' => ['knowledge_folder_permission_model'],
         ],
         [
+            // GH #417: the largest image an integration may upload through the REST API.
+            // Not the editor's pictures - it scales its own (knowledge.js KB_IMAGE_MAX_BYTES).
+            'id'           => 'images',
+            'cap'          => capKey(Cap::KNOWLEDGE_MANAGE),
+            'label_key'    => 'knowledge.settings.tab_images',
+            'grant'        => 'Set the largest image an integration may upload into an article',
+            'setting_keys' => ['knowledge_image_max_mb'],
+        ],
+        [
             'id'        => 'left-panel',
             'cap'       => null,
             'label_key' => 'knowledge.settings.tab_left_panel',

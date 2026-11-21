@@ -5210,7 +5210,7 @@
                     "p": "\/knowledge\/articles\/{id}\/images",
                     "perm": "knowledge_images.create",
                     "s": "Upload a protected inline image",
-                    "d": "JSON upload, maximum 10 MiB decoded. Uses the shared image extension\/content whitelist (PNG, JPEG, GIF, WebP, BMP, HEIC\/HEIF; no SVG), random storage names and the existing protected uploads volume. The parent article must exist and be writable before any file is stored. No unattached\/public uploads. Reuse the returned url in HTML; it re-checks article access on every read for signed-in analysts and portal users; nobody signed in gets 404, even for a public article. API clients use \/knowledge\/images\/{id}\/content with their key. Each image belongs to one article; copying content to another article requires its own upload. Original images linked from thumbnails can be uploaded separately.",
+                    "d": "JSON upload. The largest decoded image is chosen by an administrator in Knowledge > Settings > Images (5, 10, 20, 25 or 50 MiB; 10 MiB unless changed) - read it, and the accepted formats, from GET \/knowledge\/images\/constraints rather than hard-coding it. base64 makes the request about a third larger than the image. PHP memory_limit and any web server or proxy body limit (nginx defaults to 1 MB) also apply, and a request over PHP post_max_size makes PHP warn on every upload; FreeITSM reports PHP's limits but never changes them. Uses the shared image extension\/content whitelist (PNG, JPEG, GIF, WebP, BMP, HEIC\/HEIF; no SVG), random storage names and the existing protected uploads volume. The parent article must exist and be writable before any file is stored. No unattached\/public uploads. Reuse the returned url in HTML; it re-checks article access on every read for signed-in analysts and portal users; nobody signed in gets 404, even for a public article. API clients use \/knowledge\/images\/{id}\/content with their key. Each image belongs to one article; copying content to another article requires its own upload. Original images linked from thumbnails can be uploaded separately.",
                     "params": [
                         {
                             "name": "id",
@@ -5227,7 +5227,7 @@
                         {
                             "name": "content_base64",
                             "in": "body",
-                            "desc": "Strict base64-encoded image bytes, at most 10 MiB decoded; upstream HTTP\/PHP body limits also apply.",
+                            "desc": "Strict base64-encoded image bytes, at most max_bytes decoded (GET \/knowledge\/images\/constraints); upstream HTTP\/PHP body limits also apply.",
                             "req": true
                         },
                         {
@@ -5250,9 +5250,24 @@
                                 "code": 404,
                                 "slug": "not_found",
                                 "when": "The referenced object is gone or no longer accessible."
+                            },
+                            {
+                                "code": 413,
+                                "slug": "image_too_large",
+                                "when": "image_too_large: the decoded image (or its base64) is over the install's limit; error.details gives max_bytes and max_base64_length. A web server or proxy in front of PHP may also answer 413 itself, with its own body."
                             }
                         ]
                     }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/images\/constraints",
+                    "perm": "knowledge_images.read",
+                    "s": "Image upload limits and formats",
+                    "d": "GH #417. Returns max_bytes (the largest decoded image accepted, chosen by an administrator: 5, 10, 20, 25 or 50 MiB, 10 MiB unless changed), default_max_bytes, max_base64_length, encoding, the accepted formats (extension and MIME types; never SVG), request_max_bytes (PHP post_max_size, null when unlimited - a request above it is still read, but PHP warns on each one) and within_server_limits (false when PHP's post_max_size or memory_limit is too small for an image of max_bytes). A web server or proxy in front of PHP can set a lower body limit that this cannot see.",
+                    "params": [],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-images-constraints"
                 },
                 {
                     "m": "GET",

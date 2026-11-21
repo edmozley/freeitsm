@@ -29,6 +29,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/services/consumables.php';
+require_once '../../includes/service_context.php';   // throws ServiceError itself (tests/service-error-loaded.php)
 
 header('Content-Type: application/json');
 

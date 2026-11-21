@@ -6510,6 +6510,20 @@ return array (
         'filename' => ['type' => 'string'], 'mime_type' => ['type' => 'string'], 'size_bytes' => ['type' => 'integer'],
         'sha256' => ['type' => 'string'], 'url' => ['type' => 'string'], 'replayed' => ['type' => 'boolean']],
     ],
+    'KnowledgeImageConstraints' => [
+      'type' => 'object', 'description' => 'GH #417: the image size limit and formats in force on this install.',
+      'required' => ['max_bytes', 'default_max_bytes', 'max_base64_length', 'encoding', 'formats', 'request_max_bytes', 'within_server_limits'],
+      'properties' => [
+        'max_bytes' => ['type' => 'integer', 'description' => 'Largest decoded image accepted, chosen by an administrator.'],
+        'default_max_bytes' => ['type' => 'integer', 'description' => 'The limit when no administrator has chosen one (10 MiB).'],
+        'max_base64_length' => ['type' => 'integer', 'description' => 'Longest content_base64 accepted - base64 is about a third larger than the image.'],
+        'encoding' => ['type' => 'string', 'enum' => ['base64']],
+        'formats' => ['type' => 'array', 'items' => ['type' => 'object', 'required' => ['extension', 'mime_types'], 'properties' => [
+          'extension' => ['type' => 'string'], 'mime_types' => ['type' => 'array', 'items' => ['type' => 'string']]]]],
+        'request_max_bytes' => ['type' => 'integer', 'nullable' => true, 'description' => 'PHP post_max_size in bytes; null when PHP sets none. A request above it is still read, but PHP warns on each one. A web server or proxy in front may set a lower limit this cannot see.'],
+        'within_server_limits' => ['type' => 'boolean', 'description' => 'False when PHP\'s post_max_size or memory_limit is too small for an image of max_bytes.'],
+      ],
+    ],
     'KnowledgeArticleWrite' => [
       'type' => 'object', 'additionalProperties' => false,
       'properties' => [
@@ -15441,6 +15455,7 @@ return array (
     'GET /knowledge/folders/{id}' => ['$ref' => '#/components/schemas/KnowledgeFolder'],
     'GET /knowledge/articles/{id}/images' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/KnowledgeImage']],
     'POST /knowledge/articles/{id}/images' => ['$ref' => '#/components/schemas/KnowledgeImage'],
+    'GET /knowledge/images/constraints' => ['$ref' => '#/components/schemas/KnowledgeImageConstraints'],
     'GET /knowledge/articles/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
     'GET /knowledge/folders/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
     'PATCH /knowledge/articles/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],

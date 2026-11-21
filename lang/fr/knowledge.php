@@ -475,6 +475,18 @@ Comme les deux listes signifient le contraire l\'une de l\'autre, les {people} l
         'embed_success' => 'Embeddings générés avec succès pour {count} articles !',
         'embed_errors' => 'Terminé avec {errors} erreurs sur {total} articles.',
         'embed_get_failed' => 'Échec de la récupération des articles',
+        // GH #417: Settings -> Images, the largest image the REST API accepts.
+        'tab_images' => 'Images',
+        'images_heading' => 'Images envoyées via l\'API',
+        'images_intro' => 'Les intégrations - par exemple un script qui importe des articles d\'une autre base de connaissances - envoient les images d\'un article via l\'API REST. Voici la taille maximale d\'image qu\'elles peuvent envoyer. Les images ajoutées dans l\'éditeur d\'articles ne sont pas concernées : l\'éditeur les réduit lui-même.',
+        'images_max_label' => 'Image la plus grande',
+        'images_size' => '{n} Mo',
+        'images_size_default' => '{n} Mo (par défaut)',
+        'images_server_ok' => 'Ce serveur peut accepter des images de cette taille.',
+        'images_server_request' => 'Le post_max_size de PHP est ici de {have}, mais une image de cette taille pèse environ {need} une fois encodée pour l\'API. PHP l\'accepte quand même, mais émet un avertissement à chaque envoi de ce type - et là où PHP affiche les erreurs à l\'écran, cet avertissement gâche la réponse. Portez post_max_size à au moins {need}.',
+        'images_server_memory' => 'PHP autorise {have} de mémoire par requête ; un envoi de cette taille demande environ {need}. Portez memory_limit à au moins {need}.',
+        'images_server_note' => 'FreeITSM ne modifie jamais lui-même ces réglages du serveur. Un serveur web ou un proxy placé devant PHP (par exemple client_max_body_size de nginx) peut fixer une limite plus basse que FreeITSM ne voit pas.',
+        'images_api_note' => 'Les intégrations lisent la limite actuelle et les formats acceptés via GET /api/v1/knowledge/images/constraints.',
     ],
     'assistant' => [
         'browser_title' => 'Assistant de connaissances',

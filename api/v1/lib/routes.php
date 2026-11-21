@@ -119,6 +119,7 @@ return [
     ['POST', '#^/knowledge/articles/(\d+)/images$#', ['knowledge_images', 'create'], 'apiKnowledgeImagesCreate'],
     ['DELETE', '#^/knowledge/articles/(\d+)/images/(\d+)$#', ['knowledge_images', 'delete'], 'apiKnowledgeImagesDelete'],
     ['GET', '#^/knowledge/images/(\d+)/content$#', ['knowledge_images', 'read'], 'apiKnowledgeImagesGet'],
+    ['GET', '#^/knowledge/images/constraints$#', ['knowledge_images', 'read'], 'apiKnowledgeImagesConstraints'],   // GH #417
 
     ['GET',    '#^/knowledge/articles$#',                  ['knowledge', 'read'],             'apiKnowledgeArticlesList'],
     ['POST',   '#^/knowledge/articles$#',                  ['knowledge', 'create'],           'apiKnowledgeArticlesCreate'],

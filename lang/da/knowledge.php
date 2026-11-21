@@ -475,6 +475,18 @@ Fordi de to lister betyder det modsatte, ryddes de {people}, der er angivet nu.'
         'embed_success' => 'Genererede embeddings for {count} artikler!',
         'embed_errors' => 'Afsluttet med {errors} fejl ud af {total} artikler.',
         'embed_get_failed' => 'Kunne ikke hente artikler',
+        // GH #417: Settings -> Images, the largest image the REST API accepts.
+        'tab_images' => 'Billeder',
+        'images_heading' => 'Billeder uploadet via API\'et',
+        'images_intro' => 'Integrationer - for eksempel et script, der flytter artikler ind fra en anden vidensbase - uploader en artikels billeder via REST API\'et. Dette er det største billede, de må sende. Billeder, der tilføjes i artikeleditoren, berøres ikke: editoren skalerer dem selv ned.',
+        'images_max_label' => 'Største billede',
+        'images_size' => '{n} MB',
+        'images_size_default' => '{n} MB (standard)',
+        'images_server_ok' => 'Denne server kan modtage billeder i denne størrelse.',
+        'images_server_request' => 'PHP\'s post_max_size er her {have}, men et billede i denne størrelse fylder ca. {need}, når det er kodet til API\'et. PHP tager stadig imod det, men advarer ved hver sådan upload - og hvor PHP viser fejl på skærmen, ødelægger advarslen svaret. Hæv post_max_size til mindst {need}.',
+        'images_server_memory' => 'PHP tillader {have} hukommelse pr. forespørgsel; en upload i denne størrelse kræver ca. {need}. Hæv memory_limit til mindst {need}.',
+        'images_server_note' => 'FreeITSM ændrer aldrig selv disse serverindstillinger. En webserver eller proxy foran PHP (f.eks. nginx\' client_max_body_size) kan sætte en lavere grænse, som FreeITSM ikke kan se.',
+        'images_api_note' => 'Integrationer læser den aktuelle grænse og de tilladte formater fra GET /api/v1/knowledge/images/constraints.',
     ],
     'assistant' => [
         'browser_title' => 'Videnassistent',

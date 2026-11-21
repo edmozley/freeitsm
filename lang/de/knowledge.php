@@ -475,6 +475,18 @@ Weil die beiden Listen genau das Gegenteil bedeuten, werden die jetzt aufgeführ
         'embed_success' => 'Embeddings für {count} Artikel erfolgreich erzeugt!',
         'embed_errors' => 'Abgeschlossen mit {errors} Fehlern von {total} Artikeln.',
         'embed_get_failed' => 'Artikel konnten nicht abgerufen werden',
+        // GH #417: Settings -> Images, the largest image the REST API accepts.
+        'tab_images' => 'Bilder',
+        'images_heading' => 'Über die API hochgeladene Bilder',
+        'images_intro' => 'Integrationen - etwa ein Skript, das Artikel aus einer anderen Wissensdatenbank übernimmt - laden die Bilder eines Artikels über die REST-API hoch. Dies ist das größte Bild, das sie senden dürfen. Bilder, die im Artikeleditor eingefügt werden, sind nicht betroffen: Der Editor verkleinert sie selbst.',
+        'images_max_label' => 'Größtes Bild',
+        'images_size' => '{n} MB',
+        'images_size_default' => '{n} MB (Standard)',
+        'images_server_ok' => 'Dieser Server kann Bilder dieser Größe annehmen.',
+        'images_server_request' => 'post_max_size von PHP steht hier auf {have}, aber ein Bild dieser Größe ist für die API kodiert etwa {need} groß. PHP nimmt es trotzdem an, warnt aber bei jedem solchen Upload - und wo PHP Fehler auf dem Bildschirm anzeigt, verdirbt die Warnung die Antwort. Erhöhen Sie post_max_size auf mindestens {need}.',
+        'images_server_memory' => 'PHP erlaubt {have} Arbeitsspeicher pro Anfrage; ein Upload dieser Größe braucht etwa {need}. Erhöhen Sie memory_limit auf mindestens {need}.',
+        'images_server_note' => 'FreeITSM ändert diese Servereinstellungen nie selbst. Ein Webserver oder Proxy vor PHP (zum Beispiel client_max_body_size bei nginx) kann eine niedrigere Grenze setzen, die FreeITSM nicht sehen kann.',
+        'images_api_note' => 'Integrationen lesen die aktuelle Grenze und die erlaubten Formate über GET /api/v1/knowledge/images/constraints.',
     ],
     'assistant' => [
         'browser_title' => 'Wissensassistent',

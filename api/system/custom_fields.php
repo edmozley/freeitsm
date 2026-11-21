@@ -17,6 +17,7 @@ require_once '../../includes/admin_api_guard.php'; // System admins only (issue 
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/services/record_fields.php';
+require_once '../../includes/service_context.php';   // throws ServiceError itself (tests/service-error-loaded.php)
 
 header('Content-Type: application/json');
 
