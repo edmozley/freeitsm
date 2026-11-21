@@ -48,6 +48,9 @@ try {
 
     if ($action === 'edit') {
         $ok = warRoomEditMessage($conn, $analystId, $messageId, (string) ($input['body'] ?? ''));
+    } elseif ($action === 'react') {
+        // 5.9.0: add or take away an emoji reaction.
+        $ok = warRoomReact($conn, $analystId, $messageId, (string) ($input['emoji'] ?? ''), !empty($input['on']));
     } elseif ($action === 'delete') {
         $mayManage = analystHasCapability($conn, $analystId, Cap::WAR_ROOM_MANAGE);
         $ok = warRoomDeleteMessage($conn, $analystId, $messageId, $mayManage);

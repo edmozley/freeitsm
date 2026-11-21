@@ -34,6 +34,8 @@ try {
 
     $channelId = isset($_GET['channel_id']) ? (int) $_GET['channel_id'] : 0;
     $sinceId   = isset($_GET['since_id']) ? max(0, (int) $_GET['since_id']) : 0;
+    // A permanent link (5.9.0): load around this message instead of the latest.
+    $aroundId  = isset($_GET['around']) ? max(0, (int) $_GET['around']) : 0;
     $markRead  = !empty($_GET['read']);
 
     // ⚠️ Checked on every read, not just when the channel list is rendered.
@@ -46,7 +48,7 @@ try {
 
     warRoomTouchPresence($conn, $analystId, $channelId);
 
-    $messages = warRoomMessages($conn, $channelId, $sinceId);
+    $messages = warRoomMessages($conn, $channelId, $sinceId, 200, $analystId, $sinceId > 0 ? 0 : $aroundId);
 
     // Marked read AFTER fetching, using the newest id actually returned, so a
     // message that arrives between the two is still unread rather than skipped.

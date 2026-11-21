@@ -1652,6 +1652,16 @@ try {
             try { $conn->exec("ALTER TABLE warroom_mentions ADD CONSTRAINT fk_warroom_mentions_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
+    // 5.9.0: reactions. The indexes come from db_verify_indexes.php. quote_of_id has
+    // NO foreign key on purpose - see freeitsm.sql.
+    if ($tableExists('warroom_reactions') && $tableExists('warroom_messages')) {
+        if (!$fkExists('warroom_reactions', 'fk_warroom_reactions_message')) {
+            try { $conn->exec("ALTER TABLE warroom_reactions ADD CONSTRAINT fk_warroom_reactions_message FOREIGN KEY (message_id) REFERENCES warroom_messages (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if ($tableExists('analysts') && !$fkExists('warroom_reactions', 'fk_warroom_reactions_analyst')) {
+            try { $conn->exec("ALTER TABLE warroom_reactions ADD CONSTRAINT fk_warroom_reactions_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
     if ($tableExists('warroom_attachments') && $tableExists('warroom_messages')) {
         if (!$idxExists('warroom_attachments', 'ix_warroom_attachments_message')) {
             try { $conn->exec("ALTER TABLE warroom_attachments ADD KEY ix_warroom_attachments_message (message_id)"); } catch (Exception $e) {}

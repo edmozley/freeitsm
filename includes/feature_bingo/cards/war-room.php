@@ -97,4 +97,16 @@ return [
         'link'     => 'war-room/help.php',
         'check'    => ['rows', 'warroom_messages', 'is_bot = 1'],
     ],
+    [
+        'id'       => 'war-room.reactions',
+        'module'   => 'war-room',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'React to a message',
+        'what'     => 'Right-click a war room message (or its ... button) for ten quick emoji reactions, + for every emoji, Quote, Copy message and Copy link.',
+        'why'      => 'A thumbs up says "seen it, on it" without another line in a busy incident channel, and a quote makes clear which question an answer is for.',
+        'done'     => 'Somebody has reacted to a war room message.',
+        'link'     => 'war-room/',
+        'check'    => ['rows', 'warroom_reactions'],
+    ],
 ];

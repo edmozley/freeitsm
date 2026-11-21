@@ -492,7 +492,7 @@ function warRoomDirectory(PDO $conn, int $analystId): array
  * @param int $sinceId  the newest message id the page holds; 0 for the first load (the latest $limit)
  * @param int $limit  the most messages to return, 1-500
  */
-function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit = 200): array
+function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit = 200, int $viewerId = 0, int $aroundId = 0): array
 {
     $limit = max(1, min(500, $limit));
 
@@ -502,19 +502,37 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
     // polled; the page replaces the row it already has by id. Without this an
     // edited message stays as it was on everyone else's screen, which in an
     // incident is the one kind of stale that actually misleads.
+    // changed_datetime (5.9.0) is the same idea for a reaction: it changes a message
+    // the reader already holds without touching its text.
     $changedClause = $sinceId > 0
-        ? "OR ((m.edited_datetime IS NOT NULL OR m.deleted_datetime IS NOT NULL)
+        ? "OR ((m.edited_datetime IS NOT NULL OR m.deleted_datetime IS NOT NULL OR m.changed_datetime IS NOT NULL)
                AND GREATEST(COALESCE(m.edited_datetime, '1970-01-01'),
-                            COALESCE(m.deleted_datetime, '1970-01-01')) >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 SECOND))"
+                            COALESCE(m.deleted_datetime, '1970-01-01'),
+                            COALESCE(m.changed_datetime, '1970-01-01')) >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 SECOND))"
         : '';
 
     $cols = "m.id, m.body, m.created_datetime, m.analyst_id, a.full_name,
              m.edited_datetime, m.deleted_datetime, d.full_name AS deleted_by_name,
-             m.is_bot, m.reply_to_id";
+             m.is_bot, m.reply_to_id, m.quote_of_id";
     $joins = "LEFT JOIN analysts a ON a.id = m.analyst_id
               LEFT JOIN analysts d ON d.id = m.deleted_by";
 
-    if ($sinceId > 0) {
+    if ($aroundId > 0) {
+        // A permanent link (5.9.0): a few messages before the linked one, then
+        // everything after it, oldest first - the poll carries on from the newest.
+        $start = $conn->prepare(
+            "SELECT MIN(id) FROM (SELECT id FROM warroom_messages
+                                    WHERE channel_id = :cid AND id <= :aid ORDER BY id DESC LIMIT 31) AS b"
+        );
+        $start->execute([':cid' => $channelId, ':aid' => $aroundId]);
+        $from = (int) $start->fetchColumn();
+        $sql = "SELECT $cols
+                  FROM warroom_messages m
+                  $joins
+                 WHERE m.channel_id = :cid AND m.id >= " . max(1, $from) . "
+                 ORDER BY m.id ASC
+                 LIMIT 500";
+    } elseif ($sinceId > 0) {
         $sql = "SELECT $cols
                   FROM warroom_messages m
                   $joins
@@ -563,6 +581,9 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
             'deleted'     => $r['deleted_datetime'] !== null,
             'deleted_by'  => $r['deleted_by_name'],
             'attachments' => [],
+            'reactions'   => [],
+            'quote'       => $r['quote_of_id'] !== null && $r['deleted_datetime'] === null
+                ? ['id' => (int) $r['quote_of_id'], 'gone' => true] : null,
         ];
     }
     if ($ids) {
@@ -585,8 +606,143 @@ function warRoomMessages(PDO $conn, int $channelId, int $sinceId = 0, int $limit
                 'inline' => attachmentServeRules((string) $a['original_name'])['inline'],
             ];
         }
+        warRoomAttachReactions($conn, $rows, $in, $viewerId);
+        warRoomAttachQuotes($conn, $rows, $channelId);
     }
     return array_values($rows);
+}
+
+/**
+ * Each message's reactions, in the order they were first given: emoji, how many,
+ * whether the viewer gave it, and who (names, for the hover).
+ *
+ * @param array $rows  warRoomMessages()' rows by id - filled in place
+ * @param string $in   the same ids as a comma list (already integers)
+ * @param int $viewerId  the analyst looking, for 'mine'; 0 = nobody
+ */
+function warRoomAttachReactions(PDO $conn, array &$rows, string $in, int $viewerId): void
+{
+    try {
+        $q = $conn->query(
+            "SELECT r.message_id, r.emoji, r.analyst_id, a.full_name
+               FROM warroom_reactions r LEFT JOIN analysts a ON a.id = r.analyst_id
+              WHERE r.message_id IN ($in) ORDER BY r.id"
+        );
+    } catch (Throwable $e) {
+        return;   // before Database Verification: no reactions yet, nothing broken
+    }
+    $by = [];
+    foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $mid = (int) $r['message_id'];
+        $e = (string) $r['emoji'];
+        if (!isset($by[$mid][$e])) $by[$mid][$e] = ['emoji' => $e, 'count' => 0, 'mine' => false, 'names' => []];
+        $by[$mid][$e]['count']++;
+        if ((int) $r['analyst_id'] === $viewerId) $by[$mid][$e]['mine'] = true;
+        $by[$mid][$e]['names'][] = $r['full_name'] ?? (function_exists('t') ? t('war-room.former_analyst') : 'Former analyst');
+    }
+    foreach ($by as $mid => $list) {
+        if (isset($rows[$mid])) $rows[$mid]['reactions'] = array_values($list);
+    }
+}
+
+/**
+ * Fill in what each quoting message quotes: its author, time and the start of its
+ * text - or that it was deleted, or that it is no longer there at all (retention).
+ * Only a message in the SAME channel is ever shown: a quote is how a reply points
+ * back up the conversation, never a way to read another channel.
+ *
+ * @param array $rows  warRoomMessages()' rows by id - filled in place
+ * @param int $channelId  the channel being read
+ */
+function warRoomAttachQuotes(PDO $conn, array &$rows, int $channelId): void
+{
+    $ids = [];
+    foreach ($rows as $r) if ($r['quote'] !== null) $ids[] = (int) $r['quote']['id'];
+    if (!$ids) return;
+    $in = implode(',', array_unique($ids));
+    $q = $conn->query(
+        "SELECT m.id, m.channel_id, m.body, m.created_datetime, m.is_bot, m.deleted_datetime, a.full_name
+           FROM warroom_messages m LEFT JOIN analysts a ON a.id = m.analyst_id
+          WHERE m.id IN ($in)"
+    );
+    $found = [];
+    foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $o) {
+        if ((int) $o['channel_id'] !== $channelId) continue;
+        $found[(int) $o['id']] = $o;
+    }
+    foreach ($rows as $id => $r) {
+        if ($r['quote'] === null) continue;
+        $o = $found[$r['quote']['id']] ?? null;
+        if ($o === null) continue;   // stays 'gone': removed by retention
+        $rows[$id]['quote'] = [
+            'id'      => (int) $o['id'],
+            'gone'    => false,
+            'deleted' => $o['deleted_datetime'] !== null,
+            'author'  => !empty($o['is_bot']) ? WARBOT_NAME
+                : ($o['full_name'] ?? (function_exists('t') ? t('war-room.former_analyst') : 'Former analyst')),
+            'created' => $o['created_datetime'],
+            'text'    => $o['deleted_datetime'] !== null ? '' : mb_substr(trim((string) $o['body']), 0, 200),
+        ];
+    }
+}
+
+/**
+ * The emoji a reaction may be: exactly the ones the picker offers
+ * (assets/js/war-room-emoji.json, built by scripts/gen_warroom_emoji.php). Checked
+ * against the list, not a pattern, so the server and the picker cannot disagree
+ * and nothing but an emoji is ever stored.
+ */
+function warRoomEmojiAllowed(string $emoji): bool
+{
+    static $set = null;
+    if ($set === null) {
+        $set = [];
+        $data = json_decode((string) @file_get_contents(__DIR__ . '/../assets/js/war-room-emoji.json'), true);
+        foreach ((array) $data as $g) foreach ((array) ($g['emoji'] ?? []) as $e) $set[(string) $e[0]] = true;
+    }
+    return isset($set[$emoji]);
+}
+
+/**
+ * Add or take away the analyst's reaction to a message. Anyone who can post in the
+ * channel may react - a reaction is a small message. Stamps changed_datetime so the
+ * poll re-sends the message to everybody already looking at it.
+ *
+ * @param int $messageId  the warroom_messages id
+ * @param string $emoji   one emoji from the picker's list
+ * @param bool $on        true = add, false = take away
+ * @return bool  false for no such message, a deleted one, a channel the analyst cannot post in, or an unknown emoji
+ */
+function warRoomReact(PDO $conn, int $analystId, int $messageId, string $emoji, bool $on): bool
+{
+    if (!warRoomEmojiAllowed($emoji)) return false;
+    $row = warRoomMessageRow($conn, $messageId);
+    if ($row === null || $row['deleted_datetime'] !== null) return false;
+    if (!warRoomCanPostChannel($conn, $analystId, (int) $row['channel_id'])) return false;
+
+    if ($on) {
+        $conn->prepare("INSERT IGNORE INTO warroom_reactions (message_id, analyst_id, emoji, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$messageId, $analystId, $emoji]);
+    } else {
+        $conn->prepare("DELETE FROM warroom_reactions WHERE message_id = ? AND analyst_id = ? AND emoji = ?")
+             ->execute([$messageId, $analystId, $emoji]);
+    }
+    $conn->prepare("UPDATE warroom_messages SET changed_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$messageId]);
+    return true;
+}
+
+/**
+ * Where a permanent link points: the message's channel, if the analyst may read it.
+ * 0 when the message is gone or out of reach - one answer for both, so a link
+ * cannot be used to find out which messages exist in channels you cannot read.
+ *
+ * @param int $messageId  the id from ?message=
+ */
+function warRoomChannelOfMessage(PDO $conn, int $analystId, int $messageId): int
+{
+    $row = warRoomMessageRow($conn, $messageId);
+    if ($row === null || $row['channel_id'] === null) return 0;
+    return warRoomCanAccessChannel($conn, $analystId, (int) $row['channel_id']) ? (int) $row['channel_id'] : 0;
 }
 
 /**
@@ -683,19 +839,29 @@ function warRoomMessageRow(PDO $conn, int $messageId): ?array
  * @param int $channelId  the warroom_channels id; the caller has already checked it may post there
  * @param string $body  the message text as typed; blank posts nothing; cut to WARROOM_MAX_BODY
  */
-function warRoomSend(PDO $conn, int $analystId, int $channelId, string $body): int
+function warRoomSend(PDO $conn, int $analystId, int $channelId, string $body, int $quoteOfId = 0): int
 {
     $body = trim($body);
     if ($body === '') return 0;
     if (mb_strlen($body) > WARROOM_MAX_BODY) $body = mb_substr($body, 0, WARROOM_MAX_BODY);
 
+    // A quote (5.9.0) must be a live message in THIS channel; anything else is
+    // dropped, not refused - the reply itself is what matters.
+    $quote = null;
+    if ($quoteOfId > 0) {
+        $q = warRoomMessageRow($conn, $quoteOfId);
+        if ($q !== null && (int) $q['channel_id'] === $channelId && $q['deleted_datetime'] === null) $quote = $quoteOfId;
+    }
+
     $stmt = $conn->prepare(
-        "INSERT INTO warroom_messages (channel_id, analyst_id, body, created_datetime)
-         VALUES (:cid, :aid, :body, UTC_TIMESTAMP())"
+        "INSERT INTO warroom_messages (channel_id, analyst_id, body, created_datetime"
+        . ($quote !== null ? ", quote_of_id" : "") . ")
+         VALUES (:cid, :aid, :body, UTC_TIMESTAMP()" . ($quote !== null ? ", :q" : "") . ")"
     );
     $stmt->bindValue(':cid', $channelId, PDO::PARAM_INT);
     $stmt->bindValue(':aid', $analystId, PDO::PARAM_INT);
     $stmt->bindValue(':body', $body);
+    if ($quote !== null) $stmt->bindValue(':q', $quote, PDO::PARAM_INT);
     $stmt->execute();
 
     // ⚠️ Read the id BEFORE anything else touches the connection. MySQL resets

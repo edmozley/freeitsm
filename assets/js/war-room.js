@@ -62,6 +62,14 @@
     var offline   = false;
     var channels  = [];
     var pending   = [];      // files chosen but not yet sent
+    var quoting   = null;    // the message the next one quotes (5.9.0), or null
+    var focusId   = window.WR_FOCUS || 0;   // a permanent link's message, until it is shown
+
+    // The ten reactions offered first (wiki War-Room-Message-Actions-Design). The
+    // full list ships with FreeITSM - nothing comes from the internet.
+    var QUICK_EMOJI = ['\uD83D\uDC4D', '\u2764\uFE0F', '\uD83D\uDE02', '\uD83D\uDE2E', '\uD83D\uDE22',
+                       '\uD83C\uDF89', '\uD83D\uDC40', '\u2705', '\uD83D\uDE4F', '\uD83D\uDD25'];
+    var EMOJI_URL = (window.WR_LINK_BASE || '../war-room/').replace(/war-room\/$/, '') + 'assets/js/war-room-emoji.json?v=1';
 
     var els = {};
     ['wrChannels', 'wrMessages', 'wrEmpty', 'wrComposer', 'wrBody', 'wrSend', 'wrPresence',
@@ -183,6 +191,8 @@
         renderChannels();
         applyChannelHeader();
         closePanel();
+        closeMenu();
+        clearQuote();
         poll();
     }
 
@@ -218,31 +228,51 @@
             return row;
         }
 
+        // The message this one quotes (5.9.0) - drawn from the reference, never
+        // pasted text, so it says so if the original was deleted or has gone.
+        if (m.quote) row.appendChild(renderQuote(m.quote));
+
         var body = el('div', 'wr-msg-body');
         renderBodyWithMentions(body, m.body);
         row.appendChild(body);
 
-        // Nobody owns Warbot's messages, so nobody gets the edit/delete controls
-        // on one except somebody who can moderate the room.
-        if (m.is_bot && !canManage) return row;
-
         // Edit and delete belong to the author; delete also to war_room.manage.
-        // Rendered per message rather than in a menu, because a message you can act
-        // on and one you cannot should not look identical.
-        if (m.analyst_id === me || canManage) {
-            var acts = el('div', 'wr-msg-acts');
-            if (m.analyst_id === me) {
-                var ed = el('button', 'wr-msg-act', t('war-room.message.edit'));
-                ed.type = 'button';
-                ed.addEventListener('click', function () { openEdit(m); });
-                acts.appendChild(ed);
-            }
+        // Rendered per message as well as in the menu, because a message you can act
+        // on and one you cannot should not look identical. Nobody owns Warbot's
+        // messages, so only a moderator gets Delete on one.
+        var acts = el('div', 'wr-msg-acts');
+        if (mayEdit(m)) {
+            var ed = el('button', 'wr-msg-act', t('war-room.message.edit'));
+            ed.type = 'button';
+            ed.addEventListener('click', function () { openEdit(m); });
+            acts.appendChild(ed);
+        }
+        if (mayDelete(m)) {
             var del = el('button', 'wr-msg-act', t('war-room.message.delete'));
             del.type = 'button';
             del.addEventListener('click', function () { openDelete(m); });
             acts.appendChild(del);
-            row.appendChild(acts);
         }
+        // The menu's keyboard and touch way in: right-click is not the only door.
+        var more = el('button', 'wr-msg-act wr-msg-more', '\u22EF');
+        more.type = 'button';
+        more.setAttribute('aria-label', t('war-room.menu.label'));
+        more.setAttribute('aria-haspopup', 'menu');
+        more.addEventListener('click', function () {
+            var r = more.getBoundingClientRect();
+            openMenu(m, r.right, r.bottom + 4, more);
+        });
+        acts.appendChild(more);
+        row.appendChild(acts);
+
+        row.addEventListener('contextmenu', function (e) {
+            // Selected text keeps the browser's own menu, so Copy still works on part of a message.
+            var sel = window.getSelection ? String(window.getSelection()) : '';
+            if (sel && row.contains(window.getSelection().anchorNode)) return;
+            e.preventDefault();
+            openMenu(m, e.clientX, e.clientY, null);
+        });
+        addLongPress(row, m);
 
         if (m.attachments && m.attachments.length) {
             var wrap = el('div', 'wr-attachments');
@@ -254,6 +284,7 @@
                     // the server, never from the uploader.
                     var link = el('a', 'wr-thumb');
                     link.href = href; link.target = '_blank'; link.rel = 'noopener';
+                    viewOnClick(link, a, href);
                     var img = document.createElement('img');
                     img.src = href; img.alt = a.name; img.loading = 'lazy';
                     link.appendChild(img);
@@ -261,6 +292,7 @@
                 } else {
                     var f = el('a', 'wr-file');
                     f.href = href; f.target = '_blank'; f.rel = 'noopener';
+                    viewOnClick(f, a, href);
                     f.appendChild(el('span', 'wr-file-name', a.name));
                     f.appendChild(el('span', 'wr-file-size', bytes(a.size)));
                     wrap.appendChild(f);
@@ -268,6 +300,7 @@
             });
             row.appendChild(wrap);
         }
+        if (m.reactions && m.reactions.length) row.appendChild(renderReactions(m));
         return row;
     }
 
@@ -348,6 +381,7 @@
         var added = false;
 
         list.forEach(function (m) {
+            messageById[m.id] = m;
             var node = renderMessage(m);
             // ⚠️ UPSERT BY ID, NEVER BLIND APPEND. The poll deliberately re-sends
             // a message that was edited or deleted in the last 30 seconds, because
@@ -402,13 +436,15 @@
      */
     function poll() {
         var url = api + 'poll.php?channel_id=' + encodeURIComponent(activeId) +
-                  '&since_id=' + encodeURIComponent(lastId) + '&read=1';
+                  '&since_id=' + encodeURIComponent(lastId) + '&read=1' +
+                  (focusId && lastId === 0 ? '&around=' + encodeURIComponent(focusId) : '');
         fetch(url, { credentials: 'same-origin' })
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (!d || !d.success) throw new Error('poll failed');
                 offline = false;
                 appendMessages(d.messages || []);
+                if (focusId) { var f = focusId; focusId = 0; highlightMessage(f, true); }
                 channels = d.channels || [];
                 renderChannels();
                 applyChannelHeader();
@@ -643,6 +679,401 @@
         });
     }
 
+    /* ── doing things with a message (5.9.0) ──────────────────────────────────
+       wiki War-Room-Message-Actions-Design. Right-click, the ⋯ button, or a long
+       press on a phone opens one menu: ten quick reactions and + for the full
+       picker, then Quote, Copy message, Copy link, Edit, Delete. Everything here
+       is still built from text nodes - no message text ever becomes markup. */
+
+    /** True when the analyst may edit this message: their own, never Warbot's, never a deleted one. */
+    function mayEdit(m) { return !m.deleted && !m.is_bot && m.analyst_id === me; }
+    /** True when the analyst may delete it: their own, or anybody's with war_room.manage. */
+    function mayDelete(m) { return !m.deleted && (canManage || (!m.is_bot && m.analyst_id === me)); }
+
+    /** The message object currently drawn with this id - the poll keeps them fresh. */
+    var messageById = {};
+
+    var menuEl = null, menuReturn = null;
+
+    /** Closes the message menu and the emoji picker, handing focus back where it came from. */
+    function closeMenu() {
+        if (menuEl) { menuEl.remove(); menuEl = null; }
+        closePicker();
+        if (menuReturn && document.contains(menuReturn)) menuReturn.focus();
+        menuReturn = null;
+    }
+
+    /** Places a floating box at (x, y), kept inside the window. */
+    function placeBox(box, x, y, alignRight) {
+        box.style.left = '0px'; box.style.top = '0px';
+        document.body.appendChild(box);
+        var w = box.offsetWidth, h = box.offsetHeight;
+        var left = alignRight ? x - w : x;
+        left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+        var top = y + h > window.innerHeight - 8 ? Math.max(8, y - h) : y;
+        box.style.left = left + 'px';
+        box.style.top = top + 'px';
+    }
+
+    /**
+     * Opens the message menu at (x, y).
+     * @param {Object} m  the message, as the poll sent it
+     * @param {HTMLElement|null} from  the ⋯ button that opened it, for focus to return to
+     */
+    function openMenu(m, x, y, from) {
+        closeMenu();
+        if (m.deleted) return;
+        m = messageById[m.id] || m;
+        menuReturn = from;
+        menuEl = el('div', 'wr-menu');
+        menuEl.setAttribute('role', 'menu');
+        menuEl.setAttribute('aria-label', t('war-room.menu.label'));
+
+        var canPost = !els.wrComposer.hidden;   // an archived channel is read-only
+        if (canPost) {
+            var quick = el('div', 'wr-menu-emoji');
+            QUICK_EMOJI.forEach(function (e) {
+                var b = el('button', 'wr-menu-emo' + (myReaction(m, e) ? ' is-mine' : ''), e);
+                b.type = 'button';
+                b.setAttribute('role', 'menuitem');
+                b.setAttribute('aria-label', t('war-room.menu.react', { emoji: e }));
+                b.addEventListener('click', function () { closeMenu(); react(m, e, !myReaction(m, e)); });
+                quick.appendChild(b);
+            });
+            var plus = el('button', 'wr-menu-emo wr-menu-plus', '+');
+            plus.type = 'button';
+            plus.setAttribute('role', 'menuitem');
+            plus.setAttribute('aria-label', t('war-room.menu.more_reactions'));
+            plus.title = t('war-room.menu.more_reactions');
+            plus.addEventListener('click', function () {
+                var r = menuEl.getBoundingClientRect();
+                var keep = m;
+                closeMenu();
+                openPicker(keep, r.left, r.top);
+            });
+            quick.appendChild(plus);
+            menuEl.appendChild(quick);
+        }
+
+        /** Adds one text item to the menu. */
+        function item(label, fn) {
+            var b = el('button', 'wr-menu-item', label);
+            b.type = 'button';
+            b.setAttribute('role', 'menuitem');
+            b.addEventListener('click', function () { closeMenu(); fn(); });
+            menuEl.appendChild(b);
+        }
+        if (canPost) item(t('war-room.menu.quote'), function () { startQuote(m); });
+        item(t('war-room.menu.copy'), function () { copyMessage(m); });
+        item(t('war-room.menu.copy_link'), function () { copyLink(m); });
+        if (mayEdit(m) || mayDelete(m)) menuEl.appendChild(el('div', 'wr-menu-sep'));
+        if (mayEdit(m)) item(t('war-room.message.edit'), function () { openEdit(m); });
+        if (mayDelete(m)) item(t('war-room.message.delete'), function () { openDelete(m); });
+
+        menuEl.addEventListener('keydown', menuKeys);
+        placeBox(menuEl, x, y, !!from);
+        var first = menuEl.querySelector('button');
+        if (first) first.focus();
+    }
+
+    /** Arrow keys move through the menu; Escape closes it. */
+    function menuKeys(e) {
+        var items = Array.prototype.slice.call(menuEl.querySelectorAll('button'));
+        var i = items.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+        else if (e.key === 'Escape') { e.preventDefault(); closeMenu(); }
+        else if (e.key === 'Tab') { closeMenu(); }
+    }
+
+    document.addEventListener('mousedown', function (e) {
+        if (menuEl && !menuEl.contains(e.target)) closeMenu();
+        if (pickerEl && !pickerEl.contains(e.target)) closePicker();
+    });
+    window.addEventListener('resize', closeMenu);
+    els.wrMessages.addEventListener('scroll', function () { if (menuEl) closeMenu(); });
+
+    /** A long press opens the menu on a phone, where there is no right-click. Moving cancels it. */
+    function addLongPress(row, m) {
+        var timer = null, sx = 0, sy = 0;
+        row.addEventListener('touchstart', function (e) {
+            if (e.touches.length !== 1) return;
+            sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+            timer = setTimeout(function () { timer = null; openMenu(m, sx, sy, null); }, 550);
+        }, { passive: true });
+        /** Cancels a pending long press. */
+        var cancel = function () { if (timer) { clearTimeout(timer); timer = null; } };
+        row.addEventListener('touchmove', function (e) {
+            if (Math.abs(e.touches[0].clientX - sx) > 10 || Math.abs(e.touches[0].clientY - sy) > 10) cancel();
+        }, { passive: true });
+        row.addEventListener('touchend', cancel);
+        row.addEventListener('touchcancel', cancel);
+    }
+
+    /* ── reactions ── */
+
+    /** True when the analyst has already given this emoji to the message. */
+    function myReaction(m, emoji) {
+        return (m.reactions || []).some(function (r) { return r.emoji === emoji && r.mine; });
+    }
+
+    /** The row of reactions under a message: each emoji, its count, and who on hover. Click to add or take away yours. */
+    function renderReactions(m) {
+        var wrap = el('div', 'wr-reactions');
+        m.reactions.forEach(function (r) {
+            var b = el('button', 'wr-reaction' + (r.mine ? ' is-mine' : ''));
+            b.type = 'button';
+            b.appendChild(el('span', 'wr-reaction-emo', r.emoji));
+            b.appendChild(el('span', 'wr-reaction-n', String(r.count)));
+            b.title = (r.names || []).join(', ');
+            b.setAttribute('aria-pressed', r.mine ? 'true' : 'false');
+            b.setAttribute('aria-label', t('war-room.reactions.label', { emoji: r.emoji, names: (r.names || []).join(', ') }));
+            b.disabled = els.wrComposer.hidden;   // archived: read-only
+            b.addEventListener('click', function () { react(m, r.emoji, !r.mine); });
+            wrap.appendChild(b);
+        });
+        return wrap;
+    }
+
+    /** Adds (on) or takes away a reaction, then polls so it shows at once; the poll brings everybody else's. */
+    function react(m, emoji, on) {
+        if (on) rememberEmoji(emoji);
+        fetch(api + 'message.php', {
+            method: 'POST', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'react', id: m.id, emoji: emoji, on: on ? 1 : 0 })
+        }).then(function (r) { return r.json(); })
+          .then(function (d) { if (!d || !d.success) throw new Error('failed'); poll(); })
+          .catch(function () { toast(t('war-room.reactions.failed')); });
+    }
+
+    /* ── the full emoji picker ── */
+
+    var pickerEl = null, emojiData = null;
+    var RECENT_KEY = 'freeitsm.warroom.recentEmoji.' + me;
+
+    /** Recently used emoji, newest first - a convenience kept in this browser only. */
+    function recentEmoji() {
+        try { var v = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); return Array.isArray(v) ? v.slice(0, 24) : []; }
+        catch (e) { return []; }
+    }
+    /** Puts an emoji at the front of the recently used list. */
+    function rememberEmoji(e) {
+        try {
+            var list = recentEmoji().filter(function (x) { return x !== e; });
+            list.unshift(e);
+            localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 24)));
+        } catch (err) { /* private window, storage off: recent simply stays empty */ }
+    }
+
+    /** Fetches the emoji list once (it ships with FreeITSM). */
+    function loadEmoji() {
+        if (emojiData) return Promise.resolve(emojiData);
+        return fetch(EMOJI_URL, { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { emojiData = d; return d; });
+    }
+
+    /** Closes the full emoji picker. */
+    function closePicker() { if (pickerEl) { pickerEl.remove(); pickerEl = null; } }
+
+    /** Opens the full emoji picker for a message: search, a tab per group, recently used first. */
+    function openPicker(m, x, y) {
+        closePicker();
+        pickerEl = el('div', 'wr-picker');
+        pickerEl.setAttribute('role', 'dialog');
+        pickerEl.setAttribute('aria-label', t('war-room.emoji.title'));
+        var search = el('input', 'wr-input wr-picker-search');
+        search.type = 'search';
+        search.placeholder = t('war-room.emoji.search');
+        search.setAttribute('aria-label', t('war-room.emoji.search'));
+        pickerEl.appendChild(search);
+        var tabs = el('div', 'wr-picker-tabs');
+        pickerEl.appendChild(tabs);
+        var grid = el('div', 'wr-picker-grid');
+        grid.appendChild(el('div', 'wr-muted', t('war-room.emoji.loading')));
+        pickerEl.appendChild(grid);
+        pickerEl.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); closePicker(); } });
+        placeBox(pickerEl, x, y, false);
+        search.focus();
+
+        /** One emoji button: click reacts and closes. */
+        function emoButton(e, name) {
+            var b = el('button', 'wr-picker-emo', e);
+            b.type = 'button';
+            b.title = name || e;
+            b.setAttribute('aria-label', name || e);
+            b.addEventListener('click', function () { closePicker(); react(m, e, !myReaction(m, e)); });
+            return b;
+        }
+        /** Draws a titled section of emoji into the grid. */
+        function section(title, list, id) {
+            var h = el('div', 'wr-picker-head', title);
+            if (id) h.id = id;
+            grid.appendChild(h);
+            var box = el('div', 'wr-picker-set');
+            list.forEach(function (p) { box.appendChild(emoButton(p[0], p[1])); });
+            grid.appendChild(box);
+        }
+
+        loadEmoji().then(function (data) {
+            if (!pickerEl) return;
+            var names = {};
+            data.forEach(function (g) { g.emoji.forEach(function (p) { names[p[0]] = p[1]; }); });
+            /** Draws everything, or only the emoji whose English name contains q. */
+            function draw(q) {
+                clear(grid);
+                q = q.trim().toLowerCase();
+                if (q) {
+                    var hits = [];
+                    data.forEach(function (g) { g.emoji.forEach(function (p) { if (p[1].indexOf(q) >= 0) hits.push(p); }); });
+                    if (hits.length) section(t('war-room.emoji.results'), hits.slice(0, 300));
+                    else grid.appendChild(el('div', 'wr-muted', t('war-room.emoji.none')));
+                    return;
+                }
+                var recent = recentEmoji();
+                if (recent.length) section(t('war-room.emoji.recent'), recent.map(function (e) { return [e, names[e] || e]; }), 'wrPickRecent');
+                data.forEach(function (g) { section(t('war-room.emoji.group.' + g.group), g.emoji, 'wrPick-' + g.group); });
+            }
+            clear(tabs);
+            data.forEach(function (g) {
+                var b = el('button', 'wr-picker-tab', g.emoji[0][0]);
+                b.type = 'button';
+                b.title = t('war-room.emoji.group.' + g.group);
+                b.setAttribute('aria-label', t('war-room.emoji.group.' + g.group));
+                b.addEventListener('click', function () {
+                    search.value = ''; draw('');
+                    var h = document.getElementById('wrPick-' + g.group);
+                    if (h) grid.scrollTop = h.offsetTop - grid.offsetTop;
+                });
+                tabs.appendChild(b);
+            });
+            draw('');
+            search.addEventListener('input', function () { draw(search.value); });
+        }).catch(function () {
+            clear(grid);
+            grid.appendChild(el('div', 'wr-muted', t('war-room.emoji.failed')));
+        });
+    }
+
+    /* ── quoting ── */
+
+    /** The quote box at the top of a message: author, time and the start of the original, or why it is not there. */
+    function renderQuote(q) {
+        var box = el('button', 'wr-quote');
+        box.type = 'button';
+        if (q.gone) {
+            box.appendChild(el('span', 'wr-quote-text wr-tombstone', t('war-room.quote.gone')));
+            box.disabled = true;
+            return box;
+        }
+        var head = el('span', 'wr-quote-head');
+        head.appendChild(el('span', 'wr-quote-author', q.author));
+        head.appendChild(el('span', 'wr-msg-time', localTime(q.created)));
+        box.appendChild(head);
+        box.appendChild(el('span', 'wr-quote-text' + (q.deleted ? ' wr-tombstone' : ''),
+            q.deleted ? t('war-room.quote.deleted') : q.text));
+        box.title = t('war-room.quote.jump');
+        box.addEventListener('click', function () { highlightMessage(q.id, false); });
+        return box;
+    }
+
+    var quotingEl = el('div', 'wr-quoting');
+    quotingEl.hidden = true;
+    els.wrComposer.parentNode.insertBefore(quotingEl, els.wrComposer);
+
+    /** Starts quoting a message: a bar above the box says so, with a cross to stop. */
+    function startQuote(m) {
+        quoting = m;
+        clear(quotingEl);
+        quotingEl.appendChild(el('span', 'wr-quoting-label', t('war-room.quote.quoting', { name: m.author })));
+        quotingEl.appendChild(el('span', 'wr-quoting-text', String(m.body || '').slice(0, 120)));
+        var x = el('button', 'wr-chip-x', '\u00D7');
+        x.type = 'button';
+        x.setAttribute('aria-label', t('war-room.quote.cancel'));
+        x.addEventListener('click', clearQuote);
+        quotingEl.appendChild(x);
+        quotingEl.hidden = false;
+        els.wrBody.focus();
+    }
+    /** Stops quoting. */
+    function clearQuote() { quoting = null; quotingEl.hidden = true; clear(quotingEl); }
+
+    /* ── copying ── */
+
+    /** Copies through the app's shared helper (assets/js/clipboard.js), which also works on plain HTTP. */
+    function copyText(text, doneKey) {
+        var p = (typeof window.copyToClipboard === 'function') ? window.copyToClipboard(text)
+              : (navigator.clipboard && window.isSecureContext ? navigator.clipboard.writeText(text).then(function () { return true; }) : Promise.resolve(false));
+        p.then(function (ok) { toast(t(ok ? doneKey : 'war-room.menu.copy_failed')); }, function () { toast(t('war-room.menu.copy_failed')); });
+    }
+    /** Copies the message's text with its author and time; attachments by name. */
+    function copyMessage(m) {
+        var text = m.author + ' (' + localTime(m.created) + '):\n' + String(m.body || '').trim();
+        (m.attachments || []).forEach(function (a) { text += '\n[' + a.name + ']'; });
+        copyText(text, 'war-room.menu.copied');
+    }
+    /** Copies a permanent link to the message, by database id. */
+    function copyLink(m) {
+        copyText((window.WR_LINK_BASE || '') + '?channel=' + activeId + '&message=' + m.id, 'war-room.menu.link_copied');
+    }
+
+    /* ── showing one message ── */
+
+    /**
+     * Scrolls to a message and highlights it. If it is not on the page (older than
+     * what was loaded), the channel is reloaded around it.
+     * @param {boolean} fromLink  true on arrival from a permanent link
+     */
+    function highlightMessage(id, fromLink) {
+        var node = els.wrMessages.querySelector('[data-msg-id="' + id + '"]');
+        if (!node) {
+            if (fromLink) { toast(t('war-room.link.missing')); return; }
+            focusId = id; lastId = 0;
+            clear(els.wrMessages); els.wrMessages.appendChild(els.wrEmpty);
+            poll();
+            return;
+        }
+        node.scrollIntoView({ block: 'center' });
+        node.classList.remove('wr-msg-flash');
+        void node.offsetWidth;   // restart the animation if it is already running
+        node.classList.add('wr-msg-flash');
+        setTimeout(function () { node.classList.remove('wr-msg-flash'); }, 2600);
+    }
+
+    /* ── opening attachments ── */
+
+    /**
+     * A click on an attachment opens it in the shared viewer (FilesViewer, as Files and
+     * Tickets do): PDFs, Word, Excel, images, media, text, zips - in a window you can
+     * move and resize, with Download beside it. A modified click, or a type the viewer
+     * cannot show, still follows the link.
+     */
+    function viewOnClick(link, a, href) {
+        link.addEventListener('click', function (e) {
+            if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+            if (!window.FilesViewer || !window.FilesViewer.openUrl) return;
+            var w = window.FilesViewer.openUrl({ name: a.name, src: href, downloadUrl: href, size: a.size, key: 'wr-att-' + a.id });
+            if (w) e.preventDefault();
+        });
+    }
+
+    /* ── a passing note ── */
+
+    var toastEl = null, toastTimer = null;
+    /** Shows a short note at the bottom of the window for a couple of seconds. */
+    function toast(text) {
+        if (!toastEl) {
+            toastEl = el('div', 'wr-toast');
+            toastEl.setAttribute('role', 'status');
+            document.body.appendChild(toastEl);
+        }
+        toastEl.textContent = text;
+        toastEl.classList.add('is-on');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.classList.remove('is-on'); }, 2400);
+    }
+
     /* ── edit and delete ─────────────────────────────────────────────────────── */
 
     /** Opens the edit modal for one of the analyst's own messages; Save sends the new body through messageAction. */
@@ -732,6 +1163,7 @@
             var fd = new FormData();
             fd.append('channel_id', activeId);
             fd.append('body', body);
+            if (quoting) fd.append('quote_of_id', quoting.id);
             pending.forEach(function (f) { fd.append('files[]', f); });
             request = fetch(api + 'send.php', { method: 'POST', credentials: 'same-origin', body: fd });
         } else {
@@ -739,7 +1171,7 @@
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ channel_id: activeId, body: body })
+                body: JSON.stringify({ channel_id: activeId, body: body, quote_of_id: quoting ? quoting.id : 0 })
             });
         }
 
@@ -749,6 +1181,7 @@
                 els.wrBody.value = '';
                 pending = [];
                 renderPending();
+                clearQuote();
                 // A file we refused is reported by name. Posting the message and
                 // silently dropping the screenshot would be the worst outcome:
                 // the sender believes everyone can see it.
@@ -1180,6 +1613,8 @@
     }
 
     /* ── go ────────────────────────────────────────────────────────────────── */
+
+    if (window.WR_FOCUS_MISSING) toast(t('war-room.link.missing'));
 
     poll();
     startPolling();

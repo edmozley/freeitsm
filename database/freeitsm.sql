@@ -9005,9 +9005,21 @@ CREATE TABLE IF NOT EXISTS `warroom_messages` (
     `edited_datetime`  DATETIME NULL,
     `deleted_datetime` DATETIME NULL,
     `deleted_by`       INT NULL,
+    -- The message this one quotes (5.9.0). A reference, not pasted text: the page
+    -- draws the quote. Deliberately NO foreign key: when retention removes the
+    -- original, the id stays, so the reply can say "no longer available" instead of
+    -- silently losing the box that gave it its context.
+    `quote_of_id`      INT NULL,
+    -- When something about the message changed that is not its text - a reaction
+    -- (5.9.0). The poll re-sends anything changed in the last 30 seconds, because
+    -- the message's id is below the reader's since_id watermark.
+    `changed_datetime` DATETIME NULL,
     PRIMARY KEY (`id`),
     -- (channel_id, id): every read is "this channel, newer than id N".
     KEY `ix_warroom_messages_channel` (`channel_id`, `id`),
+    -- The poll's "changed in the last 30 seconds" in this channel.
+    KEY `ix_warroom_messages_changed` (`channel_id`, `changed_datetime`),
+    KEY `ix_warroom_messages_quote` (`quote_of_id`),
     -- Retention deletes by age across every channel at once.
     KEY `ix_warroom_messages_created` (`created_datetime`),
     -- Warbot's reply points at the message it answers, which is also how a
@@ -9061,6 +9073,24 @@ CREATE TABLE IF NOT EXISTS `warroom_mentions` (
     KEY `ix_warroom_mentions_analyst` (`analyst_id`, `id`),
     CONSTRAINT `fk_warroom_mentions_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_warroom_mentions_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Emoji reactions to a message (5.9.0): one row per person per emoji.
+--
+-- TRAP: `emoji` is utf8mb4_bin, NOT the table's unicode_ci. unicode_ci gives many
+-- emoji the same weight, so the unique key would refuse 😂 on a message that already
+-- has 😀 from the same person - and GROUP BY would merge different emoji.
+CREATE TABLE IF NOT EXISTS `warroom_reactions` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `message_id`       INT NOT NULL,
+    `analyst_id`       INT NOT NULL,
+    `emoji`            VARCHAR(32) COLLATE utf8mb4_bin NOT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_warroom_reaction` (`message_id`, `analyst_id`, `emoji`),
+    KEY `ix_warroom_reactions_analyst` (`analyst_id`),
+    CONSTRAINT `fk_warroom_reactions_message` FOREIGN KEY (`message_id`) REFERENCES `warroom_messages` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_warroom_reactions_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- How far each analyst has read in each channel, so the list can show what is new.

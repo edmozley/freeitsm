@@ -47,6 +47,17 @@ if (isset($_GET['channel'])) {
     }
 }
 
+// A permanent link (5.9.0): ?message=<id> opens that message's channel scrolled to
+// it. Checked the same way as ?channel= - a message in a channel the analyst cannot
+// read, or one that no longer exists, gets the same "not available" either way.
+$focusId = isset($_GET['message']) ? max(0, (int) $_GET['message']) : 0;
+$focusMissing = false;
+if ($focusId > 0) {
+    $focusChannel = warRoomChannelOfMessage($conn, $analystId, $focusId);
+    if ($focusChannel > 0) $activeId = $focusChannel;
+    else { $focusMissing = true; $focusId = 0; }
+}
+
 $myName    = $_SESSION['analyst_name'] ?? '';
 $canManage = analystHasCapability($conn, $analystId, Cap::WAR_ROOM_MANAGE);
 
@@ -86,7 +97,8 @@ foreach ($channels as $ch) {
     <title><?php echo htmlspecialchars(pageTitle('war-room')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/war-room.css?v=6">
+    <link rel="stylesheet" href="../assets/css/war-room.css?v=7">
+    <link rel="stylesheet" href="../assets/css/float-window.css?v=1"><!-- the shared file viewer (5.9.0) -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
     <style>
         /* Pin the shared accent to the module's amber so buttons and focus
@@ -223,8 +235,16 @@ foreach ($channels as $ch) {
         window.WR_CAN_MANAGE = <?php echo $canManage ? 'true' : 'false'; ?>;
         window.WR_PREF_URL  = '<?php echo BASE_URL; ?>api/system/set_user_preference.php';
         window.WR_MENTION_STYLE = <?php echo json_encode($mentionStyle); ?>;
+        window.WR_FOCUS     = <?php echo (int) $focusId; ?>;
+        window.WR_FOCUS_MISSING = <?php echo $focusMissing ? 'true' : 'false'; ?>;
+        window.WR_LINK_BASE = <?php echo json_encode(BASE_URL . 'war-room/'); ?>;
     </script>
-    <script src="../assets/js/war-room.js?v=8"></script>
+    <!-- Attachments open in the viewer Files and Tickets use (5.9.0). Its own
+         libraries (pdf.js and the rest) ship with FreeITSM and load on first use. -->
+    <script src="../assets/js/float-window.js?v=2"></script>
+    <script src="../assets/js/files-icons.js?v=4"></script>
+    <script src="../assets/js/files-viewer.js?v=10"></script>
+    <script src="../assets/js/war-room.js?v=9"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

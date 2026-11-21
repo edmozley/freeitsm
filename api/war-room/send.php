@@ -38,11 +38,13 @@ try {
     if ($isMultipart) {
         $channelId = (int) ($_POST['channel_id'] ?? 0);
         $body      = (string) ($_POST['body'] ?? '');
+        $quoteOf   = (int) ($_POST['quote_of_id'] ?? 0);
     } else {
         $input     = json_decode(file_get_contents('php://input'), true);
         if (!is_array($input)) $input = [];
         $channelId = (int) ($input['channel_id'] ?? 0);
         $body      = isset($input['body']) ? (string) $input['body'] : '';
+        $quoteOf   = (int) ($input['quote_of_id'] ?? 0);
     }
 
     // Same check as the read path, and it covers archived channels too: posting
@@ -80,7 +82,7 @@ try {
         exit;
     }
 
-    $id = warRoomSend($conn, $analystId, $channelId, trim($body) === '' ? ' ' : $body);
+    $id = warRoomSend($conn, $analystId, $channelId, trim($body) === '' ? ' ' : $body, $quoteOf);
     if ($id === 0) {
         echo json_encode(['success' => false, 'error' => 'Empty message']);
         exit;

@@ -615,3 +615,182 @@
 .wr-member:hover { background: var(--surface-hover, #f5f5f5); }
 .wr-member-btn { width: 100%; border: none; background: none; font: inherit; text-align: left; cursor: pointer; }
 .wr-here-dot { margin-left: auto; font-size: var(--font-size-xs, 11px); color: var(--success-accent, #2e7d32); }
+
+/* ── Doing things with a message (5.9.0) - wiki War-Room-Message-Actions-Design ──
+   The menu, the emoji picker, reactions, quotes and the link highlight. Colours
+   are theme tokens only, so dark mode follows. Above the page, below the shared
+   file viewer's windows (float-window.css, z-index 5000). */
+
+.wr-msg-more { font-weight: 700; letter-spacing: 1px; }
+
+.wr-menu,
+.wr-picker {
+    position: fixed;
+    z-index: 4000;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px var(--shadow, rgba(0, 0, 0, 0.18));
+    color: var(--text, #333);
+}
+.wr-menu { min-width: 230px; padding: 6px; }
+.wr-menu-emoji {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 2px 2px 6px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border-soft, #f2f2f2);
+}
+.wr-menu-emo {
+    width: 32px; height: 32px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: none;
+    font-size: var(--font-size-xl, 20px);
+    line-height: 1;
+    cursor: pointer;
+}
+.wr-menu-emo:hover,
+.wr-menu-emo:focus-visible { background: var(--surface-hover, #f5f5f5); outline: none; border-color: var(--accent, #ea580c); }
+.wr-menu-emo.is-mine { background: color-mix(in srgb, var(--accent, #ea580c) 14%, transparent); border-color: var(--accent, #ea580c); }
+.wr-menu-plus { font-size: var(--font-size-lg, 16px); color: var(--text-muted, #666); }
+.wr-menu-item {
+    display: block;
+    width: 100%;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--text, #333);
+    font: inherit;
+    font-size: var(--font-size-md, 13px);
+    text-align: left;
+    cursor: pointer;
+}
+.wr-menu-item:hover,
+.wr-menu-item:focus-visible { background: var(--surface-hover, #f5f5f5); outline: none; }
+.wr-menu-sep { height: 1px; margin: 4px 2px; background: var(--border-soft, #f2f2f2); }
+
+/* The full picker: search, a tab per group, then the grid. */
+.wr-picker { width: 340px; max-width: calc(100vw - 16px); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.wr-picker-search { width: 100%; box-sizing: border-box; }
+.wr-picker-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border-soft, #f2f2f2); padding-bottom: 4px; }
+.wr-picker-tab {
+    flex: 1;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    font-size: var(--font-size-lg, 16px);
+    cursor: pointer;
+}
+.wr-picker-tab:hover,
+.wr-picker-tab:focus-visible { background: var(--surface-hover, #f5f5f5); outline: none; }
+.wr-picker-grid { height: 280px; overflow-y: auto; position: relative; }
+.wr-picker-head {
+    position: sticky; top: 0;
+    padding: 4px 2px;
+    background: var(--surface, #fff);
+    font-size: var(--font-size-xs, 11px);
+    font-weight: 600;
+    color: var(--text-muted, #666);
+}
+.wr-picker-set { display: grid; grid-template-columns: repeat(8, 1fr); }
+.wr-picker-emo {
+    height: 36px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    font-size: var(--font-size-xl, 20px);
+    cursor: pointer;
+}
+.wr-picker-emo:hover,
+.wr-picker-emo:focus-visible { background: var(--surface-hover, #f5f5f5); outline: none; }
+
+/* Reactions under a message. Yours is outlined in the accent. */
+.wr-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.wr-reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 12px;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
+    font: inherit;
+    font-size: var(--font-size-sm, 12px);
+    cursor: pointer;
+}
+.wr-reaction:hover { border-color: var(--accent, #ea580c); }
+.wr-reaction.is-mine { background: color-mix(in srgb, var(--accent, #ea580c) 14%, transparent); border-color: var(--accent, #ea580c); }
+.wr-reaction:disabled { cursor: default; }
+.wr-reaction-emo { font-size: var(--font-size-md, 13px); }
+.wr-reaction-n { font-weight: 600; color: var(--text-muted, #666); }
+
+/* A quote: a reference to an earlier message, drawn as a box with a bar on the left. */
+.wr-quote {
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    margin: 2px 0 4px;
+    padding: 4px 10px;
+    border: none;
+    border-left: 3px solid var(--accent, #ea580c);
+    border-radius: 0 6px 6px 0;
+    background: var(--surface-hover, #f5f5f5);
+    color: var(--text, #333);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.wr-quote:disabled { cursor: default; }
+.wr-quote-head { display: flex; gap: 8px; align-items: baseline; }
+.wr-quote-author { font-size: var(--font-size-sm, 12px); font-weight: 600; }
+.wr-quote-text {
+    display: block;
+    font-size: var(--font-size-sm, 12px);
+    color: var(--text-muted, #666);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* "Quoting Sarah: ..." above the box while writing a reply. */
+.wr-quoting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 6px;
+    padding: 6px 10px;
+    border-left: 3px solid var(--accent, #ea580c);
+    border-radius: 0 6px 6px 0;
+    background: var(--surface-hover, #f5f5f5);
+    font-size: var(--font-size-sm, 12px);
+}
+.wr-quoting[hidden] { display: none; }
+.wr-quoting-label { font-weight: 600; white-space: nowrap; }
+.wr-quoting-text { flex: 1; min-width: 0; color: var(--text-muted, #666); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Arriving from a permanent link, or jumping to a quoted message. */
+@keyframes wr-flash { from { background: color-mix(in srgb, var(--accent, #ea580c) 22%, transparent); } to { background: transparent; } }
+.wr-msg-flash { animation: wr-flash 2.6s ease-out; }
+
+/* "Copied", "Link copied" - a short note at the bottom. */
+.wr-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 4100;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--text, #333);
+    color: var(--surface, #fff);
+    font-size: var(--font-size-md, 13px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+}
+.wr-toast.is-on { opacity: 1; }

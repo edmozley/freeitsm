@@ -6002,6 +6002,18 @@ return [
         'edited_datetime'  => 'DATETIME NULL',
         'deleted_datetime' => 'DATETIME NULL',
         'deleted_by'       => 'INT NULL',
+        'quote_of_id'      => 'INT NULL',        // 5.9.0: the message this one quotes
+        'changed_datetime' => 'DATETIME NULL',   // 5.9.0: a reaction changed it - the poll re-sends it
+    ],
+
+    // Emoji reactions (5.9.0). TRAP: emoji is utf8mb4_bin - unicode_ci weighs many
+    // emoji the same, so the unique key would refuse a different one.
+    'warroom_reactions' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'message_id'       => 'INT NOT NULL',
+        'analyst_id'       => 'INT NOT NULL',
+        'emoji'            => 'VARCHAR(32) COLLATE utf8mb4_bin NOT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     // ⚠️ THERE IS NO content_type COLUMN, AND THAT IS THE POINT. The type an
