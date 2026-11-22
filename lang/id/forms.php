@@ -260,6 +260,7 @@ return [
         'gate_warning' => 'Formulir ini memerlukan persetujuan, dan tindakan ini berjalan sebelum penyetuju melihatnya — sehingga membuat tiket di sini berlanjut tanpa persetujuan mereka.',
         'needs_gate' => 'Ini hanya berjalan jika formulir memerlukan persetujuan. Aktifkan itu di Properti untuk menggunakannya; apa pun yang diatur di sini tetap disimpan.',
         'approved_default' => 'Belum ada yang diatur, jadi menyetujui akan membuat tiket dengan cara biasa. Tambahkan tindakan di sini untuk menentukannya sendiri.',
+        'requester_warning'    => 'Tiket ini untuk siapa? Saat pengguna portal yang sudah masuk mengirim formulir, tiket itu untuk mereka. Saat staf yang mengisinya, tidak ada siapa pun - dan tiket tidak dibuat. Pilih sebuah pertanyaan di "Requester is the person picked in", atau berikan email pemohon.',
     ],
     'fieldtypes' => [
         'lookup' => 'Pencarian',

@@ -259,6 +259,7 @@ return [
         'gate_warning' => 'Questo modulo richiede approvazione, e queste azioni vengono eseguite prima che l\'approvatore l\'abbia vista — quindi aprire qui un ticket procede senza il suo via libera.',
         'needs_gate' => 'Queste vengono eseguite solo se il modulo richiede approvazione. Attivala in Proprietà per usarle; ciò che è impostato qui viene conservato in ogni caso.',
         'approved_default' => 'Non è impostato nulla, quindi l\'approvazione apre un ticket nel modo consueto. Aggiungi qui un\'azione per decidere tu stesso.',
+        'requester_warning'    => 'Per chi è questo ticket? Quando un utente del portale che ha effettuato l\'accesso invia il modulo, è per lui. Quando lo compila il personale, per nessuno - e il ticket non viene aperto. Scegli una domanda in "Requester is the person picked in", oppure indica un\'email del richiedente.',
     ],
     'fieldtypes' => [
         'lookup' => 'Ricerca',

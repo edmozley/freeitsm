@@ -260,6 +260,7 @@ return [
         'gate_warning' => 'Ce formulaire nécessite une approbation, et ces actions s\'exécutent avant que l\'approbateur ne l\'ait vu — créer un ticket ici se fait donc sans son accord.',
         'needs_gate' => 'Elles ne s\'exécutent que si le formulaire nécessite une approbation. Activez cette option dans Propriétés pour les utiliser ; ce qui est configuré ici est conservé dans tous les cas.',
         'approved_default' => 'Rien n\'est configuré, donc approuver crée un ticket de la façon habituelle. Ajoutez une action ici pour décider vous-même à la place.',
+        'requester_warning'    => 'Pour qui est ce ticket ? Lorsqu\'un utilisateur connecté du portail envoie le formulaire, c\'est lui. Lorsque le personnel le remplit, personne - et le ticket n\'est pas créé. Choisissez une question dans "Requester is the person picked in", ou indiquez un e-mail de demandeur.',
     ],
     'fieldtypes' => [
         'lookup' => 'Recherche',

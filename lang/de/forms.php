@@ -260,6 +260,7 @@ return [
         'gate_warning' => 'Dieses Formular benötigt eine Genehmigung, und diese Aktionen laufen, bevor der Genehmiger es gesehen hat — ein hier erstelltes Ticket wird also ohne dessen Zustimmung angelegt.',
         'needs_gate' => 'Diese laufen nur, wenn das Formular eine Genehmigung erfordert. Schalten Sie das in den Eigenschaften ein, um sie zu nutzen; was Sie hier festlegen, bleibt in jedem Fall erhalten.',
         'approved_default' => 'Es ist nichts festgelegt, daher erstellt eine Genehmigung das Ticket auf die übliche Weise. Fügen Sie hier eine Aktion hinzu, um das stattdessen selbst zu bestimmen.',
+        'requester_warning'    => 'Für wen ist dieses Ticket? Wenn ein angemeldeter Portalbenutzer das Formular sendet, ist er es selbst. Wenn Mitarbeitende es ausfüllen, niemand - und das Ticket wird nicht erstellt. Wählen Sie eine Frage unter "Requester is the person picked in" oder geben Sie eine E-Mail-Adresse des Anfragenden an.',
     ],
     'fieldtypes' => [
         'lookup' => 'Suchfeld',

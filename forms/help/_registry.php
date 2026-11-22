@@ -34,6 +34,23 @@
 function formsHelpTopics(): array
 {
     return [
+        // GH #420: worked examples of whole jobs, end to end. A reference explains each
+        // part; a recipe shows how the parts connect - which is where people get lost
+        // (who a raised ticket is for, what an answer looks like in the next step).
+        // ADDING A RECIPE: add a section here and a helpSection() of the same key in
+        // recipes.php. Good ones come from real "how do I...?" questions.
+        'recipes' => [
+            'title' => 'Recipes: whole jobs, start to finish',
+            'sub'   => 'Worked examples of the things people most often build a form for - and who each ticket ends up being for.',
+            'blurb' => 'Step-by-step: raise a ticket for whoever asks, on behalf of a colleague, after approval, or send the answers elsewhere.',
+            'sections' => [
+                'requester' => 'Who is a raised ticket for?',
+                'self'      => 'Raise a ticket for whoever sends the form',
+                'behalf'    => 'Raise a ticket on behalf of someone else',
+                'approval'  => 'Ask for approval, then raise the ticket',
+                'elsewhere' => 'Send the answers somewhere else',
+            ],
+        ],
         'layout' => [
             'title' => 'Laying a form out',
             'sub'   => 'Putting two questions on one line, and moving a label beside its answer box.',

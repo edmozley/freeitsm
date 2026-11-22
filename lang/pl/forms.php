@@ -260,6 +260,7 @@ return [
         'gate_warning' => 'Ten formularz wymaga zatwierdzenia, a te akcje uruchamiają się, zanim zatwierdzający go zobaczy — więc utworzenie tu zgłoszenia nastąpi bez jego zgody.',
         'needs_gate' => 'Uruchamiają się tylko wtedy, gdy formularz wymaga zatwierdzenia. Włącz to w Właściwościach, aby ich użyć; to, co tu ustawisz, zostanie zachowane niezależnie.',
         'approved_default' => 'Nic nie jest ustawione, więc zatwierdzenie tworzy zgłoszenie w zwykły sposób. Dodaj tu akcję, aby zdecydować samodzielnie.',
+        'requester_warning'    => 'Dla kogo jest to zgłoszenie? Gdy zalogowany użytkownik portalu wysyła formularz, jest to on sam. Gdy wypełnia go personel, nikt - a zgłoszenie nie zostanie utworzone. Wybierz pytanie w "Requester is the person picked in" lub podaj adres e-mail zgłaszającego.',
     ],
     'fieldtypes' => [
         'lookup' => 'Wyszukiwanie',

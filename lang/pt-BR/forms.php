@@ -259,6 +259,7 @@ return [
         'gate_warning' => 'Este formulário precisa de aprovação, e estas ações são executadas antes de o aprovador vê-lo — então abrir um ticket aqui prossegue sem a aprovação dele.',
         'needs_gate' => 'Estas só são executadas se o formulário exigir aprovação. Ative isso em Propriedades para usá-las; o que for definido aqui é mantido de qualquer forma.',
         'approved_default' => 'Nada está definido, então aprovar abre um ticket da forma habitual. Adicione uma ação aqui para decidir por conta própria.',
+        'requester_warning'    => 'Para quem é este ticket? Quando um usuário do portal conectado envia o formulário, é para ele mesmo. Quando a equipe preenche, para ninguém - e o ticket não é aberto. Escolha uma pergunta em "Requester is the person picked in" ou informe um e-mail do solicitante.',
     ],
     'fieldtypes' => [
         'lookup' => 'Consulta',

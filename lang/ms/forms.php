@@ -259,6 +259,7 @@ return [
         'gate_warning' => 'Borang ini memerlukan kelulusan, dan tindakan ini dijalankan sebelum pelulus melihatnya — jadi membuka tiket di sini akan diteruskan tanpa pengesahan mereka.',
         'needs_gate' => 'Ini hanya dijalankan jika borang memerlukan kelulusan. Hidupkan itu dalam Sifat untuk menggunakannya; apa-apa yang ditetapkan di sini akan dikekalkan dalam kedua-dua keadaan.',
         'approved_default' => 'Tiada apa ditetapkan, jadi meluluskan akan membuka tiket seperti biasa. Tambah tindakan di sini untuk menentukan sendiri.',
+        'requester_warning'    => 'Untuk siapakah tiket ini? Apabila pengguna portal yang telah log masuk menghantar borang, ia untuk mereka sendiri. Apabila kakitangan mengisinya, tiada sesiapa - dan tiket tidak dibuka. Pilih satu soalan dalam "Requester is the person picked in", atau berikan e-mel pemohon.',
     ],
     'fieldtypes' => [
         'lookup' => 'Carian',

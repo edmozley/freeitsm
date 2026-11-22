@@ -259,6 +259,7 @@ return [
         'gate_warning' => 'Dette skjemaet krever godkjenning, og disse handlingene kjøres før godkjenneren har sett det — så å opprette en sak her skjer uten deres godkjenning.',
         'needs_gate' => 'Disse kjøres bare hvis skjemaet krever godkjenning. Slå dette på under Egenskaper for å bruke dem; det som er satt her, beholdes uansett.',
         'approved_default' => 'Ingenting er satt, så godkjenning oppretter en sak på vanlig måte. Legg til en handling her for å bestemme selv i stedet.',
+        'requester_warning'    => 'Hvem er denne saken til? Når en innlogget portalbruker sender skjemaet, er det vedkommende selv. Når ansatte fyller det ut, er det ingen - og saken blir ikke opprettet. Velg et spørsmål i "Requester is the person picked in", eller oppgi en innsenders e-post.',
     ],
     'fieldtypes' => [
         'lookup' => 'Oppslag',

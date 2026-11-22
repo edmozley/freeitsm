@@ -14,6 +14,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3113 | Forms | Feature | Forms -> Help gains Recipes: whole jobs start to finish (who a raised ticket is for, raising for whoever sends it, on behalf of someone else, after approval, sending answers elsewhere) - one section per recipe so more can be added; plus a Feature Bingo card for raising on behalf of someone. |
+| 3112 | Forms | Improvement | GH #420: a "Raise a ticket" step that cannot know who the ticket is for when staff fill the form in now shows a warning in the form editor, instead of the ticket silently not being raised. |
 | 3111 | Tickets | Fix | The ticket list preview no longer shows quote marks and ampersands as &quot; and &amp; - four preview builders (forms, new tickets, IMAP, Gmail) now decode entities after stripping tags. |
 | 3110 | Forms | Feature | GH #420: "Raise a ticket" in a form's "what happens next" can make the person picked in a "pick a person" question the requester, and every lookup's record is available as {{submission.lookups.<question>.<field>}} (email, username, ticket code, hostname and more). |
 | 3109 | Forms | Fix | GH #420: a lookup answer reached "what happens next", workflows and approvals as "2, User Test" (record number and name glued together); it now reads as the name. |

@@ -267,4 +267,17 @@ return [
         'link'     => 'forms/approvals.php',
         'check'    => ['rows', 'form_submission_approval_events', "action = 'answer_changed'"],
     ],
+    [
+        // GH #420 (5.9.0): Raise a ticket -> "Requester is the person picked in".
+        'id'       => 'forms.requester_from_question',
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'Raise a ticket on behalf of someone',
+        'what'     => 'A form whose "Raise a ticket" step makes the person picked in one of its "pick a person" questions the requester - "Who is this for?".',
+        'why'      => 'A manager or the service desk can log a request for somebody else, and the ticket - and every reply - is theirs, not the person who typed it in.',
+        'done'     => 'At least one form raises its ticket for the person picked in a question.',
+        'link'     => 'forms/help/recipes.php#behalf',
+        'check'    => ['rows', 'forms', "submission_actions LIKE '%requester_question%' AND is_demo = 0"],
+    ],
 ];

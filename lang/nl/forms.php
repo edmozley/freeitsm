@@ -259,6 +259,7 @@ return [
         'gate_warning' => 'Dit formulier heeft goedkeuring nodig en deze acties worden uitgevoerd voordat de goedkeurder het heeft gezien — dus een ticket aanmaken gebeurt hier zonder zijn akkoord.',
         'needs_gate' => 'Deze worden alleen uitgevoerd als het formulier goedkeuring vereist. Schakel dat in bij Eigenschappen om ze te gebruiken; wat hier is ingesteld blijft in beide gevallen bewaard.',
         'approved_default' => 'Er is niets ingesteld, dus bij goedkeuring wordt op de gebruikelijke manier een ticket aangemaakt. Voeg hier een actie toe om dat zelf te bepalen.',
+        'requester_warning'    => 'Voor wie is dit ticket? Wanneer een ingelogde portaalgebruiker het formulier verstuurt, is dat diegene zelf. Wanneer medewerkers het invullen, niemand - en wordt het ticket niet aangemaakt. Kies een vraag bij "Requester is the person picked in", of geef een e-mailadres van de aanvrager op.',
     ],
     'fieldtypes' => [
         'lookup' => 'Opzoeken',

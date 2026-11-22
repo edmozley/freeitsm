@@ -259,6 +259,7 @@ return [
         'gate_warning' => 'Hierdie vorm vereis goedkeuring, en hierdie aksies loop voordat die goedkeurder dit gesien het — so om hier \'n kaartjie te skep gaan voort sonder hul goedkeuring.',
         'needs_gate' => 'Hierdie loop net as die vorm goedkeuring vereis. Skakel dit aan in Eienskappe om hulle te gebruik; alles wat hier gestel is, word in elk geval behou.',
         'approved_default' => 'Niks is gestel nie, so goedkeuring skep \'n kaartjie op die gewone manier. Voeg hier \'n aksie by om self te besluit.',
+        'requester_warning'    => 'Vir wie is hierdie kaartjie? Wanneer \'n aangemelde portaalgebruiker die vorm stuur, is dit hulle. Wanneer personeel dit invul, niemand nie - en die kaartjie word nie geskep nie. Kies \'n vraag in "Requester is the person picked in", of gee \'n versoeker se e-pos.',
     ],
     'fieldtypes' => [
         'lookup' => 'Naslaan',

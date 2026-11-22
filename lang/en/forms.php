@@ -287,6 +287,8 @@ return [
         'gate_warning'         => 'This form needs approval, and these actions run before the approver has seen it — so raising a ticket here goes ahead without their sign-off.',
         'needs_gate'           => 'These only run if the form requires approval. Turn that on in Properties to use them; anything set here is kept either way.',
         'approved_default'     => 'Nothing is set, so approving raises a ticket in the usual way. Add an action here to decide for yourself instead.',
+        // GH #420: Raise a ticket with no way to know who it is for when staff fill the form in.
+        'requester_warning'    => 'Who is this ticket for? When a signed-in portal user sends the form, it is them. When staff fill it in, nobody - and the ticket is not raised. Choose a question in "Requester is the person picked in", or give a requester email.',
     ],
 
     // Field-type palette in the Add menu (forms/edit/index.php)

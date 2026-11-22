@@ -1448,7 +1448,29 @@ foreach ($formActionDefs as $def) {
 
         function faSetArg(when, index, argName, value) {
             faActions[when][index].args[argName] = value;
+            // Typing an email must not re-render the list (focus would be lost), so
+            // the "who is this ticket for?" warning is toggled in place instead.
+            if (argName === 'requester_question' || argName === 'from_email') {
+                const w = document.getElementById(`fa-req-warn-${when}-${index}`);
+                if (w) w.style.display = faRequesterMissing(when, faActions[when][index]) ? '' : 'none';
+            }
             markDirty();
+        }
+
+        /* GH #420: a "Raise a ticket" that cannot know who the ticket is for.
+           When staff fill a form in, the requester comes ONLY from "Requester is
+           the person picked in" or a requester email - the analyst is never the
+           requester. With neither set the ticket is quietly not raised, and the
+           form still says "submitted". Approved/rejected run only for portal
+           requests, where the portal user is the requester, so they never warn.
+           {{ticket.requester_email}} (the canvas default) counts as unset: a form
+           submission carries no ticket, so it resolves to nothing. */
+        function faRequesterMissing(when, action) {
+            if (when !== 'submitted' || !action || action.type !== 'create_ticket') return false;
+            const a = action.args || {};
+            if (String(a.requester_question || '').trim() !== '') return false;
+            const email = String(a.from_email || '').trim();
+            return email === '' || email === '{{ticket.requester_email}}';
         }
 
         function faEsc(s) {
@@ -1547,6 +1569,9 @@ foreach ($formActionDefs as $def) {
                         </div>
                         ${def.description ? `<p class="fa-action-desc">${faEsc(def.description)}</p>` : ''}
                         <div class="fa-args">${args}</div>
+                        ${action.type === 'create_ticket' && when === 'submitted'
+                            ? `<p class="fa-note fa-gate-warning" id="fa-req-warn-${when}-${i}"${faRequesterMissing(when, action) ? '' : ' style="display:none;"'}>${faEsc(window.t('forms.actions.requester_warning'))}</p>`
+                            : ''}
                     </div>`;
             }).join('');
 

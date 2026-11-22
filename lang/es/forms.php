@@ -260,6 +260,7 @@ return [
         'gate_warning' => 'Este formulario necesita aprobación, y estas acciones se ejecutan antes de que el aprobador lo haya visto — así que crear un ticket aquí sigue adelante sin su visto bueno.',
         'needs_gate' => 'Estas solo se ejecutan si el formulario requiere aprobación. Actívalo en Propiedades para usarlas; lo que configures aquí se conserva de todos modos.',
         'approved_default' => 'No hay nada configurado, así que aprobar crea un ticket de la forma habitual. Añade una acción aquí para decidirlo tú mismo.',
+        'requester_warning'    => '¿Para quién es este ticket? Cuando un usuario del portal con sesión iniciada envía el formulario, es para él. Cuando lo rellena el personal, para nadie - y el ticket no se crea. Elige una pregunta en "Requester is the person picked in" o indica un correo del solicitante.',
     ],
     'fieldtypes' => [
         'lookup' => 'Búsqueda',

@@ -260,6 +260,7 @@ return [
         'gate_warning' => 'Denne formular kræver godkendelse, og disse handlinger kører, før godkenderen har set den — så det at oprette en sag her sker uden deres godkendelse.',
         'needs_gate' => 'Disse kører kun, hvis formularen kræver godkendelse. Slå det til under Egenskaber for at bruge dem; alt, der er sat her, bevares under alle omstændigheder.',
         'approved_default' => 'Intet er sat, så godkendelse opretter en sag på den sædvanlige måde. Tilføj en handling her for i stedet selv at bestemme.',
+        'requester_warning'    => 'Hvem er denne sag til? Når en indlogget portalbruger sender formularen, er det vedkommende selv. Når medarbejdere udfylder den, er det ingen - og sagen bliver ikke oprettet. Vælg et spørgsmål i "Requester is the person picked in", eller angiv en anmoders e-mail.',
     ],
     'fieldtypes' => [
         'lookup' => 'Opslag',
