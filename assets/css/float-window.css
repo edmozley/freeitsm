@@ -20,6 +20,78 @@
 
 body.fd-dragging, body.fd-dragging * { user-select: none !important; }
 
+/* Snap assist: the half a snapped window left empty, offering the other windows. */
+.fd-snap-assist {
+    position: absolute;
+    box-sizing: border-box;
+    padding: 28px 24px;
+    overflow-y: auto;
+    background: var(--fd-sa-bg, rgba(15, 23, 42, .55));
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    animation: fd-sa-in .16s ease-out;
+}
+.fd-sa-title {
+    color: var(--fd-sa-title, rgba(255, 255, 255, .92));
+    font-size: var(--font-size-xl, 18px);
+    font-weight: 600;
+    margin-bottom: 18px;
+    text-align: center;
+}
+.fd-sa-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+}
+.fd-sa-tile {
+    width: 220px;
+    padding: 8px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: var(--surface, #fff);
+    color: var(--text, #1f2937);
+    box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, .25));
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    animation: fd-sa-tile-in .22s ease-out both;
+    transition: transform .12s ease, border-color .12s ease;
+}
+.fd-sa-tile:hover, .fd-sa-tile:focus-visible {
+    transform: translateY(-2px) scale(1.03);
+    border-color: var(--fil-accent, #2563eb);
+    outline: none;
+}
+.fd-sa-pv {
+    height: 118px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--surface-2, #f3f4f6);
+    position: relative;
+    pointer-events: none;
+}
+.fd-sa-pv > svg { width: 48px; height: 48px; }
+.fd-sa-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: var(--font-size-md, 13px);
+    min-width: 0;
+}
+.fd-sa-icon { display: inline-flex; flex: none; }
+.fd-sa-icon svg { width: 16px; height: 16px; }
+.fd-sa-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@keyframes fd-sa-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fd-sa-tile-in { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .fd-snap-assist, .fd-sa-tile { animation: none; }
+}
+
 .fd-snap-ghost {
     position: absolute;
     background: rgba(255, 255, 255, .16);

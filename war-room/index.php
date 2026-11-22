@@ -104,7 +104,7 @@ foreach ($channels as $ch) {
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../assets/css/war-room.css?v=15">
-    <link rel="stylesheet" href="../assets/css/float-window.css?v=1"><!-- the shared file viewer (5.9.0) -->
+    <link rel="stylesheet" href="../assets/css/float-window.css?v=2"><!-- the shared file viewer (5.9.0) -->
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=201">
     <style>
@@ -244,7 +244,7 @@ foreach ($channels as $ch) {
     </script>
     <!-- Attachments open in the viewer Files and Tickets use (5.9.0). Its own
          libraries (pdf.js and the rest) ship with FreeITSM and load on first use. -->
-    <script src="../assets/js/float-window.js?v=2"></script>
+    <script src="../assets/js/float-window.js?v=3"></script>
     <script src="../assets/js/files-icons.js?v=4"></script>
     <script src="../assets/js/files-viewer.js?v=10"></script>
     <!-- + -> Files (5.9.0): the Files picker, as Tickets uses it. -->

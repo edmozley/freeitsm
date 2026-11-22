@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3121 | Files             | Feature     | Snap assist: drag a window to the left or right edge and, once it fills that half, the other half offers the other open windows (live previews, most recent first) - click one to fill it, Esc or a click elsewhere to leave it empty. Opt-in cfg.snapAssist in float-window.js, so Tickets' windows are unchanged; help updated in 23 languages. |
 
 
 
