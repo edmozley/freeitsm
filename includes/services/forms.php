@@ -357,6 +357,75 @@ class FormsService
     // Both were in the original pitch. They are worth having — they are just not
     // one-line additions, and a half-scoped source is worse than no source.
 
+    /* GH #420: what a picked record brings with it into "what happens next" and
+       workflows, as {{submission.lookups.<label>.<column>}}. Read at submit time,
+       so a rule sees the person's email as it was when the form was sent. A
+       column an older install has not been given yet is skipped, not an error.
+       ⚠️ Only columns an admin's own rule may reasonably use - the payload goes
+       to webhooks. Nothing secret lives on these rows, but add with that in mind. */
+    const LOOKUP_DETAIL_COLS = [
+        'user'       => ['email', 'username', 'display_name', 'preferred_name', 'employee_id',
+                         'job_title', 'department', 'office', 'phone', 'mobile'],
+        'company'    => ['name', 'ticket_code', 'external_ref', 'tax_id'],
+        'asset'      => ['hostname', 'asset_tag', 'service_tag'],
+        'consumable' => ['name', 'part_number'],
+        'cmdb'       => ['name'],
+        'location'   => ['name'],
+    ];
+
+    /**
+     * The text a lookup answer reads as: the label it was given with.
+     *
+     * 🔴 GH #420. A lookup is stored as {"id":2,"label":"User Test"}, and every
+     * flattener that met it imploded the pair into "2, User Test" - a value no
+     * rule could use. Say the label; the id lives in submission.lookups.
+     *
+     * @param ?string $raw  the stored form_submission_data.field_value
+     */
+    public static function lookupAnswerText(?string $raw): string
+    {
+        $d = json_decode((string)$raw, true);
+        if (is_array($d) && array_key_exists('label', $d)) return (string)$d['label'];
+        return (string)$raw;
+    }
+
+    /**
+     * A lookup answer as the record it points at: id, label, source and the
+     * source's LOOKUP_DETAIL_COLS, for {{submission.lookups.<label>.<column>}}.
+     *
+     * The id was already checked against the submitter's scope when the answer
+     * was accepted (lookupValueAllowed), so this only reads. A record deleted
+     * since still gives its id and label - what the answer meant.
+     *
+     * @param array $field  the form_fields row (config holds the source)
+     * @param ?string $raw  the stored answer, {"id":..,"label":..}
+     * @return ?array  null when there is no answer
+     */
+    public static function lookupDetail(PDO $conn, array $field, ?string $raw): ?array
+    {
+        $d = json_decode((string)$raw, true);
+        if (!is_array($d) || empty($d['id'])) return null;
+        $source = self::lookupSourceOf($field);
+        $out = ['id' => (int)$d['id'], 'label' => (string)($d['label'] ?? ''), 'source' => (string)$source];
+        if ($source === null) return $out;
+        $meta = self::LOOKUP_SOURCES[$source];
+        try {
+            $cols = array_values(array_filter(self::LOOKUP_DETAIL_COLS[$source] ?? [],
+                fn($c) => self::lookupColumnExists($conn, $meta['table'], $c)));
+            if ($cols) {
+                $sql = 'SELECT `' . implode('`, `', $cols) . '` FROM `' . $meta['table'] . '` WHERE `' . $meta['id_col'] . '` = ?';
+                $st = $conn->prepare($sql);
+                $st->execute([$out['id']]);
+                $row = $st->fetch(PDO::FETCH_ASSOC);
+                if ($row) foreach ($row as $k => $v) $out[$k] = $v === null ? '' : (string)$v;
+            }
+        } catch (Throwable $e) {
+            // A detail we cannot read must never break a submission.
+            error_log('FormsService::lookupDetail(' . $source . '): ' . $e->getMessage());
+        }
+        return $out;
+    }
+
     /**
      * Which source this lookup points at, or null if it is not configured yet.
      *
@@ -2103,8 +2172,9 @@ class FormsService
         // Workflow dispatch — label-keyed answers + first email answer, fired after
         // commit and swallowed on error (never breaks a submission).
         try {
-            $submissionFields = [];
-            $submissionEmail  = '';
+            $submissionFields  = [];
+            $submissionLookups = [];
+            $submissionEmail   = '';
             foreach ($normalised as $fieldId => $value) {
                 if (!isset($fieldsById[$fieldId])) continue;
                 $label = $fieldsById[$fieldId]['label'];
@@ -2113,6 +2183,11 @@ class FormsService
                    readable text instead — one line per row, cells labelled. */
                 if ($fieldsById[$fieldId]['field_type'] === 'grid') {
                     $flat = self::gridToText($fieldsById[$fieldId], $value);
+                } elseif ($fieldsById[$fieldId]['field_type'] === 'lookup') {
+                    // GH #420: the label, not "2, User Test"; the record itself under lookups.
+                    $flat = self::lookupAnswerText($value);
+                    $detail = self::lookupDetail($conn, $fieldsById[$fieldId], $value);
+                    if ($detail !== null) $submissionLookups[$label] = $detail;
                 } else {
                     $decoded = json_decode($value, true);
                     $flat = is_array($decoded) ? implode(', ', $decoded) : $value;
@@ -2128,9 +2203,10 @@ class FormsService
                     'name' => $form['title'],
                 ],
                 'submission' => [
-                    'id'     => $submissionId,
-                    'email'  => $submissionEmail,
-                    'fields' => $submissionFields,
+                    'id'      => $submissionId,
+                    'email'   => $submissionEmail,
+                    'fields'  => $submissionFields,
+                    'lookups' => $submissionLookups,   // GH #420
                 ],
             ];
             // GH #190: made inside a task occurrence - say which, for a rule that cares.

@@ -303,7 +303,7 @@ class TicketsService
             }
 
             $bodyHtml    = nl2br(htmlspecialchars($description));
-            $bodyPreview = substr(strip_tags($description), 0, 200);
+            $bodyPreview = mb_substr(html_entity_decode(strip_tags($description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 0, 200);
             $conn->prepare(
                 "INSERT INTO emails (
                     mailbox_id, subject, from_address, from_name, to_recipients, received_datetime,

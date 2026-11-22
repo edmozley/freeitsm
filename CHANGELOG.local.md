@@ -14,6 +14,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3111 | Tickets | Fix | The ticket list preview no longer shows quote marks and ampersands as &quot; and &amp; - four preview builders (forms, new tickets, IMAP, Gmail) now decode entities after stripping tags. |
+| 3110 | Forms | Feature | GH #420: "Raise a ticket" in a form's "what happens next" can make the person picked in a "pick a person" question the requester, and every lookup's record is available as {{submission.lookups.<question>.<field>}} (email, username, ticket code, hostname and more). |
+| 3109 | Forms | Fix | GH #420: a lookup answer reached "what happens next", workflows and approvals as "2, User Test" (record number and name glued together); it now reads as the name. |
 | 3108 | i18n | Fix | Hindi Process Mapper "Step types" now uses स्टेप, so it no longer shares चरण with the Projects "Stage". |
 | 3107 | i18n | Improvement | Tamil (ta) brought to 100% - 5,513 strings translated. |
 | 3106 | i18n | Improvement | Marathi (mr) brought to 100% - 5,513 strings translated. |

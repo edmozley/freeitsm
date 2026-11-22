@@ -1467,7 +1467,15 @@ foreach ($formActionDefs as $def) {
             let control;
 
             if (spec.type === 'lookup') {
-                const opts = (window.FA_ACTION_LOOKUPS[spec.lookup] || [])
+                // GH #420: "the person picked in <question>" lists THIS form's own
+                // pick-a-person questions, read live so a question added a moment ago
+                // is offered. The value saved is the question's label - the same key
+                // the engine's submission.lookups map is built on.
+                const list = spec.lookup === 'form_person_question'
+                    ? fields.filter(f => f.field_type === 'lookup' && lookupSourceOf(f) === 'user' && (f.label || '').trim() !== '')
+                            .map(f => ({ id: f.label.trim(), label: f.label.trim() }))
+                    : (window.FA_ACTION_LOOKUPS[spec.lookup] || []);
+                const opts = list
                     .map(o => `<option value="${faEsc(o.id)}"${String(o.id) === String(value) ? ' selected' : ''}>${faEsc(o.label)}</option>`)
                     .join('');
                 control = `<select id="${id}" onchange="${onInput}"><option value="">${faEsc(window.t('forms.actions.arg_unset'))}</option>${opts}</select>`;

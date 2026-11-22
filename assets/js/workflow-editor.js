@@ -883,6 +883,10 @@ const WFE = (() => {
             // Allow the legacy short-form `'message' => 'string'` spec to
             // still work — treat unknown spec shapes as a plain text input.
             const norm = (typeof spec === 'object' && spec) ? spec : { type: 'text', label: argName };
+            // GH #420: an arg that only makes sense inside a form's "what happens next"
+            // (it lists that form's own questions). A workflow has no form to read, so
+            // it is not offered here - {{submission.lookups.<question>.email}} does that job.
+            if (norm.forms_only) return;
             const fg = document.createElement('div');
             fg.className = 'form-group';
             fg.dataset.argFg = argName;

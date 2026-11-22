@@ -1233,6 +1233,14 @@ class WorkflowEngine
                 'note'  => 'Replace "Your field label" with the exact label from your form, e.g. {{submission.fields.Start date}}.',
             ];
         }
+        // GH #420: a "pick a ..." question's record - its id and details, not just the name.
+        if (in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)) {
+            $vars[] = [
+                'path'  => 'submission.lookups.Your question label.email',
+                'label' => 'Submission · the record picked in a lookup question',
+                'note'  => 'For a "pick a ..." question, the record that was picked: {{submission.lookups.Who is it for.email}}. Every lookup has .id and .label; a person also has .email, .username, .employee_id, .job_title, .department, .office, .phone and .mobile; a company .ticket_code, .external_ref and .tax_id; an asset .hostname, .asset_tag and .service_tag.',
+            ];
+        }
 
         return $vars;
     }
@@ -1254,6 +1262,7 @@ class WorkflowEngine
 
         if (in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)) {
             $prefixes[] = 'submission.fields.';
+            $prefixes[] = 'submission.lookups.';   // GH #420
         }
         // Discussion #304: {{ticket.custom.<field name>}} wherever the trigger carries a ticket.
         if (in_array('ticket.id', self::availableFields($trigger), true)) {
@@ -1764,6 +1773,12 @@ class WorkflowEngine
                     // GH #216. Without a mailbox a ticket cannot be emailed at all -
                     // not by a later "Send an email", not by an analyst's Reply.
                     'mailbox_id'          => ['type' => 'lookup', 'label' => 'Mailbox (replies go from it; blank = the mailbox of the ticket that fired the rule)', 'lookup' => 'mailbox'],
+                    // GH #420: a form's "what happens next" only - the person picked in one of
+                    // its own "pick a person" questions becomes the requester. The forms editor
+                    // fills the list from the form being edited; the Workflows canvas has no form
+                    // to read, so it hides the arg (forms_only) and offers
+                    // {{submission.lookups.<question>.email}} for Requester email instead.
+                    'requester_question'  => ['type' => 'lookup', 'label' => 'Requester is the person picked in', 'lookup' => 'form_person_question', 'forms_only' => true],
                     'from_email'          => ['type' => 'text', 'label' => 'Requester email', 'default' => '{{ticket.requester_email}}', 'supports_vars' => true],
                     'from_name'           => ['type' => 'text', 'label' => 'Requester name', 'supports_vars' => true],
                 ],
@@ -4162,6 +4177,18 @@ class WorkflowEngine
         $mailboxId          = self::argInt($args, 'mailbox_id',          $payload);
         $fromEmail          = self::argString($args, 'from_email', $payload);
         $fromName           = self::argString($args, 'from_name',  $payload);
+        // GH #420: the question whose picked person is the requester. Only a person
+        // lookup counts - a picked laptop is nobody to raise a ticket for.
+        $requesterQuestion  = trim((string)($args['requester_question'] ?? ''));
+        $requesterUserId    = 0;
+        if ($requesterQuestion !== '') {
+            $picked = self::dotGet($payload, 'submission.lookups') ?? [];
+            $picked = is_array($picked) ? ($picked[$requesterQuestion] ?? null) : null;
+            if (!is_array($picked) || ($picked['source'] ?? '') !== 'user' || empty($picked['id'])) {
+                throw new Exception('No person was picked in "' . $requesterQuestion . '", so there is no requester to raise the ticket for');
+            }
+            $requesterUserId = (int)$picked['id'];
+        }
 
         // When the event that fired this carries a form submission, hand the whole
         // job to the shared form-to-ticket path instead of building a second,
@@ -4206,6 +4233,7 @@ class WorkflowEngine
                 'mailbox_id'          => $mailboxId,
                 'from_email'          => $fromEmail,
                 'from_name'           => $fromName,
+                'requester_user_id'   => $requesterUserId ?: null,   // GH #420
                 'audit_note'          => 'Raised from a form submission by a workflow',
                 '_channel'            => 'workflow',   // GH #230: for the type rules
             ]);

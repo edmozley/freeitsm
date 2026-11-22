@@ -165,7 +165,7 @@ function imapNormaliseMessage(ImapClient $client, int $uid, array $mailbox): ?ar
         'toRecipients' => $env['to'],
         'ccRecipients' => $env['cc'],
         'receivedDateTime' => $received,
-        'bodyPreview' => mb_substr(trim(strip_tags($body)), 0, 255),
+        'bodyPreview' => mb_substr(trim(html_entity_decode(strip_tags($body), ENT_QUOTES | ENT_HTML5, 'UTF-8')), 0, 255),
         'body' => [
             'contentType' => 'html',
             'content' => $body,

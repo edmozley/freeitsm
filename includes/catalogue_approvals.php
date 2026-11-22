@@ -485,6 +485,7 @@ function catalogueAfterCancel(PDO $conn, array $sub, string $reason): void
                 'id'     => $submissionId,
                 'email'  => $answers['email'],
                 'fields' => $answers['fields'],
+                'lookups' => $answers['lookups'] ?? [],   // GH #420
             ],
         ];
         // Who was going to decide - from the request's snapshot, as .submitted named them.
@@ -603,6 +604,7 @@ function catalogueAfterDecision(PDO $conn, array $sub, string $decision, string 
                     'id'     => $submissionId,
                     'email'  => $answers['email'],
                     'fields' => $answers['fields'],
+                    'lookups' => $answers['lookups'] ?? [],   // GH #420
                 ],
             ]);
         } catch (Exception) { /* notification is a bonus, not the mechanism */ }
@@ -624,6 +626,7 @@ function catalogueAfterDecision(PDO $conn, array $sub, string $decision, string 
                         'id'     => $submissionId,
                         'email'  => $answers['email'],
                         'fields' => $answers['fields'],
+                        'lookups' => $answers['lookups'] ?? [],   // GH #420
                     ],
                 ]
             );
@@ -674,6 +677,16 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
     // submissions were the ONLY case the workflow action ever handled, which is
     // why it produced the weaker ticket even for portal requests.
     $userId = (int)($sub['submitted_by_user_id'] ?? 0);
+    // GH #420: "the requester is the person picked in <question>" - the form
+    // designer's explicit choice, so it wins over whoever filled the form in. A
+    // person asking on behalf of a colleague is not the one with the problem.
+    $pickedId = (int)($overrides['requester_user_id'] ?? 0);
+    if ($pickedId > 0) {
+        $ok = $conn->prepare("SELECT id FROM users WHERE id = ?");
+        $ok->execute([$pickedId]);
+        if ($ok->fetchColumn() === false) throw new Exception('The person picked as the requester no longer exists');
+        $userId = $pickedId;
+    }
     $fallbackEmail = trim((string)($overrides['from_email'] ?? ''));
     $fallbackName  = trim((string)($overrides['from_name']  ?? ''));
 
@@ -729,7 +742,7 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
             trim((string)($sub['form_title'] ?? '')) ?: 'a form'
         );
     }
-    $bodyPreview = mb_substr(trim(preg_replace('/\s+/', ' ', strip_tags($bodyHtml))), 0, 200);
+    $bodyPreview = mb_substr(trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($bodyHtml), ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 0, 200);
 
     // --- routing ------------------------------------------------------------
     $statusId   = catalogueOverrideOrDefault($conn, $overrides, 'status_id',   'ticket_statuses');
@@ -924,6 +937,12 @@ function catalogueAnswerText(?string $raw, ?string $fieldType, array $field = []
        This same mistake is documented in FormsService::submitForm(), which
        special-cases 'grid' before its own implode. The note was there; this
        copy simply never received it. */
+    // GH #420: a lookup is {"id","label"}; the implode below said "2, User Test".
+    if ($fieldType === 'lookup') {
+        $d = json_decode($val, true);
+        return (is_array($d) && array_key_exists('label', $d)) ? (string)$d['label'] : $val;
+    }
+
     if ($fieldType === 'grid') {
         try {
             require_once __DIR__ . '/services/forms.php';
@@ -996,7 +1015,7 @@ function catalogueFormActionLists(PDO $conn, int $formId): array {
  * both needed.
  *
  * @param int $submissionId  form_submissions.id whose answers to read
- * @return array{fields: array<string,string>, email: string}
+ * @return array{fields: array<string,string>, lookups: array<string,array>, email: string}
  */
 function catalogueSubmissionAnswerMap(PDO $conn, int $submissionId): array {
     $stmt = $conn->prepare(
@@ -1008,17 +1027,24 @@ function catalogueSubmissionAnswerMap(PDO $conn, int $submissionId): array {
     );
     $stmt->execute([$submissionId]);
 
-    $fields = [];
-    $email  = '';
+    $fields  = [];
+    $lookups = [];
+    $email   = '';
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $text = catalogueAnswerText($r['field_value'], $r['field_type'], $r);
         $fields[$r['label']] = $text;
+        if ($r['field_type'] === 'lookup') {
+            // GH #420: the picked record, for {{submission.lookups.<label>.email}} and friends.
+            require_once __DIR__ . '/services/forms.php';
+            $detail = FormsService::lookupDetail($conn, $r, $r['field_value']);
+            if ($detail !== null) $lookups[$r['label']] = $detail;
+        }
         if ($email === '' && $r['field_type'] === 'email' && $text !== '') {
             $email = $text;
         }
     }
 
-    return ['fields' => $fields, 'email' => $email];
+    return ['fields' => $fields, 'lookups' => $lookups, 'email' => $email];
 }
 
 /**

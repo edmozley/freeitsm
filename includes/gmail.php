@@ -380,7 +380,7 @@ function gmailGetMessage(string $accessToken, string $messageId): ?array {
         'toRecipients' => $toRecipients,
         'ccRecipients' => $ccRecipients,
         'receivedDateTime' => $receivedDateTime,
-        'bodyPreview' => substr(strip_tags($body), 0, 255),
+        'bodyPreview' => mb_substr(html_entity_decode(strip_tags($body), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 0, 255),
         'body' => [
             'contentType' => 'html',
             'content' => $body
