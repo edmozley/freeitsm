@@ -44,7 +44,7 @@ $translationNamespaces = ['common', 'forms'];
     <!-- The detail panel draws a table QUESTION as a real table, and .form-table
          lives in the shared sheet. Without this the markup is right and the
          table renders unstyled - borderless rows running into each other. -->
-    <link rel="stylesheet" href="../assets/css/form-shared.css?v=6">
+    <link rel="stylesheet" href="../assets/css/form-shared.css?v=7">
     <style>
         /* Module accent (teal). */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }

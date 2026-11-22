@@ -97,7 +97,10 @@ foreach ($fieldsByTrigger as $fields) {
 $actionLookupValues = [];
 foreach ($actionDefs as $actionKey => $def) {
     foreach (($def['args'] ?? []) as $argSpec) {
-        if (is_array($argSpec) && ($argSpec['type'] ?? '') === 'lookup' && !empty($argSpec['lookup'])) {
+        // TRAP: any arg that names a lookup, not only type 'lookup' - the Attach SOP
+        // checklists picker is type 'checklist_multiselect' and drew "No matching
+        // checklists" when its values were never sent (GH #427).
+        if (is_array($argSpec) && !empty($argSpec['lookup'])) {
             $lk = $argSpec['lookup'];
             if (!isset($actionLookupValues[$lk])) {
                 $vals = WorkflowEngine::availableActionLookup($lk);

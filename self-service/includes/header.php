@@ -243,7 +243,7 @@ try {
     <!-- Form blocks (notes). In the HEAD rather than beside form-logic.js in the
          footer: a stylesheet in the body risks a flash of unstyled content, and
          $needsFormLogic is set by the page long before this include runs. -->
-    <link rel="stylesheet" href="../assets/css/form-shared.css?v=6">
+    <link rel="stylesheet" href="../assets/css/form-shared.css?v=7">
 <?php endif; ?>
     <?php if ($pageStyles !== ''): ?>
     <style><?php echo $pageStyles; ?></style>

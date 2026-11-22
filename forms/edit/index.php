@@ -116,7 +116,7 @@ foreach ($formActionDefs as $def) {
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <!-- Blocks (notes) - shared with the filler and the portal. -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/form-shared.css?v=6">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/form-shared.css?v=7">
     <style>
         /* Module accent (teal). */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }

@@ -798,7 +798,7 @@ function showTicketDetail(ticketId) {
     `;
 
     const inboxUrl = window.INBOX_URL || 'inbox.php';
-    document.getElementById('ticketModalLink').href = `${inboxUrl}?ticket=${ticket.id}`;
+    document.getElementById('ticketModalLink').href = `${inboxUrl}?ticket_id=${ticket.id}`;
 
     // Load the reschedule fields from THIS ticket.
     schedTargetTicket = ticket;

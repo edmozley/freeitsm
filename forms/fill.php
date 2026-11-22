@@ -46,7 +46,7 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
     <!-- Presentation shared with the portal and the builder preview: blocks
          (notes, images) and label position. A notice panel and a picture have no
          reason to look different in the three places; an INPUT does. -->
-    <link rel="stylesheet" href="../assets/css/form-shared.css?v=6">
+    <link rel="stylesheet" href="../assets/css/form-shared.css?v=7">
     <style>
         /* Module accent (teal). */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
