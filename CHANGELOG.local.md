@@ -14,13 +14,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
-| 3120 | Tickets, Assets   | Fix         | Access checks tightened in two places; details in the 5.9.1 release notes. Tests tests/ticket-department-scope.php (24) and tests/asset-custom-fields-company.php (8). |
-| 3119 | Knowledge         | Fix         | Desktop: scrolling an article, the text showed through a 20px strip above the pinned title - sticky pins below the scroller's padding-top; the header now pins at top: -20px above phone width (phones already fixed it their own way). |
-| 3118 | Knowledge         | Improvement | REST API: a picture embedded in body_html as a data: URL now meets the install's picture limit like an uploaded one (new pictures only, so existing articles stay editable), refused with 413 embedded_image_too_large naming the picture, its type, size and the limit; ServiceError gains optional details/httpStatus passed through by the API (GH #423). |
-| 3117 | Knowledge         | Fix         | PDF export keeps the formatting: line breaks, bold, italic, underline, strikethrough, sub/superscript, inline code, links, nested lists with their own markers, quotes, all six heading levels and pictures (embedded and linked) - it used to print each block's plain text (GH #423); pdf-writer gains link(). |
-| 3114 | Workflow          | Fix         | Attach SOP checklists action: the Checklist templates picker said "No matching checklists" because the editor only sent choices for plain lookup args; now any arg naming a lookup gets them (GH #427). |
-| 3115 | Tickets           | Fix         | Calendar: Open in inbox linked to ?ticket= instead of ?ticket_id=, so the ticket did not open (GH #422). |
-| 3116 | Forms             | Fix         | Label beside: the label column is as wide as its text, up to 40%, instead of a fixed third that left a wide gap after short labels (GH #425). |
 
 
 
@@ -1174,6 +1167,18 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 317 | Tasks             | Fix         | **Drag-reorder drop indicator invisible in scrolling board columns.** The purple line that shows where a dragged card will land vanished whenever its column had enough cards to scroll. Cause: `.board-cards` is a `flex-direction:column` container and the `.drop-indicator` is an empty `<div>` &mdash; so its min-content height is 0, and when the column overflowed, flexbox's `flex-shrink` compressed the indicator to 0px (the cards resist because their text gives them a min-content height; the empty indicator does not). Fixed by adding `flex-shrink:0` to `.drop-indicator` (and to `.task-card` for good measure, so cards can never be squished either). `tasks.css` bumped to `?v=6`. |
 
 ## Published
+
+### 5.9.1 - 22 November 2026
+
+| ID   | Module            | Type        | Description |
+|------|-------------------|-------------|-------------|
+| 3120 | Tickets, Assets   | Fix         | Security (GH advisories GHSA-p5pp-7cqw-rcmc, GHSA-33pg-6935-h22c, reported by @M4ru-0x03 19 Nov 2026): TicketsService::loadTicket()/canAccessTicket() now apply the department rule (ticketDepartmentAllows) for ui/api actors, so ticket writes (update, owner, schedule, notes, time, delete, restore, bulk, custom fields, split, merge, REST PATCH/DELETE/notes) refuse a ticket outside the analyst's teams' departments - affected 5.1.0-5.9.0; REST PATCH checks access before writing. Asset custom field endpoints (get/save_asset_custom_fields, set_asset_field_set) now call analystCanAccessAsset() - multi-company only, affected every release with custom asset fields. Tests tests/ticket-department-scope.php (24) and tests/asset-custom-fields-company.php (8). |
+| 3119 | Knowledge         | Fix         | Desktop: scrolling an article, the text showed through a 20px strip above the pinned title - sticky pins below the scroller's padding-top; the header now pins at top: -20px above phone width (phones already fixed it their own way). |
+| 3118 | Knowledge         | Improvement | REST API: a picture embedded in body_html as a data: URL now meets the install's picture limit like an uploaded one (new pictures only, so existing articles stay editable), refused with 413 embedded_image_too_large naming the picture, its type, size and the limit; ServiceError gains optional details/httpStatus passed through by the API (GH #423). |
+| 3117 | Knowledge         | Fix         | PDF export keeps the formatting: line breaks, bold, italic, underline, strikethrough, sub/superscript, inline code, links, nested lists with their own markers, quotes, all six heading levels and pictures (embedded and linked) - it used to print each block's plain text (GH #423); pdf-writer gains link(). |
+| 3114 | Workflow          | Fix         | Attach SOP checklists action: the Checklist templates picker said "No matching checklists" because the editor only sent choices for plain lookup args; now any arg naming a lookup gets them (GH #427). |
+| 3115 | Tickets           | Fix         | Calendar: Open in inbox linked to ?ticket= instead of ?ticket_id=, so the ticket did not open (GH #422). |
+| 3116 | Forms             | Fix         | Label beside: the label column is as wide as its text, up to 40%, instead of a fixed third that left a wide gap after short labels (GH #425). |
 
 ### 5.9.0 - 22 November 2026
 
