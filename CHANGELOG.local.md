@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3108 | i18n | Fix | Hindi Process Mapper "Step types" now uses स्टेप, so it no longer shares चरण with the Projects "Stage". |
 | 3107 | i18n | Improvement | Tamil (ta) brought to 100% - 5,513 strings translated. |
 | 3106 | i18n | Improvement | Marathi (mr) brought to 100% - 5,513 strings translated. |
 | 3105 | i18n | Improvement | Malayalam (ml) brought to 100% - 6,069 strings translated. |
