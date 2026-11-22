@@ -50,6 +50,10 @@ try {
     if ($assetId <= 0) {
         throw new Exception('asset_id is required');
     }
+    // Multi-tenancy: only an asset in this analyst's companies, as every sibling get_asset_* endpoint.
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], $assetId)) {
+        throw new Exception('Asset not found');
+    }
 
     // ⚠️ Told, not implied: an install that has pulled the update but not run
     // Database Verification must not have this render as "no custom fields".

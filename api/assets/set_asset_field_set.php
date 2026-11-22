@@ -30,6 +30,11 @@ try {
     $assetId = (int)($data['asset_id'] ?? 0);
     $setId   = (int)($data['set_id'] ?? 0);
     $attach  = ($data['action'] ?? 'attach') === 'attach';
+    // Multi-tenancy: only an asset in this analyst's companies, as every sibling per-asset endpoint.
+    require_once '../../includes/tenancy.php';
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], $assetId)) {
+        throw new Exception('Asset not found');
+    }
 
     if ($attach) {
         AssetFieldsService::attachSetToAsset($conn, ActorContext::fromSession($conn), $assetId, $setId);
