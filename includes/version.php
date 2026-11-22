@@ -17,7 +17,7 @@
  */
 
 if (!defined('FREEITSM_VERSION')) {
-    define('FREEITSM_VERSION', '5.8.0');
+    define('FREEITSM_VERSION', '5.9.0');
 }
 
 /** The version as displayed: "1.0.0". */
