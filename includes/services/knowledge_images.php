@@ -112,6 +112,65 @@ class KnowledgeImageService
     }
 
     /** The image_too_large message: the limit, never anything about the content. */
+    /**
+     * Refuses an article body with a NEW embedded picture (an <img src="data:...">) larger
+     * than this installation's picture limit - the same limit an uploaded picture meets
+     * (GH #423). A picture already in $previousHtml is left alone, so an article that holds
+     * one from before can still be edited. Throws a 413 with the picture's position, type,
+     * size and the limit in error.details.
+     *
+     * TRAP: pictures added in the article editor are embedded too, scaled down and capped at
+     * 3 MB by assets/js/knowledge.js (KB_IMAGE_MAX_BYTES) - under the smallest choice (5 MB),
+     * so this never refuses an editor save. If that cap or SIZE_CHOICES_MB changes, keep it so.
+     *
+     * @param string $html          the body being saved
+     * @param string $previousHtml  the body it replaces ('' for a new article)
+     */
+    public static function assertEmbeddedWithinLimit(PDO $conn, string $html, string $previousHtml = ''): void
+    {
+        if (stripos($html, 'data:') === false) return;
+        $max = self::maxBytes($conn);
+        $before = [];
+        foreach (self::embeddedPictures($previousHtml) as $p) $before[$p['hash']] = true;
+        $n = 0;
+        foreach (self::embeddedPictures($html) as $p) {
+            $n++;
+            if ($p['bytes'] <= $max || isset($before[$p['hash']])) continue;
+            $e = new ServiceError('validation', 'embedded_image_too_large',
+                'Embedded picture ' . $n . ' in body_html (' . $p['type'] . ', ' . $p['bytes'] . ' bytes, '
+                . round($p['bytes'] / 1048576, 1) . ' MiB decoded) is larger than this installation\'s limit of '
+                . $max . ' bytes (' . round($max / 1048576, 1) . ' MiB). Upload it with POST /knowledge/articles/{id}/images '
+                . 'and use its URL in the article instead, or ask an administrator to raise the limit in Knowledge > Settings > Images. '
+                . 'GET /knowledge/images/constraints returns the current limit.');
+            $e->httpStatus = 413;
+            $e->details = ['picture' => $n, 'type' => $p['type'], 'bytes' => $p['bytes'],
+                           'max_bytes' => $max, 'max_base64_length' => self::maxBase64Length($max)];
+            throw $e;
+        }
+    }
+
+    /**
+     * The pictures embedded in HTML as data: URLs, in order: [type, bytes decoded, hash].
+     * The size is worked out from the base64 length, so a large picture is never decoded.
+     */
+    public static function embeddedPictures(string $html): array
+    {
+        if ($html === '' || stripos($html, 'data:') === false) return [];
+        $out = [];
+        preg_match_all('~<img\b[^>]*?\bsrc\s*=\s*(["\']?)\s*data:([^;,"\'\s>]*)((?:;[^,"\'\s>]*)*),([^"\'\s>]*)~i', $html, $m, PREG_SET_ORDER);
+        foreach ($m as $x) {
+            $payload = $x[4];
+            if (stripos($x[3], ';base64') !== false) {
+                $clean = rtrim(preg_replace('~[^A-Za-z0-9+/=_-]~', '', $payload), '=');
+                $bytes = intdiv(strlen($clean) * 3, 4);
+            } else {
+                $bytes = strlen(rawurldecode($payload));
+            }
+            $out[] = ['type' => strtolower($x[2] ?: 'text/plain'), 'bytes' => $bytes, 'hash' => sha1($payload)];
+        }
+        return $out;
+    }
+
     public static function tooLargeMessage(int $maxBytes): string
     {
         return 'The image is larger than this installation\'s limit of ' . $maxBytes . ' bytes ('

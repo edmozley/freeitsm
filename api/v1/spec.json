@@ -4573,6 +4573,11 @@
                                 "code": 422,
                                 "slug": "invalid_access",
                                 "when": "The access object or a mapped principal is invalid; nothing is committed."
+                            },
+                            {
+                                "code": 413,
+                                "slug": "embedded_image_too_large",
+                                "when": "A picture embedded in body_html as a data: URL is over the install's picture limit (the same limit as an uploaded picture). error.details gives picture (its position among the embedded pictures), type, bytes, max_bytes and max_base64_length; nothing is saved. Pictures already in the article are not checked again. Upload a large picture with POST \/knowledge\/articles\/{id}\/images and use its URL instead."
                             }
                         ]
                     }
@@ -4779,6 +4784,11 @@
                                 "code": 422,
                                 "slug": "invalid_access",
                                 "when": "The access object or a mapped principal is invalid; nothing is committed."
+                            },
+                            {
+                                "code": 413,
+                                "slug": "embedded_image_too_large",
+                                "when": "A picture embedded in body_html as a data: URL is over the install's picture limit (the same limit as an uploaded picture). error.details gives picture (its position among the embedded pictures), type, bytes, max_bytes and max_base64_length; nothing is saved. Pictures already in the article are not checked again. Upload a large picture with POST \/knowledge\/articles\/{id}\/images and use its URL instead."
                             }
                         ]
                     }

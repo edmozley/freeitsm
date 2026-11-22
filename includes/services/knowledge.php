@@ -206,6 +206,17 @@ class KnowledgeService
                     KnowledgeTransferService::checkRevision($conn, 'article', (int)$in['id'], $in['expected_revision']);
                 }
             }
+            // GH #423: a picture embedded in the body meets the same size limit as an uploaded one.
+            if (array_key_exists('body_html', $in)) {
+                require_once __DIR__ . '/knowledge_images.php';
+                $previous = '';
+                if (!empty($in['id'])) {
+                    $pb = $conn->prepare('SELECT body FROM knowledge_articles WHERE id = ?');
+                    $pb->execute([(int)$in['id']]);
+                    $previous = (string)$pb->fetchColumn();
+                }
+                KnowledgeImageService::assertEmbeddedWithinLimit($conn, (string)$in['body_html'], $previous);
+            }
             $result = self::saveArticleData($conn, $ctx, $in);
             if (array_key_exists('access', $in)) {
                 KnowledgeTransferService::setAccess($conn, $ctx, 'article', $result['id'], $in['access']);
