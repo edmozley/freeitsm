@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3107 | i18n | Improvement | Tamil (ta) brought to 100% - 5,513 strings translated. |
 | 3106 | i18n | Improvement | Marathi (mr) brought to 100% - 5,513 strings translated. |
 | 3105 | i18n | Improvement | Malayalam (ml) brought to 100% - 6,069 strings translated. |
 | 3104 | i18n | Improvement | Hindi (hi) brought to 100% - 6,069 strings translated. |

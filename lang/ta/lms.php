@@ -47,6 +47,7 @@ return [
         'heading' => 'பாடநெறிகள்',
         'upload' => 'பதிவேற்று',
         'create' => 'உருவாக்கு',
+        'new_tip' => 'புதிய பாடநெறி',
         'col_title' => 'தலைப்பு',
         'col_version' => 'SCORM பதிப்பு',
         'col_uploaded' => 'பதிவேற்றப்பட்டது',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'கற்றல் குழுக்கள்',
         'new' => 'புதியது',
+        'new_tip' => 'புதிய குழு',
         'col_name' => 'பெயர்',
         'col_description' => 'விளக்கம்',
         'col_members' => 'உறுப்பினர்கள்',

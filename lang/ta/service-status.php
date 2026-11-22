@@ -49,6 +49,7 @@ return [
     ],
     'modal' => [
         'new_incident' => 'புதிய சம்பவம்',
+        'new_incident_tip' => 'புதிய சம்பவம்',
         'edit_incident' => 'சம்பவத்தைத் திருத்து',
         'title' => 'தலைப்பு',
         'title_placeholder' => 'சம்பவத்தின் சுருக்க விளக்கம்',
