@@ -75,6 +75,7 @@ return [
         'pdf' => 'Експортувати як PDF',
         'email' => 'Електронна пошта (посилання + PDF)',
         'copy_manually' => 'Ваш браузер не зміг скопіювати це автоматично. Ось посилання:',
+        'pdf_picture_missing' => 'Зображення недоступне',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Вибрати цю статтю',

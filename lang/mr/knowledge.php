@@ -75,6 +75,7 @@ return [
         'pdf' => 'PDF म्हणून निर्यात करा',
         'email' => 'ईमेल (दुवा + PDF)',
         'copy_manually' => 'तुमच्या ब्राउझरने हे आपोआप कॉपी केले नाही. ही लिंक आहे:',
+        'pdf_picture_missing' => 'चित्र उपलब्ध नाही',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'हा लेख निवडा',

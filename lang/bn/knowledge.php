@@ -75,6 +75,7 @@ return [
         'pdf' => 'PDF হিসেবে এক্সপোর্ট',
         'email' => 'ইমেইল (লিঙ্ক + PDF)',
         'copy_manually' => 'আপনার ব্রাউজার এটি স্বয়ংক্রিয়ভাবে কপি করেনি। লিঙ্কটি এখানে:',
+        'pdf_picture_missing' => 'ছবি পাওয়া যাচ্ছে না',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'এই নিবন্ধটি নির্বাচন করুন',

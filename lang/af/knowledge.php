@@ -75,6 +75,7 @@ return [
         'pdf' => 'Voer uit as PDF',
         'email' => 'E-pos (skakel + PDF)',
         'copy_manually' => 'Jou blaaier wou dit nie outomaties kopieer nie. Hier is die skakel:',
+        'pdf_picture_missing' => 'Prent nie beskikbaar nie',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Kies hierdie artikel',

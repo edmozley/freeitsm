@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3117 | Knowledge         | Fix         | PDF export keeps the formatting: line breaks, bold, italic, underline, strikethrough, sub/superscript, inline code, links, nested lists with their own markers, quotes, all six heading levels and pictures (embedded and linked) - it used to print each block's plain text (GH #423); pdf-writer gains link(). |
 | 3114 | Workflow          | Fix         | Attach SOP checklists action: the Checklist templates picker said "No matching checklists" because the editor only sent choices for plain lookup args; now any arg naming a lookup gets them (GH #427). |
 | 3115 | Tickets           | Fix         | Calendar: Open in inbox linked to ?ticket= instead of ?ticket_id=, so the ticket did not open (GH #422). |
 | 3116 | Forms             | Fix         | Label beside: the label column is as wide as its text, up to 40%, instead of a fixed third that left a wide gap after short labels (GH #425). |

@@ -75,6 +75,7 @@ return [
         'pdf' => 'PDF ആയി എക്സ്പോർട്ട് ചെയ്യുക',
         'email' => 'ഇമെയിൽ (ലിങ്ക് + PDF)',
         'copy_manually' => 'നിങ്ങളുടെ ബ്രൗസർ ഇത് സ്വയമേവ പകർത്തിയില്ല. ഇതാ ലിങ്ക്:',
+        'pdf_picture_missing' => 'ചിത്രം ലഭ്യമല്ല',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'ഈ ലേഖനം തിരഞ്ഞെടുക്കുക',

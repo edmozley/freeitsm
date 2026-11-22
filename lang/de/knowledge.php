@@ -75,6 +75,7 @@ return [
         'pdf' => 'Als PDF exportieren',
         'email' => 'E-Mail (Link + PDF)',
         'copy_manually' => 'Ihr Browser hat das automatische Kopieren verhindert. Hier ist der Link:',
+        'pdf_picture_missing' => 'Bild nicht verfügbar',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Diesen Artikel auswählen',

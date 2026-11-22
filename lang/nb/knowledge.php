@@ -75,6 +75,7 @@ return [
         'pdf' => 'Eksporter som PDF',
         'email' => 'E-post (lenke + PDF)',
         'copy_manually' => 'Nettleseren din kopierte ikke dette automatisk. Her er lenken:',
+        'pdf_picture_missing' => 'Bildet er ikke tilgjengelig',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Velg denne artikkelen',

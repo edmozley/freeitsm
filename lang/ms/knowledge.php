@@ -75,6 +75,7 @@ return [
         'pdf' => 'Eksport sebagai PDF',
         'email' => 'E-mel (Pautan + PDF)',
         'copy_manually' => 'Pelayar anda tidak dapat menyalin ini secara automatik. Berikut ialah pautannya:',
+        'pdf_picture_missing' => 'Gambar tidak tersedia',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Pilih artikel ini',

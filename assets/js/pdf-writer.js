@@ -489,6 +489,18 @@
             return this;
         }
 
+        // Links -----------------------------------------------------------------
+        /**
+         * Makes a rectangle clickable, as jsPDF's link(x, y, w, h, { url }). Only http(s)
+         * and mailto addresses are linked; anything else (javascript:, data:...) is ignored.
+         */
+        link(x, y, w, h, opts) {
+            const url = opts && typeof opts.url === 'string' ? opts.url.trim() : '';
+            if (!/^(https?:|mailto:)/i.test(url)) return this;
+            this.pk.link(x * this.k, y * this.k, w * this.k, h * this.k, url);
+            return this;
+        }
+
         // Pages -----------------------------------------------------------------
         addPage(format, orientation) {
             const size = format ? pageSize(format, orientation, this.k) : this.size;

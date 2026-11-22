@@ -75,6 +75,7 @@ return [
         'pdf' => 'Exporter en PDF',
         'email' => 'E-mail (lien + PDF)',
         'copy_manually' => 'Votre navigateur n\'a pas pu copier ceci automatiquement. Voici le lien :',
+        'pdf_picture_missing' => 'Image non disponible',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Sélectionner cet article',
