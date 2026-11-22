@@ -839,6 +839,15 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     margin: -20px 0 20px 0;
     border-bottom: 1px solid var(--border, #e0e0e0);
 }
+/* TRAP: sticky pins to the scroll container's CONTENT box, below its padding-top -
+   `.knowledge-main` has 20px on desktop - so `top: 0` left a 20px strip above the
+   pinned title that the article text scrolled through. Pin it 20px higher, flush
+   with the scroller's top. Phones fix the same trap their own way (mobile.css,
+   body[data-kb-view="detail"] .knowledge-main { padding-top: 0 }), so desktop only.
+   Keep this in step with .knowledge-main's padding-top. */
+@media (min-width: 769px) {
+    .article-content-header { top: -20px; }
+}
 
 /* Share dropdown */
 .share-dropdown {

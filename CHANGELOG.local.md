@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3119 | Knowledge         | Fix         | Desktop: scrolling an article, the text showed through a 20px strip above the pinned title - sticky pins below the scroller's padding-top; the header now pins at top: -20px above phone width (phones already fixed it their own way). |
 | 3118 | Knowledge         | Improvement | REST API: a picture embedded in body_html as a data: URL now meets the install's picture limit like an uploaded one (new pictures only, so existing articles stay editable), refused with 413 embedded_image_too_large naming the picture, its type, size and the limit; ServiceError gains optional details/httpStatus passed through by the API (GH #423). |
 | 3117 | Knowledge         | Fix         | PDF export keeps the formatting: line breaks, bold, italic, underline, strikethrough, sub/superscript, inline code, links, nested lists with their own markers, quotes, all six heading levels and pictures (embedded and linked) - it used to print each block's plain text (GH #423); pdf-writer gains link(). |
 | 3114 | Workflow          | Fix         | Attach SOP checklists action: the Checklist templates picker said "No matching checklists" because the editor only sent choices for plain lookup args; now any arg naming a lookup gets them (GH #427). |
