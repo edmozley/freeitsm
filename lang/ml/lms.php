@@ -47,6 +47,7 @@ return [
         'heading' => 'കോഴ്സുകൾ',
         'upload' => 'അപ്‌ലോഡ്',
         'create' => 'സൃഷ്ടിക്കുക',
+        'new_tip' => 'പുതിയ കോഴ്സ്',
         'col_title' => 'തലക്കെട്ട്',
         'col_version' => 'SCORM പതിപ്പ്',
         'col_uploaded' => 'അപ്‌ലോഡ് ചെയ്തത്',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'പഠന ഗ്രൂപ്പുകൾ',
         'new' => 'പുതിയത്',
+        'new_tip' => 'പുതിയ ഗ്രൂപ്പ്',
         'col_name' => 'പേര്',
         'col_description' => 'വിവരണം',
         'col_members' => 'അംഗങ്ങൾ',
