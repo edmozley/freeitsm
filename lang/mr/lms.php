@@ -47,6 +47,7 @@ return [
         'heading' => 'अभ्यासक्रम',
         'upload' => 'अपलोड',
         'create' => 'तयार करा',
+        'new_tip' => 'नवीन अभ्यासक्रम',
         'col_title' => 'शीर्षक',
         'col_version' => 'SCORM आवृत्ती',
         'col_uploaded' => 'अपलोड केले',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'शिक्षण गट',
         'new' => 'नवीन',
+        'new_tip' => 'नवीन गट',
         'col_name' => 'नाव',
         'col_description' => 'वर्णन',
         'col_members' => 'सदस्य',

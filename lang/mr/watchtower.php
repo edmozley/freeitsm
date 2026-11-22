@@ -107,6 +107,7 @@ return [
         'aborted' => 'गेल्या 24 तासांत लूप संरक्षणामुळे <span class="wt-attention-bold">{count}</span> रन रद्द',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> वेबहुकने पुन्हा प्रयत्न करणे सोडले — संदेश कधीच पोहोचला नाही',
         'failures' => '{count} अपयश',
+        'attention' => '<span class="wt-attention-bold">{count}</span> रन(स) ने त्यांच्या कामाचा काही भाग वगळला आणि नोंद ठेवली - ताजे: {name}',
     ],
     'mc' => [
         'metric_done' => 'पूर्ण',
@@ -204,6 +205,7 @@ return [
         'metric_total' => 'एकूण',
         'metric_offline' => 'ऑफलाइन',
         'metric_lease' => 'लीज',
+        'metric_consumables' => 'कमी साठा',
         'metric_warranty' => 'वॉरंटी',
         'warranty' => '<span class="wt-attention-bold">{count}</span> मालमत्तांची वॉरंटी संपली आहे किंवा {days} दिवसांत संपणार आहे',
         'lease' => '<span class="wt-attention-bold">{count}</span> मालमत्तांची लीज संपली आहे किंवा {days} दिवसांत संपत आहे',
@@ -347,5 +349,8 @@ return [
         'impersonal_show' => 'दाखवत राहा',
         'impersonal_hide' => 'लपवा',
         'impersonal_note' => 'सेवा स्थिती, वर्कफ्लो, उपकरणे, सामायिक दिनदर्शिका, करार, ज्ञान, सॉफ्टवेअर परवाने आणि डोमेन व्यक्तीचे नव्हे तर संघाचे असतात, म्हणून ती तुमच्यापुरती मर्यादित होऊ शकत नाहीत. ती ठेवणे हे अधिक सुरक्षित उत्तर आहे: वैयक्तिक दृश्यावर गेलात म्हणून बिघडलेली सेवा गायब होणे हे सर्वात टाळावे असे आहे.',
+        'refresh_heading' => 'Watchtower रिफ्रेश होते दर',
+        'refresh_minutes' => '{n} मिनिटे',
+        'refresh_note' => 'भिंतीवरील स्क्रीनसाठी कमी अंतर योग्य: फक्त त्यासाठी साइन इन केलेला वापरकर्ता साइन इन राहतो, आणि डॅशबोर्ड स्वतः अपडेट होतो.',
     ],
 ];
