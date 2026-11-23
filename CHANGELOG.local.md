@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3138 | System            | Fix         | Help assistant: building "match by meaning" with OpenAI failed for every section when one help section was over the embedding model's 8,192-token input (Tickets "Working with tickets" in Greek and other languages); long sections are now clipped to fit, keeping their opening. |
 | 3137 | Forms             | Fix         | On an approved request with approval steps, the step trail now ticks the last step as passed instead of still showing it as current. |
 | 3136 | Forms             | Fix         | Analysts named in a form's approval steps or an approval chain (person, team or fallback), and anyone who has decided a request, can now open the Approvals inbox without the Forms module. |
 | 3135 | Forms             | Fix         | On a request with approval steps, an administrator who is the step's named approver is no longer shown the override note and made to give a reason; they decide it as its approver. |
