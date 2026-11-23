@@ -7,7 +7,7 @@
  * times the detail of ordinary ASCII), Classic (a 70-step character ramp) and
  * Blocks (shade characters). Seven screens: green, amber, paper, colour, and the
  * old PC palettes CGA (4 colours), EGA (16) and VGA (256) - colour, snapped to the
- * nearest colour the card could show.
+ * colours the card could show, and dithered (with Dither on) as the real cards were.
  *
  * 🔑 No AI and no server work: the conversion is plain arithmetic in the
  * browser (brightness -> character, with error-diffusion dithering). The PHOTO
@@ -393,13 +393,37 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
             const snap = PALETTES[s.palette].snap || null;
             if (s.palette === 'colour' || snap) {
                 const cp = drawScaled(tintCtx, tint, src, sw, sh, cols, rows, s.mirror);
-                colours = new Uint8Array(cols * rows * 3);
-                for (let i = 0, p = 0, o = 0; i < cols * rows; i++, p += 4, o += 3) {
-                    for (let k = 0; k < 3; k++) {
-                        const v = ((cp[p + k] / 255 - 0.5) * contrast + 0.5 + bright) * 255;
-                        colours[o + k] = v < 0 ? 0 : v > 255 ? 255 : v;
+                const nc = cols * rows;
+                colours = new Uint8Array(nc * 3);
+                // The wanted colour of every character, before any snapping.
+                const want = new Float32Array(nc * 3);
+                for (let i = 0, p = 0, o = 0; i < nc; i++, p += 4, o += 3) {
+                    for (let k = 0; k < 3; k++) want[o + k] = ((cp[p + k] / 255 - 0.5) * contrast + 0.5 + bright) * 255;
+                }
+                // TRAP: snapping each character to its NEAREST card colour on its own turns a webcam
+                // picture grey on EGA and CGA. Their few colours are strong (pure blue, brown, magenta)
+                // and a photo's are muted - skin, a shirt, a wall under room light - so the nearest is
+                // nearly always one of EGA's four greys. The real cards looked colourful because
+                // pictures were DITHERED: neighbouring dots of different colours that the eye mixes.
+                // So with Dither on, each character's miss is passed on to the ones to its right and
+                // below (Floyd-Steinberg), the same idea the brightness already uses.
+                const diffuse = snap && s.dither;
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const o = (y * cols + x) * 3;
+                        const r = Math.max(0, Math.min(255, want[o])), g = Math.max(0, Math.min(255, want[o + 1])), b = Math.max(0, Math.min(255, want[o + 2]));
+                        const c = snap ? snapColour(snap, r | 0, g | 0, b | 0) : [r, g, b];
+                        colours[o] = c[0]; colours[o + 1] = c[1]; colours[o + 2] = c[2];
+                        if (!diffuse) continue;
+                        const er = r - c[0], eg = g - c[1], eb = b - c[2];
+                        const push = (dx, dy, f) => {
+                            const xx = x + dx, yy = y + dy;
+                            if (xx < 0 || xx >= cols || yy >= rows) return;
+                            const q = (yy * cols + xx) * 3;
+                            want[q] += er * f; want[q + 1] += eg * f; want[q + 2] += eb * f;
+                        };
+                        push(1, 0, 7 / 16); push(-1, 1, 3 / 16); push(0, 1, 5 / 16); push(1, 1, 1 / 16);
                     }
-                    if (snap) { const c = snapColour(snap, colours[o], colours[o + 1], colours[o + 2]); colours[o] = c[0]; colours[o + 1] = c[1]; colours[o + 2] = c[2]; }
                 }
             }
             return { style: s.style, palette: s.palette, cols, rows, lines, colours };
