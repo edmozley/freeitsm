@@ -170,7 +170,7 @@ if ($ready && assetLabelDesignsReady($conn)) {
     <link rel="icon" type="image/svg+xml" href="<?php echo defined('BASE_URL') ? BASE_URL : '/'; ?>favicon.svg">
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.labels.browser_title'))); ?></title>
-    <script src="../assets/js/qrcode.min.js"></script>
+    <script src="../assets/js/vendor/qrcode.js?v=2.0.4"></script>
     <style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f6fa; color: #222; }
         .bar { background: #546e7a; color: #fff; padding: 12px 18px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }

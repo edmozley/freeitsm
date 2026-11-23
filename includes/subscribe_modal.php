@@ -13,7 +13,7 @@
  * locale that had already translated the originals. The markup is shared; the
  * words stay where they are.
  *
- * ⚠️ Behaviour lives in assets/js/subscribe.js — load it, and qrcode.min.js.
+ * ⚠️ Behaviour lives in assets/js/subscribe.js — load it, and assets/js/vendor/qrcode.js.
  */
 
 /**

@@ -14,6 +14,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3143 | System            | Improvement | The bundled list of trusted certificate authorities (includes/cacert.pem) updated to Mozilla's 2026-11-05 list: 4 roots added, 5 retired. |
+| 3142 | Assets, Calendar  | Improvement | qrcode-generator (QR codes on asset labels, calendar subscribe and the phone sign-in codes) updated from 1.x to 2.0.4; it makes exactly the same codes. |
 | 3141 | Files             | Improvement | pdf.js (the Files viewer and PDF thumbnails) updated from 6.3.289 to 6.5.438. |
 | 3140 | System            | Improvement | PDFKit (every PDF the app makes) updated from 0.20.2 to 0.21.0, built on fontkit 3; the bundle no longer carries any Apache-licensed helper code. |
 | 3139 | System            | Improvement | Chart.js updated to 4.6.1 and merged into one bundled copy - Domains and Morning Checks used their own older 4.4.0 copy, now removed; every chart page loads it with a version cache-buster. |

@@ -2178,7 +2178,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         </div>
     </div>
 
-    <script src="<?php echo BASE_URL; ?>assets/js/qrcode.min.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/vendor/qrcode.js?v=2.0.4"></script>
     <script>
     const _pathPrefix = '<?php echo BASE_URL; ?>';
 

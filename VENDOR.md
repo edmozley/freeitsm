@@ -32,13 +32,13 @@ before assuming what you have.
 | SheetJS Community Edition | **0.20.3** | `assets/js/vendor/xlsx.full.min.js` | https://cdn.sheetjs.com (NOT npm - the npm `xlsx` package stopped at 0.18.5) | Apache-2.0 (`assets/js/vendor/xlsx.LICENSE`) |
 | Prism | **1.30.0** | `assets/js/vendor/prism.min.js` = npm `components/prism-core` + `markup` + `css` + `clike` + `javascript` (`.min.js`, in that order); the 7 language components, toolbar and copy-to-clipboard plugins and 2 stylesheets from the same package | https://prismjs.com · npm `prismjs` | MIT (`assets/js/vendor/prism.LICENSE`) |
 | jsQR | *not embedded* — vendored 2026-07-29 | `assets/js/vendor/jsQR.js` | https://github.com/cozmo/jsQR | Apache-2.0 (`assets/js/vendor/jsQR.LICENSE`) |
-| qrcode-generator | *not embedded* — vendored 2026-02-08 | `assets/js/qrcode.min.js` | https://github.com/kazuhikoarase/qrcode-generator | MIT |
+| qrcode-generator | **2.0.4** | `assets/js/vendor/qrcode.js` = npm `dist/qrcode.js` as shipped (2.x publishes no minified build, so it lives in `vendor/`, which the page-health and i18n scanners skip). Loaded with `?v=<version>`. Makes exactly the same codes as the 1.x copy it replaced (`assets/js/qrcode.min.js`, removed). Its default text encoding is still Latin-1 bytes, as before | https://github.com/kazuhikoarase/qrcode-generator · npm `qrcode-generator` | MIT (notice in the file header) |
 | firebase/php-jwt | 6.x — *not embedded* — vendored 2026-05-30 | `includes/vendor/firebase-jwt/` | https://github.com/firebase/php-jwt | BSD-3-Clause (`includes/vendor/firebase-jwt/LICENSE`) |
-| Mozilla CA bundle | **2026-07-16** | `includes/cacert.pem` | https://curl.se/ca/cacert.pem | MPL-2.0 |
+| Mozilla CA bundle | **2026-11-05** | `includes/cacert.pem` | https://curl.se/ca/cacert.pem | MPL-2.0 |
 
 ## Checking for updates
 
-There is no automation for this yet, so it is a manual job - **part of every pre-release docs audit.** Last checked **2026-11-23** (5.10.x: Chart.js 4.6.1 - one copy now - PDFKit 0.21.0 and pdf.js 6.5.438 taken; TinyMCE 8.10.2, qrcode-generator 2, php-jwt 7 and the CA bundle still to take. Before that, 2026-10-25, 4.1.0: TinyMCE, jsPDF, AutoTable and Prism updated for published security fixes - jsPDF and AutoTable have since been replaced by PDFKit, GH #254; Chart.js, pdf.js, php-jwt, qrcode-generator and the CA bundle have newer releases not yet taken).
+There is no automation for this yet, so it is a manual job - **part of every pre-release docs audit.** Last checked **2026-11-23** (5.10.x: Chart.js 4.6.1 - one copy now - PDFKit 0.21.0 and pdf.js 6.5.438 taken; qrcode-generator 2.0.4 and the 2026-11-05 CA bundle taken next; TinyMCE 8.10.2 and php-jwt 7 still to take. Before that, 2026-10-25, 4.1.0: TinyMCE, jsPDF, AutoTable and Prism updated for published security fixes - jsPDF and AutoTable have since been replaced by PDFKit, GH #254; Chart.js, pdf.js, php-jwt, qrcode-generator and the CA bundle have newer releases not yet taken).
 
 `tests/security-findings/run.php` (section F6) fails if TinyMCE or Prism falls back below the version with the fix, if PDFKit is not the version recorded here, or if jsPDF (or a second PDF library) appears again.
 

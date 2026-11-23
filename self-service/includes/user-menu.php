@@ -539,7 +539,7 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
     </div>
 </div>
 
-<script src="../assets/js/qrcode.min.js"></script>
+<script src="../assets/js/vendor/qrcode.js?v=2.0.4"></script>
 <script>
 const _ssApi = '../api/self-service/';
 const _mfaApi = '../api/myaccount/';
