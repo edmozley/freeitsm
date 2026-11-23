@@ -161,13 +161,19 @@ try {
             $r['price_label'] = $prices[(int)$r['id']] ?? '';
             // Whether the person may still cancel it (GH #348); the reason shows only on a cancelled one.
             $r['can_cancel'] = catalogueRequestCancellable($r);
-            if ($r['approval_status'] !== 'cancelled') $r['approval_comment'] = null;
+            // GH #160 C2 / #348 slice 2: and on a request a manager or a cost centre owner
+            // declined in the portal - they must give a reason, and are told the requester sees
+            // it. A staff approver's note stays internal, as before.
+            $personDeclined = $r['approval_status'] === 'rejected' && !empty($r['approval_decided_by_user_id']);
+            if ($r['approval_status'] !== 'cancelled' && !$personDeclined) $r['approval_comment'] = null;
             // GH #160: "Waiting for Finance, step 2 of 3" - the step's name and place only,
             // never who the approvers are. Then nothing else from s.* leaves this file.
             $steps = $r['approval_status'] === 'pending' ? catalogueStepProgress($r) : null;
             $r['step'] = $steps ? ['position' => $steps['position'], 'count' => $steps['count'], 'name' => $steps['name']] : null;
+            // GH #160 C2: Remind - at most once a day per step, if the install allows it.
+            $r['can_remind'] = catalogueCanRemind($conn, $r);
             $r = array_intersect_key($r, array_flip(['id', 'approval_status', 'submitted_date', 'ticket_id', 'approval_comment',
-                'form_title', 'ticket_number', 'price_label', 'can_cancel', 'step']));
+                'form_title', 'ticket_number', 'price_label', 'can_cancel', 'step', 'can_remind']));
             // #298: answers the approver changed after it was sent - what and when, never the
             // approver's reason (that may be an internal note; the desk sees it on the ticket).
             $r['changes'] = array_map(fn($c) => ['label' => $c['label'], 'old' => $c['old'], 'new' => $c['new'], 'at' => $c['at']],

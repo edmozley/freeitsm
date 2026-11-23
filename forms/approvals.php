@@ -313,6 +313,15 @@ $translationNamespaces = ['common', 'forms'];
                         + ` · <strong>${esc(window.t('forms.approval.progress', { a: pr.approvals || 0, n: pr.approvals_required || 1 }))}</strong>${rej}</div>`
                         + (votes ? `<ul class="ca-votes">${votes}</ul>` : '');
                 }
+                // GH #160 C2: a manager's or a cost centre owner's step - decided in the portal.
+                if (it.people && !decided) {
+                    const names = (it.people.names || []).join(', ');
+                    const whom = it.people.kind === 'manager'
+                        ? window.t('forms.steps.people_manager', { names: names || '-' })
+                        : window.t('forms.steps.people_owner', { cc: it.people.cost_centre || '-', names: names || '-' });
+                    teamBlock = `<div class="ca-progress"><span class="lbl">${esc(window.t('forms.steps.people_waiting'))}</span> ${esc(whom)}`
+                        + `<div class="ca-event">${esc(window.t('forms.steps.people_portal_hint'))}</div></div>`;
+                }
                 const stuck = (!decided && pr.stuck) ? `<div class="ca-stuck">${esc(window.t('forms.approval.stuck'))}</div>` : '';
                 const events = (it.events || []).map(e => e.action === 'answer_changed' ? changeEventHtml(e) : `<div class="ca-event">${esc(eventText(e))}</div>`).join('');
                 // GH #160: where a request with steps has got to - each step, and which it is on.
@@ -348,7 +357,7 @@ $translationNamespaces = ['common', 'forms'];
                         ? `<button class="ca-btn ca-btn-secondary" onclick="toggleEdit(${it.id})">${esc(window.t('forms.approval.edit'))}</button>` : '';
                     const moveBtn = it.can_move
                         ? `<button class="ca-btn ca-btn-secondary" title="${escAttr(window.t('forms.approval.move_title'))}" onclick="toggleMove(${it.id})">${esc(window.t('forms.approval.move'))}</button>` : '';
-                    footer = (override ? `<div class="ca-override-hint">${esc(window.t('forms.approval.override_hint'))}</div>` : '')
+                    footer = (override ? `<div class="ca-override-hint">${esc(window.t(it.people ? 'forms.steps.people_override_hint' : 'forms.approval.override_hint'))}</div>` : '')
                         + (canAct ? `
                         <textarea class="ca-comment" id="cmt-${it.id}" placeholder="${escAttr(placeholder)}"></textarea>
                         <div class="ca-actions">
@@ -367,6 +376,7 @@ $translationNamespaces = ['common', 'forms'];
                             <span><span class="lbl">${esc(window.t('forms.approval.requester'))}</span> ${esc(requester)}</span>
                             ${it.submitted_date ? `<span><span class="lbl">${esc(window.t('forms.approval.submitted'))}</span> ${esc(formatDate(it.submitted_date))}</span>` : ''}
                             ${it.price_label ? `<span><span class="lbl">${esc(window.t('common.catalogue_price.label'))}</span> ${esc(it.price_label)}</span>` : ''}
+                            ${it.requester_cost_centre ? `<span><span class="lbl">${esc(window.t('forms.steps.requester_cost_centre'))}</span> ${esc(it.requester_cost_centre)}</span>` : ''}
                             ${(currentFilter !== 'mine' && it.approver_name) ? `<span><span class="lbl">${esc(window.t('forms.approval.approver'))}</span> ${esc(it.approver_name)}</span>` : ''}
                         </div>
                         ${stepsBlock}${teamBlock}
@@ -435,6 +445,9 @@ $translationNamespaces = ['common', 'forms'];
                 case 'step_skipped':  return window.t('forms.steps.event_skipped', p);
                 case 'step_fallback': return window.t('forms.steps.event_fallback', p);
                 case 'auto_approved': return window.t('forms.steps.event_auto');
+                // GH #160 C2: the same person decided the next step too, and Remind.
+                case 'step_already_approved': return window.t('forms.steps.event_already', p);
+                case 'reminded':      return window.t('forms.steps.event_reminded', p);
             }
             return window.t('forms.approval.event_override', { name: p.name, decision: window.t('forms.approval.voted_' + String(e.action).replace('override_', '')), reason: p.reason });
         }

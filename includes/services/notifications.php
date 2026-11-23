@@ -595,6 +595,7 @@ class NotificationsService
      */
     public static function portalLinkFor(string $entityType, int $entityId): ?string
     {
+        if ($entityType === 'catalogue_request') return 'self-service/approvals.php?id=' . $entityId;   // GH #160 C2: an approver's
         return $entityType === 'ticket' ? 'self-service/tickets.php?view=team&id=' . $entityId : null;
     }
 

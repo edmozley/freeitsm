@@ -14,6 +14,10 @@
  * questions  ['Order total', ...]        labels an "Only when" condition can look at.
  *            A condition names its question by LABEL, because a chain is shared by
  *            many forms and a form's field ids change with each version.
+ * ccQuestions ['Cost centre', ...]       labels of cost-centre questions, for "The owner
+ *            of a cost centre" (GH #160 Part C2). Blank = the requester's own.
+ * people     true when the install can route to the requester's manager and a cost
+ *            centre's owner (Database Verification has run). A fallback is always staff.
  */
 (function () {
     'use strict';
@@ -33,7 +37,11 @@
         const analysts = opts.analysts || [];
         const teams = opts.teams || [];
         const questions = (opts.questions || []).slice();
+        const ccQuestions = (opts.ccQuestions || []).slice();
+        const people = opts.people !== false;
         let steps = (opts.steps && opts.steps.length ? opts.steps : [blankStep()]).map(s => JSON.parse(JSON.stringify(s)));
+        // An owner step naming a question this list does not know is still shown.
+        steps.forEach(s => { if (s.cc_question && ccQuestions.indexOf(s.cc_question) === -1) ccQuestions.push(s.cc_question); });
         // A condition on a question this list does not know (renamed, or from another
         // form on a chain) is still shown, so it is visible rather than silently lost.
         steps.forEach(s => (s.when && s.when.rules || []).forEach(r => {
@@ -47,11 +55,25 @@
 
         function whoHtml(prefix, p, withExclude) {
             const team = p.who === 'team';
+            // GH #160 Part C2: the requester's manager and a cost centre's owner - steps
+            // only (withExclude), never a fallback, which must be somebody fixed.
+            const opt = (v, label) => '<option value="' + v + '"' + (p.who === v ? ' selected' : '') + '>' + esc(label) + '</option>';
+            const kinds = opt('person', window.t('forms.approval.mode_person')) + opt('team', window.t('forms.approval.mode_team'))
+                + (withExclude && (people || p.who === 'manager' || p.who === 'cc_owner')
+                    ? opt('manager', T('mode_manager')) + opt('cc_owner', T('mode_cc_owner')) : '');
+            if (withExclude && p.who === 'manager') {
+                return '<div class="as-who"><select data-k="' + prefix + 'who" class="as-sel-who">' + kinds + '</select>'
+                    + '<small class="ca-hint">' + esc(T('manager_hint')) + '</small></div>';
+            }
+            if (withExclude && p.who === 'cc_owner') {
+                const ccs = '<option value="">' + esc(T('cc_own')) + '</option>'
+                    + ccQuestions.map(q => '<option value="' + esc(q) + '"' + (q === p.cc_question ? ' selected' : '') + '>' + esc(T('cc_question', { q })) + '</option>').join('');
+                return '<div class="as-who"><select data-k="' + prefix + 'who" class="as-sel-who">' + kinds + '</select>'
+                    + '<select data-k="cc_question">' + ccs + '</select>'
+                    + '<small class="ca-hint">' + esc(T('cc_owner_hint')) + '</small></div>';
+            }
             return '<div class="as-who">'
-                + '<select data-k="' + prefix + 'who" class="as-sel-who">'
-                + '<option value="person"' + (!team ? ' selected' : '') + '>' + esc(window.t('forms.approval.mode_person')) + '</option>'
-                + '<option value="team"' + (team ? ' selected' : '') + '>' + esc(window.t('forms.approval.mode_team')) + '</option>'
-                + '</select>'
+                + '<select data-k="' + prefix + 'who" class="as-sel-who">' + kinds + '</select>'
                 + (team
                     ? '<select data-k="' + prefix + 'team_id">' + teamOptions(p.team_id) + '</select>'
                       + '<label class="as-num">' + esc(window.t('forms.approval.approvals_needed')) + ' <input type="number" min="1" max="20" data-k="' + prefix + 'approvals_required" value="' + esc(p.approvals_required || 1) + '"></label>'
@@ -121,7 +143,11 @@
                 const v = k => { const f = card.querySelector('[data-k="' + k + '"]'); return f ? (f.type === 'checkbox' ? (f.checked ? 1 : 0) : f.value) : undefined; };
                 s.name = v('name') || '';
                 s.who = v('who') || 'person';
-                if (s.who === 'team') {
+                if (s.who === 'cc_owner') {
+                    s.cc_question = v('cc_question') || '';
+                } else if (s.who === 'manager') {
+                    // nothing to choose: the requester's manager, worked out at each decision
+                } else if (s.who === 'team') {
                     s.team_id = v('team_id') ? Number(v('team_id')) : null;
                     s.approvals_required = parseInt(v('approvals_required'), 10) || 1;
                     s.rejections_required = parseInt(v('rejections_required'), 10) || 1;
@@ -188,7 +214,7 @@
                 sync();
                 for (let i = 0; i < steps.length; i++) {
                     const s = steps[i], n = i + 1;
-                    if (s.who === 'team' ? !s.team_id : !s.approver_id) return { steps, error: T('need_who', { n }) };
+                    if (s.who === 'team' ? !s.team_id : (s.who === 'person' && !s.approver_id)) return { steps, error: T('need_who', { n }) };
                     if (s.when && s.when.rules.some(r => !r.question)) return { steps, error: T('need_question', { n }) };
                     if (s.fallback && (s.fallback.who === 'team' ? !s.fallback.team_id : !s.fallback.approver_id)) return { steps, error: T('need_fallback', { n }) };
                 }
@@ -201,7 +227,8 @@
     function isPlain(steps) {
         if (steps.length !== 1) return false;
         const s = steps[0];
-        return !String(s.name || '').trim() && !s.when && !s.fallback;
+        // A manager's or an owner's step is never "plain": only steps can hold it.
+        return !String(s.name || '').trim() && !s.when && !s.fallback && (s.who === 'person' || s.who === 'team');
     }
 
     window.ApprovalSteps = { mount, isPlain, blankStep };

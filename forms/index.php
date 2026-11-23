@@ -43,7 +43,7 @@ $translationNamespaces = ['common', 'forms'];
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms-approval-steps.css?v=2">
-    <script src="<?php echo BASE_URL; ?>assets/js/forms-approval-steps.js?v=2"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/forms-approval-steps.js?v=4"></script>
     <style>
         /* Module accent (teal). */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
@@ -828,12 +828,14 @@ $translationNamespaces = ['common', 'forms'];
 
         let approvalChains = null;     // GH #160: named chains, fetched once
         let approvalEditor = null;     // the step list (assets/js/forms-approval-steps.js)
+        let approvalPeople = false;    // GH #160 C2: manager / cost centre owner steps can be chosen
         async function ensureApprovalChains() {
             if (approvalChains) return approvalChains;
             try {
                 const res = await fetch(API_BASE + 'approval_chains.php');
                 const data = await res.json();
                 approvalChains = data.success && data.available ? data.chains.filter(c => c.is_active) : [];
+                approvalPeople = !!(data.success && data.people);
             } catch (e) { approvalChains = []; }
             return approvalChains;
         }
@@ -846,12 +848,20 @@ $translationNamespaces = ['common', 'forms'];
             const [analysts, teams, chains] = await Promise.all([ensureApprovalAnalysts(), ensureApprovalTeams(), ensureApprovalChains()]);
             // The questions an "Only when" can look at: this form's own, by label.
             let questions = [];
+            let ccQuestions = [];   // GH #160 C2: cost-centre questions, for "The owner of a cost centre"
             try {
                 const res = await fetch(API_BASE + 'get_form.php?id=' + encodeURIComponent(id));
                 const data = await res.json();
                 const answerable = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup'];
                 questions = (data.success ? (data.form.fields || []) : [])
                     .filter(f => answerable.indexOf(f.field_type) !== -1 && String(f.label || '').trim())
+                    .map(f => String(f.label).trim())
+                    .filter((l, i, all) => all.indexOf(l) === i);
+                ccQuestions = (data.success ? (data.form.fields || []) : [])
+                    .filter(f => {
+                        if (f.field_type !== 'lookup' || !String(f.label || '').trim()) return false;
+                        try { return (JSON.parse(f.config || '{}') || {}).lookup_source === 'cost_centre'; } catch (x) { return false; }
+                    })
                     .map(f => String(f.label).trim())
                     .filter((l, i, all) => all.indexOf(l) === i);
             } catch (e) { /* no questions to offer - conditions can still be removed */ }
@@ -864,7 +874,7 @@ $translationNamespaces = ['common', 'forms'];
                 : [form.approval_team_id
                     ? { name: '', who: 'team', team_id: Number(form.approval_team_id), approvals_required: Number(form.approvals_required) || 1, rejections_required: Number(form.rejections_required) || 1, when: null, fallback: null }
                     : { name: '', who: 'person', approver_id: form.approver_id ? Number(form.approver_id) : null, exclude_requester: form.approval_exclude_requester == 1 ? 1 : 0, when: null, fallback: null }];
-            approvalEditor = ApprovalSteps.mount(document.getElementById('approvalStepsEditor'), { steps, analysts, teams, questions });
+            approvalEditor = ApprovalSteps.mount(document.getElementById('approvalStepsEditor'), { steps, analysts, teams, questions, ccQuestions, people: approvalPeople });
 
             const csel = document.getElementById('approvalChainSelect');
             csel.innerHTML = '<option value="">' + esc(window.t('forms.steps.chain_none')) + '</option>'

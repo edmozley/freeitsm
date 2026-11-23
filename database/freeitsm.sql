@@ -915,6 +915,10 @@ CREATE TABLE IF NOT EXISTS `users` (
     -- Wanted before sync existed — catalogue-request approvals need a chain to
     -- route along, and a directory hands you the org chart for free.
     `manager_id`      INT NULL,
+    -- GH #160 C2: "I am away until" (the portal's Approvals page). A cost centre's
+    -- deputy may decide while the owner is away, when Forms -> Settings says the
+    -- deputy is only cover. NULL = here.
+    `approvals_away_until` DATE NULL,
 
     -- What the DIRECTORY calls them, which is not the same fact as what they
     -- type into the portal. sAMAccountName is unique only within one directory,
@@ -6906,6 +6910,22 @@ CREATE TABLE IF NOT EXISTS `form_submissions` (
     -- single-policy request, as before.
     `approval_steps`             LONGTEXT NULL,
     `approval_step_no`           INT NULL,
+    -- GH #160 Part C2: a step decided by PEOPLE in the portal, not staff. 'manager' =
+    -- the requester's manager, 'cc_owner' = the owner (or deputy) of
+    -- approval_cost_centre_id. NULL = a staff step (approver_id / approval_team_id).
+    -- WHO that is, is worked out at every decision, never stored: a manager who
+    -- changes, or an owner who leaves, changes who can decide.
+    `approver_kind`              VARCHAR(20) NULL,
+    `approval_cost_centre_id`    INT NULL,
+    -- A person (users) who decided - the portal's twin of approval_decided_by_id.
+    `approval_decided_by_user_id` INT NULL,
+    -- When the current step was reached (a deputy "after N days") and last reminded
+    -- (Remind, at most once a day per step). Both reset when the step changes.
+    `approval_step_datetime`     DATETIME NULL,
+    `approval_reminded_datetime` DATETIME NULL,
+    -- #348 slice 4: the requester's own cost centre WHEN THEY ASKED, shown to the
+    -- approver and in the ticket. A snapshot, like the price.
+    `requester_cost_centre_id`   INT NULL,
     -- Which collection this submission WAS part of, stamped at submit time
     -- from forms.collection_id. The two are ALLOWED TO DISAGREE and that is
     -- the point: re-pairing a form must never rewrite what last year's
@@ -6980,6 +7000,7 @@ CREATE TABLE IF NOT EXISTS `form_submission_approval_events` (
     `id`             INT NOT NULL AUTO_INCREMENT,
     `submission_id`  INT NOT NULL,
     `analyst_id`     INT NULL,
+    `user_id`        INT NULL,                        -- GH #160 C2: a person in the portal (a manager, a cost centre owner, the requester's Remind)
     `action`         VARCHAR(30) NOT NULL,            -- override_approved / override_rejected / moved
     `detail`         TEXT NULL,
     `reason`         TEXT NULL,

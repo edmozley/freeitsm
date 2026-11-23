@@ -105,6 +105,7 @@ function formsHelpTopics(): array
                 'person'   => 'A person decides',
                 'team'     => 'A team decides',
                 'steps'    => 'More than one step',          // GH #160
+                'people'   => 'The manager or a cost centre owner',   // GH #160 C2
                 'nobody'   => 'If nobody can decide',
                 'chains'   => 'Approval chains',
                 'inbox'    => 'The approvals inbox',

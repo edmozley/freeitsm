@@ -29,7 +29,8 @@
  *     "No approval step applied", so the form's "when approved" actions still run.
  *
  * Step shape (one entry of the JSON list, as catalogueNormaliseSteps() returns it):
- *   {"name": "Finance", "who": "person"|"team",
+ *   {"name": "Finance", "who": "person"|"team"|"manager"|"cc_owner",
+ *    "cc_question": "Cost centre" | "" (the requester's own),          (cc_owner - Part C2)
  *    "approver_id": 12, "exclude_requester": 0|1,                       (person)
  *    "team_id": 4, "approvals_required": 2, "rejections_required": 1,   (team)
  *    "when": null | {"match": "all"|"any", "rules": [{"question": "Order total", "op": "greater_than", "value": "5000"}]},
@@ -38,10 +39,15 @@
  * A condition names its question by LABEL, not by form_fields.id: a chain is shared by
  * many forms, and a form's field ids change with every new version. A question that is
  * not on the form is an unreadable condition, so the step runs - the safe direction.
- * The snapshot adds "skipped" (bool) and "skip_detail" to each step.
+ * The snapshot adds "skipped" (bool) and "skip_detail" to each step, and to an owner
+ * step the "cost_centre_id" its question's answer named (Part C2).
+ *
+ * "manager" and "cc_owner" (Part C2) are decided by PEOPLE in the portal - see
+ * includes/catalogue_approval_people.php. A fallback is always staff.
  */
 
 require_once __DIR__ . '/form_logic.php';
+require_once __DIR__ . '/catalogue_approval_people.php';   // GH #160 Part C2
 
 /** The operators a step condition may use - formLogicTestRule()'s. */
 const CATALOGUE_STEP_OPS = ['equals', 'not_equals', 'contains', 'is_empty', 'is_not_empty',
@@ -95,7 +101,7 @@ function catalogueNormaliseSteps(PDO $conn, $raw, bool $strict = true): array {
         if (!is_array($s)) { $fail("Step $n is not a step."); continue; }
         $name = trim((string)($s['name'] ?? ''));
         if (mb_strlen($name) > 100) $name = mb_substr($name, 0, 100);
-        $policy = catalogueNormaliseStepPolicy($conn, $s, "Step $n", $fail);
+        $policy = catalogueNormaliseStepPolicy($conn, $s, "Step $n", $fail, true);
         if ($policy === null) continue;
         $step = ['name' => $name] + $policy;
         $step['when'] = catalogueNormaliseStepWhen($s['when'] ?? null, "Step $n", $fail);
@@ -104,6 +110,8 @@ function catalogueNormaliseSteps(PDO $conn, $raw, bool $strict = true): array {
             ? catalogueNormaliseStepPolicy($conn, $fb, "Step $n's fallback", $fail)
             : null;
         if ($step['fallback'] !== null) unset($step['fallback']['exclude_requester']);
+        // A snapshot's owner step keeps the cost centre it was routed to.
+        if ($policy['who'] === 'cc_owner' && !empty($s['cost_centre_id'])) $step['cost_centre_id'] = (int)$s['cost_centre_id'];
         $out[] = $step;
     }
     return $out;
@@ -115,9 +123,18 @@ function catalogueNormaliseSteps(PDO $conn, $raw, bool $strict = true): array {
  * @param array $s  the step (or fallback) as sent
  * @param string $what  "Step 2", for the message
  * @param callable $fail  reports a problem (throws when strict)
+ * @param bool $allowPeople  a step may be the requester's manager or a cost centre's owner
+ *                           (Part C2) - never a fallback, which must be somebody fixed
  */
-function catalogueNormaliseStepPolicy(PDO $conn, array $s, string $what, callable $fail): ?array {
+function catalogueNormaliseStepPolicy(PDO $conn, array $s, string $what, callable $fail, bool $allowPeople = false): ?array {
     $who = (string)($s['who'] ?? '');
+    if ($allowPeople && ($who === 'manager' || $who === 'cc_owner')) {
+        if (!cataloguePeopleAvailable($conn)) $fail("$what: run Database Verification before choosing the manager or a cost centre owner.");
+        $p = ['who' => $who, 'approver_id' => null, 'team_id' => null, 'approvals_required' => null,
+              'rejections_required' => null, 'exclude_requester' => 1];
+        if ($who === 'cc_owner') $p['cc_question'] = mb_substr(trim((string)($s['cc_question'] ?? '')), 0, 255);
+        return $p;
+    }
     if ($who === 'team') {
         $teamId = (int)($s['team_id'] ?? 0);
         $ok = false;
@@ -264,7 +281,15 @@ function catalogueAnswersByLabel(array $fieldsById, array $valuesByFieldId): arr
  */
 function catalogueStepColumns(array $p): array {
     $team = ($p['who'] ?? '') === 'team';
+    $people = in_array($p['who'] ?? '', ['manager', 'cc_owner'], true);   // Part C2
+    if ($people) {
+        return ['approver_id' => null, 'approval_team_id' => null, 'approvals_required' => null, 'rejections_required' => null,
+                'approval_exclude_requester' => 1, 'approver_kind' => $p['who'],
+                'approval_cost_centre_id' => $p['who'] === 'cc_owner' ? ((int)($p['cost_centre_id'] ?? 0) ?: null) : null];
+    }
     return [
+        'approver_kind'              => null,
+        'approval_cost_centre_id'    => null,
         'approver_id'                => $team ? null : ($p['approver_id'] ?? null),
         'approval_team_id'           => $team ? ($p['team_id'] ?? null) : null,
         'approvals_required'         => $team ? max(1, (int)($p['approvals_required'] ?? 1)) : null,
@@ -297,6 +322,11 @@ function catalogueDefaultFallback(PDO $conn): ?array {
  * @param array $sub  the request (submitted_by_user_id)
  */
 function catalogueStepFindsNobody(PDO $conn, array $cols, array $sub): bool {
+    if (!empty($cols['approver_kind'])) {
+        // Part C2: the manager or the owner as they are NOW; the step was just reached.
+        $row = array_merge($sub, $cols, ['approval_step_datetime' => gmdate('Y-m-d H:i:s')]);
+        return !catalogueStepPeople($conn, $row)['decide'];
+    }
     if (empty($cols['approver_id']) && empty($cols['approval_team_id'])) return true;
     if (!empty($cols['approver_id'])) {
         $a = $conn->prepare('SELECT 1 FROM analysts WHERE id = ? AND COALESCE(is_active, 1) = 1');
@@ -345,6 +375,10 @@ function catalogueStepsPlan(PDO $conn, array $form, array $sub, array $fieldsByI
     $first = null;
     foreach ($found['steps'] as $i => $s) {
         [$applies, $why] = catalogueStepApplies($s['when'] ?? null, $answers, $labels);
+        // Part C2: which cost centre an owner step goes to is fixed by the answers, now.
+        if (($s['who'] ?? '') === 'cc_owner') {
+            $s['cost_centre_id'] = catalogueStepCostCentre($conn, $s, $fieldsById, $valuesByFieldId, (int)($sub['submitted_by_user_id'] ?? 0));
+        }
         $s['skipped'] = !$applies;
         $s['skip_detail'] = $applies ? null : $why;
         $steps[] = $s;
@@ -404,28 +438,8 @@ function catalogueStepsRecordNew(PDO $conn, array $plan, int $submissionId): ?ar
  */
 function catalogueTellStepApprovers(PDO $conn, array $sub): int {
     if (($sub['approval_status'] ?? '') !== 'pending' || catalogueSubmissionSteps($sub) === null) return 0;
-    require_once __DIR__ . '/services/notifications.php';
-    if (!empty($sub['approval_team_id'])) {
-        $ids = catalogueEligibleMembers($conn, $sub);
-    } elseif (!empty($sub['approver_id'])) {
-        $ids = (!empty($sub['approval_exclude_requester']) && catalogueAnalystIsRequester($conn, (int)$sub['approver_id'], $sub))
-            ? [] : [(int)$sub['approver_id']];
-    } else {
-        return 0;
-    }
-    $p = catalogueStepProgress($sub);
-    $body = 'Step ' . $p['position'] . ' of ' . $p['count'] . ($p['name'] !== '' ? ': ' . $p['name'] : '');
-    $told = 0;
-    foreach (array_unique($ids) as $aid) {
-        if (!NotificationsService::typeEnabled($conn, $aid, 'catalogue_request.awaiting')) continue;
-        $told += (int)NotificationsService::notify($conn, [
-            'analyst_id' => $aid, 'event_type' => 'catalogue_request.awaiting', 'entity_type' => 'catalogue_request',
-            'entity_id' => (int)$sub['id'], 'entity_ref' => '#' . (int)$sub['id'],
-            'title' => (string)($sub['form_title'] ?? ''), 'body' => $body,
-            'actor_id' => null, 'actor_name' => null,
-        ]);
-    }
-    return $told;
+    // Part C2: people in the portal too, and email - one function, shared with Remind.
+    return catalogueTellApprovers($conn, $sub);
 }
 
 /**
@@ -484,9 +498,10 @@ function catalogueStepProgress(array $sub): ?array {
  * @param array $sub  the LOCKED form_submissions row
  * @param int $actorId  who decided the step (0 = an override's administrator is passed in)
  * @param string $comment  the step decision's note
+ * @param int $actorUserId  a person (users) who decided it in the portal (Part C2), else 0
  * @return ?array{from:string, to:string, step_no:int, position:int, count:int, name:string, fallback:?string}
  */
-function catalogueAdvanceStep(PDO $conn, array $sub, int $actorId, string $comment): ?array {
+function catalogueAdvanceStep(PDO $conn, array $sub, int $actorId, string $comment, int $actorUserId = 0): ?array {
     $steps = catalogueSubmissionSteps($sub);
     if ($steps === null) return null;
     $no = (int)($sub['approval_step_no'] ?? 0);
@@ -500,16 +515,29 @@ function catalogueAdvanceStep(PDO $conn, array $sub, int $actorId, string $comme
     $fromLabel = catalogueStepLabel($steps[$no - 1] ?? [], $no, $total);
     $reach = catalogueReachStep($conn, $steps[$next], $sub);
     $c = $reach['cols'];
-    $conn->prepare(
-        'UPDATE form_submissions SET approver_id = ?, approval_team_id = ?, approvals_required = ?, rejections_required = ?,
-                approval_exclude_requester = ?, approval_step_no = ?, approval_round = approval_round + 1
-          WHERE id = ?'
-    )->execute([$c['approver_id'], $c['approval_team_id'], $c['approvals_required'], $c['rejections_required'],
-                $c['approval_exclude_requester'], $next + 1, (int)$sub['id']]);
-    $after = array_merge($sub, $c, ['approval_step_no' => $next + 1, 'approval_round' => (int)$sub['approval_round'] + 1]);
+    $now = gmdate('Y-m-d H:i:s');
+    if (cataloguePeopleAvailable($conn)) {
+        // Part C2: the kind of step, its cost centre, and a fresh clock for the deputy and Remind.
+        $conn->prepare(
+            'UPDATE form_submissions SET approver_id = ?, approval_team_id = ?, approvals_required = ?, rejections_required = ?,
+                    approval_exclude_requester = ?, approver_kind = ?, approval_cost_centre_id = ?, approval_step_no = ?,
+                    approval_round = approval_round + 1, approval_step_datetime = ?, approval_reminded_datetime = NULL
+              WHERE id = ?'
+        )->execute([$c['approver_id'], $c['approval_team_id'], $c['approvals_required'], $c['rejections_required'],
+                    $c['approval_exclude_requester'], $c['approver_kind'], $c['approval_cost_centre_id'], $next + 1, $now, (int)$sub['id']]);
+    } else {
+        $conn->prepare(
+            'UPDATE form_submissions SET approver_id = ?, approval_team_id = ?, approvals_required = ?, rejections_required = ?,
+                    approval_exclude_requester = ?, approval_step_no = ?, approval_round = approval_round + 1
+              WHERE id = ?'
+        )->execute([$c['approver_id'], $c['approval_team_id'], $c['approvals_required'], $c['rejections_required'],
+                    $c['approval_exclude_requester'], $next + 1, (int)$sub['id']]);
+    }
+    $after = array_merge($sub, $c, ['approval_step_no' => $next + 1, 'approval_round' => (int)$sub['approval_round'] + 1,
+                                    'approval_step_datetime' => $now, 'approval_reminded_datetime' => null]);
     $toLabel = catalogueStepLabel($steps[$next], $next + 1, $total);
     catalogueApprovalEvent($conn, (int)$sub['id'], $actorId, 'step_passed',
-        $fromLabel . ' -> ' . $toLabel . ' (' . catalogueRoutingLabel($conn, $after) . ')', $comment);
+        $fromLabel . ' -> ' . $toLabel . ' (' . catalogueRoutingLabel($conn, $after) . ')', $comment, $actorUserId);
     if ($reach['fallback'] !== null) {
         catalogueApprovalEvent($conn, (int)$sub['id'], 0, 'step_fallback', $toLabel . ' -> ' . catalogueRoutingLabel($conn, $after),
             $reach['fallback'] === 'default' ? 'Nobody could decide it; sent to the default approver' : 'Nobody could decide it; sent to its fallback approver');

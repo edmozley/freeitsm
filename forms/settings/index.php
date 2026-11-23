@@ -53,7 +53,7 @@ $translationNamespaces = ['common', 'forms'];
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../../assets/css/forms-approval-steps.css?v=2">
-    <script src="../../assets/js/forms-approval-steps.js?v=2"></script>
+    <script src="../../assets/js/forms-approval-steps.js?v=4"></script>
     <style>
         /* Module accent (teal) — tabs, toggles, focus rings, shared buttons. */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
@@ -592,6 +592,36 @@ $translationNamespaces = ['common', 'forms'];
                         <button class="btn btn-primary" onclick="chainSaveDefault()"><?php echo htmlspecialchars(t('forms.settings.save')); ?></button>
                     </div>
                 </div>
+
+                <?php /* GH #160 Part C2: managers and cost centre owners approving in the portal. */ ?>
+                <div class="coll-effect" id="peopleOptions" style="display:none">
+                    <div class="section-header" style="margin-top: 8px;">
+                        <h2 style="font-size: var(--font-size-xl, 16px);"><?php echo htmlspecialchars(t('forms.steps.opt_heading')); ?></h2>
+                    </div>
+                    <p style="color: var(--text-muted, #666); margin-bottom: 14px; font-size: var(--font-size-md, 13px); max-width: 760px;"><?php echo htmlspecialchars(t('forms.steps.opt_intro')); ?></p>
+                    <div class="form-group">
+                        <label for="optDeputy"><?php echo htmlspecialchars(t('forms.steps.opt_deputy')); ?></label>
+                        <select id="optDeputy" class="form-input" style="max-width: 460px;" onchange="optShow()">
+                            <option value="any"><?php echo htmlspecialchars(t('forms.steps.opt_deputy_any')); ?></option>
+                            <option value="cover"><?php echo htmlspecialchars(t('forms.steps.opt_deputy_cover')); ?></option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="optDaysRow" style="display:none">
+                        <label for="optDays"><?php echo htmlspecialchars(t('forms.steps.opt_days')); ?></label>
+                        <input type="number" id="optDays" class="form-input" min="0" max="60" value="0" style="max-width: 120px;">
+                        <small class="ca-hint" style="display:block"><?php echo htmlspecialchars(t('forms.steps.opt_days_hint')); ?></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="optMailbox"><?php echo htmlspecialchars(t('forms.steps.opt_mailbox')); ?></label>
+                        <select id="optMailbox" class="form-input" style="max-width: 460px;"></select>
+                        <small class="ca-hint" style="display:block"><?php echo htmlspecialchars(t('forms.steps.opt_mailbox_hint')); ?></small>
+                    </div>
+                    <div class="form-group">
+                        <label class="ca-check"><input type="checkbox" id="optRemind"> <span><?php echo htmlspecialchars(t('forms.steps.opt_remind')); ?></span></label>
+                        <small class="ca-hint" style="display:block"><?php echo htmlspecialchars(t('forms.steps.opt_remind_hint')); ?></small>
+                    </div>
+                    <button class="btn btn-primary" onclick="optSave()"><?php echo htmlspecialchars(t('forms.settings.save')); ?></button>
+                </div>
             </div>
         </div>
     <div class="modal" id="chainModal">
@@ -722,11 +752,41 @@ $translationNamespaces = ['common', 'forms'];
                     document.getElementById('defaultApprovals').value = fb.approvals_required || 1;
                 }
                 chainDefaultShow();
+                // GH #160 Part C2: the deputy, the mailbox and Remind.
+                document.getElementById('peopleOptions').style.display = data.people ? '' : 'none';
+                if (data.people && data.options) {
+                    const o = data.options;
+                    document.getElementById('optDeputy').value = o.deputy_mode;
+                    document.getElementById('optDays').value = o.deputy_days;
+                    document.getElementById('optMailbox').innerHTML = '<option value="">' + collEsc(window.t('forms.steps.opt_mailbox_none')) + '</option>'
+                        + (data.mailboxes || []).map(m => `<option value="${m.id}">${collEsc(m.name)}${m.address ? ' (' + collEsc(m.address) + ')' : ''}</option>`).join('');
+                    document.getElementById('optMailbox').value = o.mailbox_id ? String(o.mailbox_id) : '';
+                    document.getElementById('optRemind').checked = !!o.remind;
+                    optShow();
+                }
             } catch (e) { console.error(e); }
+        }
+
+        function optShow() {
+            document.getElementById('optDaysRow').style.display = document.getElementById('optDeputy').value === 'cover' ? '' : 'none';
+        }
+
+        async function optSave() {
+            const data = await chainPost({
+                action: 'options',
+                deputy_mode: document.getElementById('optDeputy').value,
+                deputy_days: parseInt(document.getElementById('optDays').value, 10) || 0,
+                mailbox_id: Number(document.getElementById('optMailbox').value) || 0,
+                remind: document.getElementById('optRemind').checked ? 1 : 0,
+            });
+            showToast(data.success ? window.t('forms.steps.opt_saved') : data.error, data.success ? 'success' : 'error');
         }
 
         /** "A person: Priya Shah" / "A team: Finance (2)" - one step, for the table. */
         function chainStepText(s) {
+            const named = s.name ? s.name + ' - ' : '';
+            if (s.who === 'manager') return named + window.t('forms.steps.mode_manager');
+            if (s.who === 'cc_owner') return named + (s.cc_question ? window.t('forms.steps.cc_question', { q: s.cc_question }) : window.t('forms.steps.cc_own'));
             if (s.who === 'team') {
                 const tm = chainData.teams.find(x => x.id === Number(s.team_id));
                 return (s.name ? s.name + ' - ' : '') + (tm ? tm.name : '?') + ' (' + (s.approvals_required || 1) + ')';
@@ -758,6 +818,7 @@ $translationNamespaces = ['common', 'forms'];
             document.getElementById('chainDesc').value = c ? (c.description || '') : '';
             chainEditor = ApprovalSteps.mount(document.getElementById('chainStepsEditor'), {
                 steps: c ? c.steps : [], analysts: chainData.analysts, teams: chainData.teams, questions: chainData.questions,
+                ccQuestions: chainData.cc_questions || [], people: !!chainData.people,
             });
             document.getElementById('chainModal').classList.add('active');
             document.getElementById('chainName').focus();

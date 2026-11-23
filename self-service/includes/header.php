@@ -87,6 +87,10 @@ $portalNav = [
     // (discussion #62). The page and every endpoint behind it re-check through
     // portalTicketAccess(); a hidden tab is not a permission.
     'team_tickets' => ['href' => 'tickets.php?view=team', 'label' => t('self-service.nav.team_tickets'), 'cap' => 'is_manager'],
+    // GH #160 Part C2: where a manager or a cost centre owner approves requests. Shown
+    // only to somebody who could be asked; the page's endpoint asks of every request
+    // whether this person may decide it - a hidden tab is not a permission.
+    'approvals'   => ['href' => 'approvals.php',   'label' => t('self-service.nav.approvals'), 'cap' => 'is_approver'],
     // Named after the module it surfaces, so customers and analysts use one word.
     'help_centre' => ['href' => 'help-centre.php', 'label' => t('self-service.nav.help_centre')],
     // ⚠️ SHOWN ONLY TO SOMEBODY WHO ACTUALLY HAS TRAINING. On an install that
@@ -137,6 +141,14 @@ $portalNavCap = function (string $cap) use ($ss_user_id) {
             return false;   // fails closed and quietly, like the others
         }
     }
+    if ($cap === 'is_approver') {
+        try {
+            require_once __DIR__ . '/../../includes/catalogue_approvals.php';
+            return catalogueUserIsApprover(connectToDatabase(), (int)$ss_user_id);
+        } catch (Throwable) {
+            return false;   // fails closed and quietly, like the others
+        }
+    }
     if ($cap === 'has_equipment') {
         try {
             $conn = connectToDatabase();
@@ -183,6 +195,7 @@ $portalNavModules = [
     'equipment'   => 'assets',
     'catalogue'   => 'forms',
     'org_chart'   => 'people',
+    'approvals'   => 'forms',
 ];
 foreach ($portalNav as $navKey => $navItem) {
     if (!empty($navItem['cap']) && !$portalNavCap($navItem['cap'])) {

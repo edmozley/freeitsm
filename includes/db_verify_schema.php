@@ -646,6 +646,8 @@ return [
         // Self-referencing manager. FK is ON DELETE SET NULL — deleting a
         // manager must never delete their reports.
         'manager_id'      => 'INT NULL',
+        // GH #160 C2: "away until" - a cost centre's deputy covers meanwhile.
+        'approvals_away_until' => 'DATE NULL',
         // What the DIRECTORY calls them, which is a different fact from what
         // they type into the portal: sAMAccountName is unique per directory,
         // `username` is unique per install. Keeping them apart is what stops a
@@ -5127,6 +5129,15 @@ return [
         // not) and the step it is on. The columns above hold the CURRENT step.
         'approval_steps'             => 'LONGTEXT NULL',
         'approval_step_no'           => 'INT NULL',
+        // GH #160 Part C2: a step decided by people in the portal (manager / cost
+        // centre owner) - worked out at each decision, never stored - who decided,
+        // when the step was reached and last reminded, and #348 slice 4.
+        'approver_kind'               => 'VARCHAR(20) NULL',
+        'approval_cost_centre_id'     => 'INT NULL',
+        'approval_decided_by_user_id' => 'INT NULL',
+        'approval_step_datetime'      => 'DATETIME NULL',
+        'approval_reminded_datetime'  => 'DATETIME NULL',
+        'requester_cost_centre_id'    => 'INT NULL',
         // Which collection this submission WAS part of, stamped at submit
         // time from forms.collection_id. 🔑 The two are allowed to disagree:
         // re-pairing a form must never rewrite what last year's responses
@@ -5167,6 +5178,7 @@ return [
         'id'              => 'INT NOT NULL AUTO_INCREMENT',
         'submission_id'   => 'INT NOT NULL',
         'analyst_id'      => 'INT NULL',
+        'user_id'         => 'INT NULL',   // GH #160 C2: a person in the portal
         'action'          => 'VARCHAR(30) NOT NULL',
         'detail'          => 'TEXT NULL',
         'reason'          => 'TEXT NULL',

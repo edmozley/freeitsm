@@ -2156,7 +2156,8 @@ class FormsService
             $stepPlan = catalogueStepsPlan($conn, $form, ['submitted_by_user_id' => $portalUserId], $fieldsById, $normalised);
             if ($stepPlan !== null) {
                 $gate = array_intersect_key($stepPlan, array_flip(['approver_id', 'approval_team_id', 'approvals_required',
-                                                                   'rejections_required', 'approval_exclude_requester']));
+                                                                   'rejections_required', 'approval_exclude_requester',
+                                                                   'approver_kind', 'approval_cost_centre_id']));
             }
         }
         $approvalStatus = $gate !== null ? 'pending' : 'not_required';
@@ -2197,6 +2198,15 @@ class FormsService
                 $cols .= ', approval_steps, approval_step_no';
                 $vals .= ', ?, ?';
                 array_push($args, json_encode($stepPlan['steps'], JSON_UNESCAPED_UNICODE), $stepPlan['step_no']);
+            }
+            /* GH #160 Part C2: a step decided by people in the portal (the manager, a
+               cost centre's owner), when the step was reached, and - #348 slice 4 - the
+               requester's cost centre as it was when they asked. */
+            if ($portalUserId !== null && cataloguePeopleAvailable($conn)) {
+                $cols .= ', approver_kind, approval_cost_centre_id, approval_step_datetime, requester_cost_centre_id';
+                $vals .= ', ?, ?, ' . ($gate !== null ? 'UTC_TIMESTAMP()' : 'NULL') . ', ?';
+                array_push($args, $gate['approver_kind'] ?? null, $gate['approval_cost_centre_id'] ?? null,
+                    catalogueRequesterCostCentre($conn, $portalUserId));
             }
             if ($hasCollections) {
                 $cols .= ', collection_id';

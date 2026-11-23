@@ -258,6 +258,24 @@ document.addEventListener('DOMContentLoaded', loadTraining);
             }
         }
 
+        /** GH #160 C2: tell the approvers again. The server allows one a day per step. */
+        async function remindRequest(id, btn) {
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'remind_request.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ submission_id: id })
+                });
+                const data = await res.json();
+                if (!data.success) { showToast(data.error || window.t('self-service.dashboard.req_remind_failed'), 'error'); btn.disabled = false; return; }
+                btn.textContent = window.t('self-service.dashboard.req_reminded');
+                showToast(window.t('self-service.dashboard.req_reminded_toast'), 'success');
+            } catch (e) {
+                showToast(window.t('self-service.dashboard.req_remind_failed'), 'error');
+                btn.disabled = false;
+            }
+        }
+
         function renderRequests(requests) {
             const section = document.getElementById('requestsSection');
             const container = document.getElementById('requestsContainer');
@@ -277,6 +295,8 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                     statusCell = `<span class="req-pill approved">${escapeHtml(window.t('self-service.dashboard.req_approved'))}</span>${link}`;
                 } else if (r.approval_status === 'rejected') {
                     statusCell = `<span class="req-pill rejected">${escapeHtml(window.t('self-service.dashboard.req_rejected'))}</span>`;
+                    // GH #160 C2: declined by a manager or a cost centre owner - with their reason.
+                    if (r.approval_comment) statusCell += `<div class="ticket-date">${escapeHtml(window.t('self-service.dashboard.req_declined_reason', { reason: r.approval_comment }))}</div>`;
                 } else if (r.approval_status === 'cancelled') {
                     // GH #348: cancelled by the requester - the reason on hover.
                     statusCell = `<span class="req-pill cancelled" title="${escapeHtml(r.approval_comment || '')}">${escapeHtml(window.t('self-service.dashboard.req_cancelled'))}</span>`;
@@ -296,6 +316,10 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                 // phone layout, which keys on the column, is unchanged.
                 if (r.can_cancel) {
                     statusCell += `<button type="button" class="req-cancel" onclick="openCancelRequest(${Number(r.id)})">${escapeHtml(window.t('self-service.dashboard.req_cancel'))}</button>`;
+                }
+                // GH #160 C2: Remind the approvers - at most once a day per step.
+                if (r.can_remind) {
+                    statusCell += `<button type="button" class="req-cancel req-remind" onclick="remindRequest(${Number(r.id)}, this)" title="${escapeHtml(window.t('self-service.dashboard.req_remind_title'))}">${escapeHtml(window.t('self-service.dashboard.req_remind'))}</button>`;
                 }
                 // #298: answers the approver changed after it was sent - folded, one line each.
                 const blank = window.t('self-service.dashboard.req_changed_blank');
@@ -713,6 +737,9 @@ require __DIR__ . "/includes/header.php";
             /* Cancel (GH #348): quiet beside the state, a link rather than a button. */
             .req-cancel { margin-left: 10px; padding: 0; border: none; background: none; font: inherit; font-size: var(--font-size-md, 13px);
                 color: var(--danger-text, #b91c1c); cursor: pointer; text-decoration: underline; }
+            /* Remind (GH #160 C2): the same quiet link, not in the warning colour. */
+            .req-cancel.req-remind { color: var(--ss-accent, #0f766e); }
+            .req-cancel.req-remind:disabled { color: var(--text-muted, #666); text-decoration: none; cursor: default; }
             .req-dialog { margin: auto; border: none; border-radius: 10px; padding: 0; width: min(440px, calc(100vw - 32px));
                 background: var(--surface, #fff); color: var(--text, #333); box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
             .req-dialog::backdrop { background: rgba(0,0,0,0.45); }

@@ -305,4 +305,17 @@ return [
         'link'     => 'forms/',
         'check'    => ['rows', 'forms', 'requires_approval = 1 AND (approval_steps IS NOT NULL OR approval_chain_id IS NOT NULL) AND is_demo = 0'],
     ],
+    // GH #160 Part C2.
+    [
+        'id'       => 'forms.portal_approvals',
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Managers and budget holders approve on the portal',
+        'what'     => "An approval step decided by the requester's manager or a cost centre's owner (or its deputy), on the portal's Approvals page - with no service desk account, told by the bell and by email, and a Remind button for the requester.",
+        'why'      => 'The people who say yes to spending are rarely service desk staff. They approve where they already sign in, and who they are is checked at each decision, so a new manager or owner just takes over.',
+        'done'     => 'A manager or a cost centre owner has decided a request on the portal.',
+        'link'     => 'forms/settings/?tab=approvals',
+        'check'    => ['rows', 'form_submissions', 'approval_decided_by_user_id IS NOT NULL AND is_demo = 0'],
+    ],
 ];

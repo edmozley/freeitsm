@@ -49,6 +49,28 @@ require __DIR__ . '/_top.php';
     <p>Workflows see each step too: <strong>A catalogue request passes an approval step</strong> fires every time a step is approved and the request moves on, with the step it is now on.</p>
 <?php helpSectionEnd(); ?>
 
+<?php helpSection('people', 'The manager or a cost centre owner',
+    'Steps decided by people who are not service desk staff, on the portal.'); ?>
+    <p>A step's <strong>Who decides</strong> can also be:</p>
+    <ul>
+        <li><strong>The requester's manager</strong> - from the <em>Manager</em> field on the requester's person record.</li>
+        <li><strong>The owner of a cost centre</strong> - the requester's own cost centre, or the one chosen in a cost centre question on the form. The owner is a person or a people group (any member decides for the group), with an optional deputy, set under <strong>System -> Cost Centres</strong>.</li>
+    </ul>
+    <p>They decide on the portal's <strong>Approvals</strong> page, signed in as themselves - no service desk account needed. The tab appears for anybody who manages someone or owns a cost centre. Each one is told by the portal bell, and by email when <strong>Forms -> Settings -> Approvals</strong> names a mailbox. The email has a link, never an approve button, so forwarding it never passes on the decision.</p>
+    <ul>
+        <li><strong>Who it is, is checked at every decision.</strong> A new manager can decide a request that was waiting for the old one; somebody who has left cannot.</li>
+        <li><strong>The requester never decides their own step.</strong> If they own the cost centre, the deputy decides; with no deputy, the step's fallback.</li>
+        <li><strong>Somebody at two steps approves once.</strong> A manager who also owns the cost centre approves the first step, and the second is recorded "already approved by" them.</li>
+        <li><strong>Rejecting needs a reason</strong>, and the requester sees it under <em>Your requests</em>.</li>
+        <li><strong>Nobody to ask</strong> - no manager on the record, no owner on the cost centre - sends the step to its fallback, as for any step. A fallback is always a member of staff or a team.</li>
+    </ul>
+    <p>Staff see these requests under <strong>All pending</strong> with who they are waiting for. They cannot approve them, but an administrator can <strong>Override</strong> the step or <strong>Move</strong> it to staff.</p>
+    <div class="help-note">
+        <strong>When may the deputy decide?</strong> Under <strong>Forms -> Settings -> Approvals</strong>: <em>any time</em> (the owner and the deputy are equals - the default), or <em>only as cover</em>: when the owner has marked themselves away on the portal's Approvals page, has left, made the request, or - if you choose a number of days - has not decided in that time.
+    </div>
+    <p><strong>Remind</strong>: a requester can press Remind beside a waiting request on the portal, which tells its approvers again - at most once a day per step. It can be switched off under Forms -> Settings -> Approvals.</p>
+<?php helpSectionEnd(); ?>
+
 <?php helpSection('nobody', 'If nobody can decide',
     'Where a step goes when its approver has left, made the request, or the team is too small.'); ?>
     <p>Each step has <strong>If nobody can decide</strong>. Leave it on <em>Use the default</em>, or choose <em>Send it to</em> a person or a team for that step.</p>
