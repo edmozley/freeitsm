@@ -194,6 +194,7 @@ $translationNamespaces = ['common', 'calendar'];
     <script>window.API_BASE = '../api/calendar/';</script>
     <script src="../assets/js/itsm_calendar.js?v=6"></script>
     <script src="../assets/js/vendor/qrcode.js?v=2.0.4"></script>
+    <script src="../assets/js/vendor/qrcode_UTF8.js?v=2.0.4"></script>
     <script src="../assets/js/subscribe.js?v=1"></script>
     <script>
     // Behaviour is shared (assets/js/subscribe.js). This page only says WHICH

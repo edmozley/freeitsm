@@ -9,7 +9,7 @@
  * { scheme, host, path, url, insecure } — the components as well as the finished
  * URL, so the host can be swapped in the browser without another round trip.
  *
- * ⚠️ Needs assets/js/vendor/qrcode.js. Without it everything still works; only the QR is
+ * ⚠️ Needs assets/js/vendor/qrcode.js and qrcode_UTF8.js. Without it everything still works; only the QR is
  * missing, which is why its failure is swallowed rather than reported.
  *
  * @wiki Ticket-Calendar-Sync-Developer-Guide

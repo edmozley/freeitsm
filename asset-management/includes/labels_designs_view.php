@@ -59,6 +59,7 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('asset-management.label
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.labels.browser_title'))); ?></title>
     <script src="../assets/js/vendor/qrcode.js?v=2.0.4"></script>
+    <script src="../assets/js/vendor/qrcode_UTF8.js?v=2.0.4"></script>
     <script src="../assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/asset-labels/render.js?v=4"></script>
     <style>

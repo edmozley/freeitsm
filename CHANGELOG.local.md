@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3144 | Assets, Calendar  | Fix         | A QR code holding accented or non-Latin text (an asset named "Łódź laptop" or "Ноутбук") came out with the wrong characters or could not be read by the app's own scanner; QR codes now store text as UTF-8, and codes with plain text are unchanged. |
 | 3143 | System            | Improvement | The bundled list of trusted certificate authorities (includes/cacert.pem) updated to Mozilla's 2026-11-05 list: 4 roots added, 5 retired. |
 | 3142 | Assets, Calendar  | Improvement | qrcode-generator (QR codes on asset labels, calendar subscribe and the phone sign-in codes) updated from 1.x to 2.0.4; it makes exactly the same codes. |
 | 3141 | Files             | Improvement | pdf.js (the Files viewer and PDF thumbnails) updated from 6.3.289 to 6.5.438. |
