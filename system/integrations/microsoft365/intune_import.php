@@ -71,7 +71,7 @@ $activeTab = in_array($_GET['tab'] ?? '', ['devices', 'types', 'software'], true
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/chart.min.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/chart.min.js?v=4.6.1"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/integrations.css?v=3">

@@ -41,7 +41,7 @@ $translationNamespaces = ['common', 'contracts'];
     <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
-    <script src="../../assets/js/chart.min.js"></script>
+    <script src="../../assets/js/chart.min.js?v=4.6.1"></script>
     <style>
         body { --accent: var(--con-accent, #f59e0b); }
         .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }

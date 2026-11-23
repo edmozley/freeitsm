@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3139 | System            | Improvement | Chart.js updated to 4.6.1 and merged into one bundled copy - Domains and Morning Checks used their own older 4.4.0 copy, now removed; every chart page loads it with a version cache-buster. |
 
 
 
