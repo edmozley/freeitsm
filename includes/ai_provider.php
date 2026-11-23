@@ -984,7 +984,6 @@ function aiProviderHttpPost(string $url, array $headers, string $body, bool $ver
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err  = curl_error($ch);
-        curl_close($ch);
         if (isset($GLOBALS['AI_PROVIDER_TRACE']) && is_array($GLOBALS['AI_PROVIDER_TRACE'])) {
             $GLOBALS['AI_PROVIDER_TRACE'][] = [
                 'url' => $url, 'headers' => $headers, 'body' => $body, 'attempt' => $attempt,
@@ -1064,7 +1063,6 @@ function aiProviderListOpenRouterModels(PDO $conn, bool $force = false): array
         sslApplyCurl($ch);
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($resp === false || $code < 200 || $code >= 300) {
             throw new RuntimeException('OpenRouter models fetch failed (HTTP ' . $code . ')');

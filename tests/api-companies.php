@@ -68,7 +68,6 @@ $call = function (string $key, string $method, string $path, ?array $body = null
     if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
     $out = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$code, json_decode((string)$out, true) ?: ['raw' => $out]];
 };
 $ids = function (array $r): array { return array_map(function ($c) { return (int)$c['id']; }, $r['data'] ?? []); };

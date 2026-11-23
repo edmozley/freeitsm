@@ -101,7 +101,6 @@ try {
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20,
                                 CURLOPT_COOKIE => session_name() . '=' . $sid]);
         $body = (string)curl_exec($ch);
-        curl_close($ch);
 
         /* 🔑 THE ASSERTION THE BUG FAILED. Not "did it return items" but "is the
            body JSON AT ALL" — a warning printed before it is what broke this,

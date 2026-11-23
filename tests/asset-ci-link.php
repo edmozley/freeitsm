@@ -56,7 +56,7 @@ function page(string $base, string $sid, string $csrf, string $path, ?array $pos
                   CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: ' . $csrf]];
     }
     curl_setopt_array($ch, $opts);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     return json_decode($body, true) ?? ['raw' => substr($body, 0, 400)];
 }
 
@@ -68,7 +68,6 @@ function rest(string $base, string $key, string $method, string $path, ?array $b
     curl_setopt_array($ch, $opts);
     $res = json_decode((string)curl_exec($ch), true) ?? [];
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$code, $res];
 }
 

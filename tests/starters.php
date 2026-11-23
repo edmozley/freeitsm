@@ -66,7 +66,7 @@ function jml(string $base, string $sid, string $csrf, string $path, ?array $post
                   CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: ' . $csrf]];
     }
     curl_setopt_array($ch, $opts);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     return json_decode($body, true) ?? ['raw' => substr($body, 0, 300)];
 }
 

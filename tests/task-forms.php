@@ -479,7 +479,7 @@ if ($BASE) {
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIE => "PHPSESSID=$sess", CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: zztfcsrf']]);
         if ($body !== null) { curl_setopt($ch, CURLOPT_POST, true); curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body)); }
-        $raw = (string)curl_exec($ch); curl_close($ch);
+        $raw = (string)curl_exec($ch);
         return [json_decode($raw, true), $raw];
     };
     $conn->exec("UPDATE tasks SET status_id = $open WHERE id = $t1");
@@ -494,7 +494,7 @@ if ($BASE) {
     ok('a current one saves', !empty($p['success']) && ($p['revision'] ?? 0) === $rev + 1, substr($raw, 0, 200));
     $ch = curl_init($BASE . 'api/tasks/evidence_export.php?series=' . $rid . '&file=form_answers&from=' . date('Y-m-d', strtotime('-3 days')) . '&to=' . date('Y-m-d', strtotime('+1 day')));
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIE => "PHPSESSID=$sess"]);
-    $csv = (string)curl_exec($ch); curl_close($ch);
+    $csv = (string)curl_exec($ch);
     ok('the form answers CSV has the question and the answer', str_contains($csv, 'Explanation') && str_contains($csv, 'Job 4 failed again'), substr($csv, 0, 300));
     // ── The REST API (phase 5) ─────────────────────────────────────────────
     section('P5. REST API (GET /tasks/{id}/forms, POST .../submissions)');
@@ -508,7 +508,7 @@ if ($BASE) {
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $rawKey, 'Content-Type: application/json']]);
         if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-        $raw = (string)curl_exec($ch); $code = curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        $raw = (string)curl_exec($ch); $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         return [$code, json_decode($raw, true), $raw];
     };
     try {

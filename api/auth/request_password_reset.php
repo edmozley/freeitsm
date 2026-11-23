@@ -156,7 +156,6 @@ csrfRequireWriteMethod();
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($httpCode !== 202 && $httpCode !== 200) {
             error_log('Password reset email failed: HTTP ' . $httpCode . ' - ' . $response);

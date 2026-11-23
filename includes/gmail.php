@@ -41,11 +41,9 @@ function gmailRefreshAccessToken(PDO $conn, array $mailbox, array $tokenData): a
 
     if (curl_errno($ch)) {
         $error = curl_error($ch);
-        curl_close($ch);
         throw new Exception('cURL error refreshing Google token: ' . $error);
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         throw new Exception('Failed to refresh Google token. HTTP ' . $httpCode);
@@ -149,11 +147,9 @@ function gmailSendEmail(string $accessToken, string $to, string $subject, string
 
     if (curl_errno($ch)) {
         $error = curl_error($ch);
-        curl_close($ch);
         throw new Exception('Gmail send cURL error: ' . $error);
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         $errorData = json_decode($response, true);
@@ -178,7 +174,6 @@ function gmailApiGet(string $accessToken, string $url): array {
     $response = curl_exec($ch);
     $code     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err      = curl_errno($ch) ? curl_error($ch) : null;
-    curl_close($ch);
     if ($err !== null) {
         throw new Exception('cURL error talking to Gmail: ' . $err);
     }
@@ -276,7 +271,6 @@ function gmailGetEmails(string $accessToken, array $mailbox): array {
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         throw new Exception('Gmail list messages failed: HTTP ' . $httpCode . ' ' . $response);
@@ -318,7 +312,6 @@ function gmailGetMessage(string $accessToken, string $messageId): ?array {
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($httpCode !== 200) return null;
 
@@ -426,7 +419,6 @@ function gmailGetAttachmentsGraphShape(string $accessToken, string $messageId, a
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $accessToken]);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
             if ($httpCode !== 200) {
                 continue;
             }
@@ -541,7 +533,6 @@ function gmailTrashMessage(string $accessToken, string $messageId): void {
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         throw new Exception('Gmail trash failed: HTTP ' . $httpCode);
@@ -569,7 +560,6 @@ function gmailMarkAsRead(string $accessToken, string $messageId): void {
     ]);
 
     curl_exec($ch);
-    curl_close($ch);
 }
 
 /**
@@ -596,7 +586,6 @@ function gmailGetAttachments(string $accessToken, string $messageId, array $payl
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $accessToken]);
 
         $response = curl_exec($ch);
-        curl_close($ch);
 
         $attData = json_decode($response, true);
         if (isset($attData['data'])) {

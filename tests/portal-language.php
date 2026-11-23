@@ -74,7 +74,6 @@ function postPreference(int $userId, array $body): array {
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode($body),
         CURLOPT_HTTPHEADER => ['Content-Type: application/json', "Cookie: PHPSESSID=$sid", "X-CSRF-Token: $token"], CURLOPT_TIMEOUT => 20]);
     $out = (string)curl_exec($ch);
-    curl_close($ch);
     @unlink($file);
     return json_decode($out, true) ?: ['raw' => substr($out, 0, 300)];
 }

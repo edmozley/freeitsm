@@ -54,7 +54,7 @@ function post(string $url, string $key, array $payload): array {
         CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: ' . $key],
         CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20,
     ]);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     return ['body' => $body, 'json' => json_decode($body, true)];
 }
 

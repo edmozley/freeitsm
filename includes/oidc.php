@@ -291,7 +291,6 @@ function oidcHttpGet(string $url): string {
     $body = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
-    curl_close($ch);
     if ($body === false || $err !== '') throw new Exception("GET $url failed: $err");
     if ($code !== 200) throw new Exception("GET $url returned HTTP $code");
     return $body;
@@ -322,7 +321,6 @@ function oidcHttpPost(string $url, array $fields): string {
     sslApplyCurl($ch);
     $body = curl_exec($ch);
     $err  = curl_error($ch);
-    curl_close($ch);
     if ($body === false || $err !== '') throw new Exception("POST $url failed: $err");
     return $body; // caller inspects JSON (may be a 400 with an error body)
 }
@@ -351,7 +349,6 @@ function oidcFetchUserInfo(string $userinfoEndpoint, string $accessToken): array
         sslApplyCurl($ch);
         $body = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         if ($body !== false && $code === 200) {
             $data = json_decode($body, true);
             return is_array($data) ? $data : [];

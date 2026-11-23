@@ -314,7 +314,6 @@ final class S3Driver implements StorageDriver
         // Never connected (refused, dropped, DNS): the store is down - retrying only
         // makes the person wait three connect timeouts for the same answer.
         $connected = (float)curl_getinfo($ch, CURLINFO_CONNECT_TIME) > 0;
-        curl_close($ch);
         if ($fh) fclose($fh);
 
         // The sink asked to stop (a closed browser): not an error.

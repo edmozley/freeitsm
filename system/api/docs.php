@@ -497,7 +497,7 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
                 + '    CURLOPT_HTTPHEADER     => [\n        \'Authorization: Bearer YOUR_API_KEY\',\n'
                 + (body ? '        \'Content-Type: application/json\',\n' : '') + '    ],\n';
             if (body) c += '    CURLOPT_POSTFIELDS     => <<<\'JSON\'\n' + body + '\nJSON,\n';
-            c += ']);\n$response = json_decode(curl_exec($ch), true);\ncurl_close($ch);\n\nprint_r($response[\'data\']);';
+            c += ']);\n$response = json_decode(curl_exec($ch), true);\n\n\nprint_r($response[\'data\']);';
             return c;
         }
         case 'python': {

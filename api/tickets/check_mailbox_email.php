@@ -515,7 +515,6 @@ function refreshAccessToken($mailbox, $refreshToken) {
         throw new Exception('cURL error: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         // The provider says WHY in the body — pass it on rather than throwing it away.
@@ -683,7 +682,6 @@ function getEmails($accessToken, $mailbox) {
         throw new Exception('cURL error when fetching emails: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         throw new Exception('Failed to fetch emails. HTTP Code: ' . $httpCode . '. Response: ' . $response);
@@ -715,11 +713,9 @@ function deleteEmailFromMailbox($accessToken, $messageId) {
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     if (curl_errno($ch)) {
-        curl_close($ch);
         throw new Exception('cURL error when deleting email: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     // Graph API returns 204 No Content on successful delete
     if ($httpCode !== 204 && $httpCode !== 200) {
@@ -773,11 +769,9 @@ function moveEmailToFolder($accessToken, $messageId, $folderName) {
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     if (curl_errno($ch)) {
-        curl_close($ch);
         throw new Exception('cURL error when moving email: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200 && $httpCode !== 201) {
         throw new Exception('Failed to move email to "' . $folderName . '". HTTP ' . $httpCode);
@@ -812,11 +806,9 @@ function markEmailAsRead($accessToken, $messageId) {
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     if (curl_errno($ch)) {
-        curl_close($ch);
         throw new Exception('cURL error when marking email as read: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         throw new Exception('Failed to mark email as read. HTTP Code: ' . $httpCode);
@@ -1005,7 +997,6 @@ function fetchEmailAttachments($accessToken, $emailId) {
         throw new Exception('cURL error when fetching attachments: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         return [];

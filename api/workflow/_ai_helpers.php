@@ -152,7 +152,6 @@ function wfCallAnthropic(array $cfg, string $systemPrompt, string $userMessage, 
     $resp = curl_exec($ch);
     $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
-    curl_close($ch);
 
     if ($resp === false) throw new Exception('Network error talking to Anthropic: ' . $err);
     $data = json_decode($resp, true);
@@ -207,7 +206,6 @@ function wfCallOpenAI(array $cfg, string $systemPrompt, string $userMessage, int
     $resp = curl_exec($ch);
     $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
-    curl_close($ch);
 
     if ($resp === false) throw new Exception('Network error talking to OpenAI: ' . $err);
     $data = json_decode($resp, true);

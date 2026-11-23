@@ -205,7 +205,7 @@ REST API
             $ch = curl_init("$base/api/v1$path");
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_TIMEOUT => 30,
                 CURLOPT_POSTFIELDS => json_encode($body), CURLOPT_HTTPHEADER => ["Authorization: Bearer $raw", 'Content-Type: application/json']]);
-            $out = (string)curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+            $out = (string)curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
             return [$code, json_decode($out, true) ?: ['raw' => substr($out, 0, 300)]];
         };
         // With a real field, or the 'no fields to change' 422 would pass the first check.

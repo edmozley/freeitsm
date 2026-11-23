@@ -113,10 +113,9 @@ function http(string $url, array $opt = []): ?array
     if (!empty($opt['headers'])) { curl_setopt($ch, CURLOPT_HTTPHEADER, $opt['headers']); }
     if (!empty($opt['cookie']))  { curl_setopt($ch, CURLOPT_COOKIE, $opt['cookie']); }
     $raw = curl_exec($ch);
-    if ($raw === false) { curl_close($ch); return null; }
+    if ($raw === false) { return null; }
     $status  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $hdrSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-    curl_close($ch);
     return [$status, substr($raw, 0, $hdrSize), substr($raw, $hdrSize)];
 }
 

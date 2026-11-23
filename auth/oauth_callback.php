@@ -133,7 +133,6 @@ function getTokensFromAuthCodeForMailbox($authCode, $mailbox) {
         throw new Exception('cURL error: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         throw new Exception('Failed to get tokens. HTTP Code: ' . $httpCode . '. Response: ' . $response);

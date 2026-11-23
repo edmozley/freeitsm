@@ -261,7 +261,6 @@ function sendMailboxEmail($conn, $mailboxId, $toEmail, $subject, $htmlBody, $pdf
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($httpCode === 202 || $httpCode === 200) {
         return ['success' => true];
@@ -326,7 +325,6 @@ function refreshAccessToken($mailbox, $refreshToken) {
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         return null;

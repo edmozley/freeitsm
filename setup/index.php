@@ -141,7 +141,6 @@ if (file_exists($configPath)) {
         $sslOk    = curl_exec($ch) !== false;
         $sslErrno = curl_errno($ch);
         $sslErr   = curl_error($ch);
-        curl_close($ch);
         $bundle = (defined('SSL_CA_BUNDLE') && SSL_CA_BUNDLE !== '') ? SSL_CA_BUNDLE : t('setup.detail.ssl_bundle_system');
         // cert-trust failures: no/invalid CA bundle, or the peer failed verification.
         // Build from constants that actually exist — not every CURLE_* is defined in

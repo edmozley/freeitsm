@@ -139,11 +139,9 @@ function testReachability(PDO $conn, int $channelId): array
     $body = curl_exec($ch);
     if ($body === false) {
         $err = curl_error($ch);
-        curl_close($ch);
         return ['ok' => false, 'detail' => "Couldn't reach $url — $err. Check the tunnel/server is running and the Public base URL is correct."];
     }
     $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     $json = json_decode($body, true);
     if ($code === 200 && is_array($json) && ($json['pong'] ?? '') === $nonce) {

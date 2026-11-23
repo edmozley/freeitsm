@@ -52,7 +52,6 @@ function kbRequest(string $method, string $path, string $key, ?array $body = nul
     $raw = curl_exec($ch);
     if ($raw === false) throw new RuntimeException(curl_error($ch));
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$status, json_decode($raw, true), $raw];
 }
 function kbGetUrl(string $url, ?string $session = null): array
@@ -63,7 +62,6 @@ function kbGetUrl(string $url, ?string $session = null): array
     $raw = curl_exec($ch);
     if ($raw === false) throw new RuntimeException(curl_error($ch));
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$status, $raw];
 }
 function kbSession(array $values): string
@@ -87,7 +85,6 @@ function kbSessionPost(string $endpoint, string $session, string $csrf, array $b
     $raw = curl_exec($ch);
     if ($raw === false) throw new RuntimeException(curl_error($ch));
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$status, json_decode($raw, true)];
 }
 try {

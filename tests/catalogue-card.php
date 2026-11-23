@@ -268,7 +268,6 @@ try {
                 CURLOPT_COOKIE => 'PHPSESSID=' . $sid]);
             $body = (string)curl_exec($ch);
             $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
             return [$code, $body];
         };
         // Two items with a real picture on disk: one for everybody, one for a group Uma is not in.

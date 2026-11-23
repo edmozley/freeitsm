@@ -74,7 +74,7 @@ function agentPost(string $url, string $key, array $payload): array {
         CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: ' . $key],
         CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20,
     ]);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     return ['body' => $body, 'json' => json_decode($body, true)];
 }
 
@@ -88,7 +88,7 @@ function asAnalyst(string $url, string $sid, ?array $post = null): array {
         $opts[CURLOPT_HTTPHEADER] = ['Content-Type: application/json', 'X-CSRF-Token: ' . $GLOBALS['csrf']];
     }
     curl_setopt_array($ch, $opts);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     return ['body' => $body, 'json' => json_decode($body, true)];
 }
 

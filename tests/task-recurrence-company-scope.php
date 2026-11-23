@@ -48,7 +48,6 @@ function call(string $base, string $sid, string $path, ?array $body = null) {
     }
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => $headers, CURLOPT_TIMEOUT => 20]);
     $out = curl_exec($ch);
-    curl_close($ch);
     $j = json_decode((string)$out, true);
     return is_array($j) ? $j : ['raw' => substr((string)$out, 0, 300)];
 }

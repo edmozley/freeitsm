@@ -49,8 +49,7 @@ if (!function_exists('mailboxAppOnlyToken')) {
         sslApplyCurl($ch);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if (curl_errno($ch)) { $err = curl_error($ch); curl_close($ch); throw new Exception('cURL error: ' . $err); }
-        curl_close($ch);
+        if (curl_errno($ch)) { $err = curl_error($ch); throw new Exception('cURL error: ' . $err); }
 
         if ($httpCode !== 200) {
             throw new Exception('client-credentials token request failed (HTTP ' . $httpCode . '): ' . $response);
@@ -116,7 +115,6 @@ if (!function_exists('mailboxAppOnlyToken')) {
         sslApplyCurl($ch);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         if ($httpCode !== 200) return '';
         $data = json_decode($response, true);
         $email = $data['mail'] ?? $data['userPrincipalName'] ?? '';
@@ -139,7 +137,6 @@ if (!function_exists('mailboxAppOnlyToken')) {
         sslApplyCurl($ch);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         if ($httpCode !== 200) return [];
         $data = json_decode($response, true);
         if (!is_array($data)) return [];
@@ -332,7 +329,6 @@ if (!function_exists('mailboxAppOnlyToken')) {
         $response = curl_exec($ch);
         $code     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err      = curl_errno($ch) ? curl_error($ch) : null;
-        curl_close($ch);
         if ($err !== null) {
             throw new Exception('cURL error talking to Graph: ' . $err);
         }

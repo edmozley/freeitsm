@@ -300,7 +300,6 @@ function entraToken(array $cfg): string
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
-    curl_close($ch);
 
     if ($resp === false || $err !== '') throw new RuntimeException('Could not reach Microsoft sign-in: ' . $err);
     $data = json_decode((string)$resp, true) ?: [];
@@ -366,7 +365,6 @@ function entraGet(array $cfg, string $url, int $maxRetries = 5): array
         $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $hdrLen = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
         $err    = curl_error($ch);
-        curl_close($ch);
 
         if ($raw === false) {
             if ($attempt === $maxRetries) throw new EntraGraphError('Could not reach Microsoft Graph: ' . $err, 0);

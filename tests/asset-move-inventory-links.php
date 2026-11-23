@@ -47,7 +47,7 @@ function move(string $base, string $sid, string $csrf, int $assetId, int $tenant
     curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode(['asset_id' => $assetId, 'tenant_id' => $tenantId]),
         CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: ' . $csrf],
         CURLOPT_COOKIE => 'PHPSESSID=' . $sid, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20]);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     return ['body' => $body, 'json' => json_decode($body, true)];
 }
 

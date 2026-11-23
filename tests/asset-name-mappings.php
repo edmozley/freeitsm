@@ -43,7 +43,7 @@ function page(string $base, string $sid, string $csrf, string $path, ?array $pos
         $opts += [CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode($post), CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: ' . $csrf]];
     }
     curl_setopt_array($ch, $opts);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     return json_decode($body, true) ?? ['raw' => substr($body, 0, 300)];
 }
 

@@ -526,7 +526,8 @@ function requireModuleAccess(string $moduleKey, ?PDO $conn = null): void {
         if ($conn === null) $conn = connectToDatabase();
         $ok = analystCanAccessModule($conn, (int) $_SESSION['analyst_id'], $moduleKey);
     } catch (Throwable $e) {
-        $ok = false; // fail closed
+        $ok = false; // fail closed - but say why: a refusal from an exception reads exactly like "no access"
+        error_log('module access check failed: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
     }
     if (!$ok) {
         header('Location: ' . BASE_URL . '?denied=' . urlencode($moduleKey));
@@ -576,7 +577,8 @@ function requireAnyModuleAccessJson(array $moduleKeys, ?PDO $conn = null, ?strin
             if (analystCanAccessModule($conn, $analystId, $key)) { $ok = true; break; }
         }
     } catch (Throwable $e) {
-        $ok = false; // fail closed
+        $ok = false; // fail closed - but say why: a refusal from an exception reads exactly like "no access"
+        error_log('module access check failed: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
     }
     if (!$ok) {
         http_response_code(403);
@@ -606,7 +608,8 @@ function requireModuleAccessJson(string $moduleKey, ?PDO $conn = null): void {
         if ($conn === null) $conn = connectToDatabase();
         $ok = analystCanAccessModule($conn, (int) $_SESSION['analyst_id'], $moduleKey);
     } catch (Throwable $e) {
-        $ok = false; // fail closed
+        $ok = false; // fail closed - but say why: a refusal from an exception reads exactly like "no access"
+        error_log('module access check failed: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
     }
     if (!$ok) {
         http_response_code(403);

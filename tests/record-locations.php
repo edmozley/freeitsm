@@ -149,7 +149,6 @@ try {
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode(['id' => $locDef]),
                 CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: x', 'Cookie: PHPSESSID=' . $sid, 'Sec-Fetch-Site: same-origin']]);
             $raw = (string)curl_exec($ch);
-            curl_close($ch);
         } finally {
             @unlink("$sessDir/sess_$sid");
         }

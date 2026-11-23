@@ -39,7 +39,6 @@ function check(string $base, string $sid, int $mailboxId, bool $auto): array {
         CURLOPT_POSTFIELDS => json_encode(['mailbox_id' => $mailboxId, 'auto' => $auto]),
     ]);
     $out = (string)curl_exec($ch);
-    curl_close($ch);
     $j = json_decode($out, true);
     return is_array($j) ? $j : ['raw' => substr($out, 0, 300)];
 }

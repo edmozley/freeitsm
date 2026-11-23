@@ -165,7 +165,6 @@ if (!$base || !$expected || $conn->query('SELECT DATABASE()')->fetchColumn() !==
         curl_setopt_array($ch, $opts);
         $raw = (string)curl_exec($ch);
         $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         return [$code, json_decode($raw, true) ?? ['raw' => substr($raw, 0, 200)]];
     };
     $runs = fn() => (int)$conn->query("SELECT COUNT(*) FROM job_runs")->fetchColumn();

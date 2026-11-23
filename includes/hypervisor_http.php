@@ -104,11 +104,9 @@ final class HypervisorHttp
         $resp = curl_exec($ch);
         if ($resp === false) {
             $err = curl_error($ch);
-            curl_close($ch);
             throw new Exception($err);
         }
         $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         return [$code, (string)$resp, $responseHeaders];
     }
 }
