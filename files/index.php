@@ -56,7 +56,7 @@ $recycleDays = FilesRecycleService::retentionDays($conn);   // null = never set:
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=2">
-    <link rel="stylesheet" href="../assets/css/files.css?v=14">
+    <link rel="stylesheet" href="../assets/css/files.css?v=15">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
 </head>
 <body class="fd-body" data-navbar="<?php echo htmlspecialchars($prefs['navbar']); ?>" data-mobile-module="files" data-mobile-page="files-desktop">
@@ -124,7 +124,8 @@ $recycleDays = FilesRecycleService::retentionDays($conn);   // null = never set:
     <script src="../assets/js/float-window.js?v=3"></script>
     <script src="../assets/js/files-wm.js?v=6"></script>
     <script src="../assets/js/files-viewer.js?v=10"></script>
-    <script src="../assets/js/files-desktop.js?v=19"></script>
+    <script src="../assets/js/files-thumbs.js?v=2"></script>
+    <script src="../assets/js/files-desktop.js?v=20"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

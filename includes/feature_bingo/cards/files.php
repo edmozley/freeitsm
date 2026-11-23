@@ -151,4 +151,17 @@ return [
         'link'     => 'files/',
         'check'    => ['rows', 'files_audit', "detail LIKE '%saved_from%'"],
     ],
+    [
+        // GH #424
+        'id'       => 'files.thumbnails',
+        'module'   => 'files',
+        'tier'     => 'extra',
+        'category' => 'look',
+        'title'    => 'Pictures and PDFs show what is in them',
+        'what'     => 'Thumbnails of pictures and the first page of PDFs, in the Icons view and the bigger Thumbnails view. Each is made once and kept; Files -> Settings -> Thumbnails makes any still missing.',
+        'why'      => 'A folder of site photos or scanned documents is found by looking, not by opening every file in turn.',
+        'done'     => 'At least one thumbnail has been made.',
+        'link'     => 'files/settings/?tab=thumbnails',
+        'check'    => ['rows', 'files_thumbnails', "status = 'ready'"],
+    ],
 ];

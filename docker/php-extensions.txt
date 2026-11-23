@@ -17,6 +17,8 @@ pdo_mysql   # the database
 ldap        # LDAP / Active Directory sign-in and directory sync
 zip         # LMS SCORM course upload, RFP Builder .docx text, document search in .docx/.xlsx
 intl        # Domains: international domain names (xn--)
+gd          # Files thumbnails (GH #424): shrinking pictures, and re-encoding every thumbnail a browser sends - with JPEG and WebP
+exif        # Files thumbnails: turning phone photos upright from their EXIF orientation
 
 # NOT IN THE IMAGE, ON PURPOSE
 # (none)

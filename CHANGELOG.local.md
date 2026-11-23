@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3122 | Files             | Feature     | Thumbnails (GH #424): pictures and PDFs' first pages as small WebP thumbnails in Icons and a new Thumbnails view, made ONCE and kept in files_thumbnails by fingerprint (copies share; new version = new one); pictures by the server with GD at upload or first request, PDFs by the uploader's browser (pdf.js) or later by someone with Upload, every browser picture re-encoded; Make thumbnail on the right-click menu; Files -> Settings -> Thumbnails (Cap files.thumbnails) shows the backlog and clears it with a progress display, never opening a PDF in a folder the admin cannot upload to; none in watermarked folders; showing is not audited as opening. GD + exif added to the Docker image; ix_files_versions_sha; tests/files-thumbnails.php (29); 23 languages. |
 | 3121 | Files             | Feature     | Snap assist: drag a window to the left or right edge and, once it fills that half, the other half offers the other open windows (live previews, most recent first) - click one to fill it, Esc or a click elsewhere to leave it empty. Opt-in cfg.snapAssist in float-window.js, so Tickets' windows are unchanged; help updated in 23 languages. |
 
 

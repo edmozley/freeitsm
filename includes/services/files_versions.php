@@ -201,6 +201,9 @@ function filesPurgeBytesIfUnused(PDO $conn, string $key): string
     $st = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
     $st->execute([$key]);
     if ($st->fetchColumn()) return 'in_use';
+    // GH #424: thumbnails no version uses any more go with them (cheap - an indexed anti-join).
+    require_once __DIR__ . '/../files/thumbnails.php';
+    FilesThumbs::pruneOrphans($conn);
     // The move forgets the key FIRST: a copy the move job writes after this point finds
     // its row gone and nothing using the bytes, and removes it (storageMigrateBatch).
     $conn->prepare("DELETE FROM storage_migration_items WHERE store = 'files' AND object_key = ?")->execute([$key]);

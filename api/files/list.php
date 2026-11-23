@@ -12,6 +12,7 @@
  * top, with its full path as a hint, and never learns what else is in Finance.
  */
 require_once __DIR__ . '/../../includes/files/api_bootstrap.php';
+require_once __DIR__ . '/../../includes/files/thumbnails.php';
 
 filesApiRun(function () use ($conn, $analystId) {
     $folderId = (int)($_GET['folder'] ?? 0);
@@ -60,6 +61,7 @@ filesApiRun(function () use ($conn, $analystId) {
     $items = [];
     if ($folderId > 0) {
         $st = $conn->prepare("SELECT i.id, i.name, i.size_bytes, i.mime_type,
+                                     (SELECT v.sha256 FROM files_versions v WHERE v.id = i.current_version_id) AS sha256,
                                      COALESCE(i.updated_datetime, i.created_datetime) AS modified,
                                      COALESCE(u.full_name, c.full_name) AS modified_by,
                                      (SELECT COUNT(*) FROM files_versions v WHERE v.item_id = i.id) AS versions
@@ -68,7 +70,13 @@ filesApiRun(function () use ($conn, $analystId) {
                            LEFT JOIN analysts u ON u.id = i.updated_by
                                WHERE i.folder_id = ? AND i.deleted_datetime IS NULL");
         $st->execute([$folderId]);
-        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        // GH #424: what each file's thumbnail is - none at all in a watermarked folder.
+        $thumbsOn = FilesThumbs::ready($conn) && FilesThumbs::enabled($conn) && !FilesAcl::watermark($conn, $folderId);
+        $thumbStatus = $thumbsOn ? FilesThumbs::statuses($conn, array_column($rows, 'sha256')) : [];
+        $gd = FilesThumbs::gd();
+        foreach ($rows as $r) {
+            $kind = $thumbsOn && $r['sha256'] ? FilesThumbs::kind($r['name']) : null;
             $items[] = [
                 'id'          => (int)$r['id'],
                 'name'        => $r['name'],
@@ -77,6 +85,8 @@ filesApiRun(function () use ($conn, $analystId) {
                 'modified'    => $r['modified'],
                 'modified_by' => $r['modified_by'],
                 'versions'    => (int)$r['versions'],
+                'thumb'       => $kind ? FilesThumbs::stateFor($thumbStatus[$r['sha256']] ?? null, $kind, $gd) : null,
+                'sha'         => $kind ? substr((string)$r['sha256'], 0, 16) : null,   // so each version's thumbnail caches on its own
             ];
         }
         usort($items, fn($a, $b) => strnatcasecmp($a['name'], $b['name']));

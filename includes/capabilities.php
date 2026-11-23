@@ -290,6 +290,10 @@ enum Cap: string
     // RECYCLE sets how long deleted files stay in the recycle bin before they are
     // deleted for good - it never lets anyone see or restore a file.
     case FILES_RECYCLE = 'files.recycle';
+    // THUMBNAILS switches thumbnails on or off and clears the backlog (GH #424). Clearing
+    // makes pictures on the server and draws PDFs only in folders the person can upload
+    // to - it never shows anybody a file they could not already open.
+    case FILES_THUMBNAILS = 'files.thumbnails';
 
     // ---- Projects (3.2.0) --------------------------------------------------
     // GENERAL decides who may create and change projects - the module's own

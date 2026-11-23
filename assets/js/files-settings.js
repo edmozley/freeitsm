@@ -346,4 +346,104 @@
             }).catch(function (e) { msg.style.color = 'var(--danger-text)'; msg.textContent = e.message; });
         });
     }
+    // ── Thumbnails (GH #424) ───────────────────────────────────────────────
+    // The switch, the backlog, and Clear: pictures are made by the server in batches of
+    // about four seconds; PDFs are drawn by this browser (only in folders this person can
+    // upload to) two at a time. A tile pops in for each one - green for a picture, blue for
+    // a PDF, grey for one set aside - and Pause stops after the batch in hand.
+    var thState = document.getElementById('thState');
+    if (thState) {
+        var thLast = null, thRunning = false, thPaused = false;
+        var thDone = 0, thTotal = 0, thSkip = [];
+        var el = function (id) { return document.getElementById(id); };
+        /** Draws the state box and the counts from the server's reply. */
+        var thRender = function (r) {
+            thLast = r;
+            el('thEnabled').checked = !!r.enabled;
+            var b = r.backlog || {}, aside = b.set_aside || {};
+            var lines = [];
+            if (!r.ready_table) lines.push(L('settings.thumbs_need_verify', 'Run Database Verification (System -> Database Verification) to switch thumbnails on.'));
+            else if (!r.gd) lines.push(L('settings.thumbs_no_gd', 'This server cannot make thumbnails: the GD extension is not installed in PHP. Files show their type icons until it is.'));
+            else lines.push(L('settings.thumbs_ok', 'Thumbnails made so far: {n}. Each is made once and shared by every copy of the same file.', { n: b.ready || 0 }) +
+                (r.webp ? '' : ' ' + L('settings.thumbs_jpeg', 'This server has no WebP support, so thumbnails are saved as JPEG.')));
+            thState.className = 'set-box' + (!r.ready_table || !r.gd ? ' warn' : '');
+            thState.textContent = lines.join(' ');
+            var setAside = (aside.too_large || 0) + (aside.unsupported || 0) + (aside.failed || 0);
+            el('thCounts').innerHTML =
+                '<div>' + esc(L('settings.thumbs_pictures', 'Pictures still to make:')) + ' <b>' + (b.pictures || 0) + '</b></div>' +
+                '<div>' + esc(L('settings.thumbs_pdfs', 'PDFs still to draw:')) + ' <b>' + (b.pdfs || 0) + '</b>' +
+                    (b.pdfs ? ' <span style="color:var(--text-dim)">(' + esc(L('settings.thumbs_pdfs_split', 'in folders you can upload to: {open}; waiting for someone with access: {wait}', { open: b.pdfs_open || 0, wait: (b.pdfs || 0) - (b.pdfs_open || 0) })) + ')</span>' : '') + '</div>' +
+                (setAside ? '<div style="color:var(--text-dim)">' + esc(L('settings.thumbs_set_aside', 'Set aside: {n} (too large to shrink: {big}; not a picture this server can read: {un}; could not be read: {fail}).',
+                    { n: setAside, big: aside.too_large || 0, un: aside.unsupported || 0, fail: aside.failed || 0 })) + '</div>' : '');
+            el('thRetry').hidden = thRunning || !(aside.failed > 0);
+            var can = r.ready_table && r.gd && r.enabled;
+            el('thClear').disabled = thRunning || !can || !((b.pictures || 0) + (b.pdfs_open || 0));
+        };
+        /** Adds one tile to the progress grid and moves the count and the bar on. */
+        var thTile = function (cls) {
+            var t = document.createElement('span');
+            t.className = 'th-tile' + (cls ? ' ' + cls : '');
+            var tiles = el('thTiles');
+            tiles.appendChild(t);
+            while (tiles.children.length > 220) tiles.removeChild(tiles.firstChild);   // the grid keeps the latest few
+            thDone++;
+            el('thDone').textContent = thDone;
+            el('thFill').style.width = (thTotal ? Math.min(100, Math.round(thDone / thTotal * 100)) : 100) + '%';
+        };
+        var thMsg = function (text, colour) { var m = el('thMsg'); m.style.color = colour || ''; m.textContent = text || ''; };
+        /** Ends a run - finished, paused or failed - and refreshes the counts. */
+        var thStop = function (text, colour) {
+            thRunning = false;
+            el('thPause').hidden = true;
+            thMsg(text, colour);
+            api('settings.php?tab=thumbnails').then(thRender).catch(function () {});
+        };
+        /** Pictures first: batches until none are left, or Pause. */
+        var thPictures = function () {
+            if (thPaused) return thStop(L('settings.thumbs_paused', 'Paused - press Clear to carry on.'));
+            return api('settings.php', { tab: 'thumbnails_pictures' }).then(function (r) {
+                (r.made || []).forEach(function (s) { thTile(s === 'ready' ? '' : 'th-skip'); });
+                thRender(r);
+                if ((r.made || []).length && (r.backlog.pictures || 0) > 0) return thPictures();
+                return thPdfs();
+            });
+        };
+        /** Then PDFs this browser may draw, ten at a time from the server, two drawing at once. */
+        var thPdfs = function () {
+            if (thPaused) return thStop(L('settings.thumbs_paused', 'Paused - press Clear to carry on.'));
+            if (!window.FilesThumbs) return thStop(L('settings.thumbs_finished', 'Done.'), 'var(--success-text)');
+            return api('settings.php', { tab: 'thumbnails_pdfs', skip: thSkip }).then(function (r) {
+                if (!r.items.length) return thStop(L('settings.thumbs_finished', 'Done.'), 'var(--success-text)');
+                return Promise.all(r.items.map(function (id) {
+                    return window.FilesThumbs.fromItem(id).then(function () { thTile('th-pdf'); }, function () { thSkip.push(id); thTile('th-skip'); });
+                })).then(thPdfs);
+            });
+        };
+        el('thClear').addEventListener('click', function () {
+            if (thRunning || !thLast) return;
+            var b = thLast.backlog || {};
+            thRunning = true; thPaused = false; thDone = 0; thSkip = [];
+            thTotal = (b.pictures || 0) + (b.pdfs_open || 0);
+            el('thTiles').innerHTML = '';
+            el('thDone').textContent = '0';
+            el('thOf').textContent = ' / ' + thTotal;
+            el('thFill').style.width = '0';
+            el('thRun').hidden = false;
+            el('thPause').hidden = false;
+            el('thClear').disabled = true;
+            thMsg('');
+            thPictures().catch(function (e) { thStop(e.message, 'var(--danger-text)'); });
+        });
+        el('thPause').addEventListener('click', function () { thPaused = true; this.hidden = true; thMsg(L('settings.thumbs_pausing', 'Pausing after this batch...')); });
+        el('thRetry').addEventListener('click', function () {
+            api('settings.php', { tab: 'thumbnails_retry' }).then(thRender).catch(function (e) { thMsg(e.message, 'var(--danger-text)'); });
+        });
+        el('thEnabled').addEventListener('change', function () {
+            var box = this;
+            api('settings.php', { tab: 'thumbnails', enabled: box.checked })
+                .then(function (r) { thRender(r); thMsg(L('settings.saved', 'Saved.'), 'var(--success-text)'); })
+                .catch(function (e) { box.checked = !box.checked; thMsg(e.message, 'var(--danger-text)'); });
+        });
+        api('settings.php?tab=thumbnails').then(thRender).catch(function (e) { thState.textContent = e.message; });
+    }
 })();

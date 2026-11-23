@@ -382,6 +382,7 @@ function analystReferenceRegistry(): array {
         ['files_permissions', 'granted_by', 'history'],
         ['files_audit', 'analyst_id', 'history'],
         ['files_shortcuts', 'created_by', 'history'],
+        ['files_thumbnails', 'made_by_id', 'history'],   // GH #424: whose browser drew a PDF thumbnail
         ['report_downloads', 'revoked_by', 'history'],   // 5.3.0: the admin who revoked a report link
     ];
 }

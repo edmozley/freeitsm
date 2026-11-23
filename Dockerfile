@@ -13,9 +13,10 @@ FROM php:8.4-apache
 RUN set -eux; \
     savedAptMark="$(apt-mark showmanual)"; \
     apt-get update; \
-    apt-get install -y --no-install-recommends libldap-dev libzip-dev libicu-dev; \
+    apt-get install -y --no-install-recommends libldap-dev libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libwebp-dev; \
     docker-php-ext-configure ldap --with-libdir="lib/$(dpkg-architecture --query DEB_HOST_MULTIARCH)"; \
-    docker-php-ext-install -j"$(nproc)" pdo_mysql ldap zip intl; \
+    docker-php-ext-configure gd --with-jpeg --with-webp; \
+    docker-php-ext-install -j"$(nproc)" pdo_mysql ldap zip intl gd exif; \
     apt-mark auto '.*' > /dev/null; \
     [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
     find /usr/local -type f -executable -exec ldd '{}' ';' \
@@ -28,7 +29,7 @@ RUN set -eux; \
 # build stops here - for both architectures the release workflow builds - and
 # nothing is published.
 COPY docker/php-extensions.txt /usr/local/etc/freeitsm-php-extensions.txt
-RUN php -r '$need = []; foreach (file("/usr/local/etc/freeitsm-php-extensions.txt") as $l) { $l = trim(preg_replace("/#.*/", "", $l)); if ($l !== "") $need[] = $l; } $missing = array_values(array_filter($need, function ($e) { return !extension_loaded($e); })); if ($missing) { fwrite(STDERR, "Missing PHP extensions: " . implode(", ", $missing) . "\n"); exit(1); } if (!function_exists("ldap_start_tls")) { fwrite(STDERR, "ldap loaded without StartTLS\n"); exit(1); } echo "PHP extensions OK: " . implode(", ", $need) . "\n";'
+RUN php -r '$need = []; foreach (file("/usr/local/etc/freeitsm-php-extensions.txt") as $l) { $l = trim(preg_replace("/#.*/", "", $l)); if ($l !== "") $need[] = $l; } $missing = array_values(array_filter($need, function ($e) { return !extension_loaded($e); })); if ($missing) { fwrite(STDERR, "Missing PHP extensions: " . implode(", ", $missing) . "\n"); exit(1); } if (!function_exists("ldap_start_tls")) { fwrite(STDERR, "ldap loaded without StartTLS\n"); exit(1); } if (!function_exists("imagewebp") || !function_exists("imagecreatefromjpeg")) { fwrite(STDERR, "gd loaded without WebP or JPEG\n"); exit(1); } echo "PHP extensions OK: " . implode(", ", $need) . "\n";'
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite

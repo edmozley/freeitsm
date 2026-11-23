@@ -11094,6 +11094,7 @@ CREATE TABLE IF NOT EXISTS `files_versions` (
     PRIMARY KEY (`id`),
     KEY `ix_files_versions_item` (`item_id`, `version_no`),
     KEY `ix_files_versions_path` (`storage_path`),
+    KEY `ix_files_versions_sha` (`sha256`),
     CONSTRAINT `fk_files_versions_item` FOREIGN KEY (`item_id`) REFERENCES `files_items` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -11204,6 +11205,28 @@ CREATE TABLE IF NOT EXISTS `files_purge_pending` (
     `updated_datetime`      DATETIME NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_files_purge_pending_path` (`storage_path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Files thumbnails (GH #424): one small picture per stored fingerprint, shared by
+-- every copy of the same file. Made once - by the server for pictures, by the
+-- uploader's browser for a PDF's first page - and kept in the database, so a move
+-- to another storage location takes nothing to carry over. status says why a file
+-- has none (waiting for a browser, too large, unsupported, failed), so a file is
+-- tried once and set aside rather than retried on every folder open.
+CREATE TABLE IF NOT EXISTS `files_thumbnails` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `sha256`                CHAR(64) NOT NULL,                      -- files_versions.sha256
+    `status`                VARCHAR(16) NOT NULL,                   -- ready | too_large | unsupported | failed
+    `mime_type`             VARCHAR(30) NULL,                       -- image/webp, or image/jpeg without WebP in GD
+    `width`                 SMALLINT NULL,
+    `height`                SMALLINT NULL,
+    `data`                  MEDIUMBLOB NULL,                        -- the picture, a few KB
+    `made_by`               VARCHAR(10) NULL,                       -- server | browser
+    `made_by_id`            INT NULL,                               -- the analyst whose browser drew it
+    `detail`                VARCHAR(255) NULL,                      -- why it could not be made
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_files_thumbnails_sha` (`sha256`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 

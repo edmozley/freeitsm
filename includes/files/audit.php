@@ -24,6 +24,7 @@ const FILES_AUDIT_ACTIONS = [
     'create_folder', 'rename', 'move', 'copy', 'delete', 'restore', 'purge',
     'permissions', 'inheritance', 'watermark', 'shortcut', 'take_ownership', 'denied', 'settings',
     'restore_version', 'delete_version', 'overwrite', 'attach',   // GH #303 - includes/services/files_versions.php
+    'thumbnail',   // GH #424: a thumbnail made or redrawn (showing them is never recorded)
 ];
 
 /**

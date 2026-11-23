@@ -62,5 +62,12 @@ return [
             'grant'     => 'Choose how long deleted files and folders stay in the recycle bin before they are deleted for good',
             'sensitive' => true,   // a short period deletes files sooner
         ],
+        [
+            'id'        => 'thumbnails',
+            'cap'       => capKey(Cap::FILES_THUMBNAILS),
+            'label_key' => 'files.settings.tab_thumbnails',
+            'grant'     => 'Switch thumbnails of pictures and PDFs on or off, and make the ones still missing',
+            'sensitive' => false,   // makes small pictures; never shows a file the person could not open
+        ],
     ],
 ];
