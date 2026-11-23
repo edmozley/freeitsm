@@ -29,12 +29,21 @@ const API_COST_CENTRE_SYNC_MAX = 10000;
  * The SELECT for cost centres, with the parent's code and name, the company name and the
  * number of child cost centres.
  */
-function apiCostCentreSelect(): string {
+function apiCostCentreSelect(?PDO $conn = null): string {
+    // GH #160 Part B: the owner and deputy, once Database Verification has added them.
+    $people = $conn !== null && CostCentresService::peopleReady($conn);
     return "SELECT c.*, p.code AS parent_code, p.name AS parent_name, t.name AS company_name,
-                   (SELECT COUNT(*) FROM cost_centres k WHERE k.parent_id = c.id) AS child_count
+                   (SELECT COUNT(*) FROM cost_centres k WHERE k.parent_id = c.id) AS child_count"
+         . ($people ? ",
+                   ou.display_name AS owner_name, ou.email AS owner_email, ou.is_active AS owner_active,
+                   og.name AS owner_group_name, du.display_name AS deputy_name, du.email AS deputy_email, du.is_active AS deputy_active" : "") . "
               FROM cost_centres c
          LEFT JOIN cost_centres p ON p.id = c.parent_id
-         LEFT JOIN tenants t ON t.id = c.tenant_id";
+         LEFT JOIN tenants t ON t.id = c.tenant_id"
+         . ($people ? "
+         LEFT JOIN users ou ON ou.id = c.owner_user_id
+         LEFT JOIN knowledge_user_groups og ON og.id = c.owner_group_id
+         LEFT JOIN users du ON du.id = c.deputy_user_id" : "");
 }
 
 /**
@@ -53,6 +62,10 @@ function apiSerializeCostCentre(array $r): array {
         'is_active'   => (bool)(int)$r['is_active'],
         'company'     => ['id' => (int)$r['tenant_id'], 'name' => $r['company_name']],
         'child_count' => (int)$r['child_count'],
+        // GH #160 Part B. `active` false: the person has since been deactivated - kept, flagged.
+        'owner'       => empty($r['owner_user_id']) ? null : ['id' => (int)$r['owner_user_id'], 'name' => $r['owner_name'] ?? null, 'email' => $r['owner_email'] ?? null, 'active' => (bool)(int)($r['owner_active'] ?? 1)],
+        'owner_group' => empty($r['owner_group_id']) ? null : ['id' => (int)$r['owner_group_id'], 'name' => $r['owner_group_name'] ?? null],
+        'deputy'      => empty($r['deputy_user_id']) ? null : ['id' => (int)$r['deputy_user_id'], 'name' => $r['deputy_name'] ?? null, 'email' => $r['deputy_email'] ?? null, 'active' => (bool)(int)($r['deputy_active'] ?? 1)],
         'created_at'  => apiIsoDate($r['created_datetime']),
         'updated_at'  => apiIsoDate($r['updated_datetime']),
     ];
@@ -64,7 +77,7 @@ function apiSerializeCostCentre(array $r): array {
  * @param int $id  the cost_centres id
  */
 function apiLoadCostCentre(PDO $conn, array $apiKey, int $id): array {
-    $st = $conn->prepare(apiCostCentreSelect() . " WHERE c.id = ?");
+    $st = $conn->prepare(apiCostCentreSelect($conn) . " WHERE c.id = ?");
     $st->execute([$id]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
     if (!$row || !apiKeyCanAccessTenantRow($conn, $apiKey, 'cost_centres', $id)) {
@@ -148,7 +161,7 @@ function apiCostCentresList(PDO $conn, array $apiKey, array $params, array $body
     $count->execute($args);
     $total = (int)$count->fetchColumn();
 
-    $st = $conn->prepare(apiCostCentreSelect() . " WHERE $whereSql ORDER BY $orderSql LIMIT $perPage OFFSET $offset");
+    $st = $conn->prepare(apiCostCentreSelect($conn) . " WHERE $whereSql ORDER BY $orderSql LIMIT $perPage OFFSET $offset");
     $st->execute($args);
     apiRespond(array_map('apiSerializeCostCentre', $st->fetchAll(PDO::FETCH_ASSOC)), 200, [
         'page' => $page, 'per_page' => $perPage, 'total' => $total, 'total_pages' => (int)ceil($total / max(1, $perPage)),
@@ -169,7 +182,8 @@ function apiCostCentresGet(PDO $conn, array $apiKey, array $params, array $body)
 function apiCostCentresCreate(PDO $conn, array $apiKey, array $params, array $body): void {
     apiCostCentresReady($conn);
     $tenantId = apiCostCentreCompany($conn, $apiKey, $body['company_id'] ?? null);
-    $in = array_intersect_key($body, array_flip(['code', 'name', 'description', 'parent_id', 'parent_code', 'is_active']));
+    $in = array_intersect_key($body, array_flip(['code', 'name', 'description', 'parent_id', 'parent_code', 'is_active',
+        'owner_user_id', 'owner_email', 'owner_group_id', 'owner_group', 'deputy_user_id', 'deputy_email']));   // GH #160 Part B
     try {
         $id = CostCentresService::create($conn, ActorContext::fromApiKey($apiKey), $tenantId, $in);
         apiRespond(apiSerializeCostCentre(apiLoadCostCentre($conn, $apiKey, $id)), 201);
@@ -188,7 +202,8 @@ function apiCostCentresUpdate(PDO $conn, array $apiKey, array $params, array $bo
     if (array_key_exists('company_id', $body)) {
         apiError(422, 'invalid_field', "A cost centre cannot move between companies. Create it in the other company instead.");
     }
-    $in = array_intersect_key($body, array_flip(['code', 'name', 'description', 'parent_id', 'parent_code', 'is_active']));
+    $in = array_intersect_key($body, array_flip(['code', 'name', 'description', 'parent_id', 'parent_code', 'is_active',
+        'owner_user_id', 'owner_email', 'owner_group_id', 'owner_group', 'deputy_user_id', 'deputy_email']));   // GH #160 Part B
     try {
         CostCentresService::update($conn, ActorContext::fromApiKey($apiKey), $id, $in);
         apiRespond(apiSerializeCostCentre(apiLoadCostCentre($conn, $apiKey, $id)));
@@ -231,7 +246,7 @@ function apiCostCentresSync(PDO $conn, array $apiKey, array $params, array $body
     foreach ($list as $i => $item) {
         if (!is_array($item)) apiError(422, 'invalid_field', "cost_centres[{$i}] is not an object.");
         // Only the keys sent are touched; 'line' is the item's position, 1-based.
-        $rows[] = ['line' => $i + 1] + array_intersect_key($item, array_flip(['code', 'name', 'description', 'parent_code', 'is_active']));
+        $rows[] = ['line' => $i + 1] + array_intersect_key($item, array_flip(['code', 'name', 'description', 'parent_code', 'is_active', 'owner_email', 'owner_group', 'deputy_email']));
     }
     try {
         $report = CostCentresService::sync($conn, ActorContext::fromApiKey($apiKey), $tenantId, $rows, [

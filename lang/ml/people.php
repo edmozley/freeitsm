@@ -325,6 +325,10 @@ return [
         'manager' => 'മാനേജർ',
         'reports' => 'അവർക്ക് റിപ്പോർട്ട് ചെയ്യുന്നവർ',
         'groups' => 'ഗ്രൂപ്പുകൾ',
+        'responsible_for' => 'ഉത്തരവാദിത്തം',   // GH #160 Part B
+        'role_owner' => 'ഉടമ',   // GH #160 Part B
+        'role_deputy' => 'ഡെപ്യൂട്ടി',   // GH #160 Part B
+        'cc_inactive' => 'നിഷ്ക്രിയം',   // GH #160 Part B
         'company' => 'കമ്പനി',
         'source' => 'ഉറവിടം',
         'first_seen' => 'ആദ്യം കണ്ടത്',

@@ -326,6 +326,10 @@ return [
         'manager' => 'Керівник',
         'reports' => 'Підлеглі',
         'groups' => 'Групи',
+        'responsible_for' => 'Відповідає за',   // GH #160 Part B
+        'role_owner' => 'відповідальний',   // GH #160 Part B
+        'role_deputy' => 'заступник',   // GH #160 Part B
+        'cc_inactive' => 'неактивний',   // GH #160 Part B
         'company' => 'Компанія',
         'source' => 'Звідки',
         'first_seen' => 'Вперше помічено',

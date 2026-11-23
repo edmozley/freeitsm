@@ -326,6 +326,10 @@ return [
         'manager' => 'Przełożony',
         'reports' => 'Podwładni',
         'groups' => 'Grupy',
+        'responsible_for' => 'Odpowiada za',   // GH #160 Part B
+        'role_owner' => 'właściciel',   // GH #160 Part B
+        'role_deputy' => 'zastępca',   // GH #160 Part B
+        'cc_inactive' => 'nieaktywne',   // GH #160 Part B
         'company' => 'Firma',
         'source' => 'Źródło',
         'first_seen' => 'Po raz pierwszy widziano',

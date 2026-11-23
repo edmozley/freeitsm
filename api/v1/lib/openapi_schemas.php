@@ -14511,6 +14511,80 @@ return array (
         array (
           'type' => 'integer',
         ),
+        'owner' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'GH #160: who answers for it, when a person. null when there is none, or the owner is a people group.',
+          'properties' =>
+          array (
+            'id' =>
+            array (
+              'type' => 'integer',
+            ),
+            'name' =>
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'email' =>
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'active' =>
+            array (
+              'type' => 'boolean',
+              'description' => 'false: the person has since been deactivated - kept and flagged, not removed.',
+            ),
+          ),
+        ),
+        'owner_group' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'The owner as a people group, when a team shares the budget. null otherwise.',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'deputy' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'Covers for the owner. null when there is none.',
+          'properties' =>
+          array (
+            'id' =>
+            array (
+              'type' => 'integer',
+            ),
+            'name' =>
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'email' =>
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'active' =>
+            array (
+              'type' => 'boolean',
+              'description' => 'false: the person has since been deactivated - kept and flagged, not removed.',
+            ),
+          ),
+        ),
         'created_at' => 
         array (
           'type' => 'string',

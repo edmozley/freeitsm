@@ -325,6 +325,10 @@ return [
         'manager' => 'प्रबंधक',
         'reports' => 'उन्हें रिपोर्ट करने वाले',
         'groups' => 'ग्रुप',
+        'responsible_for' => 'ज़िम्मेदारी',   // GH #160 Part B
+        'role_owner' => 'मालिक',   // GH #160 Part B
+        'role_deputy' => 'डिप्टी',   // GH #160 Part B
+        'cc_inactive' => 'निष्क्रिय',   // GH #160 Part B
         'company' => 'कंपनी',
         'source' => 'स्रोत',
         'first_seen' => 'पहली बार देखा गया',

@@ -332,6 +332,10 @@ return [
         'manager'     => 'Manager',
         'reports'     => 'Reports to them',
         'groups'      => 'Groups',
+        'responsible_for' => 'Responsible for',   // GH #160 Part B
+        'role_owner' => 'owner',   // GH #160 Part B
+        'role_deputy' => 'deputy',   // GH #160 Part B
+        'cc_inactive' => 'inactive',   // GH #160 Part B
         'company'     => 'Company',
         'source'      => 'From',
         'first_seen'  => 'First seen',

@@ -325,6 +325,10 @@ return [
         'manager' => 'Responsabile',
         'reports' => 'Collaboratori diretti',
         'groups' => 'Gruppi',
+        'responsible_for' => 'Responsabile di',   // GH #160 Part B
+        'role_owner' => 'responsabile',   // GH #160 Part B
+        'role_deputy' => 'vice',   // GH #160 Part B
+        'cc_inactive' => 'inattivo',   // GH #160 Part B
         'company' => 'Azienda',
         'source' => 'Origine',
         'first_seen' => 'Primo rilevamento',

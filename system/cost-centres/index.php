@@ -117,6 +117,21 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         .cc-toggle > span small { display: block; font-weight: 400; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); margin-top: 2px; line-height: 1.45; }
         .cc-note { font-size: var(--font-size-md, 13px); line-height: 1.55; color: var(--text-muted, #666); background: var(--surface-2, #f5f7f8); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
         .cc-note code { font-size: var(--font-size-sm, 12px); }
+        /* GH #160 Part B: the Owner and Deputy pickers, and the Owner column. */
+        .cc-owner-kind { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; font-size: var(--font-size-md, 13px); }
+        .cc-owner-kind label { display: inline-flex; gap: 5px; align-items: center; font-weight: 400; margin: 0; }
+        .cc-pick { position: relative; }
+        .cc-pick-results { position: absolute; left: 0; right: 0; top: 100%; z-index: 5; max-height: 200px; overflow-y: auto; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 6px; box-shadow: 0 6px 18px var(--shadow, rgba(0,0,0,.12)); }
+        .cc-pick-results button { display: block; width: 100%; text-align: left; padding: 7px 10px; border: 0; background: none; font: inherit; font-size: var(--font-size-md, 13px); color: var(--text, #333); cursor: pointer; }
+        .cc-pick-results button:hover, .cc-pick-results button:focus { background: var(--surface-hover, #f3f4f6); }
+        .cc-pick-results small { color: var(--text-dim, #888); margin-left: 6px; }
+        .cc-pick-empty { padding: 8px 10px; font-size: var(--font-size-md, 13px); color: var(--text-dim, #888); }
+        .cc-picked { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--surface-2, #f5f7f8); }
+        .cc-picked span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+        .cc-picked button { border: 0; background: none; cursor: pointer; color: var(--text-dim, #888); font-size: var(--font-size-lg, 14px); line-height: 1; padding: 0 2px; }
+        .cc-owner { font-size: var(--font-size-md, 13px); }
+        .cc-owner small { display: block; color: var(--text-dim, #888); font-size: var(--font-size-sm, 12px); }
+        .cc-left { color: var(--warning-text, #b45309); font-size: var(--font-size-xs, 11px); font-weight: 600; margin-left: 4px; }
 
         /* Import preview */
         .cc-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -178,6 +193,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                         <th><?php echo htmlspecialchars($ccT('col_code')); ?></th>
                         <th><?php echo htmlspecialchars($ccT('col_name')); ?></th>
                         <th class="cc-desc"><?php echo htmlspecialchars($ccT('col_description')); ?></th>
+                        <th id="ccColOwner" hidden><?php echo htmlspecialchars($ccT('col_owner')); ?></th>
                         <th><?php echo htmlspecialchars($ccT('col_status')); ?></th>
                         <th></th>
                     </tr></thead>
@@ -214,6 +230,25 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                     <select id="ccParent"></select>
                     <div class="hint"><?php echo htmlspecialchars($ccT('field_parent_hint')); ?></div>
                 </div>
+                <!-- GH #160 Part B: who answers for it - shown once Database Verification has added the columns. -->
+                <div id="ccPeople" hidden>
+                    <div class="cc-field">
+                        <label><?php echo htmlspecialchars($ccT('field_owner')); ?></label>
+                        <div class="cc-owner-kind" role="radiogroup">
+                            <label><input type="radio" name="ccOwnerKind" value="none"> <?php echo htmlspecialchars($ccT('owner_none')); ?></label>
+                            <label><input type="radio" name="ccOwnerKind" value="person"> <?php echo htmlspecialchars($ccT('owner_person')); ?></label>
+                            <label><input type="radio" name="ccOwnerKind" value="group"> <?php echo htmlspecialchars($ccT('owner_group')); ?></label>
+                        </div>
+                        <div class="cc-pick" id="ccOwnerPick"></div>
+                        <select id="ccOwnerGroup" hidden></select>
+                        <div class="hint"><?php echo htmlspecialchars($ccT('field_owner_hint')); ?></div>
+                    </div>
+                    <div class="cc-field">
+                        <label><?php echo htmlspecialchars($ccT('field_deputy')); ?></label>
+                        <div class="cc-pick" id="ccDeputyPick"></div>
+                        <div class="hint"><?php echo htmlspecialchars($ccT('field_deputy_hint')); ?></div>
+                    </div>
+                </div>
                 <div class="toggle-label cc-toggle">
                     <span><?php echo htmlspecialchars($ccT('field_active')); ?><small><?php echo htmlspecialchars($ccT('field_active_hint')); ?></small></span>
                     <label class="toggle-switch"><input type="checkbox" id="ccActive"><span class="toggle-slider"></span></label>
@@ -234,6 +269,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                 <div id="ccImportStep1">
                     <div class="cc-note"><?php echo $ccT('import_help_html'); ?></div>
                     <div class="cc-note"><?php echo $ccT('import_zeros_html'); ?></div>
+                    <div class="cc-note"><?php echo $ccT('import_owner_html'); ?></div>
                     <div class="cc-field" id="ccImportCompanyField" hidden>
                         <label for="ccImportCompany"><?php echo htmlspecialchars($ccT('company')); ?></label>
                         <select id="ccImportCompany"></select>
@@ -274,6 +310,8 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         let items = [];          // the cost centres, flat
         let byId = new Map();
         let editingId = 0;
+        let owners = false;      // GH #160 Part B: owner columns exist (Database Verification run)
+        let groups = [];         // active people groups, for an owner group
         // The pencil and bin from Tickets -> Settings, so the two screens match.
         const ICON_EDIT = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
         const ICON_DELETE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
@@ -295,12 +333,16 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                 $('ccPanel').hidden = !d.ready;
                 items = d.cost_centres;
                 byId = new Map(items.map(i => [i.id, i]));
+                owners = !!d.owners;
+                groups = d.groups || [];
+                $('ccColOwner').hidden = !owners;
+                $('ccPeople').hidden = !owners;
                 render();
             } catch (e) {
                 $('ccBody').innerHTML = '<tr><td colspan="' + cols() + '" class="cc-empty">' + esc(T('load_failed', { error: String(e.message || e) })) + '</td></tr>';
             }
         }
-        const cols = () => allMode ? 6 : 5;
+        const cols = () => (allMode ? 6 : 5) + (owners ? 1 : 0);
         const companyOptions = selected => companies.map(c =>
             '<option value="' + c.id + '"' + (c.id === selected ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
 
@@ -349,7 +391,8 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
             let visible = items.filter(i => showInactive || i.is_active);
             let matches = null;
             if (q) {
-                matches = new Set(visible.filter(i => (i.code + ' ' + i.name + ' ' + (i.description || '') + (allMode ? ' ' + i.company_name : '')).toLowerCase().includes(q)).map(i => i.id));
+                matches = new Set(visible.filter(i => (i.code + ' ' + i.name + ' ' + (i.description || '') + (allMode ? ' ' + i.company_name : '')
+                    + (i.owner ? ' ' + i.owner.name + ' ' + i.owner.email : '') + (i.owner_group ? ' ' + i.owner_group.name : '') + (i.deputy ? ' ' + i.deputy.name + ' ' + i.deputy.email : '')).toLowerCase().includes(q)).map(i => i.id));
                 const keep = new Set(matches);
                 matches.forEach(id => { for (let p = byId.get(id).parent_id, n = 0; p && n < 1000; p = (byId.get(p) || {}).parent_id, n++) keep.add(p); });
                 visible = items.filter(i => keep.has(i.id));
@@ -367,6 +410,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                     + '<td class="cc-code">' + indent + esc(i.code) + '</td>'
                     + '<td>' + esc(i.name) + '</td>'
                     + '<td class="cc-desc">' + esc(i.description || '') + '</td>'
+                    + (owners ? '<td class="cc-owner">' + ownerCell(i) + '</td>' : '')
                     + '<td><span class="cc-badge ' + (i.is_active ? 'on">' + esc(T('active')) : 'off">' + esc(T('inactive'))) + '</span></td>'
                     + '<td class="cc-actions"><button type="button" class="action-btn" data-edit="' + i.id + '" title="' + esc(t('common.edit')) + '" aria-label="' + esc(t('common.edit')) + '">' + ICON_EDIT + '</button>'
                     + '<button type="button" class="action-btn delete" data-delete="' + i.id + '" title="' + esc(t('common.delete')) + '" aria-label="' + esc(t('common.delete')) + '">' + ICON_DELETE + '</button></td>'
@@ -424,6 +468,69 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                     + '</option>').join('');
         }
 
+        // ── Owner and deputy (GH #160 Part B) ──────────────────────────────
+        /** The Owner column: the person or group, and the deputy under it; a deactivated person flagged. */
+        function ownerCell(i) {
+            const left = x => x && x.left ? '<span class="cc-left">' + esc(T('owner_left')) + '</span>' : '';
+            const who = i.owner ? esc(i.owner.name) + left(i.owner) : i.owner_group ? esc(i.owner_group.name) + left(i.owner_group) : '';
+            const dep = i.deputy ? '<small>' + esc(T('deputy_short', { name: i.deputy.name })) + left(i.deputy) + '</small>' : '';
+            return who + dep;
+        }
+        /**
+         * A person picker: a search box over this company's active people, or the chosen
+         * person with a cross to clear. .value is the person's id ('' for nobody).
+         */
+        function personPicker(host) {
+            const pk = { value: '' };
+            let timer = null;
+            pk.set = function (p) {
+                pk.value = p ? String(p.id) : '';
+                if (p) {
+                    host.innerHTML = '<div class="cc-picked"><span></span><button type="button" aria-label="' + esc(T('person_clear')) + '" title="' + esc(T('person_clear')) + '">&times;</button></div>';
+                    host.querySelector('span').textContent = p.name + (p.email && p.email !== p.name ? ' (' + p.email + ')' : '');
+                    host.querySelector('button').addEventListener('click', () => { pk.set(null); host.querySelector('input').focus(); });
+                    return;
+                }
+                host.innerHTML = '<input type="text" autocomplete="off" placeholder="' + esc(T('person_search')) + '"><div class="cc-pick-results" hidden></div>';
+                const box = host.querySelector('input'), res = host.querySelector('.cc-pick-results');
+                const search = async () => {
+                    try {
+                        const d = await (await fetch(API + '?action=people&company_id=' + editCompany() + '&q=' + encodeURIComponent(box.value.trim()), { credentials: 'same-origin' })).json();
+                        const list = d.success ? d.people : [];
+                        res.innerHTML = list.length ? list.map((p, n) => '<button type="button" data-n="' + n + '">' + esc(p.name) + (p.email !== p.name ? '<small>' + esc(p.email) + '</small>' : '') + '</button>').join('')
+                            : '<div class="cc-pick-empty">' + esc(T('person_none')) + '</div>';
+                        res.hidden = false;
+                        res.querySelectorAll('button').forEach(b => b.addEventListener('click', () => pk.set(list[+b.dataset.n])));
+                    } catch (e) { res.hidden = true; }
+                };
+                box.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 220); });
+                box.addEventListener('focus', search);
+                box.addEventListener('blur', () => setTimeout(() => { res.hidden = true; }, 200));
+            };
+            return pk;
+        }
+        const ownerPick = personPicker($('ccOwnerPick'));
+        const deputyPick = personPicker($('ccDeputyPick'));
+        /** Shows the owner choice that matches the radio buttons. */
+        function paintOwnerKind() {
+            const kind = (document.querySelector('input[name="ccOwnerKind"]:checked') || {}).value || 'none';
+            $('ccOwnerPick').hidden = kind !== 'person';
+            $('ccOwnerGroup').hidden = kind !== 'group';
+        }
+        document.querySelectorAll('input[name="ccOwnerKind"]').forEach(r => r.addEventListener('change', paintOwnerKind));
+        /** Fills the Owner and Deputy fields from a cost centre (or empty for a new one). */
+        function paintPeople(it) {
+            const kind = it && it.owner ? 'person' : it && it.owner_group ? 'group' : 'none';
+            document.querySelector('input[name="ccOwnerKind"][value="' + kind + '"]').checked = true;
+            ownerPick.set(it && it.owner ? it.owner : null);
+            deputyPick.set(it && it.deputy ? it.deputy : null);
+            const gid = it && it.owner_group ? it.owner_group.id : 0;
+            $('ccOwnerGroup').innerHTML = '<option value="">' + esc(T('group_pick')) + '</option>'
+                + groups.map(g => '<option value="' + g.id + '"' + (g.id == gid ? ' selected' : '') + '>' + esc(g.name) + '</option>').join('')
+                + (gid && !groups.some(g => g.id == gid) ? '<option value="' + gid + '" selected>' + esc(it.owner_group.name) + '</option>' : '');
+            paintOwnerKind();
+        }
+
         function openEdit(id) {
             editingId = id || 0;
             const it = id ? byId.get(id) : null;
@@ -436,6 +543,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
             $('ccDesc').value = it ? (it.description || '') : '';
             $('ccActive').checked = it ? it.is_active : true;
             paintParents(it ? it.parent_id : null);
+            if (owners) paintPeople(it);
             open('ccEdit');
             setTimeout(() => $(allMode && !it ? 'ccCompany' : 'ccCode').focus(), 30);
         }
@@ -448,6 +556,12 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                 code: $('ccCode').value, name: $('ccName').value, description: $('ccDesc').value,
                 parent_id: $('ccParent').value || null, is_active: $('ccActive').checked,
             };
+            if (owners) {
+                const kind = (document.querySelector('input[name="ccOwnerKind"]:checked') || {}).value || 'none';
+                body.owner_user_id = kind === 'person' ? (ownerPick.value || null) : null;
+                body.owner_group_id = kind === 'group' ? ($('ccOwnerGroup').value || null) : null;
+                body.deputy_user_id = deputyPick.value || null;
+            }
             this.disabled = true;
             try {
                 const d = await (await fetch(API, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json();

@@ -325,6 +325,10 @@ return [
         'manager' => 'ম্যানেজার',
         'reports' => 'তাঁর অধীনস্থ',
         'groups' => 'গ্রুপ',
+        'responsible_for' => 'দায়িত্বে',   // GH #160 Part B
+        'role_owner' => 'মালিক',   // GH #160 Part B
+        'role_deputy' => 'ডেপুটি',   // GH #160 Part B
+        'cc_inactive' => 'নিষ্ক্রিয়',   // GH #160 Part B
         'company' => 'কোম্পানি',
         'source' => 'উৎস',
         'first_seen' => 'প্রথম দেখা',

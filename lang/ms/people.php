@@ -325,6 +325,10 @@ return [
         'manager' => 'Pengurus',
         'reports' => 'Melapor kepadanya',
         'groups' => 'Kumpulan',
+        'responsible_for' => 'Bertanggungjawab atas',   // GH #160 Part B
+        'role_owner' => 'pemilik',   // GH #160 Part B
+        'role_deputy' => 'timbalan',   // GH #160 Part B
+        'cc_inactive' => 'tidak aktif',   // GH #160 Part B
         'company' => 'Syarikat',
         'source' => 'Daripada',
         'first_seen' => 'Mula dilihat',

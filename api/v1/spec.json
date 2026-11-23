@@ -9004,6 +9004,24 @@
                             "in": "body",
                             "desc": "true (default) \/ false",
                             "req": false
+                        },
+                        {
+                            "name": "owner_user_id \/ owner_email",
+                            "in": "body",
+                            "desc": "GH #160: the owner - a person, by id or email address. Must be active and in the cost centre's company. Clears any owner group. null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "owner_group_id \/ owner_group",
+                            "in": "body",
+                            "desc": "The owner as a people group, by id or exact name (ignoring capitals) - for a budget a team shares. Clears any owner person. null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "deputy_user_id \/ deputy_email",
+                            "in": "body",
+                            "desc": "The deputy - a person, by id or email, in the cost centre's company, not the owner. null or \"\" clears it",
+                            "req": false
                         }
                     ],
                     "body": {
@@ -9059,7 +9077,7 @@
                         {
                             "name": "cost_centres",
                             "in": "body",
-                            "desc": "Array of {code, name, description, parent_code, is_active}. code is required; name is required for a code that is new",
+                            "desc": "Each item may also carry owner_email, owner_group (a people group's name) and deputy_email (GH #160) - absent leaves them, \"\" clears them, an address matching nobody in the company is an error. Array of {code, name, description, parent_code, is_active}. code is required; name is required for a code that is new",
                             "req": true
                         },
                         {
@@ -9206,6 +9224,24 @@
                             "name": "is_active",
                             "in": "body",
                             "desc": "true \/ false",
+                            "req": false
+                        },
+                        {
+                            "name": "owner_user_id \/ owner_email",
+                            "in": "body",
+                            "desc": "GH #160: the owner - a person, by id or email address. Must be active and in the cost centre's company. Clears any owner group. null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "owner_group_id \/ owner_group",
+                            "in": "body",
+                            "desc": "The owner as a people group, by id or exact name (ignoring capitals) - for a budget a team shares. Clears any owner person. null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "deputy_user_id \/ deputy_email",
+                            "in": "body",
+                            "desc": "The deputy - a person, by id or email, in the cost centre's company, not the owner. null or \"\" clears it",
                             "req": false
                         }
                     ],

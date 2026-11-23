@@ -325,6 +325,10 @@ return [
         'manager' => 'Manager',
         'reports' => 'Rapporteren aan hen',
         'groups' => 'Groepen',
+        'responsible_for' => 'Verantwoordelijk voor',   // GH #160 Part B
+        'role_owner' => 'eigenaar',   // GH #160 Part B
+        'role_deputy' => 'plaatsvervanger',   // GH #160 Part B
+        'cc_inactive' => 'inactief',   // GH #160 Part B
         'company' => 'Bedrijf',
         'source' => 'Afkomstig uit',
         'first_seen' => 'Eerst gezien',
