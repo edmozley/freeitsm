@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3147 | System            | Fix         | Security -> Trusted Device -> Trust duration now applies to devices already trusted: setting it to 0 turns the skip off for everyone and shortening it shortens existing trust, and the trusted-device cookie is marked Secure on HTTPS (GH #429). |
 
 
 

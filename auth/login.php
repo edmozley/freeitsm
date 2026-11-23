@@ -438,12 +438,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($analyst['totp_enabled'])) {
                     // Check for trusted device cookie — skip MFA if valid
                     $trustedDeviceValid = false;
-                    if (!empty($_COOKIE['trusted_device']) && !empty($analyst['trust_device_enabled'])) {
-                        $tokenHash = hash('sha256', hex2bin($_COOKIE['trusted_device']));
-                        $tdStmt = $conn->prepare("SELECT id FROM trusted_devices WHERE device_token_hash = ? AND analyst_id = ? AND expires_datetime > UTC_TIMESTAMP()");
-                        $tdStmt->execute([$tokenHash, $analyst['id']]);
-                        if ($tdStmt->fetch()) {
-                            $trustedDeviceValid = true;
+                    $tdCookie = (string)($_COOKIE['trusted_device'] ?? '');
+                    if ($tdCookie !== '' && ctype_xdigit($tdCookie) && strlen($tdCookie) % 2 === 0
+                        && !empty($analyst['trust_device_enabled'])) {
+                        // TRAP: the trust duration is read HERE, at sign-in, not only when
+                        // the device was trusted. expires_datetime is fixed when the row is
+                        // written, so on its own it ignores a later change to the setting:
+                        // 0 ("disable entirely") left every trusted device skipping OTP, and
+                        // 30 -> 1 day left them trusted for the old 30 (#429). The device must
+                        // pass BOTH its own expiry and today's duration.
+                        $tdDaysStmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'trusted_device_days'");
+                        $tdDaysStmt->execute();
+                        $trustDays = (int)($tdDaysStmt->fetchColumn() ?: 0);
+                        if ($trustDays > 0) {
+                            $tokenHash = hash('sha256', hex2bin($tdCookie));
+                            $tdStmt = $conn->prepare("SELECT id FROM trusted_devices
+                                                      WHERE device_token_hash = ? AND analyst_id = ?
+                                                        AND expires_datetime > UTC_TIMESTAMP()
+                                                        AND created_datetime > DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? DAY)");
+                            $tdStmt->execute([$tokenHash, $analyst['id'], $trustDays]);
+                            if ($tdStmt->fetch()) {
+                                $trustedDeviceValid = true;
+                            }
                         }
                     }
 

@@ -193,7 +193,13 @@ try {
                                        VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))");
             $insStmt->execute([(int)$analystId, $tokenHash, $_SERVER['HTTP_USER_AGENT'] ?? '', $_SERVER['REMOTE_ADDR'] ?? '', (int)$trustDays]);
 
-            setcookie('trusted_device', $cookieValue, time() + $expirySeconds, '/', '', false, true);
+            setcookie('trusted_device', $cookieValue, [
+                'expires'  => time() + $expirySeconds,
+                'path'     => '/',
+                'secure'   => requestIsHttps(),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
 
             // Clean up expired tokens for this analyst
             $cleanStmt = $conn->prepare("DELETE FROM trusted_devices WHERE analyst_id = ? AND expires_datetime < UTC_TIMESTAMP()");
