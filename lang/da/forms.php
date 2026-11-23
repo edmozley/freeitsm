@@ -307,6 +307,9 @@ return [
         'lookup_src_asset' => 'Aktiver',
         'lookup_src_location' => 'Lokationer',
         'lookup_src_consumable' => 'Forbrugsvarer',   // 5.8.0
+        'lookup_src_cost_centre' => 'Omkostningssteder',   // GH #160
+        'lookup_start_own' => 'Start på anmelderens eget omkostningssted',   // GH #160
+        'lookup_start_own_hint' => 'Formularen åbner med omkostningsstedet fra anmelderens egen post allerede valgt. Anmelderen kan ændre det, hvis anmodningen hører til et andet sted.',   // GH #160
         'lookup_pick' => 'Vælg…',
         'lookup_source' => 'Søg i hvilke poster',
         'options_dropdown' => 'Dropdown-valgmuligheder',
@@ -824,6 +827,8 @@ return [
         'lookup_company_body' => 'De virksomheder, du betjener, fra Personer → Virksomheder - kun dem, den udfyldende person har adgang til. Kan søges på navn, kode, ekstern reference, momsnummer og jeres brugerdefinerede felter for virksomheder. Brug det til "hvilken virksomhed gælder det?". Kun for medarbejdere, aldrig tilgængeligt på kundeportalen.',
         'lookup_location_title' => 'Lokationer',
         'lookup_location_body' => 'Jeres steder, bygninger, etager og lokaler fra System → Lokationer, vist med hele stien, fx "UK > London > Etage 2". Brug det til "hvilket kontor sidder du på?".',
+        'lookup_cost_centre_title' => 'Omkostningssteder',   // GH #160
+        'lookup_cost_centre_body' => 'Jeres virksomheds aktive omkostningssteder fra System → Omkostningssteder, vist som kode og navn - "0010 - Logistik". Brug det til "hvilket budget er det til?". Sæt flueben i Start på anmelderens eget omkostningssted, så åbner formularen på anmelderens; det kan stadig ændres.',   // GH #160
         'lookup_stored' => 'Både navnet og linket til posten bevares. Omdøber du en maskine senere, viser en gammel besvarelse stadig, hvad den viste dengang, mens svaret stadig peger på den rigtige post.',
         'lookup_portal_title' => 'Kunder ser kun deres egne',
         'lookup_portal' => 'Et opslag tilbydes ikke på selvbetjeningsportalen, medmindre du markerer det for det pågældende felt, og en kunde ser kun poster, der hører til deres egen virksomhed. Medarbejderlisten tilbydes aldrig kunder, uanset hvad du markerer. Et opslag, en kunde ikke kan bruge, udelades helt fra formularen på portalen, så et obligatorisk opslag aldrig forhindrer kunden i at sende den.',

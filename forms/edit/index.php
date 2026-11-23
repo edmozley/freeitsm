@@ -110,7 +110,7 @@ foreach ($formActionDefs as $def) {
     <!-- The builder did NOT load these, which is why it kept its own copy of the
          width list — a third hand-maintained list of the same six numbers. The
          preview now shares the walk with the filler and the portal. -->
-    <script src="<?php echo BASE_URL; ?>assets/js/form-logic.js?v=9"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/form-logic.js?v=10"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/form-render.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
@@ -1662,6 +1662,7 @@ foreach ($formActionDefs as $def) {
             { key: 'cmdb',  portalSafe: true },
             { key: 'location', portalSafe: true },   // GH #311
             { key: 'consumable', portalSafe: true },   // Assets -> Consumables (5.8.0)
+            { key: 'cost_centre', portalSafe: true },   // GH #160 Part A
             { key: 'user',  portalSafe: false },
             { key: 'company', portalSafe: false }   // GH #367
         ];
@@ -1677,6 +1678,7 @@ foreach ($formActionDefs as $def) {
             const meta = LOOKUP_SOURCES.find(x => x.key === src);
             if (!meta || !meta.portalSafe) delete fields[i].config.portal_lookup;
             if (src !== 'cmdb') delete fields[i].config.lookup_filters;
+            if (src !== 'cost_centre') delete fields[i].config.lookup_start_own;
             renderFields(); markDirty();
         }
         // "Only objects of this kind" (discussion #330): the first of a LIST of filters
@@ -1693,6 +1695,12 @@ foreach ($formActionDefs as $def) {
             const rest = (Array.isArray(fields[i].config.lookup_filters) ? fields[i].config.lookup_filters : []).filter(x => x && x.type !== 'cmdb_class');
             if (classId) rest.push({ type: 'cmdb_class', class_id: parseInt(classId, 10) });
             if (rest.length) fields[i].config.lookup_filters = rest; else delete fields[i].config.lookup_filters;
+            markDirty();
+        }
+        /** GH #160 Part A: start a cost centre lookup on the requester's own cost centre. */
+        function setLookupStartOwn(i, on) {
+            fields[i].config = fields[i].config || {};
+            if (on) fields[i].config.lookup_start_own = true; else delete fields[i].config.lookup_start_own;
             markDirty();
         }
         function setLookupPortal(i, on) {
@@ -2036,6 +2044,12 @@ foreach ($formActionDefs as $def) {
                                     <option value="">${esc(window.t('forms.field.lookup_class_any'))}</option>
                                     ${window.FORMS_CMDB_CLASSES.map(c => `<option value="${c.id}" ${lookupClassOf(f) === String(c.id) ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
                                 </select>` : ''}
+                            ${src === 'cost_centre' ? `
+                                <label class="field-required-toggle" style="margin-top:8px;" title="${escAttr(window.t('forms.field.lookup_start_own_hint'))}">
+                                    <input type="checkbox" ${f.config && f.config.lookup_start_own ? 'checked' : ''}
+                                           onchange="setLookupStartOwn(${i}, this.checked)">
+                                    ${esc(window.t('forms.field.lookup_start_own'))}
+                                </label>` : ''}
                             ${meta && meta.portalSafe ? `
                                 <label class="field-required-toggle" style="margin-top:8px;">
                                     <input type="checkbox" ${f.config && f.config.portal_lookup ? 'checked' : ''}

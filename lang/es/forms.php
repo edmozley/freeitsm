@@ -307,6 +307,9 @@ return [
         'lookup_src_asset' => 'Activos',
         'lookup_src_location' => 'Ubicaciones',
         'lookup_src_consumable' => 'Consumibles',   // 5.8.0
+        'lookup_src_cost_centre' => 'Centros de coste',   // GH #160
+        'lookup_start_own' => 'Empezar con el centro de coste del propio solicitante',   // GH #160
+        'lookup_start_own_hint' => 'El formulario se abre con el centro de coste del registro del propio solicitante ya elegido. Puede cambiarlo si la solicitud corresponde a otro.',   // GH #160
         'lookup_pick' => 'Elige…',
         'lookup_source' => 'Buscar en qué registros',
         'options_dropdown' => 'Opciones del desplegable',
@@ -824,6 +827,8 @@ return [
         'lookup_company_body' => 'Las empresas a las que das servicio, de Personas → Empresas: solo las que puede ver quien rellena el formulario. Se busca por nombre, código, referencia externa, NIF y los campos personalizados de empresa. Úsalo para "¿para qué empresa es esto?". Solo para personal, nunca disponible en el portal de clientes.',
         'lookup_location_title' => 'Ubicaciones',
         'lookup_location_body' => 'Sus sedes, edificios, plantas y salas de Sistema → Ubicaciones, con la ruta completa, como «UK > London > Planta 2». Úselo para «¿en qué oficina está?».',
+        'lookup_cost_centre_title' => 'Centros de coste',   // GH #160
+        'lookup_cost_centre_body' => 'Los centros de coste activos de su empresa de Sistema → Centros de coste, con código y nombre - «0010 - Logística». Úselo para «¿para qué presupuesto es?». Marque Empezar con el centro de coste del propio solicitante y el formulario se abre con el suyo; puede cambiarlo.',   // GH #160
         'lookup_stored' => 'Se conservan tanto el nombre como el enlace al registro. Si renombras una máquina más tarde, un envío antiguo sigue diciendo lo que decía en su momento, mientras la respuesta sigue apuntando al registro correcto.',
         'lookup_portal_title' => 'Los clientes solo ven lo suyo',
         'lookup_portal' => 'Una búsqueda no se ofrece en el portal de autoservicio a menos que la marque para ese campo, y un cliente solo ve registros que pertenecen a su propia empresa. El directorio de personal nunca se ofrece a los clientes, marque lo que marque. Una búsqueda que un cliente no puede usar se omite por completo del formulario en el portal, de modo que una obligatoria nunca le impide enviarlo.',

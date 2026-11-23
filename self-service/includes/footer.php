@@ -48,7 +48,7 @@ $pageData    = $pageData ?? [];
          analyst side (forms/fill.php, the builder preview) and mirroring
          includes/form_logic.php, which is what actually decides on submit. Loaded
          per-page: only the catalogue renders a form. -->
-    <script src="../assets/js/form-logic.js?v=9"></script>
+    <script src="../assets/js/form-logic.js?v=10"></script>
     <script src="../assets/js/form-render.js?v=3"></script>
     <?php endif; ?>
     <?php if (!empty($needsRecorder)): ?>

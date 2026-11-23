@@ -306,6 +306,9 @@ return [
         'lookup_src_asset' => 'Assets',
         'lookup_src_location' => 'Locaties',
         'lookup_src_consumable' => 'Verbruiksartikelen',
+        'lookup_src_cost_centre' => 'Kostenplaatsen',   // GH #160
+        'lookup_start_own' => 'Beginnen bij de eigen kostenplaats van de aanvrager',   // GH #160
+        'lookup_start_own_hint' => 'Het formulier opent met de kostenplaats uit het eigen record van de aanvrager al gekozen. De aanvrager kan die wijzigen als de aanvraag ergens anders hoort.',   // GH #160
         'lookup_pick' => 'Kiezen…',
         'lookup_source' => 'In welke records zoeken',
         'options_dropdown' => 'Vervolgkeuzeopties',
@@ -823,6 +826,8 @@ return [
         'lookup_company_body' => 'De bedrijven die je bedient, uit Personen → Bedrijven - alleen de bedrijven die de invuller kan bereiken. Doorzoekbaar op naam, code, externe referentie, btw-nummer en je aangepaste bedrijfsvelden. Gebruik het voor "voor welk bedrijf is dit?". Alleen voor medewerkers, nooit beschikbaar op het klantenportaal.',
         'lookup_location_title' => 'Locaties',
         'lookup_location_body' => 'Je vestigingen, gebouwen, verdiepingen en ruimtes uit Systeem → Locaties, getoond als volledig pad zoals "UK > Londen > Verdieping 2". Gebruik het voor "op welk kantoor zit je?".',
+        'lookup_cost_centre_title' => 'Kostenplaatsen',   // GH #160
+        'lookup_cost_centre_body' => 'De actieve kostenplaatsen van je bedrijf uit Systeem → Kostenplaatsen, getoond als code en naam - "0010 - Logistiek". Gebruik het voor "voor welk budget is dit?". Vink Beginnen bij de eigen kostenplaats van de aanvrager aan en het formulier opent op die van de aanvrager; die kan het wijzigen.',   // GH #160
         'lookup_stored' => 'Zowel de naam als de koppeling naar het record worden bewaard. Hernoem je later een machine, dan zegt een oude inzending nog steeds wat hij destijds zei, terwijl het antwoord nog naar het juiste record verwijst.',
         'lookup_portal_title' => 'Klanten zien alleen hun eigen gegevens',
         'lookup_portal' => 'Een opzoekveld wordt niet aangeboden op het selfserviceportaal tenzij je het voor dat veld aanvinkt, en een klant ziet alleen records van zijn eigen bedrijf. De medewerkersmap wordt nooit aan klanten aangeboden, wat je ook aanvinkt. Een opzoekveld dat een klant niet kan gebruiken, wordt op het portaal helemaal van het formulier weggelaten, zodat een verplicht veld hen nooit belet het te versturen.',

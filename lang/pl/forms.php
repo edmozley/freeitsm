@@ -307,6 +307,9 @@ return [
         'lookup_src_asset' => 'Zasoby',
         'lookup_src_location' => 'Lokalizacje',
         'lookup_src_consumable' => 'Materiały eksploatacyjne',   // 5.8.0
+        'lookup_src_cost_centre' => 'Centra kosztów',   // GH #160
+        'lookup_start_own' => 'Zacznij od centrum kosztów zgłaszającego',   // GH #160
+        'lookup_start_own_hint' => 'Formularz otwiera się z już wybranym centrum kosztów z rekordu zgłaszającego. Zgłaszający może je zmienić, jeśli wniosek dotyczy innego miejsca.',   // GH #160
         'lookup_pick' => 'Wybierz…',
         'lookup_source' => 'Przeszukiwane rekordy',
         'options_dropdown' => 'Opcje listy rozwijanej',
@@ -824,6 +827,8 @@ return [
         'lookup_company_body' => 'Firmy, które obsługujesz, z Osoby → Firmy - tylko te, do których ma dostęp osoba wypełniająca formularz. Wyszukiwanie po nazwie, kodzie, odnośniku zewnętrznym, NIP i własnych polach firm. Użyj go dla pytania „dla której firmy?”. Tylko dla pracowników, nigdy niedostępne w portalu klienta.',
         'lookup_location_title' => 'Lokalizacje',
         'lookup_location_body' => 'Wasze siedziby, budynki, piętra i pomieszczenia z System → Lokalizacje, pokazane z pełną ścieżką, np. „UK > London > Piętro 2". Do pytań typu „W którym biurze jesteś?".',
+        'lookup_cost_centre_title' => 'Centra kosztów',   // GH #160
+        'lookup_cost_centre_body' => 'Aktywne centra kosztów Waszej firmy z System → Centra kosztów, pokazane jako kod i nazwa - „0010 - Logistyka". Do pytań typu „Z którego budżetu?". Zaznacz Zacznij od centrum kosztów zgłaszającego, a formularz otworzy się na jego centrum; można je zmienić.',   // GH #160
         'lookup_stored' => 'Zachowywana jest zarówno nazwa, jak i odnośnik do rekordu. Zmień później nazwę urządzenia, a stare zgłoszenie nadal będzie mówić to, co mówiło wtedy, podczas gdy odpowiedź nadal wskazuje właściwy rekord.',
         'lookup_portal_title' => 'Klienci widzą tylko swoje',
         'lookup_portal' => 'Wyszukiwanie nie jest oferowane w portalu samoobsługowym, dopóki nie zaznaczysz go dla danego pola, a klient widzi wyłącznie rekordy należące do jego własnej firmy. Katalog pracowników nigdy nie jest oferowany klientom, cokolwiek zaznaczysz. Wyszukiwanie, z którego klient nie może skorzystać, jest w portalu całkowicie pomijane w formularzu, więc wymagane pole nigdy nie uniemożliwia mu wysłania formularza.',

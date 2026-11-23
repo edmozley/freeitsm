@@ -306,6 +306,9 @@ return [
         'lookup_src_asset' => 'Aset',
         'lookup_src_location' => 'Lokasi',
         'lookup_src_consumable' => 'Item guna habis',
+        'lookup_src_cost_centre' => 'Pusat kos',   // GH #160
+        'lookup_start_own' => 'Mula pada pusat kos pemohon sendiri',   // GH #160
+        'lookup_start_own_hint' => 'Borang dibuka dengan pusat kos pada rekod pemohon sendiri sudah dipilih. Mereka boleh menukarnya jika permintaan itu milik tempat lain.',   // GH #160
         'lookup_pick' => 'Pilih…',
         'lookup_source' => 'Cari rekod yang mana',
         'options_dropdown' => 'Pilihan menu lungsur',
@@ -823,6 +826,8 @@ return [
         'lookup_company_body' => 'Syarikat yang anda layani, daripada Orang → Syarikat - hanya yang boleh dicapai oleh orang yang mengisinya. Boleh dicari mengikut nama, kod, rujukan luaran, ID cukai dan medan tersuai syarikat anda. Gunakannya untuk "syarikat mana ini untuk?". Kakitangan sahaja, tidak pernah tersedia pada portal pelanggan.',
         'lookup_location_title' => 'Lokasi',
         'lookup_location_body' => 'Tapak, bangunan, tingkat dan bilik anda daripada Sistem → Lokasi, dipaparkan sebagai laluan penuh seperti "UK > London > Floor 2". Gunakannya untuk "anda berada di pejabat mana?".',
+        'lookup_cost_centre_title' => 'Pusat kos',   // GH #160
+        'lookup_cost_centre_body' => 'Pusat kos aktif syarikat anda daripada Sistem → Pusat Kos, dipaparkan sebagai kod dan nama - "0010 - Logistik". Gunakannya untuk "ini untuk bajet yang mana?". Tandakan Mula pada pusat kos pemohon sendiri dan borang dibuka pada pusat kos mereka; mereka boleh menukarnya.',   // GH #160
         'lookup_stored' => 'Kedua-dua nama dan pautan ke rekod itu disimpan. Namakan semula mesin itu kemudian, dan penyerahan lama masih menyatakan apa yang dinyatakannya pada masa itu, sementara jawapan itu tetap menunjuk ke rekod yang betul.',
         'lookup_portal_title' => 'Pelanggan hanya melihat milik mereka sendiri',
         'lookup_portal' => 'Carian tidak ditawarkan pada portal layan diri melainkan anda menandakannya untuk medan itu, dan pelanggan hanya melihat rekod milik syarikat mereka sendiri. Direktori kakitangan tidak pernah ditawarkan kepada pelanggan, apa pun yang anda tandakan. Carian yang tidak boleh digunakan pelanggan ditinggalkan daripada borang pada portal sepenuhnya, jadi yang wajib tidak pernah menghalang mereka menghantarnya.',

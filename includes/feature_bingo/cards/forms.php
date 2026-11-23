@@ -280,4 +280,17 @@ return [
         'link'     => 'forms/help/recipes.php#behalf',
         'check'    => ['rows', 'forms', "submission_actions LIKE '%requester_question%' AND is_demo = 0"],
     ],
+    [
+        // GH #160 Part A
+        'id'       => 'forms.cost_centre_lookup',
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Requests charged to a cost centre',
+        'what'     => 'A lookup question that picks one of the company\'s cost centres - "0010 - Logistics" - optionally starting on the requester\'s own.',
+        'why'      => 'Whoever approves or fulfils the request sees whose budget it is, without asking.',
+        'done'     => 'At least one form asks for a cost centre.',
+        'link'     => 'forms/',
+        'check'    => ['rows', 'form_fields', "field_type = 'lookup' AND config LIKE '%\"lookup_source\":\"cost_centre\"%' AND is_deleted = 0 AND is_demo = 0"],
+    ],
 ];

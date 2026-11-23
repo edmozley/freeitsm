@@ -306,6 +306,9 @@ return [
         'lookup_src_asset' => 'Eigedelar',
         'lookup_src_location' => 'Stader',
         'lookup_src_consumable' => 'Forbruksartiklar',
+        'lookup_src_cost_centre' => 'Kostnadsstader',   // GH #160
+        'lookup_start_own' => 'Start på kostnadsstadet til bestillaren',   // GH #160
+        'lookup_start_own_hint' => 'Skjemaet opnar med kostnadsstadet frå oppføringa til bestillaren alt valt. Bestillaren kan endre det om førespurnaden høyrer heime ein annan stad.',   // GH #160
         'lookup_pick' => 'Vel…',
         'lookup_source' => 'Kva skal det søkjast i',
         'options_dropdown' => 'Val i nedtrekkslista',
@@ -823,6 +826,8 @@ return [
         'lookup_company_body' => 'Selskapa du betener, frå Personar → Selskap - berre dei den som fyller ut skjemaet, har tilgang til. Kan søkjast på namn, kode, ekstern referanse, organisasjonsnummer og dei eigendefinerte felta dine for selskap. Bruk det for «kva selskap gjeld dette?». Berre for tilsette, aldri tilgjengeleg i kundeportalen.',
         'lookup_location_title' => 'Stader',
         'lookup_location_body' => 'Stadene, bygga, etasjane og romma dine frå System → Stader, viste som ein full sti slik som «UK > London > Floor 2». Bruk det for «kva kontor er du på?».',
+        'lookup_cost_centre_title' => 'Kostnadsstader',   // GH #160
+        'lookup_cost_centre_body' => 'Dei aktive kostnadsstadene til firmaet frå System → Kostnadsstader, viste som kode og namn - «0010 - Logistikk». Bruk det for «kva budsjett er dette til?». Kryss av for Start på kostnadsstadet til bestillaren, så opnar skjemaet på kostnadsstadet til bestillaren; det kan framleis endrast.',   // GH #160
         'lookup_stored' => 'Både namnet og lenkja til posten blir tekne vare på. Gjev du maskina eit nytt namn seinare, seier ei gammal innsending framleis det ho sa den gongen, samtidig som svaret framleis peikar på rett post.',
         'lookup_portal_title' => 'Kundar ser berre sine eigne',
         'lookup_portal' => 'Eit oppslag blir ikkje tilbode i sjølvbetjeningsportalen med mindre du hakar det av for det feltet, og ein kunde ser berre postar som høyrer til sitt eige selskap. Tilsettkatalogen blir aldri tilbode til kundar, same kva du hakar av. Eit oppslag ein kunde ikkje kan bruke, blir halde heilt utanfor skjemaet i portalen, så eit påkravd oppslag stoppar dei aldri frå å sende det.',

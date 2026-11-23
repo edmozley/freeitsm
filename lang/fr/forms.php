@@ -307,6 +307,9 @@ return [
         'lookup_src_asset' => 'Actifs',
         'lookup_src_location' => 'Emplacements',
         'lookup_src_consumable' => 'Consommables',   // 5.8.0
+        'lookup_src_cost_centre' => 'Centres de coûts',   // GH #160
+        'lookup_start_own' => 'Partir du centre de coûts du demandeur',   // GH #160
+        'lookup_start_own_hint' => 'Le formulaire s\'ouvre avec le centre de coûts de la fiche du demandeur déjà choisi. Il peut le changer si la demande relève d\'un autre centre.',   // GH #160
         'lookup_pick' => 'Choisir…',
         'lookup_source' => 'Rechercher dans quels enregistrements',
         'options_dropdown' => 'Options de la liste déroulante',
@@ -824,6 +827,8 @@ return [
         'lookup_company_body' => 'Les entreprises que vous servez, depuis Personnes → Entreprises - uniquement celles auxquelles la personne qui remplit le formulaire a accès. Recherche par nom, code, référence externe, numéro fiscal et vos champs personnalisés d\'entreprise. Utilisez-le pour « pour quelle entreprise ? ». Réservé au personnel, jamais disponible sur le portail libre-service.',
         'lookup_location_title' => 'Emplacements',
         'lookup_location_body' => 'Vos sites, bâtiments, étages et salles de Système → Emplacements, affichés avec le chemin complet, par exemple « UK > London > Étage 2 ». Pour « dans quel bureau êtes-vous ? ».',
+        'lookup_cost_centre_title' => 'Centres de coûts',   // GH #160
+        'lookup_cost_centre_body' => 'Les centres de coûts actifs de votre société, de Système → Centres de coûts, affichés par code et nom - « 0010 - Logistique ». Pour « sur quel budget ? ». Cochez Partir du centre de coûts du demandeur et le formulaire s\'ouvre sur le sien ; il peut le changer.',   // GH #160
         'lookup_stored' => 'Le nom et le lien vers l\'enregistrement sont tous deux conservés. Renommez une machine plus tard, et une ancienne soumission affiche toujours ce qu\'elle indiquait à l\'époque, tandis que la réponse continue de pointer vers le bon enregistrement.',
         'lookup_portal_title' => 'Les clients ne voient que les leurs',
         'lookup_portal' => 'Une recherche n\'est pas proposée sur le portail libre-service sauf si vous la cochez pour ce champ, et un client ne voit que les enregistrements appartenant à sa propre société. L\'annuaire du personnel n\'est jamais proposé aux clients, quoi que vous cochiez. Une recherche qu\'un client ne peut pas utiliser est entièrement omise du formulaire sur le portail, si bien qu\'une recherche obligatoire ne l\'empêche jamais de l\'envoyer.',

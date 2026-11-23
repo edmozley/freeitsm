@@ -306,6 +306,9 @@ return [
         'lookup_src_asset' => 'Ressurser',
         'lookup_src_location' => 'Steder',
         'lookup_src_consumable' => 'Forbruksartikler',
+        'lookup_src_cost_centre' => 'Kostnadssteder',   // GH #160
+        'lookup_start_own' => 'Start på bestillerens eget kostnadssted',   // GH #160
+        'lookup_start_own_hint' => 'Skjemaet åpnes med kostnadsstedet fra bestillerens egen oppføring allerede valgt. Bestilleren kan endre det hvis forespørselen hører hjemme et annet sted.',   // GH #160
         'lookup_pick' => 'Velg…',
         'lookup_source' => 'Søk i hvilke oppføringer',
         'options_dropdown' => 'Alternativer i nedtrekkslisten',
@@ -823,6 +826,8 @@ return [
         'lookup_company_body' => 'Selskapene du betjener, fra Personer → Selskaper - bare de som personen som fyller ut kan nå. Kan søkes etter navn, kode, ekstern referanse, organisasjonsnummer og dine egendefinerte selskapsfelt. Bruk det til «hvilket selskap gjelder dette?». Bare for ansatte, aldri tilgjengelig i kundeportalen.',
         'lookup_location_title' => 'Steder',
         'lookup_location_body' => 'Områdene, byggene, etasjene og rommene dine fra System → Steder, vist som en full sti som «UK > London > Floor 2». Bruk det til «hvilket kontor er du på?».',
+        'lookup_cost_centre_title' => 'Kostnadssteder',   // GH #160
+        'lookup_cost_centre_body' => 'Firmaets aktive kostnadssteder fra System → Kostnadssteder, vist som kode og navn - «0010 - Logistikk». Bruk det til «hvilket budsjett er dette til?». Kryss av for Start på bestillerens eget kostnadssted, så åpnes skjemaet på bestillerens; det kan fortsatt endres.',   // GH #160
         'lookup_stored' => 'Både navnet og koblingen til oppføringen beholdes. Gir du maskinen et nytt navn senere, sier en gammel innsending fortsatt det den sa den gangen, samtidig som svaret fremdeles peker på riktig oppføring.',
         'lookup_portal_title' => 'Kunder ser bare sine egne',
         'lookup_portal' => 'Et oppslag tilbys ikke i selvbetjeningsportalen med mindre du krysser det av for det feltet, og en kunde ser bare poster som tilhører deres eget selskap. Ansattkatalogen tilbys aldri kunder, uansett hva du krysser av. Et oppslag en kunde ikke kan bruke utelates helt fra skjemaet i portalen, så et obligatorisk ett hindrer dem aldri i å sende det.',

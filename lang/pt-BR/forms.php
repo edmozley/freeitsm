@@ -306,6 +306,9 @@ return [
         'lookup_src_asset' => 'Ativos',
         'lookup_src_location' => 'Locais',
         'lookup_src_consumable' => 'Itens de consumo',
+        'lookup_src_cost_centre' => 'Centros de custo',   // GH #160
+        'lookup_start_own' => 'Começar pelo centro de custo do próprio solicitante',   // GH #160
+        'lookup_start_own_hint' => 'O formulário abre com o centro de custo do registro do próprio solicitante já escolhido. Ele pode alterá-lo se a solicitação for de outro lugar.',   // GH #160
         'lookup_pick' => 'Escolha…',
         'lookup_source' => 'Pesquisar quais registros',
         'options_dropdown' => 'Opções da lista suspensa',
@@ -823,6 +826,8 @@ return [
         'lookup_company_body' => 'As empresas que você atende, de Pessoas → Empresas - apenas aquelas que a pessoa que preenche pode acessar. Pesquisável por nome, código, referência externa, ID fiscal e seus campos personalizados de empresa. Use para "para qual empresa é isto?". Somente para a equipe, nunca disponível no portal do cliente.',
         'lookup_location_title' => 'Locais',
         'lookup_location_body' => 'Seus locais, prédios, andares e salas de Sistema → Locais, exibidos como um caminho completo, como "Reino Unido > Londres > Andar 2". Use para "em qual escritório você está?".',
+        'lookup_cost_centre_title' => 'Centros de custo',   // GH #160
+        'lookup_cost_centre_body' => 'Os centros de custo ativos da sua empresa de Sistema → Centros de custo, exibidos como código e nome - "0010 - Logística". Use para "para qual orçamento é isto?". Marque Começar pelo centro de custo do próprio solicitante e o formulário abre no dele; ele pode alterá-lo.',   // GH #160
         'lookup_stored' => 'Tanto o nome quanto o vínculo com o registro são guardados. Renomeie uma máquina depois e um envio antigo continua dizendo o que dizia na época, enquanto a resposta continua apontando para o registro certo.',
         'lookup_portal_title' => 'Clientes só veem os próprios registros',
         'lookup_portal' => 'Uma consulta não é oferecida no portal de autoatendimento a menos que você a marque para esse campo, e um cliente só vê registros da própria empresa. O diretório da equipe nunca é oferecido aos clientes, seja o que for que você marque. Uma consulta que um cliente não pode usar é deixada de fora do formulário no portal por completo, então uma obrigatória nunca o impede de enviá-lo.',

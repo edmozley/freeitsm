@@ -326,6 +326,23 @@ class FormsService
             // browse, whatever a form builder ticks.
             'portal_safe' => false,
         ],
+        // GH #160 Part A: the company's cost centres (System -> Cost Centres). Labelled
+        // "0010 - Logistics" (`label_sql`): two companies can both have a 0010, and a
+        // code alone means nothing to most people. Active ones only - one made inactive
+        // later stays on old requests, the rule cost centres already follow.
+        // `config.lookup_start_own` starts the answer on the requester's own cost centre.
+        'cost_centre' => [
+            'table'       => 'cost_centres',
+            'id_col'      => 'id',
+            'label_col'   => 'name',
+            'label_sql'   => "CONCAT(`code`, ' - ', `name`)",
+            'search_cols' => ['code', 'name'],
+            'tenant_col'  => 'tenant_id',
+            'where'       => '`is_active` = 1',
+            // A budget code and its name. Safe for a customer charging a request to
+            // their own company's cost centre - still off until the form owner ticks it.
+            'portal_safe' => true,
+        ],
         // GH #367: the companies themselves (People -> Companies). A company IS a
         // tenant, so its scope column is its own id: an analyst is offered exactly
         // the companies they can reach. Inactive companies are not offered.
@@ -371,6 +388,7 @@ class FormsService
         'consumable' => ['name', 'part_number'],
         'cmdb'       => ['name'],
         'location'   => ['name'],
+        'cost_centre' => ['code', 'name'],   // GH #160
     ];
 
     /**
@@ -648,6 +666,10 @@ class FormsService
 
         // A row with no label is unpickable — it would render as an empty option.
         $where[] = "`{$s['label_col']}` IS NOT NULL AND `{$s['label_col']}` <> ''";
+        // The label a person sees: one column, or a registry expression built from
+        // several (cost centres: "0010 - Logistics"). Both come from the registry, never
+        // the request, so interpolating them is safe.
+        $labelExpr = $s['label_sql'] ?? "`{$s['label_col']}`";
 
         if ($tenantIds !== null) {
             [$clause, $tParams] = self::lookupTenantClause($conn, $s, $tenantIds);
@@ -658,10 +680,10 @@ class FormsService
         $where  = array_merge($where, $fWhere);
         $params = array_merge($params, $fParams);
 
-        $sql = "SELECT `{$s['id_col']}` AS id, `{$s['label_col']}` AS label
+        $sql = "SELECT `{$s['id_col']}` AS id, $labelExpr AS label
                   FROM `{$s['table']}`"
              . ($where ? ' WHERE ' . implode(' AND ', $where) : '')
-             . " ORDER BY `{$s['label_col']}` LIMIT $limit";
+             . " ORDER BY $labelExpr LIMIT $limit";
 
         try {
             $stmt = $conn->prepare($sql);
@@ -751,6 +773,39 @@ class FormsService
     }
 
     /**
+     * The answer a lookup starts on, or null: today only a cost centre lookup with
+     * **Start on the requester's own cost centre** ticked (GH #160 Part A), which
+     * starts on the requester's own `users.cost_centre_id`.
+     *
+     * The record goes through the SAME check a submitted answer does - in the
+     * requester's company, active - so the form never starts on something the
+     * submit would refuse. The requester can still change it.
+     *
+     * @param array $field  a form_fields row (config holds the source and the tick)
+     * @param int $userId  the requester's users.id
+     * @return ?array{id:int,label:string}
+     */
+    public static function lookupDefaultFor(PDO $conn, array $field, int $userId): ?array
+    {
+        if ($userId <= 0 || self::lookupSourceOf($field) !== 'cost_centre') return null;
+        $config = $field['config'] ?? null;
+        if (is_string($config)) $config = json_decode($config, true);
+        if (!is_array($config) || empty($config['lookup_start_own'])) return null;
+        try {
+            if (!self::lookupColumnExists($conn, 'users', 'cost_centre_id')) return null;
+            $st = $conn->prepare('SELECT cost_centre_id FROM users WHERE id = ?');
+            $st->execute([$userId]);
+            $id = (int)$st->fetchColumn();
+            if ($id <= 0 || !self::lookupValueAllowed($conn, 'cost_centre', $id, self::lookupPortalScope($conn, $userId))) return null;
+            $label = self::lookupRecordLabel($conn, 'cost_centre', $id);
+            return $label !== null ? ['id' => $id, 'label' => $label] : null;
+        } catch (Throwable $e) {
+            error_log('FormsService::lookupDefaultFor: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * A record's own name, so a stored answer says what the record is called rather
      * than what the post claimed. Null when it has none, which is also why the
      * search would never have offered it.
@@ -761,7 +816,8 @@ class FormsService
     private static function lookupRecordLabel(PDO $conn, string $source, int $id): ?string
     {
         $s = self::LOOKUP_SOURCES[$source];
-        $stmt = $conn->prepare("SELECT `{$s['label_col']}` FROM `{$s['table']}` WHERE `{$s['id_col']}` = ?");
+        $labelExpr = $s['label_sql'] ?? "`{$s['label_col']}`";
+        $stmt = $conn->prepare("SELECT $labelExpr FROM `{$s['table']}` WHERE `{$s['id_col']}` = ?");
         $stmt->execute([$id]);
         $label = trim((string)$stmt->fetchColumn());
         if ($label !== '' && !empty($s['path_parent_col'])) {
@@ -3268,6 +3324,15 @@ class FormsService
                     "fields[{$i}]: unknown width '{$w}'. One of: " . implode(', ', self::FIELD_WIDTHS) . '.');
             } else {
                 $config['width'] = (int)$w;
+            }
+        }
+        /* GH #160 Part A: "Start on the requester's own cost centre" - meaningful only on
+           a cost centre lookup, stored as true or not at all. */
+        if (array_key_exists('lookup_start_own', $config)) {
+            if ($type === 'lookup' && ($config['lookup_source'] ?? null) === 'cost_centre' && !empty($config['lookup_start_own'])) {
+                $config['lookup_start_own'] = true;
+            } else {
+                unset($config['lookup_start_own']);
             }
         }
         /* A lookup's filters (discussion #330): only known kinds, on a source that

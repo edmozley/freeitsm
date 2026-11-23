@@ -80,6 +80,11 @@ try {
     // not asked, so a required one never blocks the customer.
     $form['fields'] = array_values(array_filter($form['fields'],
         fn($f) => $f['field_type'] !== 'lookup' || FormsService::lookupPortalAllowed($f)));
+    // GH #160 Part A: a cost centre lookup that starts on the requester's own.
+    foreach ($form['fields'] as &$lf) {
+        if ($lf['field_type'] === 'lookup' && ($d = FormsService::lookupDefaultFor($conn, $lf, (int)$_SESSION['ss_user_id']))) $lf['lookup_default'] = $d;
+    }
+    unset($lf);
 
     /* The same resolved layout the analyst side gets, from the same service —
        a customer must see the form laid out the way it was designed, not a

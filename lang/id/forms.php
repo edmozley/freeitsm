@@ -307,6 +307,9 @@ return [
         'lookup_src_asset' => 'Aset',
         'lookup_src_location' => 'Lokasi',
         'lookup_src_consumable' => 'Barang habis pakai',   // 5.8.0
+        'lookup_src_cost_centre' => 'Pusat biaya',   // GH #160
+        'lookup_start_own' => 'Mulai dari pusat biaya milik peminta',   // GH #160
+        'lookup_start_own_hint' => 'Formulir terbuka dengan pusat biaya dari data peminta sudah terpilih. Peminta dapat mengubahnya jika permintaan itu untuk tempat lain.',   // GH #160
         'lookup_pick' => 'Pilih…',
         'lookup_source' => 'Cari rekaman yang mana',
         'options_dropdown' => 'Opsi dropdown',
@@ -824,6 +827,8 @@ return [
         'lookup_company_body' => 'Perusahaan yang Anda layani, dari Orang → Perusahaan - hanya yang dapat diakses oleh orang yang mengisi formulir. Dapat dicari berdasarkan nama, kode, referensi eksternal, NPWP, dan bidang kustom perusahaan Anda. Gunakan untuk "untuk perusahaan mana ini?". Hanya staf, tidak pernah tersedia di portal pelanggan.',
         'lookup_location_title' => 'Lokasi',
         'lookup_location_body' => 'Situs, gedung, lantai, dan ruangan Anda dari Sistem → Lokasi, ditampilkan dengan jalur lengkap seperti "UK > London > Lantai 2". Gunakan untuk "Anda di kantor mana?".',
+        'lookup_cost_centre_title' => 'Pusat biaya',   // GH #160
+        'lookup_cost_centre_body' => 'Pusat biaya aktif perusahaan Anda dari Sistem → Pusat Biaya, ditampilkan sebagai kode dan nama - "0010 - Logistik". Gunakan untuk "anggaran mana untuk ini?". Centang Mulai dari pusat biaya milik peminta dan formulir terbuka pada pusat biaya mereka; mereka dapat mengubahnya.',   // GH #160
         'lookup_stored' => 'Nama dan tautan ke rekaman sama-sama disimpan. Ganti nama mesin di kemudian hari dan kiriman lama tetap menyebutkan apa yang tertulis saat itu, sementara jawabannya tetap menunjuk ke rekaman yang benar.',
         'lookup_portal_title' => 'Pelanggan hanya melihat milik mereka sendiri',
         'lookup_portal' => 'Pencarian tidak ditawarkan di portal swalayan kecuali Anda mencentangnya untuk bidang tersebut, dan pelanggan hanya melihat data milik perusahaannya sendiri. Direktori staf tidak pernah ditawarkan kepada pelanggan, apa pun yang Anda centang. Pencarian yang tidak dapat digunakan pelanggan dihilangkan sepenuhnya dari formulir di portal, sehingga bidang wajib tidak pernah menghalangi mereka mengirimkannya.',

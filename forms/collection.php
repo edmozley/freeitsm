@@ -41,7 +41,7 @@ $translationNamespaces = ['common', 'forms'];
     <script src="../assets/js/tz.js?v=5"></script>
     <!-- For FormLogic.formatDateValue() — date answers are naive local values and must
          NOT go through Tz, which would shift them into the reader's timezone. -->
-    <script src="../assets/js/form-logic.js?v=9"></script>
+    <script src="../assets/js/form-logic.js?v=10"></script>
     <!-- The shared PDF writer (PDFKit + bundled fonts, every language - GH #254). A
          table QUESTION is drawn as a real table in the PDF, by its autoTable(). -->
     <script src="../assets/js/pdf-writer.js?v=3"></script>

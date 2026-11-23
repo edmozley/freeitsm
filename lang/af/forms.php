@@ -306,6 +306,9 @@ return [
         'lookup_src_asset' => 'Bates',
         'lookup_src_location' => 'Liggings',
         'lookup_src_consumable' => 'Verbruiksitems',
+        'lookup_src_cost_centre' => 'Kostesentrums',   // GH #160
+        'lookup_start_own' => 'Begin op die versoeker se eie kostesentrum',   // GH #160
+        'lookup_start_own_hint' => 'Die vorm maak oop met die kostesentrum op die versoeker se eie rekord reeds gekies. Hulle kan dit verander as die versoek elders hoort.',   // GH #160
         'lookup_pick' => 'Kies…',
         'lookup_source' => 'Soek watter rekords',
         'options_dropdown' => 'Aftreklys-opsies',
@@ -823,6 +826,8 @@ return [
         'lookup_company_body' => 'Die maatskappye wat jy bedien, uit Mense → Maatskappye - slegs dié wat die persoon wat dit invul kan bereik. Deursoekbaar volgens naam, kode, eksterne verwysing, belasting-ID en jou maatskappy se pasgemaakte velde. Gebruik dit vir "vir watter maatskappy is dit?". Slegs personeel, nooit beskikbaar op die kliëntportaal nie.',
         'lookup_location_title' => 'Liggings',
         'lookup_location_body' => 'Jou terreine, geboue, vloere en kamers uit Stelsel → Liggings, gewys as \'n volle pad soos "VK > Londen > Vloer 2". Gebruik dit vir "in watter kantoor is jy?".',
+        'lookup_cost_centre_title' => 'Kostesentrums',   // GH #160
+        'lookup_cost_centre_body' => 'Jou maatskappy se aktiewe kostesentrums uit Stelsel → Kostesentrums, gewys as kode en naam - "0010 - Logistiek". Gebruik dit vir "vir watter begroting is dit?". Merk Begin op die versoeker se eie kostesentrum en die vorm maak oop op hulle s\'n; hulle kan dit verander.',   // GH #160
         'lookup_stored' => 'Beide die naam en die skakel na die rekord word behou. Hernoem \'n masjien later en \'n ou indiening sê steeds wat dit destyds gesê het, terwyl die antwoord steeds na die regte rekord wys.',
         'lookup_portal_title' => 'Kliënte sien slegs hul eie',
         'lookup_portal' => '\'n Opsoek word nie op die selfdiensportaal aangebied nie, tensy jy dit vir daardie veld aanmerk, en \'n kliënt sien altyd net rekords wat aan hul eie maatskappy behoort. Die personeelgids word nooit aan kliënte aangebied nie, wat jy ook al aanmerk. \'n Opsoek wat \'n kliënt nie kan gebruik nie, word heeltemal van die vorm op die portaal weggelaat, so \'n verpligte een keer nooit dat hulle verhoed word om dit te stuur nie.',

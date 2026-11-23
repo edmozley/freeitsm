@@ -306,6 +306,9 @@ return [
         'lookup_src_asset' => 'Asset',
         'lookup_src_location' => 'Sedi',
         'lookup_src_consumable' => 'Articoli di consumo',
+        'lookup_src_cost_centre' => 'Centri di costo',   // GH #160
+        'lookup_start_own' => 'Parti dal centro di costo del richiedente',   // GH #160
+        'lookup_start_own_hint' => 'Il modulo si apre con già scelto il centro di costo indicato nella scheda del richiedente. Può cambiarlo se la richiesta riguarda un altro centro.',   // GH #160
         'lookup_pick' => 'Scegli…',
         'lookup_source' => 'In quali record cercare',
         'options_dropdown' => 'Opzioni elenco a discesa',
@@ -823,6 +826,8 @@ return [
         'lookup_company_body' => 'Le aziende che servi, da Persone → Aziende - solo quelle che la persona che compila può raggiungere. Ricercabile per nome, codice, riferimento esterno, partita IVA e i campi personalizzati delle aziende. Usalo per "per quale azienda è?". Solo per lo staff, mai disponibile nel portale clienti.',
         'lookup_location_title' => 'Sedi',
         'lookup_location_body' => 'Le tue sedi, edifici, piani e stanze da Sistema → Sedi, mostrate come percorso completo, ad esempio "UK > Londra > Piano 2". Usalo per "in quale ufficio sei?".',
+        'lookup_cost_centre_title' => 'Centri di costo',   // GH #160
+        'lookup_cost_centre_body' => 'I centri di costo attivi della tua azienda da Sistema → Centri di costo, mostrati come codice e nome - "0010 - Logistica". Usalo per "su quale budget va?". Spunta Parti dal centro di costo del richiedente e il modulo si apre sul suo; può cambiarlo.',   // GH #160
         'lookup_stored' => 'Vengono conservati sia il nome sia il collegamento al record. Se più avanti rinomini una macchina, un vecchio invio dice ancora ciò che diceva allora, mentre la risposta punta comunque al record giusto.',
         'lookup_portal_title' => 'I clienti vedono solo i propri',
         'lookup_portal' => 'Una ricerca non viene offerta nel portale self-service a meno che tu non la selezioni per quel campo, e un cliente vede sempre e solo i record della propria azienda. La rubrica dello staff non viene mai offerta ai clienti, qualunque cosa selezioni. Una ricerca che un cliente non può usare viene lasciata del tutto fuori dal modulo nel portale, così un campo obbligatorio non gli impedisce mai di inviarlo.',

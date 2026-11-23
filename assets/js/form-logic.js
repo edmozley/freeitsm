@@ -417,6 +417,17 @@
                     .catch(function () { close(); });
             }
 
+            // GH #160: a lookup that starts on an answer (the requester's own cost centre),
+            // worked out and checked by the server. Chosen as if picked - the person can
+            // still change it - unless something (a restored draft) already answered it.
+            var dflt = box.getAttribute('data-lookup-default');
+            if (dflt && !hidden.value) {
+                try {
+                    var d = JSON.parse(dflt);
+                    if (d && d.id && d.label) { hidden.value = JSON.stringify({ id: d.id, label: d.label }); box.value = d.label; }
+                } catch (e) { /* no default */ }
+            }
+
             box.addEventListener('input', function () {
                 clearTimeout(timer);
                 timer = setTimeout(search, 220);   // one request per pause, not per keystroke

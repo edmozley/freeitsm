@@ -307,6 +307,9 @@ return [
         'lookup_src_asset' => 'Assets',
         'lookup_src_location' => 'Standorte',
         'lookup_src_consumable' => 'Verbrauchsmaterial',   // 5.8.0
+        'lookup_src_cost_centre' => 'Kostenstellen',   // GH #160
+        'lookup_start_own' => 'Mit der eigenen Kostenstelle des Anfragenden beginnen',   // GH #160
+        'lookup_start_own_hint' => 'Das Formular öffnet sich mit der Kostenstelle aus dem Datensatz des Anfragenden bereits ausgewählt. Gehört die Anfrage woandershin, lässt sie sich ändern.',   // GH #160
         'lookup_pick' => 'Auswählen…',
         'lookup_source' => 'Welche Datensätze durchsuchen',
         'options_dropdown' => 'Dropdown-Optionen',
@@ -824,6 +827,8 @@ return [
         'lookup_company_body' => 'Die Unternehmen, die Sie betreuen, aus Personen → Unternehmen - nur die, auf die die ausfüllende Person Zugriff hat. Durchsuchbar nach Name, Kürzel, externer Referenz, Steuernummer und Ihren benutzerdefinierten Unternehmensfeldern. Verwenden Sie es für „Für welches Unternehmen ist das?“. Nur für Mitarbeitende, nie im Self-Service-Portal verfügbar.',
         'lookup_location_title' => 'Standorte',
         'lookup_location_body' => 'Ihre Standorte, Gebäude, Etagen und Räume aus System → Standorte, mit vollem Pfad angezeigt, etwa „UK > London > Etage 2". Für Fragen wie „In welchem Büro sind Sie?".',
+        'lookup_cost_centre_title' => 'Kostenstellen',   // GH #160
+        'lookup_cost_centre_body' => 'Die aktiven Kostenstellen Ihres Unternehmens aus System → Kostenstellen, angezeigt als Code und Name - „0010 - Logistik". Für Fragen wie „Für welches Budget ist das?". Haken Sie Mit der eigenen Kostenstelle des Anfragenden beginnen an, öffnet sich das Formular mit dessen Kostenstelle; sie lässt sich ändern.',   // GH #160
         'lookup_stored' => 'Sowohl der Name als auch die Verknüpfung zum Datensatz werden gespeichert. Wird ein Gerät später umbenannt, zeigt eine alte Einreichung weiterhin das, was zum damaligen Zeitpunkt galt, während die Antwort trotzdem auf den richtigen Datensatz verweist.',
         'lookup_portal_title' => 'Kunden sehen nur ihre eigenen',
         'lookup_portal' => 'Eine Nachschlageliste wird im Self-Service-Portal nur angeboten, wenn Sie sie für dieses Feld ankreuzen, und ein Kunde sieht nur Datensätze, die zu seinem eigenen Unternehmen gehören. Das Mitarbeiterverzeichnis wird Kunden nie angeboten, egal was Sie ankreuzen. Eine Nachschlageliste, die ein Kunde nicht nutzen kann, wird im Portal ganz aus dem Formular weggelassen, sodass ein erforderliches Feld das Absenden nie verhindert.',

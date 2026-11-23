@@ -366,6 +366,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         input = '<div class="lookup-wrap">'
                               + '<input type="text" class="lookup-search" autocomplete="off"'
                               + ' data-lookup-field="' + f.id + '"'
+                              + (f.lookup_default ? ' data-lookup-default="' + esc(JSON.stringify(f.lookup_default)) + '"' : '')   // GH #160: the requester's own cost centre
                               + ' placeholder="' + esc(window.t('forms.fill.lookup_placeholder')) + '">'
                               + '<input type="hidden" id="f' + f.id + '" data-field-id="' + f.id + '">'
                               + '<div class="lookup-results" hidden></div>'
