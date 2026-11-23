@@ -9997,12 +9997,22 @@ CREATE TABLE IF NOT EXISTS `cost_centres` (
     -- Inactive = not offered for NEW assignments. Anything already charged to it
     -- keeps it. Retiring, not deleting, is the normal path.
     `is_active`        TINYINT(1) NOT NULL DEFAULT 1,
+    -- GH #160 Part B: who answers for it. The owner is a PERSON (users) or a PEOPLE
+    -- GROUP (knowledge_user_groups - analysts and portal users alike), never both;
+    -- the deputy is a person. A named person must be in the cost centre's company.
+    -- People, not analysts: most budget holders have no service desk account.
+    `owner_user_id`    INT NULL,
+    `owner_group_id`   INT NULL,
+    `deputy_user_id`   INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_cost_centres_code` (`tenant_id`, `code`),
     KEY `ix_cost_centres_parent` (`parent_id`),
+    KEY `ix_cost_centres_owner` (`owner_user_id`),
+    KEY `ix_cost_centres_owner_group` (`owner_group_id`),
+    KEY `ix_cost_centres_deputy` (`deputy_user_id`),
     -- SET NULL rather than RESTRICT: the service already refuses to delete a cost
     -- centre that has children, and RESTRICT on a self-reference can block the
     -- company CASCADE below part-way through.

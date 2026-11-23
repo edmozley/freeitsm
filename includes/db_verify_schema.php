@@ -6619,6 +6619,9 @@ return [
         'description'      => 'VARCHAR(500) NULL',
         'parent_id'        => 'INT NULL',
         'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'owner_user_id'    => 'INT NULL',   // GH #160 Part B: the owner - a person...
+        'owner_group_id'   => 'INT NULL',   // ...or a people group (knowledge_user_groups), never both
+        'deputy_user_id'   => 'INT NULL',   // the deputy - a person
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
