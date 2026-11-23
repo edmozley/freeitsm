@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'Status',
         'req_col_submitted' => 'Enviado',
         'req_pending' => 'Aguardando aprovação',
+        'req_step' => 'etapa {p} de {n}',
+        'req_step_named' => 'aguardando {name}, etapa {p} de {n}',
         'req_approved' => 'Aprovada',
         'req_rejected' => 'Recusada',
         'req_sent' => 'Enviada',

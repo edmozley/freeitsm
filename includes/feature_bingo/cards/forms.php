@@ -292,5 +292,17 @@ return [
         'done'     => 'At least one form asks for a cost centre.',
         'link'     => 'forms/',
         'check'    => ['rows', 'form_fields', "field_type = 'lookup' AND config LIKE '%\"lookup_source\":\"cost_centre\"%' AND is_deleted = 0 AND is_demo = 0"],
+    ],    [
+        // GH #160 Part C1.
+        'id'       => 'forms.approval_steps',
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Approval in steps',
+        'what'     => 'A catalogue request approved in order by more than one person or team - the IT manager, then finance, then the board only when the total is over 5,000 - set up on the form or as a named chain shared by many forms.',
+        'why'      => 'Real purchases need more than one yes. Steps put them in order, skip the ones that do not apply, and send a step nobody can decide to a fallback instead of letting it wait silently.',
+        'done'     => 'At least one form uses approval steps or an approval chain.',
+        'link'     => 'forms/',
+        'check'    => ['rows', 'forms', 'requires_approval = 1 AND (approval_steps IS NOT NULL OR approval_chain_id IS NOT NULL) AND is_demo = 0'],
     ],
 ];

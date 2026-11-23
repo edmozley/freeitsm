@@ -956,7 +956,8 @@ foreach ($formActionDefs as $def) {
                 // #95. A section absent from the stored object stays null —
                 // "never configured" — rather than becoming an empty list, which
                 // would be a different instruction entirely.
-                faGated = !!(data.form.requires_approval && data.form.approver_id);
+                // The server's one rule (GH #160): a person, a team, or steps / a chain.
+                faGated = data.form.is_gated !== undefined ? !!data.form.is_gated : !!(data.form.requires_approval && data.form.approver_id);
                 const stored = data.form.submission_actions || {};
                 FA_WHENS.forEach(w => {
                     faActions[w] = Array.isArray(stored[w]) ? stored[w] : null;

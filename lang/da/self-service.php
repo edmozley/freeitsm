@@ -12,10 +12,9 @@
 
 return [
     'portal' => 'Selvbetjeningsportal',
-    // GH #414: the organisation chart (self-service/org-chart.php).
     'org_chart' => [
-        'title'        => 'Organisationsdiagram',
-        'subtitle'     => 'Hvem refererer til hvem. Søg efter et navn, en stillingsbetegnelse eller en afdeling, eller åbn et team med pilen.',
+        'title' => 'Organisationsdiagram',
+        'subtitle' => 'Hvem refererer til hvem. Søg efter et navn, en stillingsbetegnelse eller en afdeling, eller åbn et team med pilen.',
     ],
     'equipment' => [
         'title' => 'Mit udstyr',
@@ -55,7 +54,7 @@ return [
         'team_tickets' => 'Teamets sager',
         'help_centre' => 'Viden',
         'equipment' => 'Mit udstyr',
-        'org_chart'   => 'Organisation',   // GH #414
+        'org_chart' => 'Organisation',
         'training' => 'Undervisning',
         'help' => 'Hjælp',
         'menu' => 'Menu',
@@ -176,12 +175,13 @@ return [
         'req_col_status' => 'Status',
         'req_col_submitted' => 'Sendt',
         'req_pending' => 'Afventer godkendelse',
+        'req_step' => 'trin {p} af {n}',
+        'req_step_named' => 'venter på {name}, trin {p} af {n}',
         'req_approved' => 'Godkendt',
         'req_rejected' => 'Afvist',
         'req_sent' => 'Sendt',
         'req_cancelled' => 'Annulleret',
         'req_cancel' => 'Annullér',
-        // Discussion #298: answers changed after it was sent.
         'req_changed' => 'Svar ændret, efter du sendte den ({n})',
         'req_changed_line' => '{field}: {old} → {new}',
         'req_changed_blank' => '(tom)',
@@ -458,7 +458,6 @@ return [
         'tr_li4' => 'Du får resultatet at se med det samme, sammen med hvilke svar der var forkerte, og hvorfor. Hvis du ikke bestod, kan du prøve igen.',
         'tr_p2' => 'Dine fremskridt gemmes undervejs, så du kan tage et kursus ad flere omgange, på en hvilken som helst enhed, og fortsætte, hvor du slap.',
         'tr_tip' => '<strong>Frister og påmindelser:</strong> et kursus kan have en dato, det skal være gennemført inden. Du har hele den dag til rådighed. Har dit IT-team slået påmindelser til, får du en e-mail, når datoen nærmer sig, og igen, hvis den overskrides — de stopper, så snart du gennemfører kurset.',
-        // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Organisationsdiagram',
         'org_p1' => 'Hvis dit IT-team har slået det til, viser <strong>Organisation</strong> i topmenuen, hvem der refererer til hvem i din virksomhed. Det åbner på din egen plads med linjen over dig foldet ud.',
         'org_li1' => 'Klik på pilen ud for en person for at vise eller skjule deres team. Tallene ud for et navn er, hvor mange der refererer direkte til dem, og efter prikken, hvor mange der er under dem i alt.',
@@ -498,10 +497,10 @@ return [
         'mfa_off' => 'Fra',
     ],
     'account' => [
-        'language'            => 'Sprog',   // GH #368
-        'language_browser'    => 'Din browsers sprog',
-        'language_hint'       => 'Det sprog, portalen bruger for dig. Gemmes på din konto.',
-        'language_failed'     => 'Dit sprog kunne ikke gemmes.',
+        'language' => 'Sprog',
+        'language_browser' => 'Din browsers sprog',
+        'language_hint' => 'Det sprog, portalen bruger for dig. Gemmes på din konto.',
+        'language_failed' => 'Dit sprog kunne ikke gemmes.',
         'heading' => 'Min konto',
         'appearance' => 'Udseende',
         'appearance_hint' => 'Vælg, hvordan portalen ser ud. Gemmes på din konto.',

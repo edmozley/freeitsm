@@ -12,10 +12,9 @@
 
 return [
     'portal' => 'Portal Layanan Mandiri',
-    // GH #414: the organisation chart (self-service/org-chart.php).
     'org_chart' => [
-        'title'        => 'Bagan organisasi',
-        'subtitle'     => 'Siapa melapor kepada siapa. Cari nama, jabatan, atau departemen, atau buka tim dengan tanda panah.',
+        'title' => 'Bagan organisasi',
+        'subtitle' => 'Siapa melapor kepada siapa. Cari nama, jabatan, atau departemen, atau buka tim dengan tanda panah.',
     ],
     'equipment' => [
         'title' => 'Peralatan saya',
@@ -55,7 +54,7 @@ return [
         'team_tickets' => 'Tiket tim',
         'help_centre' => 'Pengetahuan',
         'equipment' => 'Peralatan saya',
-        'org_chart'   => 'Organisasi',   // GH #414
+        'org_chart' => 'Organisasi',
         'training' => 'Pelatihan',
         'help' => 'Bantuan',
         'menu' => 'Menu',
@@ -176,12 +175,13 @@ return [
         'req_col_status' => 'Status',
         'req_col_submitted' => 'Dikirim',
         'req_pending' => 'Menunggu persetujuan',
+        'req_step' => 'langkah {p} dari {n}',
+        'req_step_named' => 'menunggu {name}, langkah {p} dari {n}',
         'req_approved' => 'Disetujui',
         'req_rejected' => 'Ditolak',
         'req_sent' => 'Terkirim',
         'req_cancelled' => 'Dibatalkan',
         'req_cancel' => 'Batalkan',
-        // Discussion #298: answers changed after it was sent.
         'req_changed' => 'Jawaban diubah setelah Anda mengirimnya ({n})',
         'req_changed_line' => '{field}: {old} → {new}',
         'req_changed_blank' => '(kosong)',
@@ -458,7 +458,6 @@ return [
         'tr_li4' => 'Hasilnya langsung ditampilkan, beserta jawaban mana yang salah dan alasannya. Jika Anda tidak lulus, Anda dapat mencoba lagi.',
         'tr_p2' => 'Kemajuan Anda disimpan seiring berjalan, sehingga Anda dapat mengerjakan kursus dalam beberapa sesi, di perangkat apa pun, dan melanjutkan dari tempat Anda berhenti.',
         'tr_tip' => '<strong>Tenggat dan pengingat:</strong> sebuah kursus mungkin memiliki tanggal yang menjadi batas penyelesaiannya. Anda memiliki sepanjang hari itu. Jika tim IT Anda mengaktifkan pengingat, Anda akan menerima email menjelang tanggal tersebut, dan lagi jika tanggal itu terlewat — pengingat berhenti begitu Anda menyelesaikan kursus.',
-        // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Bagan organisasi',
         'org_p1' => 'Jika tim TI Anda telah mengaktifkannya, <strong>Organisasi</strong> di navigasi atas menunjukkan siapa melapor kepada siapa di perusahaan Anda. Bagan terbuka di posisi Anda sendiri, dengan garis di atas Anda terbuka.',
         'org_li1' => 'Klik panah di samping seseorang untuk menampilkan atau menyembunyikan timnya. Angka di samping nama menunjukkan jumlah orang yang melapor langsung kepadanya dan, setelah titik, jumlah seluruh orang di bawahnya.',
@@ -498,10 +497,10 @@ return [
         'mfa_off' => 'Nonaktif',
     ],
     'account' => [
-        'language'            => 'Bahasa',   // GH #368
-        'language_browser'    => 'Bahasa browser Anda',
-        'language_hint'       => 'Bahasa yang digunakan portal untuk Anda. Disimpan di akun Anda.',
-        'language_failed'     => 'Bahasa Anda tidak dapat disimpan.',
+        'language' => 'Bahasa',
+        'language_browser' => 'Bahasa browser Anda',
+        'language_hint' => 'Bahasa yang digunakan portal untuk Anda. Disimpan di akun Anda.',
+        'language_failed' => 'Bahasa Anda tidak dapat disimpan.',
         'heading' => 'Akun Saya',
         'appearance' => 'Tampilan',
         'appearance_hint' => 'Pilih tampilan portal. Disimpan ke akun Anda.',

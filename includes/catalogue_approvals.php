@@ -80,6 +80,19 @@ function catalogueApprovalGate(array $form, ?int $portalUserId): ?array {
 }
 
 /**
+ * Does a portal request of this form wait for approval? A named person, a team
+ * (GH #220), or steps / a chain (GH #160) - the same test the gate applies, for the
+ * screens that need to say so (the "what happens next" tab, the list's pill).
+ *
+ * @param array $form  the forms row (SELECT *)
+ */
+function catalogueFormIsGated(PDO $conn, array $form): bool {
+    if (empty($form['requires_approval'])) return false;
+    if (!empty($form['approver_id']) || !empty($form['approval_team_id'])) return true;
+    return catalogueStepsAvailable($conn) && catalogueFormSteps($conn, $form) !== null;
+}
+
+/**
  * Are the group-approval columns there (GH #220)? Before Database Verification they
  * are not, and every form is then a named-person form, exactly as before.
  */

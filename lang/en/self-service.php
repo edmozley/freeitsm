@@ -216,6 +216,8 @@ return [
         'req_col_status'     => 'Status',
         'req_col_submitted'  => 'Submitted',
         'req_pending'        => 'Awaiting approval',
+        'req_step'           => 'step {p} of {n}',   // GH #160: a request with approval steps
+        'req_step_named'     => 'waiting for {name}, step {p} of {n}',
         'req_approved'       => 'Approved',
         'req_rejected'       => 'Declined',
         'req_sent'           => 'Sent',

@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'Статус',
         'req_col_submitted' => 'Отправлен',
         'req_pending' => 'Ожидает согласования',
+        'req_step' => 'шаг {p} из {n}',
+        'req_step_named' => 'ожидает: {name}, шаг {p} из {n}',
         'req_approved' => 'Согласован',
         'req_rejected' => 'Отклонён',
         'req_sent' => 'Отправлено',

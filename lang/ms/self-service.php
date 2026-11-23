@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'Status',
         'req_col_submitted' => 'Dihantar',
         'req_pending' => 'Menunggu kelulusan',
+        'req_step' => 'langkah {p} daripada {n}',
+        'req_step_named' => 'menunggu {name}, langkah {p} daripada {n}',
         'req_approved' => 'Diluluskan',
         'req_rejected' => 'Ditolak',
         'req_sent' => 'Dihantar',

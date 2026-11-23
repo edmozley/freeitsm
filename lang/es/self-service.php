@@ -12,10 +12,9 @@
 
 return [
     'portal' => 'Portal de autoservicio',
-    // GH #414: the organisation chart (self-service/org-chart.php).
     'org_chart' => [
-        'title'        => 'Organigrama',
-        'subtitle'     => 'Quién depende de quién. Busca un nombre, un puesto o un departamento, o abre un equipo con la flecha.',
+        'title' => 'Organigrama',
+        'subtitle' => 'Quién depende de quién. Busca un nombre, un puesto o un departamento, o abre un equipo con la flecha.',
     ],
     'equipment' => [
         'title' => 'Mi equipo',
@@ -55,7 +54,7 @@ return [
         'team_tickets' => 'Tickets del equipo',
         'help_centre' => 'Conocimiento',
         'equipment' => 'Mi equipo',
-        'org_chart'   => 'Organización',   // GH #414
+        'org_chart' => 'Organización',
         'training' => 'Formación',
         'help' => 'Ayuda',
         'menu' => 'Menú',
@@ -176,12 +175,13 @@ return [
         'req_col_status' => 'Estado',
         'req_col_submitted' => 'Enviada',
         'req_pending' => 'Pendiente de aprobación',
+        'req_step' => 'paso {p} de {n}',
+        'req_step_named' => 'esperando a {name}, paso {p} de {n}',
         'req_approved' => 'Aprobada',
         'req_rejected' => 'Rechazada',
         'req_sent' => 'Enviada',
         'req_cancelled' => 'Cancelada',
         'req_cancel' => 'Cancelar',
-        // Discussion #298: answers changed after it was sent.
         'req_changed' => 'Respuestas cambiadas después de enviarla ({n})',
         'req_changed_line' => '{field}: {old} → {new}',
         'req_changed_blank' => '(vacío)',
@@ -458,7 +458,6 @@ return [
         'tr_li4' => 'Se le muestra el resultado de inmediato, junto con qué respuestas fueron incorrectas y por qué. Si no aprobó, puede intentarlo de nuevo.',
         'tr_p2' => 'Su progreso se guarda sobre la marcha, así que puede hacer un curso en varias sesiones, en cualquier dispositivo, y continuar donde lo dejó.',
         'tr_tip' => '<strong>Fechas límite y recordatorios:</strong> un curso puede tener una fecha límite. Dispone de todo ese día. Si su equipo de TI ha activado los recordatorios, recibirá un correo a medida que se acerque la fecha, y otro si se pasa — esos recordatorios se detienen en cuanto termine el curso.',
-        // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Organigrama',
         'org_p1' => 'Si tu equipo de TI lo ha activado, <strong>Organización</strong> en la navegación superior muestra quién depende de quién en tu empresa. Se abre en tu propio lugar, con la línea que tienes por encima desplegada.',
         'org_li1' => 'Haz clic en la flecha junto a una persona para mostrar u ocultar su equipo. Los números junto a un nombre indican cuántas personas dependen directamente de ella y, tras el punto, cuántas hay por debajo en total.',
@@ -498,10 +497,10 @@ return [
         'mfa_off' => 'Desactivada',
     ],
     'account' => [
-        'language'            => 'Idioma',   // GH #368
-        'language_browser'    => 'El idioma de su navegador',
-        'language_hint'       => 'El idioma en que el portal se le muestra. Se guarda en su cuenta.',
-        'language_failed'     => 'No se pudo guardar su idioma.',
+        'language' => 'Idioma',
+        'language_browser' => 'El idioma de su navegador',
+        'language_hint' => 'El idioma en que el portal se le muestra. Se guarda en su cuenta.',
+        'language_failed' => 'No se pudo guardar su idioma.',
         'heading' => 'Mi cuenta',
         'appearance' => 'Apariencia',
         'appearance_hint' => 'Elija el aspecto del portal. Se guarda en su cuenta.',

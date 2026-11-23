@@ -12,10 +12,9 @@
 
 return [
     'portal' => 'Portail libre-service',
-    // GH #414: the organisation chart (self-service/org-chart.php).
     'org_chart' => [
-        'title'        => 'Organigramme',
-        'subtitle'     => 'Qui rend compte à qui. Recherchez un nom, un poste ou un service, ou ouvrez une équipe avec la flèche.',
+        'title' => 'Organigramme',
+        'subtitle' => 'Qui rend compte à qui. Recherchez un nom, un poste ou un service, ou ouvrez une équipe avec la flèche.',
     ],
     'equipment' => [
         'title' => 'Mon équipement',
@@ -55,7 +54,7 @@ return [
         'team_tickets' => 'Tickets de l\'équipe',
         'help_centre' => 'Connaissances',
         'equipment' => 'Mon équipement',
-        'org_chart'   => 'Organisation',   // GH #414
+        'org_chart' => 'Organisation',
         'training' => 'Formation',
         'help' => 'Aide',
         'menu' => 'Menu',
@@ -176,12 +175,13 @@ return [
         'req_col_status' => 'Statut',
         'req_col_submitted' => 'Soumis',
         'req_pending' => 'En attente d\'approbation',
+        'req_step' => 'étape {p} sur {n}',
+        'req_step_named' => 'en attente de {name}, étape {p} sur {n}',
         'req_approved' => 'Approuvé',
         'req_rejected' => 'Refusée',
         'req_sent' => 'Envoyée',
         'req_cancelled' => 'Annulée',
         'req_cancel' => 'Annuler',
-        // Discussion #298: answers changed after it was sent.
         'req_changed' => 'Réponses modifiées après votre envoi ({n})',
         'req_changed_line' => '{field} : {old} → {new}',
         'req_changed_blank' => '(vide)',
@@ -458,12 +458,11 @@ return [
         'tr_li4' => 'Le résultat s\'affiche immédiatement, avec le détail des réponses incorrectes et pourquoi. Si vous n\'avez pas réussi, vous pouvez réessayer.',
         'tr_p2' => 'Votre progression est enregistrée au fur et à mesure, ce qui vous permet de suivre un cours en plusieurs fois, sur n\'importe quel appareil, et de reprendre où vous en étiez.',
         'tr_tip' => '<strong>Échéances et rappels :</strong> un cours peut avoir une date limite. Vous disposez de toute cette journée. Si votre équipe informatique a activé les rappels, vous recevrez un e-mail à l\'approche de la date, puis un autre si elle est dépassée — ces rappels s\'arrêtent dès que vous terminez le cours.',
-        // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Organigramme',
         'org_p1' => 'Si votre équipe informatique l\'a activé, <strong>Organisation</strong> dans la navigation du haut montre qui rend compte à qui dans votre entreprise. Il s\'ouvre sur votre propre place, avec la ligne au-dessus de vous dépliée.',
-        'org_li1' => "Cliquez sur la flèche à côté d'une personne pour afficher ou masquer son équipe. Les nombres à côté d'un nom indiquent combien de personnes lui rendent compte directement et, après le point, combien se trouvent sous elle au total.",
+        'org_li1' => 'Cliquez sur la flèche à côté d\'une personne pour afficher ou masquer son équipe. Les nombres à côté d\'un nom indiquent combien de personnes lui rendent compte directement et, après le point, combien se trouvent sous elle au total.',
         'org_li2' => 'Saisissez dans <strong>Rechercher des personnes</strong> un nom, un poste ou un service, puis choisissez la personne pour la retrouver dans l\'organigramme.',
-        'org_li3' => "<strong>Graphique</strong> dessine la même chose en cases et en traits, à partir de vous. Cliquez sur une personne pour voir qui elle est, double-cliquez pour dessiner à partir d'elle, et utilisez <strong>Exporter</strong> pour l'enregistrer en image ou en PDF.",
+        'org_li3' => '<strong>Graphique</strong> dessine la même chose en cases et en traits, à partir de vous. Cliquez sur une personne pour voir qui elle est, double-cliquez pour dessiner à partir d\'elle, et utilisez <strong>Exporter</strong> pour l\'enregistrer en image ou en PDF.',
         'org_tip' => '<strong>Quelque chose ne va pas ?</strong> L\'organigramme est construit à partir du responsable enregistré pour chaque personne. Si le vôtre est faux, créez un ticket et l\'équipe informatique le corrigera.',
         'team_title' => 'Tickets de l\'équipe',
         'team_p1' => 'Vous pouvez voir les tickets créés par les personnes que vous encadrez. Ils se trouvent sous <strong>Tickets de l\'équipe</strong> dans le menu, séparés des vôtres sous Mes tickets.',
@@ -498,10 +497,10 @@ return [
         'mfa_off' => 'Désactivé',
     ],
     'account' => [
-        'language'            => 'Langue',   // GH #368
-        'language_browser'    => 'La langue de votre navigateur',
-        'language_hint'       => 'La langue dans laquelle le portail s\'affiche pour vous. Enregistrée dans votre compte.',
-        'language_failed'     => 'Impossible d\'enregistrer votre langue.',
+        'language' => 'Langue',
+        'language_browser' => 'La langue de votre navigateur',
+        'language_hint' => 'La langue dans laquelle le portail s\'affiche pour vous. Enregistrée dans votre compte.',
+        'language_failed' => 'Impossible d\'enregistrer votre langue.',
         'heading' => 'Mon compte',
         'appearance' => 'Apparence',
         'appearance_hint' => 'Choisissez l\'apparence du portail. Enregistré sur votre compte.',

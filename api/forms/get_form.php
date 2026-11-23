@@ -51,6 +51,12 @@ try {
         // sections can actually fire on this form.
         $form['requires_approval'] = (int)($form['requires_approval'] ?? 0);
         $form['approver_id'] = $form['approver_id'] !== null ? (int)$form['approver_id'] : null;
+        // Whether a portal request of this form waits for approval at all - a named
+        // person, a team (GH #220) or steps / a chain (GH #160). One rule, the engine's.
+        require_once __DIR__ . '/../../includes/catalogue_approvals.php';
+        $full = $conn->prepare('SELECT * FROM forms WHERE id = ?');
+        $full->execute([$formId]);
+        $form['is_gated'] = catalogueFormIsGated($conn, $full->fetch(PDO::FETCH_ASSOC) ?: []);
 
         // #95 action lists. Decoded here so the editor never has to parse JSON
         // out of a string field. NULL stays null — the editor distinguishes

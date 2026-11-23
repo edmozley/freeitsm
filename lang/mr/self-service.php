@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'स्थिती',
         'req_col_submitted' => 'सबमिट केले',
         'req_pending' => 'मंजुरीची प्रतीक्षा',
+        'req_step' => '{n} पैकी टप्पा {p}',
+        'req_step_named' => '{name} ची वाट पाहत आहे, {n} पैकी टप्पा {p}',
         'req_approved' => 'मंजूर',
         'req_rejected' => 'नाकारले',
         'req_sent' => 'पाठवले',

@@ -108,12 +108,15 @@ try {
     $s = $submit($f1, $uma);
     $r = $row($s);
     check('steps: snapshotted, on step 1, waiting on Alice', (int)$r['approval_step_no'] === 1 && (int)$r['approver_id'] === $alice && count(json_decode($r['approval_steps'], true)) === 2);
+    $bell = fn(int $who, int $sid) => (int)$conn->query("SELECT COUNT(*) FROM notifications WHERE analyst_id = $who AND event_type = 'catalogue_request.awaiting' AND entity_id = $sid")->fetchColumn();
+    check('the step 1 approver is told on the bell at submission', $bell($alice, $s) === 1 && $bell($bob, $s) === 0);
     $as($alice);
     $res = catalogueApprovalDecide($conn, $alice, $s, 'approved', 'ok from IT');
     $r = $row($s);
     check('approving step 1 moves it on, not approved', $res['decision'] === 'step_passed' && $r['approval_status'] === 'pending' && (int)$r['approval_step_no'] === 2, json_encode($res));
     check('...to the team, in a new round', (int)$r['approval_team_id'] === $team && $r['approver_id'] === null && (int)$r['approvals_required'] === 2 && (int)$r['approval_round'] === 2);
     $ev = $events($s);
+    check('passing step 1 tells each team member who may vote', $bell($bob, $s) === 1 && $bell($carol, $s) === 1);
     check('...recorded as a passed step, with who and the note', ($ev[0]['action'] ?? '') === 'step_passed' && str_contains($ev[0]['detail'], 'Step 1 of 2: IT manager -> Step 2 of 2: Finance') && $ev[0]['reason'] === 'ok from IT', json_encode($ev));
     check('Alice can no longer decide it', refused(fn() => catalogueApprovalDecide($conn, $alice, $s, 'approved')) !== '');
     check('Alice sees it under Decided', in_array($s, array_map('intval', array_column(catalogueApprovalsList($conn, $alice, 'decided')['items'], 'id')), true));
@@ -233,6 +236,7 @@ try {
         $conn->prepare("DELETE FROM teams WHERE id = ?")->execute([$made['team']]);
     }
     foreach ($made['users'] as $uid) $conn->prepare("DELETE FROM users WHERE id = ?")->execute([$uid]);
+    foreach ($made['analysts'] as $aid) { try { $conn->prepare("DELETE FROM notifications WHERE analyst_id = ?")->execute([$aid]); } catch (Throwable $e) {} }
     foreach ($made['analysts'] as $aid) { try { $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$aid]); } catch (Throwable $e) {} }
     $left = (int)$conn->query("SELECT COUNT(*) FROM forms WHERE title = 'ZZSTP form'")->fetchColumn()
           + (int)$conn->query("SELECT COUNT(*) FROM analysts WHERE username LIKE '$tag%'")->fetchColumn();

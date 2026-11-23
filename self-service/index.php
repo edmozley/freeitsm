@@ -287,6 +287,10 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                     statusCell = `<span class="req-pill sent">${escapeHtml(window.t('self-service.dashboard.req_sent'))}</span>${link}`;
                 } else {
                     statusCell = `<span class="req-pill pending">${escapeHtml(window.t('self-service.dashboard.req_pending'))}</span>`;
+                    // GH #160: a request with approval steps says which one it is waiting on.
+                    if (r.step && r.step.count > 1) {
+                        statusCell += ` <span class="ticket-date">${escapeHtml(window.t(r.step.name ? 'self-service.dashboard.req_step_named' : 'self-service.dashboard.req_step', { name: r.step.name, p: r.step.position, n: r.step.count }))}</span>`;
+                    }
                 }
                 // Cancel, while it can still be (GH #348) - in the state cell, so the
                 // phone layout, which keys on the column, is unchanged.

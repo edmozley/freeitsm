@@ -689,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Raakt op - tijd om bij te bestellen',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'Een aanvraag wacht op jouw goedkeuring',
+            ],
             'hyperv' => [
                 'collector' => 'Een Hyper-V-collector heeft je aandacht nodig',
             ],
@@ -750,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Een verbruiksartikel bereikt zijn bestelpunt (wie dit hoort, kies je in Assets -> Instellingen -> Verbruiksartikelen)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'Een aanvraag uit de catalogus bereikt een goedkeuringsstap waarover ik beslis (als goedkeurder, of als lid van het goedkeurende team)',
             ],
             'hyperv' => [
                 'collector' => 'Een Hyper-V-collector meldt niets meer, of de opslag van een cluster kan niet worden gelezen (mensen die Hyper-V-verbindingen beheren)',

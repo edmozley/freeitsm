@@ -689,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Snart tomt - på tide å bestille på nytt',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'En bestilling venter på din godkjenning',
+            ],
             'hyperv' => [
                 'collector' => 'En Hyper-V-innsamler trenger oppmerksomheten din',
             ],
@@ -750,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Et forbruksmateriell faller til bestillingspunktet (hvem som varsles, velges i Ressurser -> Innstillinger -> Forbruksmateriell)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'En katalogbestilling når et godkjenningstrinn jeg avgjør (som godkjenner, eller som medlem av godkjenningsteamet)',
             ],
             'hyperv' => [
                 'collector' => 'En Hyper-V-innsamler slutter å rapportere, eller lagringen i en klynge kan ikke leses (de som administrerer Hyper-V-tilkoblinger)',

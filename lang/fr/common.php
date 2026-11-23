@@ -85,7 +85,6 @@ return [
         'field_phone' => 'téléphone',
         'field_mobile' => 'mobile',
     ],
-    // GH #399: a settings page as tabs or as one page.
     'settings_view' => [
         'view' => 'Affichage',
         'tabs' => 'Onglets',
@@ -575,11 +574,9 @@ return [
         'loading' => 'Chargement…',
         'load_failed' => 'Impossible de charger les notifications.',
         'someone' => 'Quelqu\'un',
-        // GH #365: named after "by" when no person did it.
         'actor_workflow' => 'le workflow « {name} »',
         'actor_system' => 'FreeITSM',
         'actor_email' => 'e-mail',
-        // The bell's (i) panel - "why is this here?" (5.8.0).
         'explain' => [
             'info' => 'Pourquoi est-ce ici ?',
             'title' => 'Pourquoi c\'est ici',
@@ -692,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Stock bas - il est temps de recommander',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'Une demande attend votre approbation',
+            ],
             'hyperv' => [
                 'collector' => 'Un collecteur Hyper-V demande votre attention',
             ],
@@ -753,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Un consommable atteint son seuil de réapprovisionnement (les personnes prévenues se choisissent dans Actifs -> Paramètres -> Consommables)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'Une demande du catalogue atteint une étape d\'approbation que je tranche (comme approbateur, ou membre de l\'équipe qui approuve)',
             ],
             'hyperv' => [
                 'collector' => 'Un collecteur Hyper-V cesse de remonter des rapports, ou le stockage d\'un cluster est illisible (personnes qui gèrent les connexions Hyper-V)',
@@ -936,12 +939,11 @@ return [
         'hour' => 'Heure',
         'minute' => 'Minute',
     ],
-    // GH #369: the database is behind the code (includes/db_verify_status.php, waffle-menu.php).
     'db_behind' => [
         'notice' => 'FreeITSM a été mis à jour en version {version}. Lancez la Vérification de la base de données pour la mettre en accord, sinon certaines pages ne fonctionneront pas.',
         'verify' => 'Vérifier',
-        'hide'   => 'Masquer',
-        'error'  => 'La base de données doit être mise à jour pour cette version de FreeITSM. Demandez à un administrateur de lancer Système → Vérification de la base de données.',
+        'hide' => 'Masquer',
+        'error' => 'La base de données doit être mise à jour pour cette version de FreeITSM. Demandez à un administrateur de lancer Système → Vérification de la base de données.',
     ],
     'tenant_switcher' => [
         'title' => 'Changer d\'entreprise',

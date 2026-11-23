@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'Status',
         'req_col_submitted' => 'Ingedien',
         'req_pending' => 'Wag op goedkeuring',
+        'req_step' => 'stap {p} van {n}',
+        'req_step_named' => 'wag vir {name}, stap {p} van {n}',
         'req_approved' => 'Goedgekeur',
         'req_rejected' => 'Van die hand gewys',
         'req_sent' => 'Gestuur',

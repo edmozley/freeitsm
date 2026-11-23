@@ -143,8 +143,7 @@ try {
     $requests = [];
     if (moduleIsEnabled($conn, 'forms')) try {   // GH #217
         $reqStmt = $conn->prepare(
-            "SELECT s.id, s.approval_status, s.submitted_date, s.ticket_id, s.approval_comment,
-                    f.title AS form_title, t.ticket_number
+            "SELECT s.*, f.title AS form_title, t.ticket_number
                FROM form_submissions s
                JOIN forms f       ON f.id = s.form_id
                LEFT JOIN tickets t ON t.id = s.ticket_id AND t.deleted_datetime IS NULL
@@ -163,6 +162,12 @@ try {
             // Whether the person may still cancel it (GH #348); the reason shows only on a cancelled one.
             $r['can_cancel'] = catalogueRequestCancellable($r);
             if ($r['approval_status'] !== 'cancelled') $r['approval_comment'] = null;
+            // GH #160: "Waiting for Finance, step 2 of 3" - the step's name and place only,
+            // never who the approvers are. Then nothing else from s.* leaves this file.
+            $steps = $r['approval_status'] === 'pending' ? catalogueStepProgress($r) : null;
+            $r['step'] = $steps ? ['position' => $steps['position'], 'count' => $steps['count'], 'name' => $steps['name']] : null;
+            $r = array_intersect_key($r, array_flip(['id', 'approval_status', 'submitted_date', 'ticket_id', 'approval_comment',
+                'form_title', 'ticket_number', 'price_label', 'can_cancel', 'step']));
             // #298: answers the approver changed after it was sent - what and when, never the
             // approver's reason (that may be an internal note; the desk sees it on the ticket).
             $r['changes'] = array_map(fn($c) => ['label' => $c['label'], 'old' => $c['old'], 'new' => $c['new'], 'at' => $c['at']],

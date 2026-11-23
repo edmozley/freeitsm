@@ -42,6 +42,8 @@ $translationNamespaces = ['common', 'forms'];
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms-approval-steps.css?v=2">
+    <script src="<?php echo BASE_URL; ?>assets/js/forms-approval-steps.js?v=2"></script>
     <style>
         /* Module accent (teal). */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
@@ -331,6 +333,9 @@ $translationNamespaces = ['common', 'forms'];
         .ca-btn-secondary { background: var(--surface-2, #eee); color: var(--text, #333); border: 1px solid var(--border, #ddd); }
         .ca-btn-primary { background: var(--accent, #0078d4); color: var(--on-accent, #fff); }
         .ca-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* GH #160: the step list needs room - wider, and the body scrolls. */
+        #approvalModal .ca-modal-box { max-width: 760px; display: flex; flex-direction: column; max-height: 92vh; }
+        #approvalModal .ca-modal-body { overflow-y: auto; }
     </style>
     <!-- Which collection this form's NEW submissions are filed under. Modelled
          on the approval modal above rather than invented afresh: same overlay,
@@ -362,36 +367,23 @@ $translationNamespaces = ['common', 'forms'];
                     <input type="checkbox" id="approvalRequired" onchange="onApprovalRequiredChange()">
                     <span><?php echo htmlspecialchars(t('forms.approval.requires_label')); ?></span>
                 </label>
-                <?php /* Who decides (GH #220): a named person, exactly as before, or a team
-                         where several different members must approve. */ ?>
-                <div class="ca-field" id="approvalModeField" style="display:none;">
-                    <label><?php echo htmlspecialchars(t('forms.approval.who_decides')); ?></label>
+                <?php /* GH #160 Part C1: approval is a list of steps (an existing form opens as
+                         one step, set up as it was), or a named chain shared by many forms. */ ?>
+                <div class="ca-field" id="approvalSourceField" style="display:none;">
+                    <label><?php echo htmlspecialchars(t('forms.steps.source_label')); ?></label>
                     <div class="ca-mode">
-                        <label class="ca-check"><input type="radio" name="approvalMode" value="person" onchange="onApprovalRequiredChange()" checked> <span><?php echo htmlspecialchars(t('forms.approval.mode_person')); ?></span></label>
-                        <label class="ca-check"><input type="radio" name="approvalMode" value="team" onchange="onApprovalRequiredChange()"> <span><?php echo htmlspecialchars(t('forms.approval.mode_team')); ?></span></label>
+                        <label class="ca-check"><input type="radio" name="approvalSource" value="own" onchange="onApprovalRequiredChange()" checked> <span><?php echo htmlspecialchars(t('forms.steps.source_own')); ?></span></label>
+                        <label class="ca-check"><input type="radio" name="approvalSource" value="chain" onchange="onApprovalRequiredChange()"> <span><?php echo htmlspecialchars(t('forms.steps.source_chain')); ?></span></label>
                     </div>
                 </div>
-                <div class="ca-field" id="approverField" style="display:none;">
-                    <label for="approverSelect"><?php echo htmlspecialchars(t('forms.approval.approver_label')); ?></label>
-                    <select id="approverSelect"></select>
-                    <small class="ca-hint"><?php echo htmlspecialchars(t('forms.approval.approver_hint')); ?></small>
-                    <label class="ca-check" style="margin-top:10px;">
-                        <input type="checkbox" id="approvalExcludeRequester">
-                        <span><?php echo htmlspecialchars(t('forms.approval.exclude_requester_label')); ?></span>
-                    </label>
-                    <small class="ca-hint"><?php echo htmlspecialchars(t('forms.approval.exclude_requester_hint')); ?></small>
+                <div class="ca-field" id="approvalChainField" style="display:none;">
+                    <label for="approvalChainSelect"><?php echo htmlspecialchars(t('forms.steps.chain_label')); ?></label>
+                    <select id="approvalChainSelect"></select>
+                    <small class="ca-hint" id="approvalChainHint"></small>
                 </div>
-                <div class="ca-field" id="approvalTeamField" style="display:none;">
-                    <label for="approvalTeamSelect"><?php echo htmlspecialchars(t('forms.approval.team_label')); ?></label>
-                    <select id="approvalTeamSelect" onchange="onApprovalRequiredChange()"></select>
-                    <div class="ca-numbers">
-                        <label><?php echo htmlspecialchars(t('forms.approval.approvals_needed')); ?>
-                            <input type="number" id="approvalsRequired" min="1" max="20" value="1" oninput="onApprovalRequiredChange()"></label>
-                        <label><?php echo htmlspecialchars(t('forms.approval.rejections_needed')); ?>
-                            <input type="number" id="rejectionsRequired" min="1" max="20" value="1"></label>
-                    </div>
-                    <small class="ca-hint"><?php echo htmlspecialchars(t('forms.approval.team_hint')); ?></small>
-                    <p class="ca-note" id="approvalTeamWarn" style="display:none;"></p>
+                <div class="ca-field" id="approvalStepsField" style="display:none;">
+                    <small class="ca-hint" style="margin:0 0 10px;"><?php echo htmlspecialchars(t('forms.steps.intro')); ?></small>
+                    <div id="approvalStepsEditor"></div>
                 </div>
                 <p class="ca-note" id="approvalPortalNote" style="display:none;"><?php echo htmlspecialchars(t('forms.approval.not_portal_note')); ?></p>
             </div>
@@ -559,9 +551,14 @@ $translationNamespaces = ['common', 'forms'];
                 // Catalogue-request approval (#928): a distinct amber pill so it reads
                 // as "gated", separate from being active or in the catalogue.
                 // Approved by a team (GH #220) or a named person - the same pill, a different tooltip.
-                const approvalPill = (f.requires_approval == 1 && (f.approver_id || f.approval_team_id))
+                const stepCount = Array.isArray(f.approval_steps) ? f.approval_steps.length : 0;
+                const approvalPill = (f.requires_approval == 1 && (f.approver_id || f.approval_team_id || stepCount || f.approval_chain_id))
                     ? '<span class="ft-pill" style="background:var(--warning-bg,#fef3c7);color:var(--warning-text,#92400e);" title="'
-                      + escAttr(f.approval_team_id
+                      + escAttr(f.approval_chain_id
+                          ? window.t('forms.steps.list_chain_title', { name: f.approval_chain_name || '' })
+                          : stepCount
+                          ? window.t('forms.steps.list_steps_title', { n: stepCount })
+                          : f.approval_team_id
                           ? window.t('forms.list.approval_team_title', { n: f.approvals_required || 1, team: f.approval_team_name || '' })
                           : window.t('forms.list.approval_on_title', { name: f.approver_name || '' })) + '">'
                       + esc(window.t('forms.list.approval_on')) + '</span>'
@@ -829,29 +826,52 @@ $translationNamespaces = ['common', 'forms'];
             }
         }
 
+        let approvalChains = null;     // GH #160: named chains, fetched once
+        let approvalEditor = null;     // the step list (assets/js/forms-approval-steps.js)
+        async function ensureApprovalChains() {
+            if (approvalChains) return approvalChains;
+            try {
+                const res = await fetch(API_BASE + 'approval_chains.php');
+                const data = await res.json();
+                approvalChains = data.success && data.available ? data.chains.filter(c => c.is_active) : [];
+            } catch (e) { approvalChains = []; }
+            return approvalChains;
+        }
+
         async function openApprovalModal(id) {
             const form = allForms.find(f => f.id == id);
             if (!form) return;
             approvalFormId = id;
 
-            const analysts = await ensureApprovalAnalysts();
-            const sel = document.getElementById('approverSelect');
-            sel.innerHTML = '<option value="">' + esc(window.t('forms.approval.approver_none')) + '</option>'
-                + analysts.map(a => `<option value="${a.id}">${esc(a.full_name || a.username || ('#' + a.id))}</option>`).join('');
+            const [analysts, teams, chains] = await Promise.all([ensureApprovalAnalysts(), ensureApprovalTeams(), ensureApprovalChains()]);
+            // The questions an "Only when" can look at: this form's own, by label.
+            let questions = [];
+            try {
+                const res = await fetch(API_BASE + 'get_form.php?id=' + encodeURIComponent(id));
+                const data = await res.json();
+                const answerable = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup'];
+                questions = (data.success ? (data.form.fields || []) : [])
+                    .filter(f => answerable.indexOf(f.field_type) !== -1 && String(f.label || '').trim())
+                    .map(f => String(f.label).trim())
+                    .filter((l, i, all) => all.indexOf(l) === i);
+            } catch (e) { /* no questions to offer - conditions can still be removed */ }
 
             document.getElementById('approvalRequired').checked = (form.requires_approval == 1);
-            sel.value = form.approver_id ? String(form.approver_id) : '';
-            // Team approval (GH #220). The named approver is kept when a team is
-            // chosen, so switching back to A person restores them.
-            const teams = await ensureApprovalTeams();
-            const tsel = document.getElementById('approvalTeamSelect');
-            tsel.innerHTML = '<option value="">' + esc(window.t('forms.approval.team_none')) + '</option>'
-                + teams.map(tm => `<option value="${tm.id}">${esc(tm.name)} (${esc(window.t('forms.approval.team_members', { n: tm.member_count }))})</option>`).join('');
-            tsel.value = form.approval_team_id ? String(form.approval_team_id) : '';
-            document.querySelector(`input[name="approvalMode"][value="${form.approval_team_id ? 'team' : 'person'}"]`).checked = true;
-            document.getElementById('approvalsRequired').value = form.approvals_required || 1;
-            document.getElementById('rejectionsRequired').value = form.rejections_required || 1;
-            document.getElementById('approvalExcludeRequester').checked = (form.approval_exclude_requester == 1);
+            // The form's own steps; a form from before steps opens as ONE step, set up
+            // exactly as its person or team was, so saving it unchanged changes nothing.
+            const steps = Array.isArray(form.approval_steps) && form.approval_steps.length
+                ? form.approval_steps
+                : [form.approval_team_id
+                    ? { name: '', who: 'team', team_id: Number(form.approval_team_id), approvals_required: Number(form.approvals_required) || 1, rejections_required: Number(form.rejections_required) || 1, when: null, fallback: null }
+                    : { name: '', who: 'person', approver_id: form.approver_id ? Number(form.approver_id) : null, exclude_requester: form.approval_exclude_requester == 1 ? 1 : 0, when: null, fallback: null }];
+            approvalEditor = ApprovalSteps.mount(document.getElementById('approvalStepsEditor'), { steps, analysts, teams, questions });
+
+            const csel = document.getElementById('approvalChainSelect');
+            csel.innerHTML = '<option value="">' + esc(window.t('forms.steps.chain_none')) + '</option>'
+                + chains.map(c => `<option value="${c.id}">${esc(c.name)} (${esc(window.t('forms.steps.chain_step_count', { n: c.steps.length }))})</option>`).join('');
+            csel.value = form.approval_chain_id ? String(form.approval_chain_id) : '';
+            document.querySelector(`input[name="approvalSource"][value="${form.approval_chain_id ? 'chain' : 'own'}"]`).checked = true;
+            document.getElementById('approvalChainHint').textContent = window.t(chains.length ? 'forms.steps.chain_hint' : 'forms.steps.no_chains');
             // Approval only bites on catalogue (portal) submissions — flag it if this
             // form isn't offered in the catalogue, so the setting isn't a silent no-op.
             document.getElementById('approvalPortalNote').style.display = (form.is_portal_visible == 1) ? 'none' : '';
@@ -862,17 +882,10 @@ $translationNamespaces = ['common', 'forms'];
 
         function onApprovalRequiredChange() {
             const on = document.getElementById('approvalRequired').checked;
-            const team = document.querySelector('input[name="approvalMode"]:checked')?.value === 'team';
-            document.getElementById('approvalModeField').style.display = on ? '' : 'none';
-            document.getElementById('approverField').style.display = on && !team ? '' : 'none';
-            document.getElementById('approvalTeamField').style.display = on && team ? '' : 'none';
-            // Say so before saving if the team cannot supply the approvals asked for.
-            const warn = document.getElementById('approvalTeamWarn');
-            const tm = (approvalTeams || []).find(x => String(x.id) === document.getElementById('approvalTeamSelect').value);
-            const need = parseInt(document.getElementById('approvalsRequired').value, 10) || 1;
-            const small = on && team && tm && tm.member_count < need;
-            warn.style.display = small ? '' : 'none';
-            if (small) warn.textContent = window.t('forms.approval.team_too_small', { n: tm.member_count });
+            const chain = document.querySelector('input[name="approvalSource"]:checked')?.value === 'chain';
+            document.getElementById('approvalSourceField').style.display = on ? '' : 'none';
+            document.getElementById('approvalChainField').style.display = on && chain ? '' : 'none';
+            document.getElementById('approvalStepsField').style.display = on && !chain ? '' : 'none';
         }
 
         function closeApprovalModal() {
@@ -883,16 +896,32 @@ $translationNamespaces = ['common', 'forms'];
         async function saveApproval() {
             if (!approvalFormId) return;
             const required = document.getElementById('approvalRequired').checked;
-            const approverId = document.getElementById('approverSelect').value;
-            const team = document.querySelector('input[name="approvalMode"]:checked')?.value === 'team';
-            const teamId = document.getElementById('approvalTeamSelect').value;
-            if (required && !team && !approverId) {
-                showToast(window.t('forms.approval.need_approver'), 'error');
-                return;
-            }
-            if (required && team && !teamId) {
-                showToast(window.t('forms.approval.need_team'), 'error');
-                return;
+            const chain = document.querySelector('input[name="approvalSource"]:checked')?.value === 'chain';
+            const chainId = document.getElementById('approvalChainSelect').value;
+            // Partial update - only the approval keys, so nothing else about the form is
+            // touched (same contract as togglePortal).
+            const body = { id: approvalFormId, requires_approval: required ? 1 : 0 };
+            if (required && chain) {
+                if (!chainId) { showToast(window.t('forms.steps.need_chain'), 'error'); return; }
+                // The form's own steps are kept, so switching back restores them.
+                body.approval_chain_id = Number(chainId);
+            } else if (required) {
+                const read = approvalEditor.read();
+                if (read.error) { showToast(read.error, 'error'); return; }
+                body.approval_chain_id = null;
+                if (ApprovalSteps.isPlain(read.steps)) {
+                    // One plain step is exactly the old setting: store it the old way, so
+                    // a form saved without using steps is the form it always was.
+                    const s = read.steps[0];
+                    body.approval_steps = null;
+                    if (s.who === 'team') {
+                        Object.assign(body, { approval_team_id: s.team_id, approvals_required: s.approvals_required, rejections_required: s.rejections_required });
+                    } else {
+                        Object.assign(body, { approval_team_id: null, approver_id: s.approver_id, approval_exclude_requester: s.exclude_requester ? 1 : 0 });
+                    }
+                } else {
+                    body.approval_steps = read.steps;
+                }
             }
             const btn = document.getElementById('approvalSaveBtn');
             btn.disabled = true;
@@ -900,21 +929,7 @@ $translationNamespaces = ['common', 'forms'];
                 const res = await fetch(API_BASE + 'save_form.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    // Partial update — only these two keys, so nothing else about the
-                    // form is touched (same contract as togglePortal).
-                    // Team mode (GH #220) leaves approver_id as it was, so switching
-                    // back to A person restores the person chosen before.
-                    body: JSON.stringify(Object.assign({
-                        id: approvalFormId,
-                        requires_approval: required ? 1 : 0,
-                        approval_team_id: required && team ? Number(teamId) : null,
-                    }, required && team ? {
-                        approvals_required: parseInt(document.getElementById('approvalsRequired').value, 10) || 1,
-                        rejections_required: parseInt(document.getElementById('rejectionsRequired').value, 10) || 1,
-                    } : {
-                        approver_id: required ? Number(approverId) : null,
-                        approval_exclude_requester: document.getElementById('approvalExcludeRequester').checked ? 1 : 0,
-                    }))
+                    body: JSON.stringify(body)
                 });
                 const data = await res.json();
                 if (!data.success) { showToast(data.error || window.t('forms.approval.save_failed'), 'error'); btn.disabled = false; return; }

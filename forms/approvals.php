@@ -86,6 +86,12 @@ $translationNamespaces = ['common', 'forms'];
         .ca-vote-rejected { color: var(--danger-text, #991b1b); font-weight: 600; }
         .ca-stuck, .ca-override-hint { margin: 8px 0; padding: 8px 11px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
         .ca-event { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 2px 0; }
+        /* GH #160: the step trail - passed, the one it is on, waiting, skipped. */
+        .ca-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .ca-step { font-size: var(--font-size-sm, 12px); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); }
+        .ca-step-passed { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); border-color: transparent; }
+        .ca-step-current { border-color: var(--accent, #0078d4); color: var(--text, #333); font-weight: 600; }
+        .ca-step-skipped { text-decoration: line-through; opacity: 0.7; }
         .ca-move { display: none; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
         .ca-move.open { display: flex; }
         /* #298: changing a waiting request's answers. */
@@ -308,9 +314,16 @@ $translationNamespaces = ['common', 'forms'];
                         + (votes ? `<ul class="ca-votes">${votes}</ul>` : '');
                 }
                 const stuck = (!decided && pr.stuck) ? `<div class="ca-stuck">${esc(window.t('forms.approval.stuck'))}</div>` : '';
-                const events = (it.events || []).map(e => e.action === 'answer_changed' ? changeEventHtml(e) : `<div class="ca-event">${esc(e.action === 'moved'
-                    ? window.t('forms.approval.event_moved', { name: e.full_name || '', detail: e.detail || '', reason: e.reason || '' })
-                    : window.t('forms.approval.event_override', { name: e.full_name || '', decision: window.t('forms.approval.voted_' + e.action.replace('override_', '')), reason: e.reason || '' }))}</div>`).join('');
+                const events = (it.events || []).map(e => e.action === 'answer_changed' ? changeEventHtml(e) : `<div class="ca-event">${esc(eventText(e))}</div>`).join('');
+                // GH #160: where a request with steps has got to - each step, and which it is on.
+                let stepsBlock = '';
+                if (it.steps) {
+                    const trail = it.steps.steps.map(s => `<span class="ca-step ca-step-${esc(s.state)}">${esc(s.no + '. ' + (s.name || window.t('forms.steps.step_n', { n: s.no })))}`
+                        + (s.state === 'passed' ? ' &#10003;' : s.state === 'skipped' ? ' (' + esc(window.t('forms.steps.state_skipped')) + ')' : '') + '</span>').join('');
+                    stepsBlock = `<div class="ca-progress"><span class="lbl">${esc(window.t('forms.steps.step_label'))}</span> `
+                        + (decided ? '' : `<strong>${esc(window.t(it.steps.name ? 'forms.steps.step_of_named' : 'forms.steps.step_of', { p: it.steps.position, n: it.steps.count, name: it.steps.name }))}</strong>`)
+                        + `<div class="ca-steps">${trail}</div></div>`;
+                }
                 let footer;
                 if (decided) {
                     const badge = `<span class="ca-badge ${it.approval_status}">${esc(window.t('forms.approval.status_' + it.approval_status))}</span>`;
@@ -356,7 +369,7 @@ $translationNamespaces = ['common', 'forms'];
                             ${it.price_label ? `<span><span class="lbl">${esc(window.t('common.catalogue_price.label'))}</span> ${esc(it.price_label)}</span>` : ''}
                             ${(currentFilter !== 'mine' && it.approver_name) ? `<span><span class="lbl">${esc(window.t('forms.approval.approver'))}</span> ${esc(it.approver_name)}</span>` : ''}
                         </div>
-                        ${teamBlock}
+                        ${stepsBlock}${teamBlock}
                         <div class="ca-answers">${answers}</div>
                         ${stuck}${events}
                         ${footer}
@@ -386,7 +399,10 @@ $translationNamespaces = ['common', 'forms'];
                     card.querySelectorAll('button').forEach(b => b.disabled = false);
                     return;
                 }
-                if (data.decision === 'recorded') {
+                if (data.decision === 'step_passed') {
+                    // GH #160: that step is approved; the request has moved on to the next.
+                    showToast(window.t('forms.steps.passed_toast', { p: data.step.position, n: data.step.count }), 'success');
+                } else if (data.decision === 'recorded') {
                     // One vote of several (GH #220): the request is still waiting.
                     showToast(window.t('forms.approval.vote_toast', { a: data.progress.approvals, n: data.progress.approvals_required }), 'success');
                 } else if (decision === 'approved' && data.ticket_number) {
@@ -409,6 +425,19 @@ $translationNamespaces = ['common', 'forms'];
            changed here. Only the answers actually changed are sent; the server checks
            them by the same rules a submission passes and records each change. */
         let CA_ITEMS = {};
+
+        /** One line of a request's record: a move, an override, or (GH #160) a step that passed, was skipped or went to a fallback. */
+        function eventText(e) {
+            const p = { name: e.full_name || '', detail: e.detail || '', reason: e.reason || '' };
+            switch (e.action) {
+                case 'moved':         return window.t('forms.approval.event_moved', p);
+                case 'step_passed':   return window.t(p.reason ? 'forms.steps.event_passed_note' : 'forms.steps.event_passed', p);
+                case 'step_skipped':  return window.t('forms.steps.event_skipped', p);
+                case 'step_fallback': return window.t('forms.steps.event_fallback', p);
+                case 'auto_approved': return window.t('forms.steps.event_auto');
+            }
+            return window.t('forms.approval.event_override', { name: p.name, decision: window.t('forms.approval.voted_' + String(e.action).replace('override_', '')), reason: p.reason });
+        }
 
         function changeEventHtml(e) {
             let d = {};

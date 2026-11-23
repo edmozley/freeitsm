@@ -99,11 +99,14 @@ function formsHelpTopics(): array
         'approvals' => [
             'title' => 'Approving catalogue requests',
             'sub'   => 'A request that waits for a yes - from one person, or from several members of a team.',
-            'blurb' => 'Named approvers, team approvals with a quorum, and what an administrator can do.',
+            'blurb' => 'Named approvers, team approvals with a quorum, steps one after another, chains, and what an administrator can do.',
             'sections' => [
                 'setting'  => 'Asking for approval',
                 'person'   => 'A person decides',
                 'team'     => 'A team decides',
+                'steps'    => 'More than one step',          // GH #160
+                'nobody'   => 'If nobody can decide',
+                'chains'   => 'Approval chains',
                 'inbox'    => 'The approvals inbox',
                 'admins'   => 'When an administrator steps in',
             ],

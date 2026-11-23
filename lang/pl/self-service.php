@@ -12,10 +12,9 @@
 
 return [
     'portal' => 'Portal Samoobsługowy',
-    // GH #414: the organisation chart (self-service/org-chart.php).
     'org_chart' => [
-        'title'        => 'Schemat organizacyjny',
-        'subtitle'     => 'Kto komu podlega. Wyszukaj imię i nazwisko, stanowisko lub dział albo rozwiń zespół strzałką.',
+        'title' => 'Schemat organizacyjny',
+        'subtitle' => 'Kto komu podlega. Wyszukaj imię i nazwisko, stanowisko lub dział albo rozwiń zespół strzałką.',
     ],
     'equipment' => [
         'title' => 'Mój sprzęt',
@@ -55,7 +54,7 @@ return [
         'team_tickets' => 'Zgłoszenia zespołu',
         'help_centre' => 'Baza wiedzy',
         'equipment' => 'Mój sprzęt',
-        'org_chart'   => 'Organizacja',   // GH #414
+        'org_chart' => 'Organizacja',
         'training' => 'Szkolenia',
         'help' => 'Pomoc',
         'menu' => 'Menu',
@@ -176,12 +175,13 @@ return [
         'req_col_status' => 'Status',
         'req_col_submitted' => 'Wysłano',
         'req_pending' => 'Oczekuje na zatwierdzenie',
+        'req_step' => 'krok {p} z {n}',
+        'req_step_named' => 'czeka na: {name}, krok {p} z {n}',
         'req_approved' => 'Zatwierdzona',
         'req_rejected' => 'Odrzucona',
         'req_sent' => 'Wysłano',
         'req_cancelled' => 'Anulowano',
         'req_cancel' => 'Anuluj',
-        // Discussion #298: answers changed after it was sent.
         'req_changed' => 'Odpowiedzi zmienione po wysłaniu ({n})',
         'req_changed_line' => '{field}: {old} → {new}',
         'req_changed_blank' => '(puste)',
@@ -458,7 +458,6 @@ return [
         'tr_li4' => 'Wynik zobaczysz od razu, wraz z informacją, które odpowiedzi były błędne i dlaczego. Jeśli nie zaliczysz testu, możesz spróbować ponownie.',
         'tr_p2' => 'Twój postęp jest zapisywany na bieżąco, dzięki czemu możesz przechodzić kurs w kilku podejściach, na dowolnym urządzeniu, i kontynuować od miejsca, w którym skończyłeś.',
         'tr_tip' => '<strong>Terminy i przypomnienia:</strong> kurs może mieć datę, do której należy go ukończyć. Masz na to cały ten dzień. Jeśli dział IT włączył przypomnienia, otrzymasz e-mail, gdy termin się zbliża, oraz kolejny, jeśli go przekroczysz — przypomnienia ustają, gdy tylko ukończysz kurs.',
-        // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Schemat organizacyjny',
         'org_p1' => 'Jeśli zespół IT go włączył, <strong>Organizacja</strong> w górnym menu pokazuje, kto komu podlega w Twojej firmie. Schemat otwiera się na Twoim miejscu, z rozwiniętą linią nad Tobą.',
         'org_li1' => 'Kliknij strzałkę obok osoby, aby pokazać lub ukryć jej zespół. Liczby obok nazwiska to liczba osób bezpośrednio jej podległych oraz, po kropce, łączna liczba osób pod nią.',
@@ -498,10 +497,10 @@ return [
         'mfa_off' => 'Wył.',
     ],
     'account' => [
-        'language'            => 'Język',   // GH #368
-        'language_browser'    => 'Język przeglądarki',
-        'language_hint'       => 'Język, w którym portal wyświetla się dla Ciebie. Zapisywany na Twoim koncie.',
-        'language_failed'     => 'Nie udało się zapisać języka.',
+        'language' => 'Język',
+        'language_browser' => 'Język przeglądarki',
+        'language_hint' => 'Język, w którym portal wyświetla się dla Ciebie. Zapisywany na Twoim koncie.',
+        'language_failed' => 'Nie udało się zapisać języka.',
         'heading' => 'Moje konto',
         'appearance' => 'Wygląd',
         'appearance_hint' => 'Wybierz wygląd portalu. Zapisywane na Twoim koncie.',

@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'স্ট্যাটাস',
         'req_col_submitted' => 'জমা দেওয়া হয়েছে',
         'req_pending' => 'অনুমোদনের অপেক্ষায়',
+        'req_step' => '{n}-এর মধ্যে ধাপ {p}',
+        'req_step_named' => '{name}-এর অপেক্ষায়, {n}-এর মধ্যে ধাপ {p}',
         'req_approved' => 'অনুমোদিত',
         'req_rejected' => 'প্রত্যাখ্যাত',
         'req_sent' => 'পাঠানো',

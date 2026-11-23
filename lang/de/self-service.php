@@ -12,10 +12,9 @@
 
 return [
     'portal' => 'Self-Service-Portal',
-    // GH #414: the organisation chart (self-service/org-chart.php).
     'org_chart' => [
-        'title'        => 'Organigramm',
-        'subtitle'     => 'Wer an wen berichtet. Suchen Sie nach einem Namen, einer Position oder einer Abteilung, oder öffnen Sie ein Team mit dem Pfeil.',
+        'title' => 'Organigramm',
+        'subtitle' => 'Wer an wen berichtet. Suchen Sie nach einem Namen, einer Position oder einer Abteilung, oder öffnen Sie ein Team mit dem Pfeil.',
     ],
     'equipment' => [
         'title' => 'Meine Geräte',
@@ -55,7 +54,7 @@ return [
         'team_tickets' => 'Team-Tickets',
         'help_centre' => 'Wissensdatenbank',
         'equipment' => 'Meine Geräte',
-        'org_chart'   => 'Organisation',   // GH #414
+        'org_chart' => 'Organisation',
         'training' => 'Schulung',
         'help' => 'Hilfe',
         'menu' => 'Menü',
@@ -176,12 +175,13 @@ return [
         'req_col_status' => 'Status',
         'req_col_submitted' => 'Gesendet',
         'req_pending' => 'Warten auf Genehmigung',
+        'req_step' => 'Schritt {p} von {n}',
+        'req_step_named' => 'wartet auf {name}, Schritt {p} von {n}',
         'req_approved' => 'Genehmigt',
         'req_rejected' => 'Abgelehnt',
         'req_sent' => 'Gesendet',
         'req_cancelled' => 'Abgebrochen',
         'req_cancel' => 'Abbrechen',
-        // Discussion #298: answers changed after it was sent.
         'req_changed' => 'Nach dem Absenden geänderte Antworten ({n})',
         'req_changed_line' => '{field}: {old} → {new}',
         'req_changed_blank' => '(leer)',
@@ -458,7 +458,6 @@ return [
         'tr_li4' => 'Das Ergebnis wird Ihnen sofort angezeigt, zusammen mit den falschen Antworten und warum sie falsch waren. Haben Sie nicht bestanden, können Sie es erneut versuchen.',
         'tr_p2' => 'Ihr Fortschritt wird laufend gespeichert, sodass Sie einen Kurs in mehreren Sitzungen und auf jedem Gerät bearbeiten können und dort weitermachen, wo Sie aufgehört haben.',
         'tr_tip' => '<strong>Fristen und Erinnerungen:</strong> Ein Kurs kann ein Datum haben, bis zu dem er erledigt sein sollte. Ihnen steht der ganze Tag zur Verfügung. Hat Ihr IT-Team Erinnerungen eingeschaltet, erhalten Sie eine E-Mail, wenn sich das Datum nähert, und noch einmal, wenn es verstrichen ist — das endet, sobald Sie den Kurs abschließen.',
-        // GH #414: the organisation chart, for people who have the tab
         'org_title' => 'Organigramm',
         'org_p1' => 'Wenn Ihr IT-Team es eingeschaltet hat, zeigt <strong>Organisation</strong> in der oberen Navigation, wer in Ihrem Unternehmen an wen berichtet. Es öffnet sich an Ihrer eigenen Stelle, mit der Linie über Ihnen aufgeklappt.',
         'org_li1' => 'Klicken Sie auf den Pfeil neben einer Person, um ihr Team ein- oder auszublenden. Die Zahlen neben einem Namen geben an, wie viele direkt an sie berichten und, nach dem Punkt, wie viele insgesamt unter ihr sind.',
@@ -498,10 +497,10 @@ return [
         'mfa_off' => 'Aus',
     ],
     'account' => [
-        'language'            => 'Sprache',   // GH #368
-        'language_browser'    => 'Sprache Ihres Browsers',
-        'language_hint'       => 'Die Sprache, in der das Portal für Sie angezeigt wird. Wird in Ihrem Konto gespeichert.',
-        'language_failed'     => 'Ihre Sprache konnte nicht gespeichert werden.',
+        'language' => 'Sprache',
+        'language_browser' => 'Sprache Ihres Browsers',
+        'language_hint' => 'Die Sprache, in der das Portal für Sie angezeigt wird. Wird in Ihrem Konto gespeichert.',
+        'language_failed' => 'Ihre Sprache konnte nicht gespeichert werden.',
         'heading' => 'Mein Konto',
         'appearance' => 'Darstellung',
         'appearance_hint' => 'Wählen Sie, wie das Portal aussehen soll. Wird in Ihrem Konto gespeichert.',

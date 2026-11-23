@@ -244,6 +244,10 @@ class NotificationsService
             // Consumables (5.8.0): an item fell to its reorder point - to the analysts chosen in
             // Assets -> Settings -> Consumables, once per dip (ConsumablesService::checkLow()).
             'consumable.low_stock'       => ['default' => true,  'entity' => 'consumable'],
+            // GH #160 Part C1: a catalogue request with approval steps reached a step this
+            // person decides - the named approver, or each member of the approving team who
+            // may vote. On: a chain waits silently otherwise. catalogueTellStepApprovers().
+            'catalogue_request.awaiting' => ['default' => true,  'entity' => 'catalogue_request'],
         ];
     }
 
@@ -505,6 +509,7 @@ class NotificationsService
         'cmdb_object' => 'cmdb', 'knowledge_article' => 'knowledge', 'contract' => 'contracts',
         'supplier' => 'contracts', 'supplier_contact' => 'contracts', 'domain' => 'domains',
         'project' => 'projects', 'person' => 'people', 'virt_connection' => 'assets',
+        'catalogue_request' => 'forms',   // GH #160
     ];
 
     /** " AND entity_type NOT IN (...)" for the switched-off modules' entity types, or ''. */

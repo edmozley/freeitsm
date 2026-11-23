@@ -55,6 +55,14 @@ try {
         : " NULL AS approval_team_id, NULL AS approval_team_name, 1 AS approvals_required, 1 AS rejections_required, 0 AS approval_exclude_requester,";
     $teamJoin = $teamApproval ? "
             LEFT JOIN teams apt ON apt.id = f.approval_team_id" : '';
+    // Approval steps and chains (GH #160 Part C1), once Database Verification has added them.
+    if (catalogueStepsAvailable($conn)) {
+        $teamSelect .= " f.approval_steps, f.approval_chain_id, apc.name AS approval_chain_name,";
+        $teamJoin .= "
+            LEFT JOIN form_approval_chains apc ON apc.id = f.approval_chain_id";
+    } else {
+        $teamSelect .= " NULL AS approval_steps, NULL AS approval_chain_id, NULL AS approval_chain_name,";
+    }
 
     $collectionJoin = $hasCollections
         ? "
@@ -87,6 +95,11 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $forms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // GH #160: the steps decoded, so the list and Approval settings never parse JSON.
+    foreach ($forms as &$f) {
+        $f['approval_steps'] = $f['approval_steps'] !== null ? json_decode((string)$f['approval_steps'], true) : null;
+    }
+    unset($f);
     // The price as the portal shows it, for the list's pill (GH #348).
     if ($cardSelect !== '') {
         foreach ($forms as &$f) {

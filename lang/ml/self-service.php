@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'നില',
         'req_col_submitted' => 'സമർപ്പിച്ചത്',
         'req_pending' => 'അനുമതിക്കായി കാത്തിരിക്കുന്നു',
+        'req_step' => '{n} ൽ {p}-ാം ഘട്ടം',
+        'req_step_named' => '{name}-നായി കാത്തിരിക്കുന്നു, {n} ൽ {p}-ാം ഘട്ടം',
         'req_approved' => 'അനുമതി നൽകി',
         'req_rejected' => 'നിരസിച്ചു',
         'req_sent' => 'അയച്ചത്',

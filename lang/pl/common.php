@@ -85,7 +85,6 @@ return [
         'field_phone' => 'telefon',
         'field_mobile' => 'telefon komórkowy',
     ],
-    // GH #399: a settings page as tabs or as one page.
     'settings_view' => [
         'view' => 'Widok',
         'tabs' => 'Karty',
@@ -575,11 +574,9 @@ return [
         'loading' => 'Ładowanie…',
         'load_failed' => 'Nie udało się wczytać powiadomień.',
         'someone' => 'Ktoś',
-        // GH #365: named after "by" when no person did it.
         'actor_workflow' => 'przepływ pracy „{name}”',
         'actor_system' => 'FreeITSM',
         'actor_email' => 'e-mail',
-        // The bell's (i) panel - "why is this here?" (5.8.0).
         'explain' => [
             'info' => 'Dlaczego to tu jest?',
             'title' => 'Dlaczego to tu jest',
@@ -692,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Kończy się zapas - czas zamówić ponownie',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'Wniosek czeka na Twoje zatwierdzenie',
+            ],
             'hyperv' => [
                 'collector' => 'Kolektor Hyper-V wymaga uwagi',
             ],
@@ -753,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Materiał eksploatacyjny spada do swojego progu zamówienia (kto dostaje powiadomienie, wybiera się w Zasoby -> Ustawienia -> Materiały eksploatacyjne)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'Wniosek katalogowy dociera do kroku zatwierdzania, o którym decyduję (jako zatwierdzający lub członek zatwierdzającego zespołu)',
             ],
             'hyperv' => [
                 'collector' => 'Kolektor Hyper-V przestaje zgłaszać dane lub nie można odczytać pamięci masowej klastra (osoby zarządzające połączeniami Hyper-V)',
@@ -950,12 +953,11 @@ return [
         'hour' => 'Godzina',
         'minute' => 'Minuta',
     ],
-    // GH #369: the database is behind the code (includes/db_verify_status.php, waffle-menu.php).
     'db_behind' => [
         'notice' => 'FreeITSM zaktualizowano do wersji {version}. Uruchom Weryfikację bazy danych, aby baza była zgodna, inaczej niektóre strony nie będą działać.',
         'verify' => 'Zweryfikuj',
-        'hide'   => 'Ukryj',
-        'error'  => 'Baza danych wymaga aktualizacji do tej wersji FreeITSM. Poproś administratora o uruchomienie System → Weryfikacja bazy danych.',
+        'hide' => 'Ukryj',
+        'error' => 'Baza danych wymaga aktualizacji do tej wersji FreeITSM. Poproś administratora o uruchomienie System → Weryfikacja bazy danych.',
     ],
     'tenant_switcher' => [
         'title' => 'Przełącz firmę',

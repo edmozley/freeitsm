@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'Status',
         'req_col_submitted' => 'Sendt',
         'req_pending' => 'Venter på godkjenning',
+        'req_step' => 'trinn {p} av {n}',
+        'req_step_named' => 'venter på {name}, trinn {p} av {n}',
         'req_approved' => 'Godkjent',
         'req_rejected' => 'Avslått',
         'req_sent' => 'Sendt',

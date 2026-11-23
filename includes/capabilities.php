@@ -234,6 +234,7 @@ enum Cap: string
     // Everyday work, not a settings tab (#180 Part 3) - see the manifest's 'actions'.
     case FORMS_DESIGN      = 'forms.design';
     case FORMS_COLLECTIONS = 'forms.collections';   // create / close collections — closing can stop forms accepting submissions
+    case FORMS_APPROVALS   = 'forms.approvals';     // GH #160: approval chains and the default fallback approver
 
     // ---- Process Mapper ----------------------------------------------------
     case PROCESS_MAPPER_MANAGE     = 'process_mapper.manage';    // umbrella

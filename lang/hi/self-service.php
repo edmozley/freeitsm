@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'स्थिति',
         'req_col_submitted' => 'सबमिट किया गया',
         'req_pending' => 'अनुमोदन की प्रतीक्षा में',
+        'req_step' => '{n} में से चरण {p}',
+        'req_step_named' => '{name} की प्रतीक्षा में, {n} में से चरण {p}',
         'req_approved' => 'स्वीकृत',
         'req_rejected' => 'अस्वीकृत',
         'req_sent' => 'भेजा गया',

@@ -391,6 +391,44 @@ function catalogueStepsRecordNew(PDO $conn, array $plan, int $submissionId): ?ar
 }
 
 /**
+ * Tell the people who decide the step a request has just reached (GH #160 Part C1):
+ * the named approver, or each member of the approving team who may vote. The staff
+ * bell, with each person's own switch (Preferences). Called after the commit, at
+ * submission and each time a step passes. A chain cannot live without it - every
+ * step would wait silently for somebody who does not know it has arrived.
+ *
+ * Requests without steps are left exactly as they were (told by a workflow rule, if any).
+ *
+ * @param array $sub  the form_submissions row (with form_title), as it is now
+ * @return int how many were told
+ */
+function catalogueTellStepApprovers(PDO $conn, array $sub): int {
+    if (($sub['approval_status'] ?? '') !== 'pending' || catalogueSubmissionSteps($sub) === null) return 0;
+    require_once __DIR__ . '/services/notifications.php';
+    if (!empty($sub['approval_team_id'])) {
+        $ids = catalogueEligibleMembers($conn, $sub);
+    } elseif (!empty($sub['approver_id'])) {
+        $ids = (!empty($sub['approval_exclude_requester']) && catalogueAnalystIsRequester($conn, (int)$sub['approver_id'], $sub))
+            ? [] : [(int)$sub['approver_id']];
+    } else {
+        return 0;
+    }
+    $p = catalogueStepProgress($sub);
+    $body = 'Step ' . $p['position'] . ' of ' . $p['count'] . ($p['name'] !== '' ? ': ' . $p['name'] : '');
+    $told = 0;
+    foreach (array_unique($ids) as $aid) {
+        if (!NotificationsService::typeEnabled($conn, $aid, 'catalogue_request.awaiting')) continue;
+        $told += (int)NotificationsService::notify($conn, [
+            'analyst_id' => $aid, 'event_type' => 'catalogue_request.awaiting', 'entity_type' => 'catalogue_request',
+            'entity_id' => (int)$sub['id'], 'entity_ref' => '#' . (int)$sub['id'],
+            'title' => (string)($sub['form_title'] ?? ''), 'body' => $body,
+            'actor_id' => null, 'actor_name' => null,
+        ]);
+    }
+    return $told;
+}
+
+/**
  * "Step 2 of 3: Finance" - for the record and the requester.
  */
 function catalogueStepLabel(array $step, int $no, int $total): string {

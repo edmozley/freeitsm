@@ -689,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Scorte in esaurimento: è ora di riordinare',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'Una richiesta attende la tua approvazione',
+            ],
             'hyperv' => [
                 'collector' => 'Un collettore Hyper-V richiede la tua attenzione',
             ],
@@ -750,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Un consumabile scende al suo punto di riordino (chi viene avvisato si sceglie in Asset -> Impostazioni -> Consumabili)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'Una richiesta del catalogo raggiunge un passaggio di approvazione che decido io (come approvatore, o come membro del team che approva)',
             ],
             'hyperv' => [
                 'collector' => 'Un collettore Hyper-V smette di inviare dati, oppure lo storage di un cluster non può essere letto (chi gestisce le connessioni Hyper-V)',

@@ -175,6 +175,8 @@ return [
         'req_col_status' => 'સ્થિતિ',
         'req_col_submitted' => 'સબમિટ કરેલ',
         'req_pending' => 'મંજૂરીની રાહમાં',
+        'req_step' => '{n} માંથી પગલું {p}',
+        'req_step_named' => '{name} ની રાહ, {n} માંથી પગલું {p}',
         'req_approved' => 'મંજૂર',
         'req_rejected' => 'નકારેલ',
         'req_sent' => 'મોકલ્યું',
