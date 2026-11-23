@@ -87,6 +87,23 @@ require __DIR__ . '/_top.php';
     <p>The REST API takes <code>cost_centre_id</code> on assets, contracts and requesters (contracts also take the code as <code>cost_centre</code>), and the asset import matches on code - so your finance system's codes are all you need.</p>
 </div>
 
+<!-- GH #160 Part B: owner and deputy -->
+<div class="help-section" id="owner">
+    <div class="help-section-header"><?php echo helpSectionNum('owner'); ?>
+        <div>
+            <h3>An owner and a deputy</h3>
+            <p>Who answers for each budget - the people who will approve requests charged to it.</p>
+        </div>
+    </div>
+    <ul>
+        <li><strong>Owner</strong> - one <strong>person</strong>, or a <strong>people group</strong> when a team shares the budget (controlling, or a third-party funded project, say). A people group can include portal users, so its members do not need a service desk account.</li>
+        <li><strong>Deputy</strong> - a person who covers for the owner.</li>
+    </ul>
+    <p>Set them in the cost centre's <strong>Edit</strong> window, where you search for a person by name or email. A named person must be <strong>active</strong> and in the cost centre's own company (someone with no company counts as the Default company's), and the deputy cannot be the owner. People groups belong to the whole install.</p>
+    <p>The <strong>Owner</strong> column shows both, and a person who has since left is kept and marked <em>left</em> rather than removed, so you can see what needs a new owner. Each person's People page lists the cost centres they are <strong>Responsible for</strong>.</p>
+    <div class="help-note">Your finance system can keep them up to date: the import and the API take an <strong>Owner email</strong>, <strong>Owner group</strong> or <strong>Deputy email</strong> for each cost centre (see below). Requests charged to a cost centre will be approved by its owner when financial approvals arrive.</div>
+</div>
+
 <!-- 5. Import / export -->
 <div class="help-section" id="import">
     <div class="help-section-header"><?php echo helpSectionNum('import'); ?>

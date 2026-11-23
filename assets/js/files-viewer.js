@@ -111,8 +111,8 @@
         if (!pdfjsPromise) {
             // pdf.js is an ES module; the files are renamed .js so every web server
             // serves them as JavaScript (.mjs is unknown to IIS and older nginx).
-            pdfjsPromise = import(V + 'pdfjs/pdf.min.js').then(function (lib) {
-                lib.GlobalWorkerOptions.workerSrc = V + 'pdfjs/pdf.worker.min.js';
+            pdfjsPromise = import(V + 'pdfjs/pdf.min.js?v=6.5.438').then(function (lib) {
+                lib.GlobalWorkerOptions.workerSrc = V + 'pdfjs/pdf.worker.min.js?v=6.5.438';
                 return lib;
             });
         }

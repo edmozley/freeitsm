@@ -180,7 +180,7 @@ $translationNamespaces = ['common', 'tasks'];
     <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
-    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
     <link rel="stylesheet" href="../assets/css/mobile.css?v=199">
     <?php if ($taskEmbedded): ?><link rel="stylesheet" href="../assets/css/task-embed.css?v=1"><?php endif; ?>
 </head>

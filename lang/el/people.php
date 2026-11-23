@@ -326,6 +326,10 @@ return [
         'manager' => 'Προϊστάμενος',
         'reports' => 'Υφιστάμενοί του',
         'groups' => 'Ομάδες χρηστών',
+        'responsible_for' => 'Υπεύθυνος για',   // GH #160 Part B
+        'role_owner' => 'υπεύθυνος',   // GH #160 Part B
+        'role_deputy' => 'αναπληρωτής',   // GH #160 Part B
+        'cc_inactive' => 'ανενεργό',   // GH #160 Part B
         'company' => 'Εταιρεία',
         'source' => 'Από',
         'first_seen' => 'Πρώτη εμφάνιση',

@@ -9,6 +9,7 @@ require_once '../includes/branding.php';   // the organisation's logo (GH #87)
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
+require_once '../includes/money.php';     // GH #160 Part D: a calculated total in the viewer's format
 I18n::initFromSession();
 Tz::init();
 
@@ -39,14 +40,16 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
     <script src="../assets/js/tz.js?v=5"></script>
     <!-- Shared with the builder preview and the portal: field types + conditional
          visibility. Mirrors includes/form_logic.php, which decides on submit. -->
-    <script src="../assets/js/form-logic.js?v=9"></script>
+    <?php echo Money::scriptTag(); ?>
+    <script src="../assets/js/money.js?v=1"></script>
+    <script src="../assets/js/form-logic.js?v=11"></script>
     <script src="../assets/js/form-render.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <!-- Presentation shared with the portal and the builder preview: blocks
          (notes, images) and label position. A notice panel and a picture have no
          reason to look different in the three places; an INPUT does. -->
-    <link rel="stylesheet" href="../assets/css/form-shared.css?v=6">
+    <link rel="stylesheet" href="../assets/css/form-shared.css?v=8">
     <style>
         /* Module accent (teal). */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
@@ -786,6 +789,14 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
                 switch (f.field_type) {
                     case 'section':
                         return `<div class="form-section" ${wrap}><h2>${esc(f.label)}</h2></div>`;
+                    case 'calculated':
+                        /* GH #160 Part D: worked out from the other answers, never typed.
+                           Shown as it changes; the server works it out again on submit.
+                           A total the designer chose to hide still has a wrapper, so the
+                           walk is not told this surface cannot draw it. */
+                        return FormLogic.calcShown(f)
+                            ? `<div class="form-field form-calc-field" ${wrap}><label>${esc(f.label)}</label>${FormLogic.calcBox(f)}</div>`
+                            : `<div class="form-calc-field" ${wrap} hidden></div>`;
                     case 'grid': {
                         /* A table question: headings, and rows the person adds
                            as they go. One row is drawn to start with, because an
@@ -1059,7 +1070,9 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
          * on submit — this copy only exists so the page reacts as someone types.
          */
         function applyVisibility() {
-            const vis = FormLogic.visibility(formData.fields, collectValues());
+            const values = collectValues();
+            const vis = FormLogic.visibility(formData.fields, values);
+            FormLogic.renderCalcs(document, formData.fields, values, vis);   // GH #160 Part D
             formData.fields.forEach(f => {
                 const wrap = document.querySelector(`[data-wrap-id="${f.id}"]`);
                 if (!wrap) return;

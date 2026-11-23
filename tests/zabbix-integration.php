@@ -48,7 +48,6 @@ function send(string $url, ?array $body, string $method = 'POST'): array {
     if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
     $raw = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$code, json_decode((string)$raw, true) ?: ['raw' => (string)$raw]];
 }
 
@@ -163,7 +162,7 @@ try {
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_COOKIE => 'PHPSESSID=' . $sid,
             CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: ' . $csrf]]);
         if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
         return [$code, json_decode((string)$raw, true) ?: []];
     };
     $admin = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 AND is_admin = 1 ORDER BY id LIMIT 1")->fetchColumn();

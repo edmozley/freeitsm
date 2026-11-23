@@ -75,6 +75,7 @@ return [
         'pdf' => 'Eksportér som PDF',
         'email' => 'E-mail (link + PDF)',
         'copy_manually' => 'Din browser kunne ikke kopiere dette automatisk. Her er linket:',
+        'pdf_picture_missing' => 'Billedet er ikke tilgængeligt',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Vælg denne artikel',

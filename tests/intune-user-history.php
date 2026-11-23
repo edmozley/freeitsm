@@ -260,7 +260,7 @@ if (!$base) {
         $sessions[] = $file;
         $ch = curl_init(rtrim($base, '/') . '/api/intune/get_intune_device.php?asset_id=' . $assetId);
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIE => 'PHPSESSID=' . $sid, CURLOPT_TIMEOUT => 20]);
-        $raw = (string)curl_exec($ch); curl_close($ch);
+        $raw = (string)curl_exec($ch);
         return json_decode($raw, true) ?? ['raw' => substr($raw, 0, 200)];
     };
     try {

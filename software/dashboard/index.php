@@ -422,7 +422,7 @@ $translationNamespaces = ['common', 'software'];
         </div>
     </div>
 
-    <script src="../../assets/js/chart.min.js"></script>
+    <script src="../../assets/js/chart.min.js?v=4.6.1"></script>
     <script>
         const API_BASE = '../../api/software/';
 

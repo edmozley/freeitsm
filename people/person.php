@@ -108,6 +108,13 @@ $multi = isMultiTenant($conn);
                         if ($p['groups']) {
                             $f('groups', implode('', array_map(fn($g) => '<div><a href="group.php?id=' . $g['id'] . '">' . pplE($g['name']) . '</a></div>', $p['groups'])), true);
                         }
+                        // GH #160 Part B: the cost centres this person answers for, as owner or deputy.
+                        require_once __DIR__ . '/../includes/services/cost_centres.php';
+                        $resp = CostCentresService::responsibleFor($conn, (int)$p['id']);
+                        if ($resp) {
+                            $f('responsible_for', implode('', array_map(fn($c) => '<div>' . pplE($c['code'] . ' - ' . $c['name'])
+                                . ' <span class="ppl-dim">(' . pplE(t('people.person.role_' . $c['role'])) . ($c['is_active'] ? '' : ', ' . pplE(t('people.person.cc_inactive'))) . ')</span></div>', $resp)), true);
+                        }
                         $f('source', $p['source']);
                         $f('first_seen', fmt_date($p['created_at']));
                         if (!$p['is_active']) $f('left', fmt_date($p['deactivated_datetime']));

@@ -326,6 +326,10 @@ return [
         'manager' => 'Leder',
         'reports' => 'Rapporterer til dem',
         'groups' => 'Grupper',
+        'responsible_for' => 'Ansvarlig for',   // GH #160 Part B
+        'role_owner' => 'ejer',   // GH #160 Part B
+        'role_deputy' => 'stedfortræder',   // GH #160 Part B
+        'cc_inactive' => 'inaktiv',   // GH #160 Part B
         'company' => 'Virksomhed',
         'source' => 'Fra',
         'first_seen' => 'Først set',

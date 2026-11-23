@@ -53,7 +53,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <title><?php echo htmlspecialchars(pageTitle('knowledge')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/knowledge.css?v=31">
+    <link rel="stylesheet" href="../assets/css/knowledge.css?v=32">
     <link rel="stylesheet" href="../assets/css/domain-links.css?v=1">
     <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
     <!-- Prism.js for code syntax highlighting -->
@@ -65,7 +65,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/i18n.js?v=4"></script>
     <?php echo Money::scriptTag(); ?>
     <script src="../assets/js/money.js?v=1"></script>
-    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
     <!-- Mobile-friendly overrides (LAYER 17). Linked LAST so its @media rules win ties against knowledge.css. -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=200">
 </head>
@@ -572,7 +572,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <!-- Link Copied Toast -->
 
     <!-- The shared PDF writer (PDFKit + bundled Noto fonts, every language - GH #254) -->
-    <script src="../assets/js/pdf-writer.js?v=2"></script>
+    <script src="../assets/js/pdf-writer.js?v=4"></script>
     <script>window.API_BASE = '../api/knowledge/';</script>
     <!-- The organisation's own logo for the PDF, or null - never FreeITSM's (GH #254). -->
     <script>window.KB_PDF_LOGO = <?php echo json_encode(brandingCustomLogoUrl()); ?>;</script>
@@ -580,7 +580,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/safe-html.js?v=4"></script>   <!-- article bodies are cleaned before display -->
-    <script src="../assets/js/knowledge.js?v=73"></script>
+    <script src="../assets/js/knowledge.js?v=74"></script>
     <!-- Prism.js for code syntax highlighting when viewing articles -->
     <script src="../assets/js/vendor/prism.min.js?v=1.30.0"></script>
     <script src="../assets/js/vendor/prism-powershell.min.js"></script>

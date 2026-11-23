@@ -607,6 +607,20 @@
 /* GH #190 phase 4: "counts as an exception" on a choice option. */
 .option-exc { display: flex; align-items: center; gap: 3px; font-size: var(--font-size-xs, 11px); color: var(--text-muted, #666); white-space: nowrap; cursor: pointer; margin: 0 4px; }
 .option-exc input { margin: 0; }
+/* GH #160 Part D: an option's value, and a calculated total's lines. */
+.option-item input.option-value { flex: 0 0 90px; width: 90px; text-align: right; }
+.field-calc-settings .calc-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
+.field-calc-settings .calc-line select,
+.field-calc-settings .calc-line input,
+.field-calc-settings .calc-foot select {
+    padding: 5px 8px; border: 1px solid var(--border, #ddd); border-radius: 3px; font-size: var(--font-size-sm, 12px);
+    font-family: inherit; background: var(--surface, #fff); color: var(--text, #333); max-width: 260px;
+}
+.field-calc-settings .calc-amount { width: 110px; text-align: right; }
+.field-calc-settings .calc-qty { width: 60px; text-align: right; }
+.field-calc-settings .calc-x { color: var(--text-muted, #666); }
+.field-calc-settings .calc-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 8px; font-size: var(--font-size-sm, 12px); }
+.field-calc-settings .calc-hint { display: block; margin-top: 6px; color: var(--text-muted, #666); font-size: var(--font-size-xs, 11px); }
 
 .add-option-btn {
     background: none;
@@ -1225,6 +1239,7 @@
 /* The badge, matching what an image block actually looks like on the form. */
 .field-type-badge.image { background: var(--surface-3, #f8f8f8); color: var(--text-muted, #666); }
 .field-type-badge.grid  { background: var(--forms-accent-soft, #e0f2f1); color: var(--forms-accent-hover, #00695c); }
+.field-type-badge.calculated { background: var(--forms-accent-soft, #e0f2f1); color: var(--forms-accent-hover, #00695c); }
 
 /* ── A table question's column editor ──────────────────────────────────────
    One row per column, beneath the field row. A retired column stays visible,

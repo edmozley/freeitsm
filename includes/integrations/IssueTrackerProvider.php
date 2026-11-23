@@ -328,11 +328,9 @@ abstract class IssueTrackerProvider
         $body = curl_exec($ch);
         if ($body === false) {
             $err = curl_error($ch);
-            curl_close($ch);
             throw new Exception('Network error talking to the issue tracker: ' . $err);
         }
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         return [$code, $body];
     }
 }

@@ -61,7 +61,7 @@ try {
         if ($body!==null) $options[CURLOPT_POSTFIELDS]=$body;
         curl_setopt_array($ch,$options); $raw=curl_exec($ch); $code=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);
         if ($raw===false) throw new RuntimeException('HTTP connection failed: ' . curl_error($ch));
-        curl_close($ch); return [$code,json_decode($raw,true),$raw];
+ return [$code,json_decode($raw,true),$raw];
     };
     file_put_contents($temp,"Synthetic evidence for $prefix\n");
     $upload=['file'=>new CURLFile($temp,'text/plain','evidence.txt'),'client_reference'=>'report-1'];

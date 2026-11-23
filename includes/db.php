@@ -63,8 +63,14 @@ if (!function_exists('dbConnectionOptions')) {
     /** Returns the PDO options every connection uses - the session time zone set to UTC. */
     function dbConnectionOptions(): array
     {
+        // TRAP: PHP 8.5 deprecates PDO::MYSQL_ATTR_INIT_COMMAND in favour of
+        // Pdo\Mysql::ATTR_INIT_COMMAND, which only exists from PHP 8.4. Using the old name
+        // on 8.5 raised a deprecation on EVERY connection - and an endpoint that turns
+        // notices into exceptions (send_email.php did) then failed its access check and
+        // said "You do not have access to this module". Both names hold the same number.
+        $initCommand = defined('Pdo\Mysql::ATTR_INIT_COMMAND') ? constant('Pdo\Mysql::ATTR_INIT_COMMAND') : PDO::MYSQL_ATTR_INIT_COMMAND;
         return [
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '+00:00'",
+            $initCommand => "SET time_zone = '+00:00'",
         ];
     }
 }

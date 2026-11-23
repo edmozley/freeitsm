@@ -54,7 +54,6 @@ function zbx(string $method, array $params) {
     $raw = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err = curl_error($ch);
-    curl_close($ch);
     $r = json_decode((string)$raw, true);
     if (!is_array($r)) throw new RuntimeException("Zabbix API did not answer ($method): HTTP $code $err " . substr((string)$raw, 0, 200));
     if (isset($r['error'])) throw new RuntimeException("$method: " . ($r['error']['data'] ?? $r['error']['message']));
@@ -122,7 +121,7 @@ try {
     file_put_contents("$dir/sess_$sid", 'analyst_id|i:' . $admin . ';analyst_name|s:7:"ZZ test";');
     $ch = curl_init($BASE . 'api/system/zabbix_settings.php?action=export&endpoint=' . rawurlencode($ENDPOINT));
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIE => 'PHPSESSID=' . $sid, CURLOPT_HEADER => true]);
-    $resp = (string)curl_exec($ch); $hsz = (int)curl_getinfo($ch, CURLINFO_HEADER_SIZE); curl_close($ch);
+    $resp = (string)curl_exec($ch); $hsz = (int)curl_getinfo($ch, CURLINFO_HEADER_SIZE);
     @unlink("$dir/sess_$sid");
     $headers = substr($resp, 0, $hsz); $yaml = substr($resp, $hsz);
     ok('the settings page\'s download is a Zabbix import file, offered as a download',

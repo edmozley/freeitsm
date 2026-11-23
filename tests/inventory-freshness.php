@@ -48,7 +48,7 @@ function post(string $url, string $key, array $payload): array {
         CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: ' . $key],
         CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30,
     ]);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     return ['body' => $body, 'json' => json_decode($body, true)];
 }
 
@@ -161,7 +161,7 @@ try {
     file_put_contents($sessFile, 'analyst_id|i:1;analyst_name|s:13:"Administrator";is_admin|i:1;');
     $ch = curl_init($base . '/api/assets/get_asset_inventory_status.php?asset_id=' . $assetId);
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIE => 'PHPSESSID=' . $sid, CURLOPT_TIMEOUT => 20]);
-    $body = (string)curl_exec($ch); curl_close($ch);
+    $body = (string)curl_exec($ch);
     $st = json_decode($body, true);
     $agent = $st['sources'][0] ?? [];
     ok('the status endpoint lists the agent, with no device reference shown', ($st['success'] ?? false) && ($agent['source'] ?? '') === 'agent' && $agent['source_device_ref'] === null, $body);

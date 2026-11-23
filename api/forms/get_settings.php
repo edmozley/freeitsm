@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/encryption.php';
 
 header('Content-Type: application/json');
 
@@ -23,6 +24,9 @@ try {
 
     $settings = [];
     foreach ($rows as $row) {
+        // A secret (the Forms AI key, even encrypted) never leaves through this
+        // everyday read - the AI tab has its own masked panel.
+        if (isMaskedSettingKey($row['setting_key'])) continue;
         $key = str_replace('forms_', '', $row['setting_key']);
         $settings[$key] = $row['setting_value'];
     }

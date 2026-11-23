@@ -83,7 +83,6 @@ function intuneGetToken(array $settings): string {
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
-    curl_close($ch);
 
     if ($resp === false || $code !== 200) {
         throw new RuntimeException("InTune token request failed (HTTP $code): " . ($err ?: $resp));
@@ -126,7 +125,6 @@ function intuneGraphGet(string $url, array $settings, int $maxRetries = 5): arra
         $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $hdrLen = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
         $err    = curl_error($ch);
-        curl_close($ch);
 
         if ($raw === false) {
             if ($attempt === $maxRetries) throw new RuntimeException("Graph GET failed: $err");

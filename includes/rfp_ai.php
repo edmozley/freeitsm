@@ -385,7 +385,6 @@ function rfpAiCallAnthropicStreaming(PDO $conn, array $opts, callable $onEvent, 
     $ok = curl_exec($ch);
     $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlErr    = curl_error($ch);
-    curl_close($ch);
 
     $duration = (int)((microtime(true) - $start) * 1000);
 
@@ -444,7 +443,6 @@ function rfpAiHttpPostWithRetry(string $url, array $headers, string $body, bool 
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err  = curl_error($ch);
-        curl_close($ch);
 
         if ($resp === false) {
             $lastErr = 'Network error: ' . $err;

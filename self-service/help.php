@@ -268,6 +268,8 @@ if ($ssHelpOrgChart) array_splice($helpNav, array_search('s7', $helpNav, true), 
             <p><?php echo t('self-service.help.cat_p3'); ?></p>
             <p><?php echo t('self-service.help.cat_p4'); ?></p>
             <p><?php echo t('self-service.help.cat_p5'); ?></p>
+            <p><?php echo t('self-service.help.cat_p6'); ?></p>   <?php /* GH #160 C2 */ ?>
+            <p><?php echo t('self-service.help.cat_p7'); ?></p>
         </div>
 
         <!-- 4. Screen recording -->

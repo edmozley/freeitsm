@@ -18,7 +18,7 @@ filesApiRun(function () use ($conn, $analystId) {
         filesSavePref($conn, $analystId, 'files_navbar', $in['navbar']);
     }
     if (isset($in['view'])) {
-        if (!in_array($in['view'], ['icons', 'details'], true)) filesApiFail('Unknown view.');
+        if (!in_array($in['view'], ['icons', 'thumbs', 'details'], true)) filesApiFail('Unknown view.');
         filesSavePref($conn, $analystId, 'files_view', $in['view']);
     }
     if (isset($in['windows']) && is_array($in['windows'])) {

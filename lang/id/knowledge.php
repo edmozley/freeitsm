@@ -75,6 +75,7 @@ return [
         'pdf' => 'Ekspor sebagai PDF',
         'email' => 'Email (Tautan + PDF)',
         'copy_manually' => 'Browser Anda tidak menyalin ini secara otomatis. Berikut tautannya:',
+        'pdf_picture_missing' => 'Gambar tidak tersedia',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Pilih artikel ini',

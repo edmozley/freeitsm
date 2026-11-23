@@ -105,7 +105,7 @@ return [
     'approval' => [
         // Config modal (forms/index.php)
         'modal_title'      => 'Approval settings',
-        'modal_intro'      => 'Require a member of staff to approve a catalogue request before a ticket is raised. Approving raises the ticket automatically; rejecting turns it down.',
+        'modal_intro'      => "Require approval of a catalogue request before a ticket is raised - by staff, the requester's manager or a cost centre's owner. Approving the last step raises the ticket automatically; rejecting turns it down.",
         'requires_label'   => 'Require approval before a ticket is raised',
         'approver_label'   => 'Approver',
         'approver_hint'    => 'Only this person (or an administrator) can approve or reject these requests.',
@@ -202,6 +202,115 @@ return [
         'move_need'        => 'Choose where to move it, and give a reason.',
     ],
 
+    // ── Approval steps and chains (GH #160 Part C1) ─────────────────
+    // Approval settings (forms/index.php), the inbox (forms/approvals.php) and
+    // Forms -> Settings -> Approvals. assets/js/forms-approval-steps.js reads these.
+    'steps' => [
+        'source_label'   => 'Approval comes from',
+        'source_own'     => 'Steps on this form',
+        'source_chain'   => 'An approval chain',
+        'chain_label'    => 'Chain',
+        'chain_none'     => 'Choose a chain…',
+        'chain_step_count' => '{n} step(s)',
+        'chain_hint'     => 'Chains are set up under Forms -> Settings -> Approvals. Changing a chain affects new requests only.',
+        'no_chains'      => 'There are no approval chains yet. Set one up under Forms -> Settings -> Approvals.',
+        'need_chain'     => 'Choose a chain, or use steps on this form.',
+        'intro'          => 'Steps run one at a time, in order. Any rejection ends the request; when the last step passes, the request is approved.',
+        'step_n'         => 'Step {n}',
+        'name_ph'        => 'Name shown to the approver and the requester (optional)',
+        'up'             => 'Move up',
+        'down'           => 'Move down',
+        'remove'         => 'Remove this step',
+        'add'            => 'Add',
+        'only_when'      => 'Only when',
+        'always'         => 'Always',
+        'conditional'    => 'Only when…',
+        'cond_question'  => 'Choose a question…',
+        'cond_hint'      => 'Decided when the request is made. If the answer cannot be read - blank, or not a number - the step runs.',
+        'fallback'       => 'If nobody can decide',
+        'fallback_default' => 'Use the default',
+        'fallback_choose'  => 'Send it to…',
+        'fallback_hint'  => 'Used when the approver has left, is the requester, or the team has too few members. The default is set under Forms -> Settings -> Approvals.',
+        'need_who'       => 'Step {n}: choose who decides.',
+        'need_question'  => 'Step {n}: choose the question each condition looks at.',
+        'need_fallback'  => 'Step {n}: choose who it goes to if nobody can decide.',
+        'list_steps_title' => 'Needs approval: {n} step(s)',
+        'list_chain_title' => 'Needs approval: the {name} chain',
+        // The inbox
+        'step_label'     => 'Step',
+        'step_of'        => '{p} of {n}',
+        'step_of_named'  => '{p} of {n}: {name}',
+        'state_skipped'  => 'skipped',
+        'passed_toast'   => 'Approved - passed on to step {p} of {n}',
+        'event_passed'   => '{name} approved {detail}',
+        'event_passed_note' => '{name} approved {detail} - {reason}',
+        'event_skipped'  => 'Skipped {detail}',
+        'event_fallback' => '{detail}: nobody could decide it, so it went to a fallback approver',
+        'event_auto'     => 'Approved automatically: no approval step applied',
+        // Forms -> Settings -> Approvals
+        'chains_heading' => 'Approval chains',
+        'chains_intro'   => 'A chain is a list of approval steps you can choose on any number of forms, instead of setting up the same steps on each. A request keeps the steps it was made with, so changing a chain affects new requests only.',
+        'chain_new'      => 'New',
+        'chain_name'     => 'Name',
+        'chain_name_ph'  => 'For example: Hardware purchase',
+        'chain_description' => 'Description',
+        'chain_steps'    => 'Steps',
+        'chain_used_by'  => 'Used by',
+        'chain_unused'   => 'No forms yet',
+        'chain_edit_title' => 'Approval chain',
+        'chain_questions_hint' => 'A condition names its question by label, so it works on every form with a question of that name.',
+        'chain_need_name' => 'Give the chain a name.',
+        'chain_saved'    => 'Chain saved',
+        'chain_delete'   => 'Delete',
+        'chain_delete_confirm' => 'Delete the chain "{name}"?',
+        'chain_deleted'  => 'Chain deleted',
+        'chain_in_use'   => 'Used by {n} form(s) - choose other approval on those forms first',
+        'chain_empty'    => 'No approval chains yet.',
+        'default_heading' => 'If nobody can decide',
+        'default_intro'  => 'Where a step goes when nobody can decide it - the approver has left or made the request, or the team has too few members - and the step has no fallback of its own. Left on Nobody, such a request is Stuck until an administrator moves it.',
+        'default_none'   => 'Nobody - the request is Stuck',
+        'default_need'   => 'Choose who it goes to, or choose Nobody.',
+        'default_saved'  => 'Saved',
+        // GH #160 Part C2: managers and cost centre owners, deciding in the portal.
+        'mode_manager'   => "The requester's manager",
+        'mode_cc_owner'  => 'The owner of a cost centre',
+        'manager_hint'   => "From the requester's Manager field, checked at each decision. They decide on the portal's Approvals page.",
+        'cc_own'         => "The requester's own cost centre",
+        'cc_question'    => 'The cost centre chosen in "{q}"',
+        'cc_owner_hint'  => "The cost centre's owner - a person or a people group - or its deputy decides, on the portal's Approvals page.",
+        'opt_heading'    => 'Managers and cost centre owners',
+        'opt_intro'      => "Managers and cost centre owners approve on the portal's Approvals page, signed in as themselves. These settings decide when a deputy may decide, which mailbox approvers are emailed from, and whether a requester can send a reminder.",
+        'opt_deputy'     => "When may a cost centre's deputy decide?",
+        'opt_deputy_any' => 'Any time - the owner and the deputy are equals',
+        'opt_deputy_cover' => 'Only as cover, when the owner cannot',
+        'opt_days'       => 'Also after this many days without a decision',
+        'opt_days_hint'  => '0 = only when the owner has marked themselves away on the portal, has left, or made the request themselves.',
+        'opt_mailbox'    => 'Email approvers from',
+        'opt_mailbox_none' => 'No email - the bell only',
+        'opt_mailbox_hint' => 'When a request reaches a step, its approvers get an email with a link to it. The email has no approve button, so forwarding it never passes on the decision.',
+        'opt_remind'     => 'Let the requester press Remind',
+        'opt_remind_hint' => 'Tells the approvers again, by the bell and by email. At most once a day per step.',
+        'opt_saved'      => 'Approval settings saved',
+        'people_waiting' => 'Waiting for',
+        'people_manager' => "The requester's manager: {names}",
+        'people_owner'   => 'Owner of {cc}: {names}',
+        'people_portal_hint' => "Decided on the portal's Approvals page. An administrator can override or move it.",
+        'people_override_hint' => 'As an administrator, Approve or Reject here overrides this step only, and the note is the required reason.',
+        'requester_cost_centre' => "Requester's cost centre",
+        'event_already'  => '{detail}: already approved by {name}',
+        'event_reminded' => '{name} sent a reminder',
+    ],
+    // GH #160 Part C2: the email to an approver when a request reaches their step.
+    'approval_mail' => [
+        'subject'          => 'Approval needed: {form}',
+        'subject_reminder' => 'Reminder - approval needed: {form}',
+        'hello'            => 'Hello {name},',
+        'intro'            => '{requester} has asked for {form}, and it is waiting for you to approve or reject it.',
+        'intro_reminder'   => '{requester} has sent a reminder: their request for {form} is still waiting for you to approve or reject it.',
+        'open'             => 'Open the request',
+        'no_button'        => 'Sign in to decide. This email has no approve button, so forwarding it never passes on the decision.',
+    ],
+
     // ── Delete confirmation + toasts (forms/index.php) ──────────────
     'delete' => [
         'title'   => 'Delete form',
@@ -292,6 +401,32 @@ return [
     ],
 
     // Field-type palette in the Add menu (forms/edit/index.php)
+    // GH #160 Part D: a total worked out from other answers, and an amount on each option.
+    'calc' => [
+        'adds_up'         => 'Adds up',
+        'kind_fixed'      => 'A fixed amount',
+        'kind_option'     => 'The value of the option chosen in',
+        'kind_grid'       => 'A table: amount x quantity, down the rows',
+        'kind_item'       => 'A catalogue item at its own price',
+        'amount_ph'       => 'Amount',
+        'times_one'       => 'x 1',
+        'times_title'     => 'Times the answer to this question (a number)',
+        'choose_question' => 'Choose a question',
+        'choose_table'    => 'Choose a table',
+        'value_col'       => 'Amount column',
+        'qty_col'         => 'Quantity column',
+        'qty_col_none'    => 'Quantity: 1 a row',
+        'choose_item'     => 'Choose an item',
+        'qty'             => 'Quantity',
+        'add_line'        => '+ Add line',
+        'remove_line'     => 'Remove this line',
+        'currency'        => 'Currency',
+        'show'            => 'Show the total to the person filling in the form',
+        'hint'            => 'Worked out again by the server when the form is sent, so what the browser shows is a courtesy. Hidden questions add nothing; an answer that cannot be read leaves the total blank. A catalogue item adds its own price as it is when the request is made.',
+        'hidden_note'     => 'Hidden from the person filling in the form - still worked out and kept.',
+        'value_ph'        => 'Value',
+        'value_title'     => 'An amount for this option, for a calculated total. Optional.',
+    ],
     'fieldtypes' => [
         'lookup' => 'Lookup',
         'text'       => 'Text input',
@@ -310,6 +445,7 @@ return [
         // A picture on the form: a logo, a diagram, a floor plan.
         'image'      => 'Image',
         'grid'       => 'Table',
+        'calculated' => 'Calculated total',   // GH #160 Part D
     ],
 
     // Short type-name badges shown on each field row + proposal diff
@@ -333,6 +469,7 @@ return [
         'lookup'     => 'Lookup',
         'image'      => 'Image',
         'grid'       => 'Table',
+        'calculated' => 'Calculated total',   // GH #160 Part D
         // The badge shows the MODE, so a glance down the field list tells you what
         // each date field actually asks for without opening it.
         'date_date'     => 'Date',
@@ -346,12 +483,16 @@ return [
         'lookup_class'     => 'Only objects of this kind',
         'lookup_class_any' => 'Any kind',
         'lookup_portal' => 'Customers can use this on the portal',
-        'lookup_src_user' => 'People',
+        'lookup_src_user' => 'People',
+
         'lookup_src_company' => 'Companies',   // GH #367
         'lookup_src_cmdb' => 'CMDB objects',
         'lookup_src_asset' => 'Assets',
         'lookup_src_location' => 'Locations',   // GH #311
         'lookup_src_consumable' => 'Consumable items',   // 5.8.0
+        'lookup_src_cost_centre' => 'Cost centres',   // GH #160
+        'lookup_start_own' => 'Start on the requester\'s own cost centre',   // GH #160
+        'lookup_start_own_hint' => 'The form opens with the cost centre on the requester\'s own record already chosen. They can change it if the request belongs elsewhere.',   // GH #160
         'lookup_pick' => 'Choose…',
         'lookup_source' => 'Search which records',
         'options_dropdown'  => 'Dropdown options',
@@ -861,6 +1002,7 @@ return [
         'page_title'        => 'Service Desk - Forms Settings',
         'tab_layout'        => 'Layout',
         'tab_collections'   => 'Collections',
+        'tab_approvals'     => 'Approvals',   // GH #160
         'tab_ai'            => 'AI',
         'tab_access'        => 'Access',
         'access_heading'    => 'Who can design forms',
@@ -994,11 +1136,14 @@ return [
         'lookup_cmdb_title'  => 'Infrastructure',
         'lookup_cmdb_body'   => 'Servers, services, applications and databases from your CMDB. Use it for "which system is affected?". Choose a class under Only objects of this kind and it offers just that kind - keep your job positions as a class in the CMDB, say, and every form that asks for a position picks from the same list.',
         'lookup_user_title'  => 'People',
-        'lookup_user_body'   => 'Your staff directory. Searchable by name, email, username, employee ID, job title, department, office, phone and the person\'s custom fields. Use it for "who is the new starter\'s manager?". Staff only, never available on the customer portal.',
+        'lookup_user_body'   => 'Your staff directory. Searchable by name, email, username, employee ID, job title, department, office, phone and the person\'s custom fields. Use it for "who is the new starter\'s manager?". Staff only, never available on the customer portal.',
+
         'lookup_company_title' => 'Companies',   // GH #367
         'lookup_company_body' => 'The companies you serve, from People → Companies - only those the person filling it in can reach. Searchable by name, code, external reference, tax ID and your company custom fields. Use it for "which company is this for?". Staff only, never available on the customer portal.',
         'lookup_location_title' => 'Locations',   // GH #311
         'lookup_location_body' => 'Your sites, buildings, floors and rooms from System → Locations, shown as a full path such as "UK > London > Floor 2". Use it for "which office are you in?".',
+        'lookup_cost_centre_title' => 'Cost centres',   // GH #160
+        'lookup_cost_centre_body' => 'Your company\'s active cost centres from System → Cost Centres, shown as code and name - "0010 - Logistics". Use it for "which budget is this for?". Tick Start on the requester\'s own cost centre and the form opens on theirs; they can change it.',   // GH #160
         'lookup_stored'      => 'Both the name and the link to the record are kept. Rename a machine later and an old submission still says what it said at the time, while the answer still points at the right record.',
         'lookup_portal_title' => 'Customers only see their own',
         'lookup_portal'      => 'A lookup is not offered on the self-service portal unless you tick it for that field, and a customer only ever sees records belonging to their own company. The staff directory is never offered to customers, whatever you tick. A lookup a customer cannot use is left off the form on the portal altogether, so a required one never stops them sending it.',

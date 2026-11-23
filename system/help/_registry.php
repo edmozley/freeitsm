@@ -384,12 +384,14 @@ function getHelpTopics() {
                 ['id' => 'hierarchy', 'label' => 'Building a hierarchy'],
                 ['id' => 'inactive',  'label' => 'Inactive or delete?'],
                 ['id' => 'charging',  'label' => 'Charging assets, contracts and people'],
+                ['id' => 'owner',     'label' => 'An owner and a deputy'],   // GH #160 Part B
                 ['id' => 'import',    'label' => 'Importing and exporting'],
                 ['id' => 'api',       'label' => 'Syncing from your finance system'],
             ],
             'terms' => 'cost center centers nominal code codes finance accounting erp sap datev sage xero budget charge code'
                      . ' kostenstelle excel xlsx csv import export spreadsheet leading zero zeros 0010 hierarchy parent child'
-                     . ' inactive retire sync nightly rest api charge charged asset assets contract contracts person people user users',
+                     . ' inactive retire sync nightly rest api charge charged asset assets contract contracts person people user users'
+                     . ' owner deputy substitute responsible budget holder verantwortlicher stellvertreter people group team approve approval',
         ],
         // Chart of accounts (GH #282).
         'accounts' => [

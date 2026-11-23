@@ -75,6 +75,20 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         .set-box { background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 14px 16px; font-size: var(--font-size-md, 13px); margin: 6px 0 16px; line-height: 1.55; }
         .set-box.warn { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
         .set-box code { word-break: break-all; }
+        /* GH #424: the Thumbnails tab's progress - a count, a bar, and a tile popping in per thumbnail. */
+        .th-counts { font-size: var(--font-size-md, 13px); color: var(--text); line-height: 1.7; }
+        .th-counts b { font-variant-numeric: tabular-nums; }
+        .th-run { margin-top: 16px; padding: 16px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--surface-2); }
+        .th-big { font-size: calc(var(--font-size-4xl, 24px) * 1.4); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+        .th-big small { font-size: var(--font-size-lg, 14px); font-weight: 500; color: var(--text-dim); margin-left: 8px; }
+        .th-bar { height: 10px; margin: 12px 0; border-radius: 99px; background: var(--border-soft); overflow: hidden; }
+        .th-fill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--fil-accent, #2563eb), var(--success-text, #16a34a)); transition: width .35s ease; }
+        .th-tiles { display: flex; flex-wrap: wrap; gap: 4px; max-height: 132px; overflow: hidden; }
+        .th-tile { width: 18px; height: 14px; border-radius: 3px; background: var(--success-text, #16a34a); opacity: .85; animation: th-pop .32s cubic-bezier(.3, 1.6, .5, 1) both; }
+        .th-tile.th-pdf { background: var(--fil-accent, #2563eb); }
+        .th-tile.th-skip { background: var(--text-dim, #9ca3af); opacity: .5; }
+        @keyframes th-pop { from { transform: scale(0) rotate(-20deg); opacity: 0; } to { transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .th-tile { animation: none; } .th-fill { transition: none; } }
         .fil-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font: inherit; font-size: var(--font-size-md, 13px); }
         .fil-btn.primary { background: var(--fil-accent); border-color: var(--fil-accent); color: var(--fil-on-accent); }
         .fil-btn:disabled { opacity: .5; cursor: default; }
@@ -201,9 +215,37 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
             <div class="set-actions"><button type="button" class="fil-btn primary" id="rbSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="rbMsg" style="font-size:var(--font-size-md, 13px)"></span></div>
         </div>
         <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'thumbnails')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'thumbnails' ? ' active' : ''; ?>" id="thumbnails-tab" data-capability="<?php echo capKey(Cap::FILES_THUMBNAILS); ?>">
+            <h2 style="margin:0 0 4px;font-size:var(--font-size-2xl, 18px)"><?php echo $tt('thumbs_title'); ?></h2>
+            <p class="desc" style="margin:0 0 10px;color:var(--text-dim);font-size:var(--font-size-md, 13px)"><?php echo $tt('thumbs_intro'); ?></p>
+            <div class="set-box" id="thState"></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('thumbs_enabled'); ?></div><div class="desc"><?php echo $tt('thumbs_enabled_desc'); ?></div></div>
+                <div><label style="display:inline-flex;gap:8px;align-items:center"><input type="checkbox" id="thEnabled"> <?php echo $tt('thumbs_enabled_label'); ?></label></div></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('thumbs_backlog'); ?></div><div class="desc"><?php echo $tt('thumbs_backlog_desc'); ?></div></div>
+                <div>
+                    <div class="th-counts" id="thCounts"></div>
+                    <div class="set-actions" style="margin-top:10px">
+                        <button type="button" class="fil-btn primary" id="thClear"><?php echo htmlspecialchars(t('files.settings.thumbs_clear')); ?></button>
+                        <button type="button" class="fil-btn" id="thPause" hidden><?php echo htmlspecialchars(t('files.settings.thumbs_pause')); ?></button>
+                        <button type="button" class="fil-btn" id="thRetry" hidden><?php echo htmlspecialchars(t('files.settings.thumbs_retry')); ?></button>
+                        <span id="thMsg" style="font-size:var(--font-size-md, 13px)"></span>
+                    </div>
+                    <div class="th-run" id="thRun" hidden>
+                        <div class="th-big"><span id="thDone">0</span><small id="thOf"></small></div>
+                        <div class="th-bar"><div class="th-fill" id="thFill"></div></div>
+                        <div class="th-tiles" id="thTiles" aria-hidden="true"></div>
+                    </div>
+                </div></div>
+        </div>
+        <?php endif; ?>
     </div>
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
-    <script src="../../assets/js/files-settings.js?v=13"></script>
+    <!-- GH #424: the Thumbnails tab draws PDFs with the same module as the desktop. -->
+    <script>window.FILES_BOOT = window.FILES_BOOT || { base: <?php echo json_encode(BASE_URL); ?>, api: <?php echo json_encode(BASE_URL . 'api/files/'); ?> };</script>
+    <script src="../../assets/js/files-thumbs.js?v=3"></script>
+    <script src="../../assets/js/files-settings.js?v=14"></script>
     <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

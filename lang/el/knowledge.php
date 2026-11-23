@@ -75,6 +75,7 @@ return [
         'pdf' => 'Εξαγωγή σε PDF',
         'email' => 'Email (σύνδεσμος + PDF)',
         'copy_manually' => 'Το πρόγραμμα περιήγησης δεν αντέγραψε αυτόματα τον σύνδεσμο. Ορίστε ο σύνδεσμος:',
+        'pdf_picture_missing' => 'Η εικόνα δεν είναι διαθέσιμη',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Επιλογή αυτού του άρθρου',

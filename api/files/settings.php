@@ -104,6 +104,64 @@ filesApiRun(function () use ($conn, $analystId) {
         filesApiOk(FilesRecycleService::describe($conn));
     }
 
+    // GH #424: thumbnails - the switch, the backlog, and clearing it in batches.
+    if (in_array($tab, ['thumbnails', 'thumbnails_pictures', 'thumbnails_pdfs', 'thumbnails_retry'], true)) {
+        requireCapabilityJson(Cap::FILES_THUMBNAILS, $conn);
+        require_once __DIR__ . '/../../includes/files/thumbnails.php';
+        // PDFs are drawn by THIS person's browser, so only those in folders they could upload
+        // to - the same rule as anywhere else a browser sends a thumbnail. Never a folder
+        // that was not shared with them: Files' promise holds for administrators too.
+        $uploadable = array_keys(array_filter(FilesAcl::levels($conn, $analystId), fn($l) => $l >= FilesAcl::UPLOAD));
+        $describe = fn() => [
+            'ready_table' => FilesThumbs::ready($conn),
+            'enabled'     => FilesThumbs::enabled($conn),
+            'gd'          => FilesThumbs::gd(),
+            'webp'        => function_exists('imagewebp'),
+            'backlog'     => FilesThumbs::backlog($conn, $uploadable),
+        ];
+        if ($tab === 'thumbnails' && $isGet) filesApiOk($describe());
+        if ($isGet) filesApiFail('Unknown settings tab.');
+        if (!FilesThumbs::ready($conn)) filesApiFail('Run Database Verification first (System -> Database Verification).');
+        if ($tab === 'thumbnails') {
+            $on = !empty($in['enabled']);
+            filesSaveSetting($conn, 'thumbnails_enabled', $on ? '1' : '0');
+            filesAudit($conn, $analystId, 'settings', [], ['thumbnails' => $on ? 'on' : 'off']);
+            filesApiOk($describe());
+        }
+        if ($tab === 'thumbnails_retry') {
+            $n = (int)$conn->exec("DELETE FROM files_thumbnails WHERE status = 'failed'");
+            filesApiOk(['retried' => $n] + $describe());
+        }
+        if (!FilesThumbs::gd()) filesApiFail('This server cannot make thumbnails: the GD extension is not installed in PHP.');
+        if ($tab === 'thumbnails_pictures') {
+            // As many as fit in about four seconds, so each request comes back quickly.
+            @set_time_limit(60);
+            $until = microtime(true) + 4;
+            $made = [];
+            while (microtime(true) < $until) {
+                $batch = FilesThumbs::nextBatch($conn, 'image', [], 5);
+                if (!$batch) break;
+                foreach ($batch as $b) {
+                    $status = FilesThumbs::makeForVersion($conn, ['sha256' => $b['sha256'], 'storage_path' => $b['storage_path']]);
+                    if ($status === 'unavailable') filesApiFail(filesStoreUnavailableMessage());
+                    $made[] = $status;
+                    if (microtime(true) >= $until) break;
+                }
+            }
+            filesApiOk(['made' => $made] + $describe());
+        }
+        if ($tab === 'thumbnails_pdfs') {
+            // The next PDFs for this browser to draw; ones it already failed on are skipped.
+            $skip = array_flip(array_map('intval', (array)($in['skip'] ?? [])));
+            $items = [];
+            foreach (FilesThumbs::nextBatch($conn, 'pdf', $uploadable, 40) as $b) {
+                if (!isset($skip[$b['item_id']])) $items[] = $b['item_id'];
+                if (count($items) >= 10) break;
+            }
+            filesApiOk(['items' => $items]);
+        }
+    }
+
     if ($tab === 'folders' && $isGet) {
         requireCapabilityJson(Cap::FILES_FOLDERS, $conn);
         $tree   = FilesAcl::tree($conn);

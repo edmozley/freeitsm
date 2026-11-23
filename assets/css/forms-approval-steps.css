@@ -1,0 +1,38 @@
+/* The approval step list (GH #160 Part C1): assets/js/forms-approval-steps.js.
+   Used in Approval settings (forms/index.php) and Forms -> Settings -> Approvals. */
+.as-list { display: flex; flex-direction: column; gap: 12px; }
+.as-step { border: 1px solid var(--border, #e0e0e0); border-radius: 8px; background: var(--surface-2, #f7f7f7); padding: 12px 14px; }
+.as-step-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.as-step-no { font-weight: 600; font-size: var(--font-size-md, 13px); white-space: nowrap; }
+.as-list .as-step-head input[type="text"] { flex: 1 1 auto; min-width: 0; }
+/* .as-list in front: forms/index.php styles every `.ca-field select` full-width, later in the page. */
+.as-list .as-step input[type="text"], .as-list .as-step input[type="number"], .as-list .as-step select {
+    width: auto; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 5px;
+    font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box;
+}
+.as-row { display: grid; grid-template-columns: 130px 1fr; gap: 10px; align-items: start; margin-top: 8px; }
+.as-label { font-size: var(--font-size-md, 13px); font-weight: 500; padding-top: 7px; }
+.as-who, .as-when, .as-fallback { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.as-list .as-who select { flex: 1 1 160px; min-width: 0; }
+.as-sel-who { flex: 0 0 auto !important; }
+.as-num { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm, 12px); }
+.as-list .as-num input { width: 64px; }
+.as-tick { flex-basis: 100%; font-size: var(--font-size-md, 13px) !important; font-weight: 400 !important; }
+.as-when > select, .as-fallback > select { flex: 0 0 auto; }
+.as-fallback > .as-who { flex-basis: 100%; }
+.as-rule { display: flex; gap: 6px; flex-basis: 100%; align-items: center; min-width: 0; }
+.as-list .as-rule select[data-r="question"] { flex: 1 1 140px; min-width: 0; }
+.as-list .as-rule select[data-r="op"] { flex: 0 1 130px; min-width: 0; }
+.as-list .as-rule input { flex: 1 1 90px; min-width: 0; }
+.as-when .ca-hint, .as-fallback .ca-hint { flex-basis: 100%; margin-top: 0; }
+.as-icon { border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text, #333); border-radius: 5px;
+           width: 30px; height: 30px; cursor: pointer; font-size: var(--font-size-lg, 14px); line-height: 1; flex: 0 0 auto; }
+.as-icon:disabled { opacity: 0.35; cursor: default; }
+.as-link { background: none; border: none; color: var(--accent, #0078d4); cursor: pointer; padding: 2px 0; font-size: var(--font-size-md, 13px); }
+.as-add { margin-top: 12px; }
+.as-warn { flex-basis: 100%; margin: 0 !important; }
+@media (max-width: 600px) {
+    .as-row { grid-template-columns: 1fr; gap: 4px; }
+    .as-label { padding-top: 0; }
+    .as-list .as-step input[type="text"], .as-list .as-step input[type="number"], .as-list .as-step select { font-size: var(--font-size-xl, 16px); }   /* 16px stops a phone zooming in */
+}

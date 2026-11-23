@@ -36,6 +36,16 @@ return [
             'setting_keys' => ['forms_collection_close_effect'],
         ],
         [
+            // GH #160 Part C1: named approval chains, and who decides when a step
+            // finds nobody. Its own capability: a chain decides who approves
+            // requests on every form that uses it.
+            'id'           => 'approvals',
+            'cap'          => capKey(Cap::FORMS_APPROVALS),
+            'label_key'    => 'forms.settings.tab_approvals',
+            'grant'        => 'Manage approval chains and the default approver',
+            'setting_keys' => ['forms_approval_fallback'],
+        ],
+        [
             'id'           => 'ai',
             'cap'          => capKey(Cap::FORMS_AI),
             'label_key'    => 'forms.settings.tab_ai',

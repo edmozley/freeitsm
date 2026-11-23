@@ -689,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Hampir habis - masa untuk memesan semula',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'Satu permohonan menunggu kelulusan anda',
+            ],
             'hyperv' => [
                 'collector' => 'Pengumpul Hyper-V memerlukan perhatian anda',
             ],
@@ -750,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Bahan guna habis jatuh ke titik pesanan semula (siapa yang diberitahu dipilih dalam Aset -> Tetapan -> Bahan guna habis)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'Permohonan katalog sampai ke langkah kelulusan yang saya putuskan (sebagai pelulusnya, atau ahli pasukan yang meluluskan)',
             ],
             'hyperv' => [
                 'collector' => 'Pengumpul Hyper-V berhenti melaporkan, atau storan kluster tidak dapat dibaca (orang yang menguruskan sambungan Hyper-V)',

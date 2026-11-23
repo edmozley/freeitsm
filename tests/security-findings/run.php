@@ -113,10 +113,9 @@ function http(string $url, array $opt = []): ?array
     if (!empty($opt['headers'])) { curl_setopt($ch, CURLOPT_HTTPHEADER, $opt['headers']); }
     if (!empty($opt['cookie']))  { curl_setopt($ch, CURLOPT_COOKIE, $opt['cookie']); }
     $raw = curl_exec($ch);
-    if ($raw === false) { curl_close($ch); return null; }
+    if ($raw === false) { return null; }
     $status  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $hdrSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-    curl_close($ch);
     return [$status, substr($raw, 0, $hdrSize), substr($raw, $hdrSize)];
 }
 
@@ -337,12 +336,17 @@ check("jsPDF is no longer bundled - every PDF goes through assets/js/pdf-writer.
       !is_file("$APP/assets/js/vendor/jspdf.umd.min.js") && !is_file("$APP/assets/js/vendor/jspdf.plugin.autotable.min.js"));
 $pdfkit = (string)@file_get_contents("$APP/assets/js/vendor/pdfkit/pdfkit.bundle.js", false, null, 0, 200);
 preg_match('/pdfkit@(\d+\.\d+\.\d+)/', $pdfkit, $pm);
-check("bundled PDFKit is the version VENDOR.md records (0.20.2)", ($pm[1] ?? '') === '0.20.2', 'found ' . ($pm[1] ?? 'none'));
+check("bundled PDFKit is the version VENDOR.md records (0.21.0)", ($pm[1] ?? '') === '0.21.0', 'found ' . ($pm[1] ?? 'none'));
 $prism = @file_get_contents("$APP/assets/js/vendor/prism.min.js");
 check("bundled Prism has the CVE-2024-53382 fix (1.30.0: currentScript must be a SCRIPT)",
       is_string($prism) && str_contains($prism, '"SCRIPT"===document.currentScript.tagName'));
 check("no second PDF library is bundled (html2pdf carried its own jsPDF until 4.1.0)",
       !is_file("$APP/assets/js/vendor/html2pdf.bundle.min.js"));
+// php-jwt 7.0 added key-size checks (an RSA key under 2048 bits is refused) - the
+// OIDC sign-in and Teams webhooks verify tokens with it, so it must not fall back to 6.x.
+$jwt = (string)@file_get_contents("$APP/includes/vendor/firebase-jwt/src/JWT.php");
+check("bundled php-jwt is 7.x, with the key-size checks (RSA_KEY_MIN_LENGTH = 2048)",
+      str_contains($jwt, 'RSA_KEY_MIN_LENGTH = 2048'));
 check("VENDOR.md exists so a scanner-invisible dependency is at least written down",
       is_file("$APP/VENDOR.md"));
 $vendor = (string)@file_get_contents("$APP/VENDOR.md");

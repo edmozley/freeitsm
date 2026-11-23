@@ -36,7 +36,7 @@ function hit(string $url, string $sid, ?array $post = null) {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     }
-    $r = curl_exec($ch); curl_close($ch);
+    $r = curl_exec($ch);
     return json_decode($r, true);
 }
 

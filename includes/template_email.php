@@ -563,7 +563,6 @@ function templateGetValidAccessToken(PDO $conn, array $mailbox, array $tokenData
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($httpCode !== 200) {
             return null;
@@ -677,11 +676,9 @@ function templateSendViaGraph(string $accessToken, array $message, string $graph
 
     if (curl_errno($ch)) {
         $error = curl_error($ch);
-        curl_close($ch);
         throw new Exception('cURL error: ' . $error);
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 202 && $httpCode !== 200) {
         $errorData = json_decode($response, true);

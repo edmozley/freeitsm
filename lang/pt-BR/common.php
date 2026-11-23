@@ -689,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Estoque baixo - hora de repor',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'Uma solicitação aguarda a sua aprovação',
+            ],
             'hyperv' => [
                 'collector' => 'Um coletor do Hyper-V precisa da sua atenção',
             ],
@@ -750,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Um consumível chega ao seu ponto de reposição (quem é avisado é definido em Ativos -> Configurações -> Consumíveis)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'Uma solicitação do catálogo chega a uma etapa de aprovação que eu decido (como aprovador ou membro da equipe aprovadora)',
             ],
             'hyperv' => [
                 'collector' => 'Um coletor do Hyper-V para de reportar ou o armazenamento de um cluster não pode ser lido (pessoas que gerenciam conexões do Hyper-V)',

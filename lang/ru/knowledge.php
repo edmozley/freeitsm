@@ -75,6 +75,7 @@ return [
         'pdf' => 'Экспорт в PDF',
         'email' => 'Email (ссылка + PDF)',
         'copy_manually' => 'Браузер не смог скопировать ссылку автоматически. Вот она:',
+        'pdf_picture_missing' => 'Изображение недоступно',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Выбрать эту статью',

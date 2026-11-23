@@ -196,7 +196,7 @@ try {
         curl_setopt_array($c, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_COOKIE => 'PHPSESSID=' . $sid,
             CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: ' . $csrf]]);
         if ($body !== null) curl_setopt($c, CURLOPT_POSTFIELDS, json_encode($body));
-        $raw = curl_exec($c); $code = (int)curl_getinfo($c, CURLINFO_HTTP_CODE); curl_close($c);
+        $raw = curl_exec($c); $code = (int)curl_getinfo($c, CURLINFO_HTTP_CODE);
         return [$code, json_decode((string)$raw, true) ?: [], (string)$raw];
     };
     $plain = (int)$conn->query("SELECT id FROM analysts WHERE COALESCE(is_active, 1) = 1 AND COALESCE(is_admin, 0) = 0 ORDER BY id LIMIT 1")->fetchColumn();

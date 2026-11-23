@@ -47,6 +47,10 @@
         area: desktop,
         ghost: ghost,
         minimise: true,
+        // Snap a window to a half and the other half offers the rest to fill it.
+        snapAssist: true,
+        /** The live picture on a snap assist tile - the same one as the taskbar preview. */
+        preview: function (w, boxW, boxH) { return snapshot(w, boxW, boxH); },
         L: L,
         /** A minimised window shrinks into, and grows back out of, its taskbar button. */
         taskRect: function (w) { return w.btn.getBoundingClientRect(); },

@@ -52,6 +52,8 @@ $translationNamespaces = ['common', 'forms'];
     <script src="../../assets/js/ai-settings.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
+    <link rel="stylesheet" href="../../assets/css/forms-approval-steps.css?v=2">
+    <script src="../../assets/js/forms-approval-steps.js?v=4"></script>
     <style>
         /* Module accent (teal) — tabs, toggles, focus rings, shared buttons. */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
@@ -338,6 +340,17 @@ $translationNamespaces = ['common', 'forms'];
             background: none; border-color: var(--border, #ddd); color: var(--text-muted, #666);
         }
         .tab-content .action-btn svg { width: 16px; height: 16px; }
+        /* GH #160: the default fallback row, and the step editor's hint inside the chain window. */
+        .chain-default { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .chain-default select, .chain-default input { padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); }
+        .chain-default label { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-md, 13px); }
+        .chain-default input { width: 64px; }
+        #chainModal .ca-hint { color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
+        #chainModal .ca-check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        #chainModal .ca-check input { width: auto; margin: 0; }
+        #chainModal .ca-note { margin: 0; padding: 8px 10px; border-radius: 6px; font-size: var(--font-size-md, 13px); background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
+        #chainModal .ca-btn { padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: var(--font-size-md, 13px); }
+        #chainModal .ca-btn-secondary { background: var(--surface-2, #eee); color: var(--text, #333); border: 1px solid var(--border, #ddd); }
 
         .coll-empty { color: var(--text-dim); font-size: var(--font-size-lg, 14px); padding: 24px 12px; }
 
@@ -532,6 +545,108 @@ $translationNamespaces = ['common', 'forms'];
             </form>
         </div>
     </div>
+        <!-- Approvals Tab (GH #160 Part C1): named approval chains, chosen on any number
+             of forms, and who decides when a step finds nobody. -->
+        <?php if (settingsTabVisible($visibleTabs, 'approvals')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'approvals' ? ' active' : ''; ?>" id="approvals-tab" data-capability="<?php echo capKey(Cap::FORMS_APPROVALS); ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('forms.steps.chains_heading')); ?></h2>
+            </div>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px; max-width: 760px;"><?php echo htmlspecialchars(t('forms.steps.chains_intro')); ?></p>
+            <div class="coll-unavailable" id="chainUnavailable" style="display:none">
+                <strong><?php echo htmlspecialchars(t('forms.collections.unavailable')); ?></strong><br>
+                <?php echo htmlspecialchars(t('forms.collections.unavailable_hint')); ?>
+            </div>
+            <div id="chainBody">
+                <div style="margin-bottom: 14px;">
+                    <button class="btn btn-primary" onclick="chainOpenModal(0)"><?php echo htmlspecialchars(t('forms.steps.chain_new')); ?></button>
+                </div>
+                <table class="settings-table" id="chainTable">
+                    <thead>
+                        <tr>
+                            <th><?php echo htmlspecialchars(t('forms.steps.chain_name')); ?></th>
+                            <th><?php echo htmlspecialchars(t('forms.steps.chain_steps')); ?></th>
+                            <th><?php echo htmlspecialchars(t('forms.steps.chain_used_by')); ?></th>
+                            <th class="coll-actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="chainRows"></tbody>
+                </table>
+                <div class="coll-empty" id="chainEmpty" style="display:none"></div>
+
+                <div class="coll-effect">
+                    <div class="section-header" style="margin-top: 8px;">
+                        <h2 style="font-size: var(--font-size-xl, 16px);"><?php echo htmlspecialchars(t('forms.steps.default_heading')); ?></h2>
+                    </div>
+                    <p style="color: var(--text-muted, #666); margin-bottom: 14px; font-size: var(--font-size-md, 13px); max-width: 760px;"><?php echo htmlspecialchars(t('forms.steps.default_intro')); ?></p>
+                    <div class="chain-default">
+                        <select id="defaultWho" onchange="chainDefaultShow()">
+                            <option value=""><?php echo htmlspecialchars(t('forms.steps.default_none')); ?></option>
+                            <option value="person"><?php echo htmlspecialchars(t('forms.approval.mode_person')); ?></option>
+                            <option value="team"><?php echo htmlspecialchars(t('forms.approval.mode_team')); ?></option>
+                        </select>
+                        <select id="defaultPerson" style="display:none"></select>
+                        <select id="defaultTeam" style="display:none"></select>
+                        <label id="defaultNums" style="display:none"><?php echo htmlspecialchars(t('forms.approval.approvals_needed')); ?>
+                            <input type="number" id="defaultApprovals" min="1" max="20" value="1"></label>
+                        <button class="btn btn-primary" onclick="chainSaveDefault()"><?php echo htmlspecialchars(t('forms.settings.save')); ?></button>
+                    </div>
+                </div>
+
+                <?php /* GH #160 Part C2: managers and cost centre owners approving in the portal. */ ?>
+                <div class="coll-effect" id="peopleOptions" style="display:none">
+                    <div class="section-header" style="margin-top: 8px;">
+                        <h2 style="font-size: var(--font-size-xl, 16px);"><?php echo htmlspecialchars(t('forms.steps.opt_heading')); ?></h2>
+                    </div>
+                    <p style="color: var(--text-muted, #666); margin-bottom: 14px; font-size: var(--font-size-md, 13px); max-width: 760px;"><?php echo htmlspecialchars(t('forms.steps.opt_intro')); ?></p>
+                    <div class="form-group">
+                        <label for="optDeputy"><?php echo htmlspecialchars(t('forms.steps.opt_deputy')); ?></label>
+                        <select id="optDeputy" class="form-input" style="max-width: 460px;" onchange="optShow()">
+                            <option value="any"><?php echo htmlspecialchars(t('forms.steps.opt_deputy_any')); ?></option>
+                            <option value="cover"><?php echo htmlspecialchars(t('forms.steps.opt_deputy_cover')); ?></option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="optDaysRow" style="display:none">
+                        <label for="optDays"><?php echo htmlspecialchars(t('forms.steps.opt_days')); ?></label>
+                        <input type="number" id="optDays" class="form-input" min="0" max="60" value="0" style="max-width: 120px;">
+                        <small class="ca-hint" style="display:block"><?php echo htmlspecialchars(t('forms.steps.opt_days_hint')); ?></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="optMailbox"><?php echo htmlspecialchars(t('forms.steps.opt_mailbox')); ?></label>
+                        <select id="optMailbox" class="form-input" style="max-width: 460px;"></select>
+                        <small class="ca-hint" style="display:block"><?php echo htmlspecialchars(t('forms.steps.opt_mailbox_hint')); ?></small>
+                    </div>
+                    <div class="form-group">
+                        <label class="ca-check"><input type="checkbox" id="optRemind"> <span><?php echo htmlspecialchars(t('forms.steps.opt_remind')); ?></span></label>
+                        <small class="ca-hint" style="display:block"><?php echo htmlspecialchars(t('forms.steps.opt_remind_hint')); ?></small>
+                    </div>
+                    <button class="btn btn-primary" onclick="optSave()"><?php echo htmlspecialchars(t('forms.settings.save')); ?></button>
+                </div>
+            </div>
+        </div>
+    <div class="modal" id="chainModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header" id="chainModalTitle"><?php echo htmlspecialchars(t('forms.steps.chain_edit_title')); ?></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="chainName"><?php echo htmlspecialchars(t('forms.steps.chain_name')); ?></label>
+                    <input type="text" id="chainName" maxlength="100" placeholder="<?php echo htmlspecialchars(t('forms.steps.chain_name_ph')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="chainDesc"><?php echo htmlspecialchars(t('forms.steps.chain_description')); ?></label>
+                    <textarea id="chainDesc" maxlength="500" rows="2"></textarea>
+                </div>
+                <small class="ca-hint" style="display:block; margin-bottom:10px;"><?php echo htmlspecialchars(t('forms.steps.intro')); ?> <?php echo htmlspecialchars(t('forms.steps.chain_questions_hint')); ?></small>
+                <div id="chainStepsEditor"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="chainCloseModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="chainSaveBtn" onclick="chainSave()"><?php echo htmlspecialchars(t('forms.settings.save')); ?></button>
+            </div>
+        </div>
+    </div>
+        <?php endif; ?>
+
         <?php if (settingsTabVisible($visibleTabs, 'access')): ?>
         <!-- Access (#180) - who may design forms. Designing includes choosing who approves a
              request and what happens next, so an approver role must be able to leave it out. -->
@@ -606,7 +721,162 @@ $translationNamespaces = ['common', 'forms'];
                stopped firing and the tab rendered empty - a guard that silently
                turns a feature off is worse than no guard. */
             if (document.getElementById('collRows')) loadCollections();
+            if (document.getElementById('chainRows')) loadChains();   // GH #160
         });
+
+        // ---------------------------------------------------------------- //
+        //  Approval chains and the default fallback (GH #160 Part C1)        //
+        // ---------------------------------------------------------------- //
+        let chainData = null;      // the GET: chains, analysts, teams, questions, default_fallback
+        let chainEditingId = 0;
+        let chainEditor = null;
+
+        async function loadChains() {
+            try {
+                const data = await (await fetch(API_BASE + 'approval_chains.php')).json();
+                if (!data.success) { showToast(data.error, 'error'); return; }
+                document.getElementById('chainUnavailable').style.display = data.available ? 'none' : '';
+                document.getElementById('chainBody').style.display = data.available ? '' : 'none';
+                if (!data.available) return;
+                chainData = data;
+                renderChains();
+                const fb = data.default_fallback;
+                document.getElementById('defaultPerson').innerHTML = '<option value="">' + collEsc(window.t('forms.approval.approver_none')) + '</option>'
+                    + data.analysts.map(a => `<option value="${a.id}">${collEsc(a.full_name || a.username)}</option>`).join('');
+                document.getElementById('defaultTeam').innerHTML = '<option value="">' + collEsc(window.t('forms.approval.team_none')) + '</option>'
+                    + data.teams.map(tm => `<option value="${tm.id}">${collEsc(tm.name)} (${collEsc(window.t('forms.approval.team_members', { n: tm.member_count }))})</option>`).join('');
+                document.getElementById('defaultWho').value = fb ? fb.who : '';
+                if (fb && fb.who === 'person') document.getElementById('defaultPerson').value = String(fb.approver_id || '');
+                if (fb && fb.who === 'team') {
+                    document.getElementById('defaultTeam').value = String(fb.team_id || '');
+                    document.getElementById('defaultApprovals').value = fb.approvals_required || 1;
+                }
+                chainDefaultShow();
+                // GH #160 Part C2: the deputy, the mailbox and Remind.
+                document.getElementById('peopleOptions').style.display = data.people ? '' : 'none';
+                if (data.people && data.options) {
+                    const o = data.options;
+                    document.getElementById('optDeputy').value = o.deputy_mode;
+                    document.getElementById('optDays').value = o.deputy_days;
+                    document.getElementById('optMailbox').innerHTML = '<option value="">' + collEsc(window.t('forms.steps.opt_mailbox_none')) + '</option>'
+                        + (data.mailboxes || []).map(m => `<option value="${m.id}">${collEsc(m.name)}${m.address ? ' (' + collEsc(m.address) + ')' : ''}</option>`).join('');
+                    document.getElementById('optMailbox').value = o.mailbox_id ? String(o.mailbox_id) : '';
+                    document.getElementById('optRemind').checked = !!o.remind;
+                    optShow();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function optShow() {
+            document.getElementById('optDaysRow').style.display = document.getElementById('optDeputy').value === 'cover' ? '' : 'none';
+        }
+
+        async function optSave() {
+            const data = await chainPost({
+                action: 'options',
+                deputy_mode: document.getElementById('optDeputy').value,
+                deputy_days: parseInt(document.getElementById('optDays').value, 10) || 0,
+                mailbox_id: Number(document.getElementById('optMailbox').value) || 0,
+                remind: document.getElementById('optRemind').checked ? 1 : 0,
+            });
+            showToast(data.success ? window.t('forms.steps.opt_saved') : data.error, data.success ? 'success' : 'error');
+        }
+
+        /** "A person: Priya Shah" / "A team: Finance (2)" - one step, for the table. */
+        function chainStepText(s) {
+            const named = s.name ? s.name + ' - ' : '';
+            if (s.who === 'manager') return named + window.t('forms.steps.mode_manager');
+            if (s.who === 'cc_owner') return named + (s.cc_question ? window.t('forms.steps.cc_question', { q: s.cc_question }) : window.t('forms.steps.cc_own'));
+            if (s.who === 'team') {
+                const tm = chainData.teams.find(x => x.id === Number(s.team_id));
+                return (s.name ? s.name + ' - ' : '') + (tm ? tm.name : '?') + ' (' + (s.approvals_required || 1) + ')';
+            }
+            const a = chainData.analysts.find(x => x.id === Number(s.approver_id));
+            return (s.name ? s.name + ' - ' : '') + (a ? (a.full_name || a.username) : '?');
+        }
+
+        function renderChains() {
+            const chains = chainData.chains || [];
+            document.getElementById('chainTable').style.display = chains.length ? '' : 'none';
+            const empty = document.getElementById('chainEmpty');
+            empty.style.display = chains.length ? 'none' : '';
+            empty.textContent = window.t('forms.steps.chain_empty');
+            document.getElementById('chainRows').innerHTML = chains.map(c => `<tr>
+                <td><strong>${collEsc(c.name)}</strong>${c.description ? '<div style="color:var(--text-muted);font-size:var(--font-size-sm,12px)">' + collEsc(c.description) + '</div>' : ''}</td>
+                <td>${c.steps.map((s, i) => '<div>' + (i + 1) + '. ' + collEsc(chainStepText(s)) + (s.when ? ' <em>(' + collEsc(window.t('forms.steps.conditional')) + ')</em>' : '') + '</div>').join('')}</td>
+                <td>${c.form_count ? c.forms.map(f => '<div>' + collEsc(f.title) + '</div>').join('') : '<span style="color:var(--text-muted)">' + collEsc(window.t('forms.steps.chain_unused')) + '</span>'}</td>
+                <td class="coll-actions">
+                    <button class="action-btn" title="${collEsc(window.t('forms.steps.chain_edit_title'))}" onclick="chainOpenModal(${c.id})">${COLL_ICON_EDIT}</button>
+                    <button class="action-btn delete" title="${collEsc(c.form_count ? window.t('forms.steps.chain_in_use', { n: c.form_count }) : window.t('forms.steps.chain_delete'))}"${c.form_count ? ' disabled' : ''} onclick="chainDelete(${c.id})">${COLL_ICON_DELETE}</button>
+                </td></tr>`).join('');
+        }
+
+        function chainOpenModal(id) {
+            chainEditingId = Number(id) || 0;
+            const c = chainEditingId ? chainData.chains.find(x => x.id === chainEditingId) : null;
+            document.getElementById('chainName').value = c ? c.name : '';
+            document.getElementById('chainDesc').value = c ? (c.description || '') : '';
+            chainEditor = ApprovalSteps.mount(document.getElementById('chainStepsEditor'), {
+                steps: c ? c.steps : [], analysts: chainData.analysts, teams: chainData.teams, questions: chainData.questions,
+                ccQuestions: chainData.cc_questions || [], people: !!chainData.people,
+            });
+            document.getElementById('chainModal').classList.add('active');
+            document.getElementById('chainName').focus();
+        }
+
+        function chainCloseModal() {
+            document.getElementById('chainModal').classList.remove('active');
+            chainEditingId = 0;
+        }
+
+        async function chainPost(body) {
+            const res = await fetch(API_BASE + 'approval_chains.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            return res.json();
+        }
+
+        async function chainSave() {
+            const name = document.getElementById('chainName').value.trim();
+            if (!name) { showToast(window.t('forms.steps.chain_need_name'), 'error'); return; }
+            const read = chainEditor.read();
+            if (read.error) { showToast(read.error, 'error'); return; }
+            const btn = document.getElementById('chainSaveBtn');
+            btn.disabled = true;
+            try {
+                const data = await chainPost({ action: 'save', id: chainEditingId || undefined, name, description: document.getElementById('chainDesc').value, steps: read.steps });
+                if (!data.success) { showToast(data.error, 'error'); return; }
+                showToast(window.t('forms.steps.chain_saved'), 'success');
+                chainCloseModal();
+                loadChains();
+            } catch (e) { showToast(window.t('forms.approval.save_failed'), 'error'); }
+            finally { btn.disabled = false; }
+        }
+
+        async function chainDelete(id) {
+            const c = chainData.chains.find(x => x.id === Number(id));
+            if (!c || !confirm(window.t('forms.steps.chain_delete_confirm', { name: c.name }))) return;
+            const data = await chainPost({ action: 'delete', id: c.id });
+            if (!data.success) { showToast(data.error, 'error'); return; }
+            showToast(window.t('forms.steps.chain_deleted'), 'success');
+            loadChains();
+        }
+
+        function chainDefaultShow() {
+            const who = document.getElementById('defaultWho').value;
+            document.getElementById('defaultPerson').style.display = who === 'person' ? '' : 'none';
+            document.getElementById('defaultTeam').style.display = who === 'team' ? '' : 'none';
+            document.getElementById('defaultNums').style.display = who === 'team' ? '' : 'none';
+        }
+
+        async function chainSaveDefault() {
+            const who = document.getElementById('defaultWho').value;
+            let fallback = null;
+            if (who === 'person') fallback = { who, approver_id: Number(document.getElementById('defaultPerson').value) || null };
+            if (who === 'team') fallback = { who, team_id: Number(document.getElementById('defaultTeam').value) || null,
+                                             approvals_required: parseInt(document.getElementById('defaultApprovals').value, 10) || 1, rejections_required: 1 };
+            if (fallback && !(fallback.approver_id || fallback.team_id)) { showToast(window.t('forms.steps.default_need'), 'error'); return; }
+            const data = await chainPost({ action: 'default', fallback });
+            showToast(data.success ? window.t('forms.steps.default_saved') : data.error, data.success ? 'success' : 'error');
+        }
 
         // AI provider/model/key for the form builder's AI Assist is now handled
         // by the shared panel (renderAiSettingsPanel('forms_ai') + ai-settings.js).

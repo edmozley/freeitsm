@@ -201,7 +201,6 @@ try {
         if ($body !== null) { curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body)); }
         $result = json_decode((string)curl_exec($ch), true);
         $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         return [$status, $result];
     };
     [$own, $ownId] = $makeKey(['virtual_estate' => ['create', 'read']]);

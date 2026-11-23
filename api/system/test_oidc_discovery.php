@@ -42,7 +42,6 @@ try {
     $body     = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlErr  = curl_error($ch);
-    curl_close($ch);
 
     if ($body === false || $curlErr !== '') {
         echo json_encode(['success' => false, 'error' => 'Could not reach the discovery URL: ' . ($curlErr ?: 'unknown error')]);

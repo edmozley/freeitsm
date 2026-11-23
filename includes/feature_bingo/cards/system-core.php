@@ -821,6 +821,19 @@ return [
             ['rows', 'users', 'cost_centre_id IS NOT NULL'],
         ]],
     ],
+    [
+        // GH #160 Part B
+        'id'       => 'system.cost_centre_owners',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Someone answers for each budget',
+        'what'     => 'A cost centre with an owner - a person, or a people group when a team shares it - and a deputy, set on the cost centre or kept in step by the import and the API.',
+        'why'      => 'Everyone knows whose budget it is, and the owner is who financial approvals will ask.',
+        'done'     => 'At least one cost centre has an owner.',
+        'link'     => 'system/help/cost-centres.php#owner',
+        'check'    => ['rows', 'cost_centres', 'owner_user_id IS NOT NULL OR owner_group_id IS NOT NULL'],
+    ],
 
     // ───────────────────────── Preference templates (discussion #124) ─────────────────────────
     [

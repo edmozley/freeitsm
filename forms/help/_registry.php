@@ -85,6 +85,20 @@ function formsHelpTopics(): array
                 'reading'  => 'Reading the answers back',
             ],
         ],
+        // GH #160 Part D
+        'totals' => [
+            'title' => 'Calculated totals and prices',
+            'sub'   => 'A total worked out from the answers - the order total an approver sees, and a threshold an approval step can use.',
+            'blurb' => 'Prices on options, a total from a quantity, a basket table or a bundle of catalogue items.',
+            'sections' => [
+                'what'     => 'What a calculated total is',
+                'options'  => 'A price on each option',
+                'lines'    => 'What a total adds up',
+                'bundles'  => 'Bundles of catalogue items',
+                'rules'    => 'How it is worked out',
+                'approval' => 'Using a total in approval',
+            ],
+        ],
         'drafts' => [
             'title' => 'Saving a form as a draft',
             'sub'   => 'Starting a form now and finishing it when you have the rest of the information.',
@@ -99,11 +113,15 @@ function formsHelpTopics(): array
         'approvals' => [
             'title' => 'Approving catalogue requests',
             'sub'   => 'A request that waits for a yes - from one person, or from several members of a team.',
-            'blurb' => 'Named approvers, team approvals with a quorum, and what an administrator can do.',
+            'blurb' => 'Named approvers, team approvals with a quorum, steps one after another, chains, and what an administrator can do.',
             'sections' => [
                 'setting'  => 'Asking for approval',
                 'person'   => 'A person decides',
                 'team'     => 'A team decides',
+                'steps'    => 'More than one step',          // GH #160
+                'people'   => 'The manager or a cost centre owner',   // GH #160 C2
+                'nobody'   => 'If nobody can decide',
+                'chains'   => 'Approval chains',
                 'inbox'    => 'The approvals inbox',
                 'admins'   => 'When an administrator steps in',
             ],

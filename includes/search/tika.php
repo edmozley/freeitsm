@@ -164,7 +164,6 @@ function tikaExtract(PDO $conn, string $path, string $filename): array {
     $errNo  = curl_errno($ch);
     $errMsg = curl_error($ch);
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     fclose($fh);
 
     // Transport failure: unreachable, refused, timed out. RETRYABLE.
@@ -205,7 +204,6 @@ function tikaPing(PDO $conn, string $overrideUrl = ''): array {
     $body   = curl_exec($ch);
     $errMsg = curl_error($ch);
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($body === false || $errMsg !== '') return ['ok' => false, 'detail' => $errMsg ?: 'No response'];
     if ($status !== 200)                   return ['ok' => false, 'detail' => 'HTTP ' . $status];

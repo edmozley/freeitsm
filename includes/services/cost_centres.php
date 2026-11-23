@@ -111,9 +111,17 @@ class CostCentresService
         self::assertCompany($conn, $actor, $tenantId);
         $st = $conn->prepare(
             "SELECT c.*, p.code AS parent_code, p.name AS parent_name,
-                    (SELECT COUNT(*) FROM cost_centres k WHERE k.parent_id = c.id) AS child_count
+                    (SELECT COUNT(*) FROM cost_centres k WHERE k.parent_id = c.id) AS child_count" . (self::peopleReady($conn) ? ",
+                    ou.display_name AS owner_name, ou.email AS owner_email, ou.is_active AS owner_active,
+                    og.name AS owner_group_name, og.is_active AS owner_group_active,
+                    du.display_name AS deputy_name, du.email AS deputy_email, du.is_active AS deputy_active
                FROM cost_centres c
           LEFT JOIN cost_centres p ON p.id = c.parent_id
+          LEFT JOIN users ou ON ou.id = c.owner_user_id
+          LEFT JOIN knowledge_user_groups og ON og.id = c.owner_group_id
+          LEFT JOIN users du ON du.id = c.deputy_user_id" : "
+               FROM cost_centres c
+          LEFT JOIN cost_centres p ON p.id = c.parent_id") . "
               WHERE c.tenant_id = ?
            ORDER BY c.code"
         );
@@ -131,10 +139,19 @@ class CostCentresService
     {
         $st = $conn->prepare(
             "SELECT c.*, p.code AS parent_code, p.name AS parent_name, t.name AS company_name,
-                    (SELECT COUNT(*) FROM cost_centres k WHERE k.parent_id = c.id) AS child_count
+                    (SELECT COUNT(*) FROM cost_centres k WHERE k.parent_id = c.id) AS child_count" . (self::peopleReady($conn) ? ",
+                    ou.display_name AS owner_name, ou.email AS owner_email, ou.is_active AS owner_active,
+                    og.name AS owner_group_name, og.is_active AS owner_group_active,
+                    du.display_name AS deputy_name, du.email AS deputy_email, du.is_active AS deputy_active
                FROM cost_centres c
           LEFT JOIN cost_centres p ON p.id = c.parent_id
           LEFT JOIN tenants t ON t.id = c.tenant_id
+          LEFT JOIN users ou ON ou.id = c.owner_user_id
+          LEFT JOIN knowledge_user_groups og ON og.id = c.owner_group_id
+          LEFT JOIN users du ON du.id = c.deputy_user_id" : "
+               FROM cost_centres c
+          LEFT JOIN cost_centres p ON p.id = c.parent_id
+          LEFT JOIN tenants t ON t.id = c.tenant_id") . "
               WHERE c.id = ?"
         );
         $st->execute([$id]);
@@ -165,6 +182,7 @@ class CostCentresService
         $active = array_key_exists('is_active', $in) ? self::cleanBool($in['is_active'], 'is_active') : 1;
         self::assertCodeFree($conn, $tenantId, $code, null);
         $parentId = self::resolveParentInput($conn, $tenantId, $in, null);
+        $people = self::resolvePeopleInput($conn, $tenantId, $in, null);
 
         $st = $conn->prepare("INSERT INTO cost_centres (tenant_id, code, name, description, parent_id, is_active) VALUES (?, ?, ?, ?, ?, ?)");
         try {
@@ -173,7 +191,12 @@ class CostCentresService
             if (($e->errorInfo[1] ?? 0) == 1062) self::codeTaken($code);   // lost a race to the same code
             throw $e;
         }
-        return (int)$conn->lastInsertId();
+        $id = (int)$conn->lastInsertId();
+        if ($people) {
+            $cols = implode(', ', array_map(fn($c) => "$c = ?", array_keys($people)));
+            $conn->prepare("UPDATE cost_centres SET $cols WHERE id = ?")->execute(array_merge(array_values($people), [$id]));
+        }
+        return $id;
     }
 
     /**
@@ -199,6 +222,7 @@ class CostCentresService
         if (array_key_exists('parent_id', $in) || array_key_exists('parent_code', $in)) {
             $set['parent_id'] = self::resolveParentInput($conn, $tenantId, $in, $id);
         }
+        $set += self::resolvePeopleInput($conn, $tenantId, $in, $row);
         if (!$set) return;
 
         $cols = implode(', ', array_map(fn($c) => "$c = ?", array_keys($set)));
@@ -313,6 +337,10 @@ class CostCentresService
                     if ($pc !== '' && mb_strtolower($pc) === $key) throw new ServiceError('validation', 'invalid_field', "Code {$code} cannot be its own parent.");
                     $n['parent_code'] = $pc;
                 }
+                // GH #160 Part B: owner and deputy by email / group name. A column the file
+                // does not have changes nothing - an older import must never wipe the owners.
+                $pin = array_intersect_key($r, array_flip(['owner_email', 'owner_group', 'deputy_email']));
+                if ($pin) $n['people'] = self::resolvePeopleInput($conn, $tenantId, $pin, $was);
             } catch (ServiceError $e) {
                 $err($e->getMessage(), $code);
                 continue;
@@ -370,6 +398,10 @@ class CostCentresService
                 $wasParent = $was['parent_id'] !== null && isset($byId[(int)$was['parent_id']]) ? mb_strtolower($byId[(int)$was['parent_id']]['code']) : null;
                 if ($wasParent !== ($parentOf[$k] ?? null)) $changes[] = 'parent';
             }
+            foreach ($n['people'] ?? [] as $col => $v) {
+                $label = $col === 'deputy_user_id' ? 'deputy' : 'owner';
+                if ((string)($was[$col] ?? '') !== (string)($v ?? '') && !in_array($label, $changes, true)) $changes[] = $label;
+            }
             $action = $changes ? 'update' : 'unchanged';
             $plan[] = ['line' => $n['line'], 'code' => $n['code'], 'name' => $n['name'] ?? $was['name'], 'action' => $action, 'changes' => $changes];
             $counts[$action]++;
@@ -410,6 +442,12 @@ class CostCentresService
                     $ids[$k] = (int)$conn->lastInsertId();
                 }
             }
+            // GH #160 Part B: owners and deputies, for new and existing rows alike.
+            foreach ($incoming as $k => $n) {
+                if (empty($n['people'])) continue;
+                $cols = implode(', ', array_map(fn($c) => "$c = ?", array_keys($n['people'])));
+                $conn->prepare("UPDATE cost_centres SET $cols WHERE id = ?")->execute(array_merge(array_values($n['people']), [$ids[$k]]));
+            }
             // Parents second, once every code in the list has an id.
             $par = $conn->prepare("UPDATE cost_centres SET parent_id = ? WHERE id = ?");
             foreach ($incoming as $k => $n) {
@@ -428,6 +466,121 @@ class CostCentresService
         }
         $report['applied'] = true;
         return $report;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Owner and deputy (GH #160 Part B)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /** Have the owner columns been added (Database Verification since 5.10.0)? */
+    public static function peopleReady(PDO $conn): bool
+    {
+        static $ok = null;
+        if ($ok === null) {
+            try { $conn->query('SELECT owner_user_id, owner_group_id, deputy_user_id FROM cost_centres LIMIT 0'); $ok = true; }
+            catch (Throwable $e) { $ok = false; }
+        }
+        return $ok;
+    }
+
+    /**
+     * The owner and deputy columns to write, from whichever of these keys $in has:
+     *
+     *   owner_user_id | owner_email     a person (users) - clears any owner group
+     *   owner_group_id | owner_group    a people group, by id or name - clears any owner person
+     *   deputy_user_id | deputy_email   a person
+     *
+     * A key that is ABSENT changes nothing; present but empty clears it. A named
+     * person must be active and in the cost centre's own company (a person with no
+     * company counts as the Default company's) - the rule approvals rely on, so
+     * nothing can route across companies. People groups belong to the whole install.
+     * An email or group that matches nothing is refused, never guessed.
+     *
+     * @param ?array $current  the cost centre as it is (null when new) - for the deputy-is-owner check
+     * @return array<string,?int>  columns => value
+     */
+    public static function resolvePeopleInput(PDO $conn, int $tenantId, array $in, ?array $current): array
+    {
+        $has = fn(string ...$k) => (bool)array_intersect($k, array_keys($in));
+        if (!$has('owner_user_id', 'owner_email', 'owner_group_id', 'owner_group', 'deputy_user_id', 'deputy_email')) return [];
+        if (!self::peopleReady($conn)) {
+            throw new ServiceError('validation', 'invalid_field', 'Run Database Verification first (System -> Database Verification) to give cost centres an owner.');
+        }
+        $set = [];
+        $blank = fn($v) => $v === null || trim((string)$v) === '';
+        if ($has('owner_user_id', 'owner_email')) {
+            $v = array_key_exists('owner_user_id', $in) ? $in['owner_user_id'] : $in['owner_email'];
+            $set['owner_user_id'] = $blank($v) ? null : self::resolvePerson($conn, $tenantId, $v, 'owner');
+            if ($set['owner_user_id'] !== null) $set['owner_group_id'] = null;
+        }
+        if ($has('owner_group_id', 'owner_group')) {
+            $v = array_key_exists('owner_group_id', $in) ? $in['owner_group_id'] : $in['owner_group'];
+            $gid = $blank($v) ? null : self::resolveGroup($conn, $v);
+            if ($gid !== null && ($set['owner_user_id'] ?? null) !== null) {
+                throw new ServiceError('validation', 'invalid_field', 'An owner is a person or a people group, not both.');
+            }
+            $set['owner_group_id'] = $gid;
+            if ($gid !== null) $set['owner_user_id'] = null;
+        }
+        if ($has('deputy_user_id', 'deputy_email')) {
+            $v = array_key_exists('deputy_user_id', $in) ? $in['deputy_user_id'] : $in['deputy_email'];
+            $set['deputy_user_id'] = $blank($v) ? null : self::resolvePerson($conn, $tenantId, $v, 'deputy');
+        }
+        $owner  = array_key_exists('owner_user_id', $set) ? $set['owner_user_id'] : ($current['owner_user_id'] ?? null);
+        $deputy = array_key_exists('deputy_user_id', $set) ? $set['deputy_user_id'] : ($current['deputy_user_id'] ?? null);
+        if ($owner !== null && $deputy !== null && (int)$owner === (int)$deputy) {
+            throw new ServiceError('validation', 'invalid_field', 'The deputy must be someone other than the owner.');
+        }
+        return $set;
+    }
+
+    /** A person by id or email: active, and in the cost centre's company. */
+    private static function resolvePerson(PDO $conn, int $tenantId, $v, string $role): int
+    {
+        $v = trim((string)$v);
+        $byEmail = !ctype_digit($v);
+        $st = $conn->prepare('SELECT id, tenant_id, is_active, email FROM users WHERE ' . ($byEmail ? 'LOWER(email) = LOWER(?)' : 'id = ?'));
+        $st->execute([$v]);
+        $u = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$u) {
+            throw new ServiceError('validation', 'invalid_field', $byEmail ? "No person has the email address {$v} (the {$role})." : "Person {$v} not found (the {$role}).");
+        }
+        if (!(int)$u['is_active']) {
+            throw new ServiceError('validation', 'invalid_field', "{$u['email']} has been deactivated, so cannot be the {$role}.");
+        }
+        $theirs = $u['tenant_id'] === null ? (int)getDefaultTenantId($conn) : (int)$u['tenant_id'];
+        if ($theirs !== $tenantId) {
+            throw new ServiceError('validation', 'invalid_field', "{$u['email']} belongs to another company, so cannot be the {$role} of this cost centre.");
+        }
+        return (int)$u['id'];
+    }
+
+    /** An active people group by id or exact name (ignoring capitals); an ambiguous name is refused. */
+    private static function resolveGroup(PDO $conn, $v): int
+    {
+        $v = trim((string)$v);
+        $st = $conn->prepare('SELECT id FROM knowledge_user_groups WHERE is_active = 1 AND ' . (ctype_digit($v) ? 'id = ?' : 'LOWER(name) = LOWER(?)'));
+        $st->execute([$v]);
+        $ids = $st->fetchAll(PDO::FETCH_COLUMN);
+        if (!$ids) throw new ServiceError('validation', 'invalid_field', "No active people group is called {$v}.");
+        if (count($ids) > 1) throw new ServiceError('validation', 'invalid_field', "More than one people group is called {$v} - rename one so the owner is clear.");
+        return (int)$ids[0];
+    }
+
+    /**
+     * The cost centres a person answers for, as owner or deputy - for their page and
+     * the leaver flow. Owner through a people group is not listed (the group owns it).
+     *
+     * @return list<array{id:int,code:string,name:string,tenant_id:int,role:string}>
+     */
+    public static function responsibleFor(PDO $conn, int $userId): array
+    {
+        if (!self::peopleReady($conn) || $userId <= 0) return [];
+        $st = $conn->prepare("SELECT id, code, name, tenant_id, is_active,
+                                     CASE WHEN owner_user_id = ? THEN 'owner' ELSE 'deputy' END AS role
+                                FROM cost_centres WHERE owner_user_id = ? OR deputy_user_id = ? ORDER BY code");
+        $st->execute([$userId, $userId, $userId]);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

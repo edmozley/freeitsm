@@ -33,7 +33,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/record-preview.css?v=1">
     <script src="<?php echo BASE_URL; ?>assets/js/record-preview.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/project-links.css?v=1">
 </head>
 <?php $cmLevel = analystModuleLevel(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0), 'changes'); /* #180: 'full' or 'read' */ ?>
@@ -597,7 +597,7 @@ $translationNamespaces = ['common', 'change-management'];
          (changePdfDocument() in change-management.js). html2pdf did this until 4.1.0,
          carrying its own copy of a PDF library; now there is one, pdf-writer.js. -->
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
-    <script src="../assets/js/pdf-writer.js?v=2"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
+    <script src="../assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script>
         window.API_BASE = '<?php echo BASE_URL; ?>api/change-management/';
         <?php if (!empty($openCreateOnLoad)): ?>

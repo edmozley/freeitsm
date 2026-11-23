@@ -107,7 +107,6 @@ function http(string $method, string $path, ?string $sid = null, ?string $body =
     curl_setopt_array($ch, $opts);
     $raw = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$code, $raw === false ? '' : (string)$raw];
 }
 $online = (function () use ($base) {
@@ -115,7 +114,6 @@ $online = (function () use ($base) {
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5, CURLOPT_NOBODY => true]);
     curl_exec($ch);
     $c = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return $c > 0 && $c < 500;
 })();
 $noFatal = fn(string $b) => !preg_match('/Fatal error|Uncaught|Parse error/', $b);

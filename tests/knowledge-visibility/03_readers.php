@@ -29,7 +29,7 @@ function hit(string $url, string $sid) {
     $ch = curl_init(BASE_TEST_URL . '' . $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_COOKIE, 'PHPSESSID=' . $sid);
-    $r = curl_exec($ch); curl_close($ch);
+    $r = curl_exec($ch);
     return json_decode($r, true);
 }
 

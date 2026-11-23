@@ -207,11 +207,9 @@ abstract class MessagingProvider
         $body = curl_exec($ch);
         if ($body === false) {
             $err = curl_error($ch);
-            curl_close($ch);
             throw new Exception('Network error talking to messaging provider: ' . $err);
         }
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         return [$code, $body];
     }
 
@@ -246,11 +244,9 @@ abstract class MessagingProvider
         $body = curl_exec($ch);
         if ($body === false) {
             $err = curl_error($ch);
-            curl_close($ch);
             throw new Exception('Network error uploading to messaging provider: ' . $err);
         }
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         return [$code, $body];
     }
 

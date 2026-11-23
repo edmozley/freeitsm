@@ -58,7 +58,7 @@ $call = function (string $method, string $path, ?array $body = null) use ($base,
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_TIMEOUT => 30,
         CURLOPT_HTTPHEADER => array_merge(["Authorization: Bearer $raw"], $body !== null ? ['Content-Type: application/json'] : [])]);
     if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-    $out = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+    $out = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     return [$code, json_decode((string)$out, true) ?: ['raw' => substr((string)$out, 0, 300)]];
 };
 /** POSTs to an app endpoint as the administrator, with a session file written for the call. */
@@ -69,7 +69,7 @@ $app = function (string $path, array $body) use ($base, $admin): array {
     $ch = curl_init("$base/$path");
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode($body), CURLOPT_TIMEOUT => 30,
         CURLOPT_HTTPHEADER => ['Content-Type: application/json', "Cookie: PHPSESSID=$sid", "X-CSRF-Token: $token"]]);
-    $out = (string)curl_exec($ch); curl_close($ch); @unlink($file);
+    $out = (string)curl_exec($ch); @unlink($file);
     return json_decode($out, true) ?: ['raw' => substr($out, 0, 300)];
 };
 $tenantOf = function (string $table, int $id) use ($conn) {

@@ -718,6 +718,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Running low - time to reorder',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'A request is waiting for your approval',   // GH #160
+            ],
             'hyperv' => [
                 'collector' => 'A Hyper-V collector needs your attention',
             ],
@@ -785,6 +788,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'A consumable falls to its reorder point (who is told is chosen in Assets -> Settings -> Consumables)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'A catalogue request reaches an approval step I decide (as its approver, or a member of the approving team)',   // GH #160
             ],
             'hyperv' => [
                 'collector' => 'A Hyper-V collector stops reporting, or a cluster\'s storage cannot be read (people who manage Hyper-V connections)',

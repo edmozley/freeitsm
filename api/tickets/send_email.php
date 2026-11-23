@@ -9,7 +9,14 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 // Custom error handler to return JSON
+// TRAP: a DEPRECATION is not an error - it warns about a future PHP version and the code
+// still works. Thrown, one from anywhere (PHP 8.5's on every database connection) made
+// the access check below fail closed and refuse every reply with "You do not have access
+// to this module". Deprecations go to PHP's own handling (the log); real warnings still stop.
 set_error_handler(function($severity, $message, $file, $line) {
+    if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED) {
+        return false;
+    }
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
@@ -296,7 +303,6 @@ function refreshAccessToken($mailbox, $refreshToken) {
         throw new Exception('cURL error: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     if ($httpCode !== 200) {
         // The provider says WHY in the body — pass it on rather than throwing it away.
@@ -658,7 +664,6 @@ function sendEmailViaGraph($accessToken, $message) {
         throw new Exception('cURL error: ' . curl_error($ch));
     }
 
-    curl_close($ch);
 
     // Graph API returns 202 Accepted for successful sendMail
     if ($httpCode !== 202 && $httpCode !== 200) {

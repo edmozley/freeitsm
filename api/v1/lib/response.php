@@ -63,7 +63,7 @@ function apiError(int $status, string $code, string $message, ?array $details = 
  * @param ServiceError $e  the error a shared service threw - its kind picks the status, errorCode and message pass through
  */
 function apiFailFromService(ServiceError $e): void {
-    apiError(serviceErrorHttpStatus($e->kind), $e->errorCode, $e->getMessage());
+    apiError($e->httpStatus ?? serviceErrorHttpStatus($e->kind), $e->errorCode, $e->getMessage(), $e->details);
 }
 
 /**

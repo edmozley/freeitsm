@@ -19,6 +19,7 @@ require_once '../includes/branding.php';   // brandingLogoUrl() for the PDF expo
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
+require_once '../includes/money.php';     // GH #160 Part D: calculated totals in the viewer's format
 I18n::initFromSession();
 Tz::init();
 
@@ -41,19 +42,21 @@ $translationNamespaces = ['common', 'forms'];
     <script src="../assets/js/tz.js?v=5"></script>
     <!-- For FormLogic.formatDateValue() — date answers are naive local values and must
          NOT go through Tz, which would shift them into the reader's timezone. -->
-    <script src="../assets/js/form-logic.js?v=9"></script>
+    <?php echo Money::scriptTag(); ?>
+    <script src="../assets/js/money.js?v=1"></script>
+    <script src="../assets/js/form-logic.js?v=11"></script>
     <!-- The shared PDF writer (PDFKit + bundled fonts, every language - GH #254). A
          table QUESTION is drawn as a real table in the PDF, by its autoTable(). -->
-    <script src="../assets/js/pdf-writer.js?v=2"></script>
+    <script src="../assets/js/pdf-writer.js?v=4"></script>
     <!-- The shared document builder. Same code as the single-form page, so a
          record exported from here is identical to one exported from there. -->
-    <script src="../assets/js/form-pdf.js?v=4"></script>
+    <script src="../assets/js/form-pdf.js?v=5"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <!-- The detail panel draws a table QUESTION as a real table, and .form-table
          lives in the shared sheet. Without this the markup is right and the
          table renders unstyled - borderless rows running into each other. -->
-    <link rel="stylesheet" href="../assets/css/form-shared.css?v=6">
+    <link rel="stylesheet" href="../assets/css/form-shared.css?v=8">
     <style>
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
 

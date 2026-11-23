@@ -108,7 +108,6 @@ function wfTestAnthropic(string $apiKey, string $model, bool $verifySsl): array
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
-    curl_close($ch);
 
     if ($resp === false) throw new Exception('Network error: ' . $err);
     $data = json_decode($resp, true);
@@ -159,7 +158,6 @@ function wfTestOpenAI(string $apiKey, string $model, bool $verifySsl): array
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
-    curl_close($ch);
 
     if ($resp === false) throw new Exception('Network error: ' . $err);
     $data = json_decode($resp, true);

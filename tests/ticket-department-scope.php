@@ -94,6 +94,20 @@ try {
     $ts = $http($a, 'api/tickets/search_tickets.php', ['subject' => 'ZZDS']);
     check('Ticket search does not find it (and does find their own)', !$has($ts, 'ZZDS grievance') && $has($ts, 'ZZDS radiator'), substr($ts, 0, 160));
 
+    // Writes go through TicketsService::loadTicket(), which must apply the same rule.
+    // Taking ownership would make the ticket visible, so a refused write is the whole defence.
+    echo "...and cannot change it either\n";
+    $refused = fn(string $b) => !$has($b, '"success":true');
+    $field = fn(string $col) => $conn->query("SELECT $col FROM tickets WHERE id = " . $t['grievance'])->fetchColumn();
+    check('Making themselves its owner is refused', $refused($http($a, 'api/tickets/update_ticket_owner.php', ['ticket_id' => $t['grievance'], 'owner_id' => $inTeam])) && $field('owner_id') === null);
+    check('Moving it into their own department is refused', $refused($http($a, 'api/tickets/assign_ticket.php', ['ticket_id' => $t['grievance'], 'department_id' => $fac])) && (int)$field('department_id') === $hr);
+    check('Adding a note to it is refused', $refused($http($a, 'api/tickets/save_note.php', ['ticket_id' => $t['grievance'], 'note_text' => 'ZZDS note', 'is_internal' => true]))
+        && (int)$conn->query("SELECT COUNT(*) FROM ticket_notes WHERE ticket_id = " . $t['grievance'])->fetchColumn() === 0);
+    check('Logging time on it is refused', $refused($http($a, 'api/tickets/save_time_entry.php', ['ticket_id' => $t['grievance'], 'time_spent_minutes' => 5, 'notes' => 'ZZDS'])));
+    check('Deleting it is refused', $refused($http($a, 'api/tickets/delete_ticket.php', ['ticket_id' => $t['grievance']])) && $field('deleted_datetime') === null);
+    check('Its thread is still refused afterwards', !$has($http($a, 'api/tickets/get_ticket_thread.php?ticket_id=' . $t['grievance']), '"success":true'));
+    check('...while a note on their own department\'s ticket is saved', $has($http($a, 'api/tickets/save_note.php', ['ticket_id' => $t['radiator'], 'note_text' => 'ZZDS note', 'is_internal' => true]), '"success":true'));
+
     echo "An analyst in no team, and an administrator\n";
     check('An analyst in no team still sees every department', $has($http($forge($noTeam, 'zzdsfree'), 'api/tickets/get_emails.php'), 'ZZDS grievance'));
     check('An administrator sees every department', $has($http($forge($admin, 'zzdsadmin'), 'api/tickets/get_emails.php'), 'ZZDS grievance'));
@@ -101,13 +115,21 @@ try {
     echo "The REST API, as the key's analyst\n";
     $key = 'fitsm_' . bin2hex(random_bytes(24));
     $conn->prepare('INSERT INTO api_keys (name, key_prefix, key_hash, analyst_id, permissions, company_ids, created_datetime) VALUES (?, ?, ?, ?, ?, NULL, UTC_TIMESTAMP())')
-         ->execute(['ZZDS key', substr($key, 0, 12), hash('sha256', $key), $inTeam, json_encode(['tickets' => ['read']])]);
+         ->execute(['ZZDS key', substr($key, 0, 12), hash('sha256', $key), $inTeam, json_encode(['tickets' => ['read', 'update', 'delete'], 'ticket_notes' => ['create']])]);
     $made['key'] = (int)$conn->lastInsertId();
-    $api = function (string $path, string $query = '') use ($base, $key) {
+    $api = function (string $path, string $query = '', ?string $method = null, ?array $json = null) use ($base, $key) {
         $ch = curl_init("$base/api/v1/index.php?path=" . rawurlencode($path) . ($query !== '' ? "&$query" : ''));
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30, CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $key]]);
+        $o = [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30, CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $key, 'Content-Type: application/json']];
+        if ($method) { $o[CURLOPT_CUSTOMREQUEST] = $method; $o[CURLOPT_POSTFIELDS] = json_encode($json ?? new stdClass()); }
+        curl_setopt_array($ch, $o);
         return [(int)curl_getinfo($ch, CURLINFO_HTTP_CODE) ?: 0, (string)curl_exec($ch), $ch];
     };
+    [, $body, $ch] = $api('/tickets/' . $t['grievance'], '', 'PATCH', ['owner_id' => $inTeam]);
+    check('PATCH /tickets/{id} of another department is 404 and writes nothing', curl_getinfo($ch, CURLINFO_HTTP_CODE) === 404 && $field('owner_id') === null, substr($body, 0, 120));
+    [, $body, $ch] = $api('/tickets/' . $t['grievance'] . '/notes', '', 'POST', ['text' => 'ZZDS api note']);
+    check('POST /tickets/{id}/notes of another department is 404', curl_getinfo($ch, CURLINFO_HTTP_CODE) === 404, substr($body, 0, 120));
+    [, $body, $ch] = $api('/tickets/' . $t['grievance'], '', 'DELETE');
+    check('DELETE /tickets/{id} of another department is 404', curl_getinfo($ch, CURLINFO_HTTP_CODE) === 404 && $field('deleted_datetime') === null, substr($body, 0, 120));
     [, $body, $ch] = $api('/tickets/' . $t['grievance']);
     check('GET /tickets/{id} of another department is 404', curl_getinfo($ch, CURLINFO_HTTP_CODE) === 404, substr($body, 0, 120));
     [, $body] = $api('/tickets', 'per_page=100&search=ZZDS');
@@ -115,7 +137,7 @@ try {
 } catch (Throwable $e) {
     check('no exception', false, $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {
-    if ($made['tickets']) { $in = implode(',', $made['tickets']); $conn->exec("DELETE FROM emails WHERE ticket_id IN ($in)"); $conn->exec("DELETE FROM ticket_watchers WHERE ticket_id IN ($in)"); $conn->exec("DELETE FROM tickets WHERE id IN ($in)"); }
+    if ($made['tickets']) { $in = implode(',', $made['tickets']); $conn->exec("DELETE FROM emails WHERE ticket_id IN ($in)"); foreach (['ticket_notes', 'ticket_audit', 'ticket_time_entries'] as $tb) { try { $conn->exec("DELETE FROM $tb WHERE ticket_id IN ($in)"); } catch (Throwable $e) {} }$conn->exec("DELETE FROM ticket_watchers WHERE ticket_id IN ($in)"); $conn->exec("DELETE FROM tickets WHERE id IN ($in)"); }
     if ($made['key']) $conn->exec("DELETE FROM api_keys WHERE id = " . $made['key']);
     if ($made['analysts']) { $in = implode(',', $made['analysts']); $conn->exec("DELETE FROM analyst_teams WHERE analyst_id IN ($in)"); $conn->exec("DELETE FROM user_preferences WHERE analyst_id IN ($in)"); $conn->exec("DELETE FROM analysts WHERE id IN ($in)"); }
     if ($made['team']) { $conn->exec("DELETE FROM department_teams WHERE team_id = " . $made['team']); $conn->exec("DELETE FROM teams WHERE id = " . $made['team']); }

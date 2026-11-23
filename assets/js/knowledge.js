@@ -3269,147 +3269,353 @@ async function buildArticlePdf() {
     y += 6;
 
     // --- Body ---
-    // Parse HTML to structured text blocks
+    // GH #423: the body is laid out as RICH TEXT - bold, italic, underline, strikethrough,
+    // superscript, subscript, inline code, links and <br> inside a paragraph, nested lists
+    // with their own bullets and numbers, block quotes, all six heading levels and pictures.
+    // It used to print each block's textContent, which kept the words and lost the rest.
     const temp = document.createElement('div');
     temp.innerHTML = kbSafeBody(currentArticle.body);   // a detached element still fires onerror
 
     const pageH = doc.internal.pageSize.getHeight();
     const bottomLimit = pageH - margin;
+    const PT = 25.4 / 72;                 // one point in mm
+    const BASE = 10;                      // body text size, pt
+    const TEXT = [50, 50, 50];
+    const LINK = [37, 99, 235];
 
     /** Starts a new PDF page when the next block would run past the bottom margin. */
     function ensureSpace(needed) {
         if (y + needed > bottomLimit) { doc.addPage(); y = margin; }
     }
 
-    // Print wrapped lines one-by-one, adding pages as needed
-    function printLines(lines, x, lineH) {
-        for (let i = 0; i < lines.length; i++) {
-            ensureSpace(lineH);
-            doc.text(lines[i], x, y);
-            y += lineH;
+    // Pictures are loaded before anything is drawn, because drawing is synchronous.
+    // A picture that cannot be read - another site that does not allow it, a broken
+    // file - becomes a short "[Picture: ...]" line rather than vanishing without a word.
+    const pictures = new Map();
+    await Promise.all(Array.from(temp.querySelectorAll('img')).map(img => new Promise(resolve => {
+        const src = img.getAttribute('src') || '';
+        if (!src) { pictures.set(img, null); return resolve(); }
+        const im = new Image();
+        im.crossOrigin = 'anonymous';
+        const timer = setTimeout(() => { pictures.set(img, null); resolve(); }, 8000);
+        im.onload = () => {
+            clearTimeout(timer);
+            try {
+                // Through a canvas: any format the browser shows becomes a PNG the PDF can hold,
+                // and a picture from a site that forbids it throws here instead of later.
+                const cv = document.createElement('canvas');
+                cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+                cv.getContext('2d').drawImage(im, 0, 0);
+                pictures.set(img, { data: cv.toDataURL('image/png'), w: im.naturalWidth, h: im.naturalHeight });
+            } catch (e) { pictures.set(img, null); }
+            resolve();
+        };
+        im.onerror = () => { clearTimeout(timer); pictures.set(img, null); resolve(); };
+        im.src = src;
+    })));
+
+    const INLINE = new Set(['a', 'abbr', 'b', 'bdi', 'bdo', 'big', 'br', 'cite', 'code', 'del', 'dfn', 'em', 'font', 'i', 'img', 'ins',
+        'kbd', 'label', 'mark', 'q', 's', 'samp', 'small', 'span', 'strike', 'strong', 'sub', 'sup', 'time', 'tt', 'u', 'var']);
+    const isInline = n => n.nodeType === 3 || (n.nodeType === 1 && INLINE.has(n.tagName.toLowerCase()));
+
+    /** The style a child element adds to its parent's: tags, and the inline styles the editor writes. */
+    function styleFor(el, st) {
+        const s = Object.assign({}, st);
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'b' || tag === 'strong') s.bold = true;
+        if (tag === 'i' || tag === 'em' || tag === 'cite' || tag === 'dfn' || tag === 'var') s.italic = true;
+        if (tag === 'u' || tag === 'ins') s.underline = true;
+        if (tag === 's' || tag === 'del' || tag === 'strike') s.strike = true;
+        if (tag === 'sup') { s.sup = true; s.sub = false; }
+        if (tag === 'sub') { s.sub = true; s.sup = false; }
+        if (tag === 'code' || tag === 'kbd' || tag === 'samp' || tag === 'tt') s.code = true;
+        if (tag === 'a' && el.getAttribute('href')) {
+            try { s.href = new URL(el.getAttribute('href'), location.href).href; } catch (e) { /* not a link */ }
+        }
+        const css = el.style;
+        if (css) {
+            if (/^(bold|[6-9]00)$/.test(css.fontWeight)) s.bold = true;
+            if (css.fontStyle === 'italic') s.italic = true;
+            const deco = css.textDecoration || css.textDecorationLine || '';
+            if (deco.includes('underline')) s.underline = true;
+            if (deco.includes('line-through')) s.strike = true;
+        }
+        return s;
+    }
+
+    /** Flattens inline content into runs: { text, st }, { br: true } or { img }. */
+    function collectRuns(nodes, st, out) {
+        for (const n of nodes) {
+            if (n.nodeType === 3) { if (n.textContent) out.push({ text: n.textContent, st }); continue; }
+            if (n.nodeType !== 1) continue;
+            const tag = n.tagName.toLowerCase();
+            if (tag === 'br') { out.push({ br: true }); continue; }
+            if (tag === 'img') { out.push({ img: n }); continue; }
+            collectRuns(n.childNodes, styleFor(n, st), out);
+        }
+        return out;
+    }
+
+    /** Sets the font, size and colour for a run's style; returns its size in points. */
+    function applyStyle(st) {
+        let size = st.size || BASE;
+        if (st.sup || st.sub) size *= 0.72;
+        else if (st.code) size *= 0.9;
+        const face = st.bold && st.italic ? 'bolditalic' : st.bold ? 'bold' : st.italic ? 'italic' : 'normal';
+        doc.setFont(st.code ? 'courier' : 'helvetica', face);
+        doc.setFontSize(size);
+        const c = st.href ? LINK : (st.colour || TEXT);
+        doc.setTextColor(c[0], c[1], c[2]);
+        return size;
+    }
+
+    /**
+     * Places one picture at the left edge x, at most w wide and never taller than a page,
+     * at the size the article gives it (its width attribute, in CSS pixels) or its own.
+     */
+    function drawPicture(img, x, w) {
+        const pic = pictures.get(img);
+        if (!pic) {
+            const what = img.getAttribute('alt') || (img.getAttribute('src') || '').replace(/^data:.*/, '').split('/').pop() || '';
+            flow([{ text: '[' + window.t('knowledge.share.pdf_picture_missing') + (what ? ': ' + what : '') + ']', st: { italic: true, colour: [130, 130, 130] } }], x, w);
+            return;
+        }
+        const attrW = parseFloat(img.getAttribute('width')) || 0;
+        const attrH = parseFloat(img.getAttribute('height')) || 0;
+        const ratio = pic.h / pic.w;
+        let mmW = (attrW || pic.w) * 25.4 / 96;
+        let mmH = attrW && attrH ? attrH * 25.4 / 96 : mmW * ratio;
+        if (mmW > w) { mmH *= w / mmW; mmW = w; }
+        const maxH = bottomLimit - margin - 4;
+        if (mmH > maxH) { mmW *= maxH / mmH; mmH = maxH; }
+        const top = y - 3.5;                               // y is the next baseline; pictures hang from the line's top
+        if (top + mmH > bottomLimit) { doc.addPage(); y = margin + 3.5; }
+        doc.addImage(pic.data, 'PNG', x, y - 3.5, mmW, mmH, 'kbimg-' + pic.data.length + '-' + pic.data.slice(-32));
+        y += mmH + 2;
+    }
+
+    /**
+     * Lays runs out as wrapped lines from x, w wide. opts.marker is drawn left of the first
+     * line (a bullet or number); opts.bars are x positions of quote bars drawn beside every line.
+     */
+    function flow(runs, x, w, opts) {
+        opts = opts || {};
+        let line = [];          // { text, st, w, size }
+        let lineW = 0;
+        let first = true;
+        let drewAny = false;
+
+        const lineHeight = () => Math.max(BASE, ...line.map(p => p.st.size || BASE)) * 0.5;
+
+        function emit(force) {
+            while (line.length && line[line.length - 1].text === ' ') { lineW -= line.pop().w; }
+            if (!line.length && !force) return;
+            const lh = lineHeight();
+            ensureSpace(lh);
+            if (first && opts.marker) {
+                applyStyle(Object.assign({}, opts.markerStyle || {}));
+                doc.text(opts.marker, x - 6, y);
+            }
+            (opts.bars || []).forEach(bx => {
+                doc.setDrawColor(200, 205, 215); doc.setLineWidth(0.8);
+                doc.line(bx, y - lh * 0.8, bx, y + lh * 0.25);
+                doc.setLineWidth(0.2);
+            });
+            let px = x;
+            for (const p of line) {
+                const size = applyStyle(p.st);
+                const dy = p.st.sup ? -(p.st.size || BASE) * 0.33 * PT : p.st.sub ? (p.st.size || BASE) * 0.18 * PT : 0;
+                if (p.text !== ' ') doc.text(p.text, px, y + dy);
+                const c = p.st.href ? LINK : (p.st.colour || TEXT);
+                if (p.st.underline || p.st.href) {
+                    doc.setDrawColor(c[0], c[1], c[2]); doc.setLineWidth(0.2);
+                    doc.line(px, y + dy + 0.7, px + p.w, y + dy + 0.7);
+                }
+                if (p.st.strike) {
+                    doc.setDrawColor(c[0], c[1], c[2]); doc.setLineWidth(0.2);
+                    doc.line(px, y + dy - size * PT * 0.3, px + p.w, y + dy - size * PT * 0.3);
+                }
+                if (p.st.href) doc.link(px, y + dy - size * PT * 0.8, p.w, size * PT, { url: p.st.href });
+                px += p.w;
+            }
+            y += lh;
+            line = []; lineW = 0; first = false; drewAny = true;
+        }
+
+        for (const r of runs) {
+            if (r.br) { emit(true); continue; }
+            if (r.img) { emit(false); drawPicture(r.img, x, w); first = false; drewAny = true; continue; }
+            // Whitespace collapses to one space, as on screen.
+            const parts = r.text.replace(/[\t\r\n ]+/g, ' ').split(/( )/);
+            for (const word of parts) {
+                if (word === '') continue;
+                if (word === ' ') {
+                    if (!line.length || line[line.length - 1].text === ' ') continue;
+                    applyStyle(r.st);
+                    const sw = doc.getTextWidth(' ');
+                    line.push({ text: ' ', st: r.st, w: sw }); lineW += sw;
+                    continue;
+                }
+                applyStyle(r.st);
+                let ww = doc.getTextWidth(word);
+                if (lineW + ww > w && line.length) emit(false);
+                if (ww > w) {
+                    // A word longer than the line: the writer breaks it between characters.
+                    const pieces = doc.splitTextToSize(word, w);
+                    pieces.forEach((pc, i) => {
+                        applyStyle(r.st);
+                        const pw = doc.getTextWidth(pc);
+                        line.push({ text: pc, st: r.st, w: pw }); lineW += pw;
+                        if (i < pieces.length - 1) emit(false);
+                    });
+                    continue;
+                }
+                line.push({ text: word, st: r.st, w: ww }); lineW += ww;
+            }
+        }
+        emit(false);
+        // A list item with nothing but a nested list still gets its bullet.
+        if (!drewAny && opts.marker) { line = []; emit(true); }
+        return drewAny;
+    }
+
+    const HEAD = { h1: 16, h2: 14, h3: 12, h4: 11, h5: 10.5, h6: 10 };
+    const BULLETS = ['•', '◦', '▪'];
+
+    /** Draws a list; nested lists indent and change bullet, numbers honour <ol start>. */
+    function renderList(node, x, w, level, bars) {
+        const ordered = node.tagName.toLowerCase() === 'ol';
+        let n = ordered ? (parseInt(node.getAttribute('start'), 10) || 1) : 0;
+        for (const li of node.children) {
+            if (li.tagName.toLowerCase() !== 'li') continue;
+            const marker = ordered ? (n++) + '.' : BULLETS[Math.min(level, BULLETS.length - 1)];
+            renderBlocks(li.childNodes, x + 8, w - 8, { marker, level: level + 1, bars });
+            if (!level) y += 1;
         }
     }
 
     /**
-     * Writes one node of the article body into the PDF - text, headings, paragraphs and lists - adding
-     * pages as needed.
+     * Draws a run of block and inline nodes from x, w wide. Consecutive inline nodes form one
+     * paragraph. ctx.marker (a list item's bullet) goes on the first line drawn; ctx.bars are
+     * the quote bars of any block quotes it sits in.
      */
-    function renderNode(node) {
-        if (node.nodeType === 3) {
-            const text = node.textContent.replace(/\s+/g, ' ').trim();
-            if (!text) return;
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(50, 50, 50);
-            printLines(doc.splitTextToSize(text, contentW), margin, 5);
-            return;
-        }
-        if (node.nodeType !== 1) return;
+    function renderBlocks(nodes, x, w, ctx) {
+        ctx = ctx || {};
+        let pending = [];
+        const takeMarker = () => { const m = ctx.marker; ctx.marker = null; return m; };
+        const flush = () => {
+            if (!pending.length) return;
+            const runs = collectRuns(pending, ctx.style || {}, []);
+            pending = [];
+            const hasText = runs.some(r => r.br || r.img || (r.text && r.text.trim()));
+            if (!hasText) return;
+            const m = takeMarker();
+            flow(runs, x, w, { marker: m, bars: ctx.bars });
+        };
 
-        const tag = node.tagName.toLowerCase();
+        for (const node of nodes) {
+            if (isInline(node)) { pending.push(node); continue; }
+            if (node.nodeType !== 1) continue;
+            flush();
+            const tag = node.tagName.toLowerCase();
 
-        if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') {
-            const sizes = { h1: 16, h2: 14, h3: 12, h4: 11 };
-            const lh = sizes[tag] * 0.45;
-            y += 3;
-            ensureSpace(lh + 3);
-            doc.setFontSize(sizes[tag]);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(30, 30, 30);
-            printLines(doc.splitTextToSize(node.textContent.trim(), contentW), margin, lh);
-            y += 3;
-            return;
-        }
-
-        if (tag === 'p') {
-            const text = node.textContent.trim();
-            if (!text) return;
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(50, 50, 50);
-            printLines(doc.splitTextToSize(text, contentW), margin, 5);
-            y += 2;
-            return;
-        }
-
-        if (tag === 'ul' || tag === 'ol') {
-            const items = node.querySelectorAll(':scope > li');
-            items.forEach((li, idx) => {
-                const bullet = tag === 'ul' ? '\u2022' : `${idx + 1}.`;
-                const text = li.textContent.trim();
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(50, 50, 50);
-                const lines = doc.splitTextToSize(text, contentW - 8);
-                // Print bullet on first line, then remaining lines
-                for (let i = 0; i < lines.length; i++) {
-                    ensureSpace(5);
-                    if (i === 0) doc.text(bullet, margin + 2, y);
-                    doc.text(lines[i], margin + 8, y);
-                    y += 5;
-                }
-                y += 1;
-            });
-            y += 2;
-            return;
-        }
-
-        if (tag === 'pre' || tag === 'code') {
-            const text = node.textContent.trim();
-            if (!text) return;
-            doc.setFontSize(9);
-            doc.setFont('courier', 'normal');
-            doc.setTextColor(80, 80, 80);
-            const lines = doc.splitTextToSize(text, contentW - 6);
-            const lineH = 4.5;
-            // Render each line with its own grey background strip
-            for (let i = 0; i < lines.length; i++) {
-                ensureSpace(lineH + 2);
-                doc.setFillColor(245, 245, 245);
-                doc.rect(margin, y - 3, contentW, lineH + 1, 'F');
-                doc.text(lines[i], margin + 3, y);
-                y += lineH;
+            if (HEAD[tag]) {
+                y += 3;
+                ensureSpace(HEAD[tag] * 0.5 + 3);
+                flow(collectRuns(node.childNodes, { bold: true, size: HEAD[tag], colour: [30, 30, 30] }, []), x, w, { marker: takeMarker(), bars: ctx.bars });
+                y += 2;
+                continue;
             }
-            y += 3;
-            return;
-        }
 
-        if (tag === 'br') { y += 3; return; }
-        if (tag === 'hr') {
-            y += 2;
-            ensureSpace(4);
-            doc.setDrawColor(200, 200, 200);
-            doc.line(margin, y, pageW - margin, y);
-            y += 4;
-            return;
-        }
+            if (tag === 'p') {
+                const runs = collectRuns(node.childNodes, ctx.style || {}, []);
+                if (!runs.some(r => r.br || r.img || (r.text && r.text.replace(/ /g, ' ').trim()))) {
+                    // An empty paragraph (the editor's <p>&nbsp;</p>) is a blank line, as on screen.
+                    if (!ctx.marker) y += 4;
+                    continue;
+                }
+                flow(runs, x, w, { marker: takeMarker(), bars: ctx.bars });
+                y += 2;
+                continue;
+            }
 
-        // A table is drawn AS A TABLE - columns, a header row, wrapping cells, the header
-        // repeated on a new page. It used to be "cell | cell" text lines (GH #254).
-        if (tag === 'table') {
-            const rows = Array.from(node.querySelectorAll('tr'));
-            const cellsOf = row => Array.from(row.querySelectorAll('th, td')).map(c => c.textContent.replace(/\s+/g, ' ').trim());
-            const headRow = rows.length && rows[0].querySelector('th') ? rows.shift() : null;
-            if (!rows.length && !headRow) return;
-            ensureSpace(12);
-            doc.setFont('helvetica', 'normal');
-            doc.autoTable({
-                startY: y,
-                head: headRow ? [cellsOf(headRow)] : [],
-                body: rows.map(cellsOf),
-                styles: { fontSize: 9, cellPadding: 1.8, textColor: [50, 50, 50] },
-                headStyles: { fillColor: [240, 242, 245], textColor: [30, 30, 30], fontStyle: 'bold' },
-                alternateRowStyles: { fillColor: [250, 251, 252] },
-                margin: { left: margin, right: margin, top: margin, bottom: margin },
-            });
-            y = doc.lastAutoTable.finalY + 4;
-            return;
-        }
+            if (tag === 'ul' || tag === 'ol') {
+                const m = takeMarker();
+                if (m) { flow([], x, w, { marker: m, bars: ctx.bars }); y -= BASE * 0.5; }   // bullet of an item that starts with a list
+                renderList(node, x, w, ctx.level || 0, ctx.bars);
+                if (!ctx.level) y += 2;   // a nested list adds no gap of its own - its item already does
+                continue;
+            }
 
-        for (const child of node.childNodes) renderNode(child);
+            if (tag === 'blockquote') {
+                y += 1;
+                renderBlocks(node.childNodes, x + 6, w - 6,
+                    { marker: takeMarker(), bars: (ctx.bars || []).concat([x + 1.5]), level: ctx.level, style: Object.assign({}, ctx.style || {}, { colour: [85, 85, 85] }) });
+                y += 2;
+                continue;
+            }
+
+            if (tag === 'pre') {
+                const text = node.textContent.replace(/\s+$/, '');
+                if (!text) continue;
+                doc.setFontSize(9);
+                doc.setFont('courier', 'normal');
+                doc.setTextColor(80, 80, 80);
+                const lines = doc.splitTextToSize(text, w - 6);
+                const lineH = 4.5;
+                // Each line with its own grey strip, so a page break needs no special case.
+                for (let i = 0; i < lines.length; i++) {
+                    ensureSpace(lineH + 2);
+                    doc.setFillColor(245, 245, 245);
+                    doc.rect(x, y - 3, w, lineH + 1, 'F');
+                    doc.text(lines[i], x + 3, y);
+                    y += lineH;
+                }
+                y += 3;
+                continue;
+            }
+
+            if (tag === 'hr') {
+                y += 2;
+                ensureSpace(4);
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.2);
+                doc.line(x, y, x + w, y);
+                y += 4;
+                continue;
+            }
+
+            // A table is drawn AS A TABLE - columns, a header row, wrapping cells, the header
+            // repeated on a new page. It used to be "cell | cell" text lines (GH #254).
+            if (tag === 'table') {
+                const rows = Array.from(node.querySelectorAll('tr'));
+                const cellsOf = row => Array.from(row.querySelectorAll('th, td')).map(c => c.textContent.replace(/\s+/g, ' ').trim());
+                const headRow = rows.length && rows[0].querySelector('th') ? rows.shift() : null;
+                if (!rows.length && !headRow) continue;
+                ensureSpace(12);
+                doc.setFont('helvetica', 'normal');
+                doc.autoTable({
+                    startY: y,
+                    head: headRow ? [cellsOf(headRow)] : [],
+                    body: rows.map(cellsOf),
+                    styles: { fontSize: 9, cellPadding: 1.8, textColor: [50, 50, 50] },
+                    headStyles: { fillColor: [240, 242, 245], textColor: [30, 30, 30], fontStyle: 'bold' },
+                    alternateRowStyles: { fillColor: [250, 251, 252] },
+                    margin: { left: x, right: pageW - x - w, top: margin, bottom: margin },
+                });
+                y = doc.lastAutoTable.finalY + 4;
+                continue;
+            }
+
+            if (tag === 'img') { drawPicture(node, x, w); continue; }
+
+            // Anything else (div, section, figure, dl...) is a box around more blocks.
+            renderBlocks(node.childNodes, x, w, ctx);
+        }
+        flush();
     }
 
-    for (const child of temp.childNodes) renderNode(child);
+    renderBlocks(temp.childNodes, margin, contentW, {});
 
     return doc;
 }

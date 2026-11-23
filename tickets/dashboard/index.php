@@ -278,7 +278,7 @@ $translationNamespaces = ['common', 'tickets'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
-    <script src="../../assets/js/chart.min.js"></script>
+    <script src="../../assets/js/chart.min.js?v=4.6.1"></script>
     <script src="../../assets/js/widget-editor.js?v=3"></script>
     <script>
         const API_BASE = '../../api/tickets/';

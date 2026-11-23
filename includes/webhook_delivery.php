@@ -420,7 +420,6 @@ function webhookHttpSend(string $url, array $headers, string $body, string $meth
     $respBody = curl_exec($ch);
     $status   = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err      = curl_error($ch);
-    curl_close($ch);
     return ['body' => $respBody, 'status' => $status, 'error' => $err, 'ms' => (int)round((microtime(true) - $start) * 1000)];
 }
 

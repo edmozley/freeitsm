@@ -48,7 +48,10 @@ $pageData    = $pageData ?? [];
          analyst side (forms/fill.php, the builder preview) and mirroring
          includes/form_logic.php, which is what actually decides on submit. Loaded
          per-page: only the catalogue renders a form. -->
-    <script src="../assets/js/form-logic.js?v=9"></script>
+    <?php /* GH #160 Part D: money.js, so a calculated total reads in the viewer's format. */
+          require_once __DIR__ . '/../../includes/money.php'; echo Money::scriptTag(); ?>
+    <script src="../assets/js/money.js?v=1"></script>
+    <script src="../assets/js/form-logic.js?v=11"></script>
     <script src="../assets/js/form-render.js?v=3"></script>
     <?php endif; ?>
     <?php if (!empty($needsRecorder)): ?>

@@ -203,7 +203,6 @@ function vcenterAuth($baseUrl, $user, $pass) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlError = curl_error($ch);
-    curl_close($ch);
 
     if ($curlError) {
         throw new Exception('vCenter connection failed: ' . $curlError);
@@ -242,7 +241,6 @@ function vcenterGetRaw($baseUrl, $path, $sessionToken) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlError = curl_error($ch);
-    curl_close($ch);
 
     if ($curlError) {
         throw new Exception('vCenter API error: ' . $curlError);
@@ -272,6 +270,5 @@ function vcenterLogout($baseUrl, $sessionToken) {
     ]);
     sslApplyCurl($ch);
     curl_exec($ch);
-    curl_close($ch);
 }
 ?>

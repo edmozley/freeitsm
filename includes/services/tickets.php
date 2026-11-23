@@ -1364,10 +1364,33 @@ class TicketsService
                 throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
             }
         }
+        if (!self::departmentAllows($conn, $ctx, $ticketId)) {
+            throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+        }
         return $row;
     }
 
-    /** May the actor access this ticket (by its company)? Mirror of apiKeyCanAccessTenantRow. */
+    /**
+     * The department rule (includes/ticket_department_scope.php), as analystCanAccessTicket()
+     * and apiKeyCanAccessTicket() apply it, for a person acting through the UI or the REST API.
+     *
+     * TRAP: every write path (update, owner, schedule, notes, time, delete, restore, bulk,
+     * custom fields, split, merge, REST PATCH/DELETE/notes) reaches the ticket through
+     * loadTicket(), so this is the one place the rule has to live - an endpoint that only
+     * checks module access relies on it. Integrations that act in an analyst's name
+     * (3CX call notes, planned status incidents) use source 'system', and workflows and the
+     * portal use actor 0; they decided the ticket themselves and are not narrowed here.
+     */
+    private static function departmentAllows(PDO $conn, ActorContext $ctx, int $ticketId): bool
+    {
+        if ($ctx->actorId <= 0 || !in_array($ctx->source, ['ui', 'api'], true)) {
+            return true;
+        }
+        require_once __DIR__ . '/../ticket_department_scope.php';
+        return ticketDepartmentAllows($conn, $ctx->actorId, $ticketId);
+    }
+
+    /** May the actor access this ticket (company and department)? Mirror of apiKeyCanAccessTenantRow. */
     private static function canAccessTicket(PDO $conn, ActorContext $ctx, int $ticketId): bool
     {
         if ($ticketId <= 0) {
@@ -1377,6 +1400,9 @@ class TicketsService
         $stmt->execute([$ticketId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) {
+            return false;
+        }
+        if (!self::departmentAllows($conn, $ctx, $ticketId)) {
             return false;
         }
         if ($ctx->companyScope === null || !isMultiTenant($conn)) {

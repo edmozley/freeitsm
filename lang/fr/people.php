@@ -326,6 +326,10 @@ return [
         'manager' => 'Responsable',
         'reports' => 'Ses subordonnés',
         'groups' => 'Groupes',
+        'responsible_for' => 'Responsable de',   // GH #160 Part B
+        'role_owner' => 'responsable',   // GH #160 Part B
+        'role_deputy' => 'suppléant',   // GH #160 Part B
+        'cc_inactive' => 'inactif',   // GH #160 Part B
         'company' => 'Entreprise',
         'source' => 'Origine',
         'first_seen' => 'Première détection',

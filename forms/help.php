@@ -257,6 +257,10 @@ $translationNamespaces = ['common', 'forms'];
                             <strong><?php echo htmlspecialchars(t('forms.help.lookup_company_title')); ?></strong>
                             <span><?php echo htmlspecialchars(t('forms.help.lookup_company_body')); ?></span>
                         </div>
+                        <div class="help-card">
+                            <strong><?php echo htmlspecialchars(t('forms.help.lookup_cost_centre_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('forms.help.lookup_cost_centre_body')); ?></span>
+                        </div>
                     </div>
 
                     <p><?php echo htmlspecialchars(t('forms.help.lookup_stored')); ?></p>

@@ -23,6 +23,11 @@ requireModuleAccessJson('assets');
 try {
     $conn = connectToDatabase();
     $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    // Multi-tenancy: only an asset in this analyst's companies, as every sibling per-asset endpoint.
+    require_once '../../includes/tenancy.php';
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], (int)($data['asset_id'] ?? 0))) {
+        throw new Exception('Asset not found');
+    }
     $res  = AssetFieldsService::saveValues(
         $conn,
         ActorContext::fromSession($conn),

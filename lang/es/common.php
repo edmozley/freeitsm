@@ -85,7 +85,6 @@ return [
         'field_phone' => 'teléfono',
         'field_mobile' => 'móvil',
     ],
-    // GH #399: a settings page as tabs or as one page.
     'settings_view' => [
         'view' => 'Vista',
         'tabs' => 'Pestañas',
@@ -575,11 +574,9 @@ return [
         'loading' => 'Cargando…',
         'load_failed' => 'No se han podido cargar las notificaciones.',
         'someone' => 'Alguien',
-        // GH #365: named after "by" when no person did it.
         'actor_workflow' => 'el flujo de trabajo «{name}»',
         'actor_system' => 'FreeITSM',
         'actor_email' => 'correo electrónico',
-        // The bell's (i) panel - "why is this here?" (5.8.0).
         'explain' => [
             'info' => '¿Por qué está aquí?',
             'title' => 'Por qué está aquí',
@@ -692,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Queda poco: hora de volver a pedir',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'Una solicitud espera tu aprobación',
+            ],
             'hyperv' => [
                 'collector' => 'Un recopilador de Hyper-V requiere su atención',
             ],
@@ -753,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Un consumible baja a su punto de pedido (a quién se avisa se elige en Activos -> Ajustes -> Consumibles)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'Una solicitud del catálogo llega a un paso de aprobación que decido yo (como su aprobador o como miembro del equipo aprobador)',
             ],
             'hyperv' => [
                 'collector' => 'Un recopilador de Hyper-V deja de informar, o no se puede leer el almacenamiento de un clúster (personas que gestionan conexiones de Hyper-V)',
@@ -936,12 +939,11 @@ return [
         'hour' => 'Hora',
         'minute' => 'Minuto',
     ],
-    // GH #369: the database is behind the code (includes/db_verify_status.php, waffle-menu.php).
     'db_behind' => [
         'notice' => 'FreeITSM se ha actualizado a la versión {version}. Ejecute la Verificación de base de datos para que la base de datos coincida; si no, algunas páginas no funcionarán.',
         'verify' => 'Verificar',
-        'hide'   => 'Ocultar',
-        'error'  => 'La base de datos necesita actualizarse para esta versión de FreeITSM. Pida a un administrador que ejecute Sistema → Verificación de base de datos.',
+        'hide' => 'Ocultar',
+        'error' => 'La base de datos necesita actualizarse para esta versión de FreeITSM. Pida a un administrador que ejecute Sistema → Verificación de base de datos.',
     ],
     'tenant_switcher' => [
         'title' => 'Cambiar de empresa',

@@ -52,7 +52,6 @@ function kbRequest(string $method, string $path, string $key, ?array $body = nul
     $raw = curl_exec($ch);
     if ($raw === false) throw new RuntimeException(curl_error($ch));
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$status, json_decode($raw, true), $raw];
 }
 function kbGetUrl(string $url, ?string $session = null): array
@@ -63,7 +62,6 @@ function kbGetUrl(string $url, ?string $session = null): array
     $raw = curl_exec($ch);
     if ($raw === false) throw new RuntimeException(curl_error($ch));
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$status, $raw];
 }
 function kbSession(array $values): string
@@ -87,7 +85,6 @@ function kbSessionPost(string $endpoint, string $session, string $csrf, array $b
     $raw = curl_exec($ch);
     if ($raw === false) throw new RuntimeException(curl_error($ch));
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$status, json_decode($raw, true)];
 }
 try {
@@ -406,6 +403,35 @@ try {
     } else {
         echo "  SKIP  #417 10 MiB + 1 round trip: PHP here cannot take it (request_max_bytes " . var_export($c['request_max_bytes'] ?? null, true) . ")\n";
     }
+
+    // ---- GH #423: a picture EMBEDDED in body_html meets the same limit as an uploaded one
+    require_once dirname(__DIR__) . '/includes/services/knowledge.php';
+    $setMb('5');
+    $embed = fn(int $n, string $text = '') => '<p>ZZ embedded' . $text . '</p><p><img src="data:image/png;base64,' . base64_encode($sized($n)) . '" alt=""></p>';
+    $saveCode = function (array $in) use ($conn, $ctx417) {
+        try { KnowledgeService::saveArticle($conn, $ctx417, $in); return ''; }
+        catch (ServiceError $e) { return $e->errorCode . '|' . ($e->httpStatus ?? 0) . '|' . json_encode($e->details); }
+    };
+    kbCheck('#423 an embedded picture of exactly the limit is accepted', $saveCode(['id' => $sizeArticle, 'body_html' => $embed(5242880)]) === '');
+    $r = $saveCode(['id' => $sizeArticle, 'body_html' => $embed(5242880) . $embed(5242881, ' two')]);
+    kbCheck('#423 one byte over is embedded_image_too_large, 413, naming picture 2, its size and the limit',
+        str_starts_with($r, 'embedded_image_too_large|413|') && str_contains($r, '"picture":2') && str_contains($r, '"bytes":5242881') && str_contains($r, '"max_bytes":5242880'));
+    // A picture already in the article (from before the limit, or a larger limit) does not block an edit.
+    $conn->prepare('UPDATE knowledge_articles SET body = ? WHERE id = ?')->execute([$embed(6000000), $sizeArticle]);
+    kbCheck('#423 an article already holding a larger picture can still be edited around it', $saveCode(['id' => $sizeArticle, 'body_html' => $embed(6000000, ' edited')]) === '');
+    kbCheck('#423 ...but a NEW larger picture added to it is refused', str_starts_with($saveCode(['id' => $sizeArticle, 'body_html' => $embed(6000000, ' edited') . $embed(5300000)]), 'embedded_image_too_large|413|'));
+    $conn->prepare('UPDATE knowledge_articles SET body = ? WHERE id = ?')->execute(['<p>ZZ</p>', $sizeArticle]);
+    // Over HTTP: the clear error a migration script gets (the 5 MiB + 1 picture fits an 8 MB post_max_size).
+    [$status, $reply] = kbRequest('POST', '/knowledge/articles', $key, ['client_reference' => $prefix . ':embed413', 'title' => 'ZZ embedded too large', 'body_html' => $embed(5242881)] + $create);
+    if (!empty($reply['data']['id'])) $articles[] = (int)$reply['data']['id'];
+    kbCheck('#423 over HTTP: 413 embedded_image_too_large with picture, type, bytes and max_bytes, and nothing created',
+        $status === 413 && ($reply['error']['code'] ?? '') === 'embedded_image_too_large'
+        && ($reply['error']['details']['picture'] ?? 0) === 1 && ($reply['error']['details']['type'] ?? '') === 'image/png'
+        && ($reply['error']['details']['bytes'] ?? 0) === 5242881 && ($reply['error']['details']['max_bytes'] ?? 0) === 5242880
+        && str_contains($reply['error']['message'] ?? '', 'POST /knowledge/articles/{id}/images') && empty($reply['data']['id']));
+    [$status, $reply] = kbRequest('POST', '/knowledge/articles', $key, ['client_reference' => $prefix . ':embedok', 'title' => 'ZZ embedded small', 'body_html' => $embed(2000)] + $create);
+    if (!empty($reply['data']['id'])) $articles[] = (int)$reply['data']['id'];
+    kbCheck('#423 CONTROL: a small embedded picture is still accepted over HTTP', $status === 201);
 } catch (Throwable $e) {
     $failed++;
     fwrite(STDERR, $e->getMessage() . "\n");

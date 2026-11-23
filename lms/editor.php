@@ -56,7 +56,7 @@ $translationNamespaces = ['common', 'lms'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=4"></script>
-    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
 </head>
 <body data-mobile-module="lms">
     <?php include 'includes/header.php'; ?>

@@ -130,7 +130,7 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=4"></script>
-    <script src="../../assets/js/directory-maintenance.js?v=5"></script>
+    <script src="../../assets/js/directory-maintenance.js?v=6"></script>
     <script>
     DirectoryMaintenance.mount(document.getElementById('dmOrphans'), { kind: 'orphans' });
     // One source at a time; the address keeps it, so a reload or a link opens on it.

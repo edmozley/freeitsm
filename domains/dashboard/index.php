@@ -39,7 +39,7 @@ $translationNamespaces = ['common', 'domains'];
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../../assets/css/domains.css?v=8">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
-    <script src="../../assets/js/vendor/chart.umd.min.js"></script>
+    <script src="../../assets/js/chart.min.js?v=4.6.1"></script>
 </head>
 <body data-mobile-module="domains" data-mobile-page="domains-dashboard">
     <?php include '../includes/header.php'; ?>

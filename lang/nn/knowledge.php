@@ -75,6 +75,7 @@ return [
         'pdf' => 'Eksporter som PDF',
         'email' => 'E-post (lenke + PDF)',
         'copy_manually' => 'Nettlesaren din kopierte ikkje dette automatisk. Her er lenkja:',
+        'pdf_picture_missing' => 'Biletet er ikkje tilgjengeleg',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Vel denne artikkelen',

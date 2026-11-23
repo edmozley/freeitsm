@@ -646,6 +646,8 @@ return [
         // Self-referencing manager. FK is ON DELETE SET NULL — deleting a
         // manager must never delete their reports.
         'manager_id'      => 'INT NULL',
+        // GH #160 C2: "away until" - a cost centre's deputy covers meanwhile.
+        'approvals_away_until' => 'DATE NULL',
         // What the DIRECTORY calls them, which is a different fact from what
         // they type into the portal: sAMAccountName is unique per directory,
         // `username` is unique per install. Keeping them apart is what stops a
@@ -4968,6 +4970,18 @@ return [
         'is_demo'         => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 
+    // Named approval chains (GH #160 Part C): steps chosen on many forms.
+    'form_approval_chains' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'name'          => 'VARCHAR(100) NOT NULL',
+        'description'   => 'TEXT NULL',
+        'steps'         => 'LONGTEXT NOT NULL',
+        'is_active'     => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by'    => 'INT NULL',
+        'created_date'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'modified_date' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'forms' => [
         'id'             => 'INT NOT NULL AUTO_INCREMENT',
         'title'          => 'VARCHAR(255) NOT NULL',
@@ -5004,6 +5018,12 @@ return [
         'approvals_required'         => 'INT NOT NULL DEFAULT 1',
         'rejections_required'        => 'INT NOT NULL DEFAULT 1',
         'approval_exclude_requester' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        // Approval steps (GH #160 Part C): an ordered JSON list of steps (a person or a
+        // team, "Only when", a fallback). NULL = the single policy above, unchanged.
+        // approval_chain_id picks a named chain instead. TRAP: copyApprovalPolicy()
+        // carries both to a new version - a setting Save drops is a setting lost.
+        'approval_steps'             => 'LONGTEXT NULL',
+        'approval_chain_id'          => 'INT NULL',
         // What happens when this form is submitted, approved or rejected
         // (discussion #95). JSON: {"submitted":[…],"approved":[…],"rejected":[…]},
         // each a list of {type, args} in the same shape the workflow engine's
@@ -5105,6 +5125,19 @@ return [
         'rejections_required'        => 'INT NULL',
         'approval_exclude_requester' => 'TINYINT(1) NOT NULL DEFAULT 0',
         'approval_round'             => 'INT NOT NULL DEFAULT 1',
+        // GH #160 Part C: the steps SNAPSHOTTED at submit time (each marked skipped or
+        // not) and the step it is on. The columns above hold the CURRENT step.
+        'approval_steps'             => 'LONGTEXT NULL',
+        'approval_step_no'           => 'INT NULL',
+        // GH #160 Part C2: a step decided by people in the portal (manager / cost
+        // centre owner) - worked out at each decision, never stored - who decided,
+        // when the step was reached and last reminded, and #348 slice 4.
+        'approver_kind'               => 'VARCHAR(20) NULL',
+        'approval_cost_centre_id'     => 'INT NULL',
+        'approval_decided_by_user_id' => 'INT NULL',
+        'approval_step_datetime'      => 'DATETIME NULL',
+        'approval_reminded_datetime'  => 'DATETIME NULL',
+        'requester_cost_centre_id'    => 'INT NULL',
         // Which collection this submission WAS part of, stamped at submit
         // time from forms.collection_id. 🔑 The two are allowed to disagree:
         // re-pairing a form must never rewrite what last year's responses
@@ -5145,6 +5178,7 @@ return [
         'id'              => 'INT NOT NULL AUTO_INCREMENT',
         'submission_id'   => 'INT NOT NULL',
         'analyst_id'      => 'INT NULL',
+        'user_id'         => 'INT NULL',   // GH #160 C2: a person in the portal
         'action'          => 'VARCHAR(30) NOT NULL',
         'detail'          => 'TEXT NULL',
         'reason'          => 'TEXT NULL',
@@ -6619,6 +6653,9 @@ return [
         'description'      => 'VARCHAR(500) NULL',
         'parent_id'        => 'INT NULL',
         'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'owner_user_id'    => 'INT NULL',   // GH #160 Part B: the owner - a person...
+        'owner_group_id'   => 'INT NULL',   // ...or a people group (knowledge_user_groups), never both
+        'deputy_user_id'   => 'INT NULL',   // the deputy - a person
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
@@ -7368,6 +7405,20 @@ return [
         'last_error'          => 'VARCHAR(500) NULL',
         'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'    => 'DATETIME NULL',
+    ],
+    // Files thumbnails (GH #424) - one per stored fingerprint; see freeitsm.sql.
+    'files_thumbnails' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'sha256'              => 'CHAR(64) NOT NULL',
+        'status'              => 'VARCHAR(16) NOT NULL',
+        'mime_type'           => 'VARCHAR(30) NULL',
+        'width'               => 'SMALLINT NULL',
+        'height'              => 'SMALLINT NULL',
+        'data'                => 'MEDIUMBLOB NULL',
+        'made_by'             => 'VARCHAR(10) NULL',
+        'made_by_id'          => 'INT NULL',
+        'detail'              => 'VARCHAR(255) NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
     // Starters & leavers (4.6.0) - see freeitsm.sql.
     'jml_templates' => [

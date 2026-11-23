@@ -145,12 +145,15 @@
    the renderers themselves follow.
 
    'above' is the default and writes NO attribute at all, so every existing
-   field is untouched and the default lives in one place. */
+   field is untouched and the default lives in one place.
+
+   The label column is as wide as its text, up to 40% (GH #425): a fixed third
+   left a wide gap after a short label like "User" on a half-width question. */
 
 /* The analyst filler: label, control, then an error message under the control. */
 .form-field[data-label-pos="beside"] {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: fit-content(40%) minmax(0, 1fr);
     align-items: start;
     column-gap: 12px;
 }
@@ -171,7 +174,7 @@
 /* The portal. */
 .cat-field[data-label-pos="beside"] {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: fit-content(40%) minmax(0, 1fr);
     align-items: start;
     column-gap: 12px;
 }
@@ -181,7 +184,7 @@
    control sit one level further in. */
 .preview-slot[data-label-pos="beside"] > .preview-field {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: fit-content(40%) minmax(0, 1fr);
     align-items: start;
     column-gap: 12px;
 }
@@ -365,4 +368,17 @@
    so it never sits beside anything on a phone. */
 @media (max-width: 768px) {
     .form-table th, .form-table td { font-size: var(--font-size-sm, 12px); padding: 5px 6px; }
+}
+
+/* GH #160 Part D: a calculated total - read-only, worked out as the person answers.
+   Looks like a field (so it lines up in the grid) but plainly not one to type into. */
+.form-calc {
+    display: block;
+    padding: 9px 12px;
+    border: 1px dashed var(--border, #d0d7de);
+    border-radius: 6px;
+    background: var(--surface-2, #f6f8fa);
+    color: var(--text, #333);
+    font-weight: var(--font-weight-bold, 600);
+    font-variant-numeric: tabular-nums;
 }

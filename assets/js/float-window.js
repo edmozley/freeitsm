@@ -2,7 +2,8 @@
  * Floating windows - the window itself, for any page.
  *
  * A window drags by its title bar, resizes from any edge or corner, snaps (top =
- * maximise, left or right edge = half the area), maximises on a double-click and
+ * maximise, left or right edge = half the area - and with cfg.snapAssist the other
+ * half then offers the other windows to fill it), maximises on a double-click and
  * comes to the front when touched. It lives inside an AREA element and never
  * leaves it.
  *
@@ -270,6 +271,94 @@
             ghost.hidden = false;
         }
 
+        /** Snaps a window to the left or right half of the area, full height, remembering its size to go back to. */
+        function snapTo(w, side) {
+            var a = area();
+            if (w.maximized) {
+                w.maximized = false;
+                w.el.classList.remove('fd-max');
+                w.el.querySelector('.fd-wb-max').title = L('wm.maximise', 'Maximise');
+            }
+            if (!w.snapped) w.snapped = { w: w.geo.w, h: w.geo.h };
+            var half = Math.floor(a.width / 2);
+            w.geo = { x: side === 'left' ? 0 : half, y: 0, w: side === 'left' ? half : Math.floor(a.width) - half, h: Math.floor(a.height) };
+            w.apply();
+            if (w.onResize) w.onResize(w);
+        }
+
+        // ── Snap assist (cfg.snapAssist) ───────────────────────────────────
+        // Snap a window to one half and the other half offers the other open
+        // windows, as tiles with a live preview (cfg.preview), to fill it - as
+        // Windows does. Picking one snaps it there; Escape, a click anywhere else
+        // or starting another drag puts the offer away. Opt-in: only the Files
+        // desktop has enough windows for it to mean anything.
+        var assistEl = null;
+        /** Puts the snap assist offer away, if it is showing. */
+        function closeAssist() {
+            if (!assistEl) return;
+            assistEl.remove();
+            assistEl = null;
+            document.removeEventListener('keydown', assistKey, true);
+            document.removeEventListener('pointerdown', assistOutside, true);
+        }
+        /** Escape closes the offer - before the page's own Escape, which would close a window. */
+        function assistKey(e) {
+            if (e.key !== 'Escape') return;
+            e.preventDefault();
+            e.stopPropagation();
+            closeAssist();
+        }
+        /** A press anywhere outside the offer closes it. */
+        function assistOutside(e) { if (assistEl && !assistEl.contains(e.target)) closeAssist(); }
+
+        /** Offers the other open windows for the half that w did not take. */
+        function snapAssist(w, side) {
+            closeAssist();
+            var others = wins.filter(function (x) { return x !== w && !x.closed; });
+            if (!others.length) return;
+            // Most recently used first, as the taskbar previews feel.
+            others.sort(function (p, q) { return (+q.el.style.zIndex || 0) - (+p.el.style.zIndex || 0); });
+            var other = side === 'left' ? 'right' : 'left';
+            var a = area(), half = Math.floor(a.width / 2);
+            var box = assistEl = el('div', 'fd-snap-assist');
+            box.setAttribute('role', 'dialog');
+            box.setAttribute('aria-label', L('wm.snap_assist', 'Choose a window for this side'));
+            box.style.left = (other === 'left' ? 0 : half) + 'px';
+            box.style.top = '0px';
+            box.style.width = (other === 'left' ? half : Math.floor(a.width) - half) + 'px';
+            box.style.height = Math.floor(a.height) + 'px';
+            box.style.zIndex = zTop + 2;
+            box.innerHTML = '<div class="fd-sa-title"></div><div class="fd-sa-grid"></div>';
+            box.querySelector('.fd-sa-title').textContent = L('wm.snap_assist', 'Choose a window for this side');
+            var grid = box.querySelector('.fd-sa-grid');
+            others.forEach(function (x, i) {
+                var t = el('button', 'fd-sa-tile');
+                t.type = 'button';
+                t.innerHTML = '<div class="fd-sa-pv"></div><div class="fd-sa-name"><span class="fd-sa-icon"></span><span class="fd-sa-label"></span></div>';
+                t.querySelector('.fd-sa-icon').innerHTML = x.icon;
+                t.querySelector('.fd-sa-label').textContent = x.title;
+                t.title = x.title;
+                var pv = t.querySelector('.fd-sa-pv');
+                if (cfg.preview) { try { pv.appendChild(cfg.preview(x, 200, 118)); } catch (e) { pv.innerHTML = x.icon; } }
+                else pv.innerHTML = x.icon;
+                t.style.animationDelay = (i * 35) + 'ms';
+                t.addEventListener('click', function () {
+                    closeAssist();
+                    if (x.minimized) x.restore();
+                    snapTo(x, other);
+                    x.focus();
+                });
+                grid.appendChild(t);
+            });
+            // A click on the offer's empty space is a "no thanks".
+            box.addEventListener('click', function (e) { if (e.target === box || e.target === grid) closeAssist(); });
+            area_.appendChild(box);
+            document.addEventListener('keydown', assistKey, true);
+            document.addEventListener('pointerdown', assistOutside, true);
+            var first = grid.querySelector('.fd-sa-tile');
+            if (first) first.focus({ preventScroll: true });
+        }
+
         /**
          * Starts moving a window by its title bar, with snapping to the top (maximise) or a side (half screen).
          *
@@ -330,10 +419,8 @@
                 if (!moved) return;
                 if (zone === 'max') { w.maximize(); return; }
                 if (zone === 'left' || zone === 'right') {
-                    w.snapped = { w: w.geo.w, h: w.geo.h };
-                    w.geo = { x: zone === 'left' ? 0 : Math.floor(a.width / 2), y: 0, w: Math.floor(a.width / 2), h: Math.floor(a.height) };
-                    w.apply();
-                    if (w.onResize) w.onResize(w);
+                    snapTo(w, zone);
+                    if (cfg.snapAssist) snapAssist(w, zone);
                     return;
                 }
                 saveGeo(w);

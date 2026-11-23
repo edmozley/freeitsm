@@ -85,7 +85,6 @@ return [
         'field_phone' => 'Telefon',
         'field_mobile' => 'Mobil',
     ],
-    // GH #399: a settings page as tabs or as one page.
     'settings_view' => [
         'view' => 'Ansicht',
         'tabs' => 'Tabs',
@@ -575,11 +574,9 @@ return [
         'loading' => 'Wird geladen...',
         'load_failed' => 'Benachrichtigungen konnten nicht geladen werden.',
         'someone' => 'Jemand',
-        // GH #365: named after "by" when no person did it.
         'actor_workflow' => 'Workflow „{name}“',
         'actor_system' => 'FreeITSM',
         'actor_email' => 'E-Mail',
-        // The bell's (i) panel - "why is this here?" (5.8.0).
         'explain' => [
             'info' => 'Warum ist das hier?',
             'title' => 'Warum das hier ist',
@@ -692,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Bestand wird knapp - Zeit zum Nachbestellen',
             ],
+            'catalogue_request' => [
+                'awaiting' => 'Eine Anfrage wartet auf Ihre Genehmigung',
+            ],
             'hyperv' => [
                 'collector' => 'Ein Hyper-V-Collector braucht Ihre Aufmerksamkeit',
             ],
@@ -753,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => 'Ein Verbrauchsmaterial erreicht seinen Meldebestand (wer benachrichtigt wird, legen Sie unter Assets -> Einstellungen -> Verbrauchsmaterial fest)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => 'Eine Kataloganfrage erreicht einen Genehmigungsschritt, den ich entscheide (als Genehmiger oder als Mitglied des genehmigenden Teams)',
             ],
             'hyperv' => [
                 'collector' => 'Ein Hyper-V-Collector meldet sich nicht mehr, oder der Speicher eines Clusters kann nicht gelesen werden (Personen, die Hyper-V-Verbindungen verwalten)',
@@ -936,12 +939,11 @@ return [
         'hour' => 'Stunde',
         'minute' => 'Minute',
     ],
-    // GH #369: the database is behind the code (includes/db_verify_status.php, waffle-menu.php).
     'db_behind' => [
         'notice' => 'FreeITSM wurde auf {version} aktualisiert. Führen Sie die Datenbankprüfung aus, damit die Datenbank passt, sonst funktionieren einige Seiten nicht.',
         'verify' => 'Prüfen',
-        'hide'   => 'Ausblenden',
-        'error'  => 'Die Datenbank muss für diese Version von FreeITSM aktualisiert werden. Bitten Sie einen Administrator, System → Datenbankprüfung auszuführen.',
+        'hide' => 'Ausblenden',
+        'error' => 'Die Datenbank muss für diese Version von FreeITSM aktualisiert werden. Bitten Sie einen Administrator, System → Datenbankprüfung auszuführen.',
     ],
     'tenant_switcher' => [
         'title' => 'Unternehmen wechseln',

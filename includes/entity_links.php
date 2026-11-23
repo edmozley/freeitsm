@@ -119,6 +119,10 @@ function entityLink(string $type, int $id): ?string {
         case 'consumable':
             return 'asset-management/consumables/?item=' . $id;
 
+        // A catalogue request waiting at an approval step (GH #160) - the approvals inbox.
+        case 'catalogue_request':
+            return 'forms/approvals.php';
+
         // The help assistant's unanswered questions - one list, whatever the id.
         case 'help_unanswered':
             return 'system/help-assistant/#unanswered';
@@ -138,5 +142,6 @@ function entityLinkTypes(): array {
         'ticket', 'task', 'problem', 'change',
         'asset', 'cmdb_object', 'knowledge_article', 'contract', 'domain', 'project',
         'person', 'company', 'supplier', 'supplier_contact', 'jml_case', 'help_unanswered', 'virt_connection', 'consumable',
+        'catalogue_request',
     ];
 }

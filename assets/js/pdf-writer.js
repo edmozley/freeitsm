@@ -163,7 +163,7 @@
     async function ready(text) {
         if (!ready_) {
             ready_ = (async () => {
-                lib = await import(ROOT + 'assets/js/vendor/pdfkit/pdfkit.bundle.js');
+                lib = await import(ROOT + 'assets/js/vendor/pdfkit/pdfkit.bundle.js?v=0.21.0');
                 const entries = await Promise.all(Object.entries(BASE_FILES).map(async ([k, f]) => [k, await fetchFont(f)]));
                 metrics = new lib.PDFDocument({ font: null, autoFirstPage: false });
                 entries.forEach(([k, b]) => metrics.registerFont(k, b));
@@ -486,6 +486,18 @@
             if (alias && this.aliases.has(alias)) data = this.aliases.get(alias);
             else { data = imageData(src, format); if (alias) this.aliases.set(alias, data); }
             this.pk.image(data, x * this.k, y * this.k, { width: w * this.k, height: h * this.k });
+            return this;
+        }
+
+        // Links -----------------------------------------------------------------
+        /**
+         * Makes a rectangle clickable, as jsPDF's link(x, y, w, h, { url }). Only http(s)
+         * and mailto addresses are linked; anything else (javascript:, data:...) is ignored.
+         */
+        link(x, y, w, h, opts) {
+            const url = opts && typeof opts.url === 'string' ? opts.url.trim() : '';
+            if (!/^(https?:|mailto:)/i.test(url)) return this;
+            this.pk.link(x * this.k, y * this.k, w * this.k, h * this.k, url);
             return this;
         }
 

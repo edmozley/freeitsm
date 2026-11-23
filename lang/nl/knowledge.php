@@ -75,6 +75,7 @@ return [
         'pdf' => 'Exporteren als PDF',
         'email' => 'E-mail (link + PDF)',
         'copy_manually' => 'Je browser kon dit niet automatisch kopiëren. Hier is de link:',
+        'pdf_picture_missing' => 'Afbeelding niet beschikbaar',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'Dit artikel selecteren',

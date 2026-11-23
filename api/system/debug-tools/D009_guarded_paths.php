@@ -111,7 +111,6 @@ function d009Fetch(string $url): array {
     curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_errno($ch) ? curl_error($ch) : '';
-    curl_close($ch);
     return [$code, $err];
 }
 

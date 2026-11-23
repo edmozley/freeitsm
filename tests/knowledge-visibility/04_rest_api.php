@@ -31,7 +31,6 @@ function api(string $path, string $key) {
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $key]);
     $r = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$code, json_decode($r, true)];
 }
 

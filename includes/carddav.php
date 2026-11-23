@@ -136,7 +136,6 @@ function cardDavRequest(array $cfg, string $method, string $url, string $body = 
     $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $used   = (int) curl_getinfo($ch, CURLINFO_HTTPAUTH_AVAIL);
     $err    = curl_error($ch);
-    curl_close($ch);
 
     $out['status']  = $status;
     $out['body']    = is_string($resp) ? $resp : '';

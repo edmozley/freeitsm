@@ -110,13 +110,13 @@ foreach ($formActionDefs as $def) {
     <!-- The builder did NOT load these, which is why it kept its own copy of the
          width list — a third hand-maintained list of the same six numbers. The
          preview now shares the walk with the filler and the portal. -->
-    <script src="<?php echo BASE_URL; ?>assets/js/form-logic.js?v=9"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/form-logic.js?v=11"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/form-render.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <!-- Blocks (notes) - shared with the filler and the portal. -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/form-shared.css?v=6">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/form-shared.css?v=8">
     <style>
         /* Module accent (teal). */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
@@ -669,6 +669,8 @@ foreach ($formActionDefs as $def) {
                                  then loses them. The button is what makes the
                                  feature exist, so it goes on last. -->
                             <button onclick="addField('grid')"><span class="field-type-badge grid">&#9638;</span> <?php echo htmlspecialchars(t('forms.fieldtypes.grid')); ?></button>
+                            <!-- GH #160 Part D: a total worked out from other answers. -->
+                            <button onclick="addField('calculated')"><span class="field-type-badge calculated">&#931;</span> <?php echo htmlspecialchars(t('forms.fieldtypes.calculated')); ?></button>
                         </div>
                     </div>
                 </div>
@@ -952,11 +954,14 @@ foreach ($formActionDefs as $def) {
                 }));
                 // Stored conditions reference field IDs; the builder works in _key.
                 rehydrateRuleRefs(fields);
+                rehydrateCalcRefs(fields);   // GH #160 Part D: and so do a total's lines
+                if (fields.some(f => f.field_type === 'calculated')) ensureCalcItems();
 
                 // #95. A section absent from the stored object stays null —
                 // "never configured" — rather than becoming an empty list, which
                 // would be a different instruction entirely.
-                faGated = !!(data.form.requires_approval && data.form.approver_id);
+                // The server's one rule (GH #160): a person, a team, or steps / a chain.
+                faGated = data.form.is_gated !== undefined ? !!data.form.is_gated : !!(data.form.requires_approval && data.form.approver_id);
                 const stored = data.form.submission_actions || {};
                 FA_WHENS.forEach(w => {
                     faActions[w] = Array.isArray(stored[w]) ? stored[w] : null;
@@ -1662,6 +1667,7 @@ foreach ($formActionDefs as $def) {
             { key: 'cmdb',  portalSafe: true },
             { key: 'location', portalSafe: true },   // GH #311
             { key: 'consumable', portalSafe: true },   // Assets -> Consumables (5.8.0)
+            { key: 'cost_centre', portalSafe: true },   // GH #160 Part A
             { key: 'user',  portalSafe: false },
             { key: 'company', portalSafe: false }   // GH #367
         ];
@@ -1677,6 +1683,7 @@ foreach ($formActionDefs as $def) {
             const meta = LOOKUP_SOURCES.find(x => x.key === src);
             if (!meta || !meta.portalSafe) delete fields[i].config.portal_lookup;
             if (src !== 'cmdb') delete fields[i].config.lookup_filters;
+            if (src !== 'cost_centre') delete fields[i].config.lookup_start_own;
             renderFields(); markDirty();
         }
         // "Only objects of this kind" (discussion #330): the first of a LIST of filters
@@ -1693,6 +1700,12 @@ foreach ($formActionDefs as $def) {
             const rest = (Array.isArray(fields[i].config.lookup_filters) ? fields[i].config.lookup_filters : []).filter(x => x && x.type !== 'cmdb_class');
             if (classId) rest.push({ type: 'cmdb_class', class_id: parseInt(classId, 10) });
             if (rest.length) fields[i].config.lookup_filters = rest; else delete fields[i].config.lookup_filters;
+            markDirty();
+        }
+        /** GH #160 Part A: start a cost centre lookup on the requester's own cost centre. */
+        function setLookupStartOwn(i, on) {
+            fields[i].config = fields[i].config || {};
+            if (on) fields[i].config.lookup_start_own = true; else delete fields[i].config.lookup_start_own;
             markDirty();
         }
         function setLookupPortal(i, on) {
@@ -1777,13 +1790,14 @@ foreach ($formActionDefs as $def) {
                Inverted: everything survives by default, and only the keys
                rebuilt below are taken over. A key added tomorrow needs no
                change here and cannot be lost. */
-            const MANAGED = ['date_mode', 'lookup_source', 'portal_lookup', 'lookup_filters', 'visible_if'];
+            const MANAGED = ['date_mode', 'lookup_source', 'portal_lookup', 'lookup_filters', 'visible_if', 'calc_lines'];
             const prev = (f.config && typeof f.config === 'object') ? f.config : {};
             const out = {};
             Object.keys(prev).forEach(function (k) {
                 if (MANAGED.indexOf(k) === -1) out[k] = prev[k];
             });
             if (isDateField(f.field_type)) out.date_mode = dateModeOf(f);
+            if (f.field_type === 'calculated') out.calc_lines = calcLinesForSave(f, payloadFields);   // GH #160 Part D
             if (isLookupField(f.field_type)) {
                 out.lookup_source = lookupSourceOf(f);
                 if (f.config && f.config.portal_lookup) out.portal_lookup = true;
@@ -1954,8 +1968,10 @@ foreach ($formActionDefs as $def) {
                 label: '',
                 options: hasOptions(type) ? [window.t('forms.field.default_option')] : [],
                 is_required: false,
-                config: null
+                // GH #160 Part D: a total starts with one line and the install's currency.
+                config: type === 'calculated' ? { calc_lines: [{ kind: 'fixed', amount: '' }], calc_currency: Money.def() } : null
             });
+            if (type === 'calculated') ensureCalcItems();
             markDirty();
             renderFields();
             updatePreview();
@@ -1990,6 +2006,7 @@ foreach ($formActionDefs as $def) {
                                            onchange="updateOption(${i}, ${oi}, this.value)"
                                            onkeydown="onOptionKeydown(event, ${i}, ${oi})"
                                            placeholder="${escAttr(window.t('forms.field.option_ph', { n: oi + 1 }))}">
+                                    ${FormCalcBuilder.valueTypes.indexOf(f.field_type) !== -1 ? `<input type="text" class="option-value" inputmode="decimal" value="${escAttr(FormLogic.optionValues(f)[opt] || '')}" placeholder="${escAttr(window.t('forms.calc.value_ph'))}" title="${escAttr(window.t('forms.calc.value_title'))}" onchange="setOptionValue(${i}, ${oi}, this.value)">` : ''}
                                     <label class="option-exc" title="${escAttr(window.t('forms.field.exception_title'))}"><input type="checkbox" ${isExceptionOption(f, opt) ? 'checked' : ''} onchange="setExceptionOption(${i}, ${oi}, this.checked)"> ${esc(window.t('forms.field.exception'))}</label>
                                     <button class="option-remove" onclick="removeOption(${i}, ${oi})">&times;</button>
                                 </div>
@@ -2036,6 +2053,12 @@ foreach ($formActionDefs as $def) {
                                     <option value="">${esc(window.t('forms.field.lookup_class_any'))}</option>
                                     ${window.FORMS_CMDB_CLASSES.map(c => `<option value="${c.id}" ${lookupClassOf(f) === String(c.id) ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
                                 </select>` : ''}
+                            ${src === 'cost_centre' ? `
+                                <label class="field-required-toggle" style="margin-top:8px;" title="${escAttr(window.t('forms.field.lookup_start_own_hint'))}">
+                                    <input type="checkbox" ${f.config && f.config.lookup_start_own ? 'checked' : ''}
+                                           onchange="setLookupStartOwn(${i}, this.checked)">
+                                    ${esc(window.t('forms.field.lookup_start_own'))}
+                                </label>` : ''}
                             ${meta && meta.portalSafe ? `
                                 <label class="field-required-toggle" style="margin-top:8px;">
                                     <input type="checkbox" ${f.config && f.config.portal_lookup ? 'checked' : ''}
@@ -2047,7 +2070,7 @@ foreach ($formActionDefs as $def) {
 
                 // A heading has no answer, so "required" would mean nothing — the
                 // server rejects it outright, and the toggle is left off here.
-                const requiredToggle = isSection(f.field_type) ? '' : `
+                const requiredToggle = (isSection(f.field_type) || f.field_type === 'calculated') ? '' : `
                                 <label class="field-required-toggle">
                                     <input type="checkbox" ${f.is_required ? 'checked' : ''} onchange="toggleRequired(${i}, this.checked)">
                                     ${esc(window.t('forms.field.required'))}
@@ -2200,13 +2223,15 @@ foreach ($formActionDefs as $def) {
                         ${noteHtml}
                         ${imageHtml}
                         ${gridHtml}
+                        ${f.field_type === 'calculated' ? calcSettingsHtml(f, i) : ''}
                         ${dateModeHtml}${lookupHtml}
                         ${renderConditionEditor(f, i)}
                     </li>`;
             }).join('');
+            fillCalcCurrencies();   // GH #160 Part D
         }
         function typeName(type) {
-            const known = ['text', 'textarea', 'checkbox', 'dropdown', 'email', 'number', 'checkboxes', 'radio', 'datetime', 'lookup', 'section', 'note', 'image', 'grid'];
+            const known = ['text', 'textarea', 'checkbox', 'dropdown', 'email', 'number', 'checkboxes', 'radio', 'datetime', 'lookup', 'section', 'note', 'image', 'grid', 'calculated'];
             return known.includes(type) ? window.t('forms.typename.' + type) : type;
         }
         /* ⭐ THIS WAS A THIRD COPY of the same six numbers, alongside
@@ -2510,11 +2535,157 @@ foreach ($formActionDefs as $def) {
             if (ev.length) f.config.exception_values = ev; else delete f.config.exception_values;
             markDirty();
         }
+        /* ══ GH #160 Part D: option values and Calculated questions ═══════════
+           A line points at another question by its builder _key (_field, _times),
+           exactly as a condition does (_ref): ids change when a question is new,
+           and calcLinesForSave() turns them into ids or "idx:N" on the way out. */
+        const FormCalcBuilder = { valueTypes: ['dropdown', 'radio'], kinds: ['fixed', 'option', 'grid', 'item'] };
+        let calcItems = null;   // catalogue items with a price, for a bundle line
+
+        function setOptionValue(fi, oi, val) {
+            const f = fields[fi];
+            const opt = f.options[oi] || '';
+            if (!opt) return;
+            if (!f.config || typeof f.config !== 'object') f.config = {};
+            const ov = (f.config.option_values && typeof f.config.option_values === 'object') ? f.config.option_values : {};
+            val = String(val || '').trim().replace(',', '.');
+            if (val === '') delete ov[opt]; else ov[opt] = val;
+            if (Object.keys(ov).length) f.config.option_values = ov; else delete f.config.option_values;
+            markDirty(); updatePreview();
+        }
+
+        async function ensureCalcItems() {
+            if (calcItems !== null) return;
+            calcItems = [];
+            try {
+                const data = await (await fetch(API_BASE + 'get_forms.php')).json();
+                calcItems = (data.forms || data.data || []).filter(x => x.catalogue_price !== null && x.catalogue_price !== undefined && x.catalogue_price !== '')
+                    .map(x => ({ id: Number(x.id), title: x.title, label: x.catalogue_price_label || '', currency: x.catalogue_currency || Money.def() }))
+                    .sort((a, b) => String(a.title).localeCompare(String(b.title)));
+            } catch (e) { calcItems = []; }
+            renderFields();
+        }
+
+        function calcLines(f) {
+            if (!f.config || typeof f.config !== 'object') f.config = {};
+            if (!Array.isArray(f.config.calc_lines)) f.config.calc_lines = [];
+            return f.config.calc_lines;
+        }
+
+        /** The questions a line may point at: of the right types, labelled, not the total itself. */
+        function calcQuestionOptions(self, types, selKey, blankLabel) {
+            const opts = fields.filter(x => x !== self && types.indexOf(x.field_type) !== -1 && x.label.trim())
+                .map(x => `<option value="${escAttr(x._key)}"${x._key === selKey ? ' selected' : ''}>${esc(x.label)}</option>`).join('');
+            return (blankLabel !== null ? `<option value="">${esc(blankLabel)}</option>` : '') + opts;
+        }
+
+        function calcSettingsHtml(f, i) {
+            if (calcItems === null) ensureCalcItems();
+            const cfg = f.config || {};
+            const lines = calcLines(f).map((l, n) => {
+                const kindSel = `<select onchange="setCalcLine(${i}, ${n}, 'kind', this.value)">${FormCalcBuilder.kinds.map(k =>
+                    `<option value="${k}"${l.kind === k ? ' selected' : ''}>${esc(window.t('forms.calc.kind_' + k))}</option>`).join('')}</select>`;
+                const times = `<span class="calc-x">&times;</span><select title="${escAttr(window.t('forms.calc.times_title'))}" onchange="setCalcLine(${i}, ${n}, '_times', this.value)">${calcQuestionOptions(f, ['number'], l._times || '', window.t('forms.calc.times_one'))}</select>`;
+                let body = '';
+                if (l.kind === 'fixed') {
+                    body = `<input type="text" inputmode="decimal" class="calc-amount" value="${escAttr(l.amount || '')}" placeholder="${escAttr(window.t('forms.calc.amount_ph'))}" onchange="setCalcLine(${i}, ${n}, 'amount', this.value)">${times}`;
+                } else if (l.kind === 'option') {
+                    body = `<select onchange="setCalcLine(${i}, ${n}, '_field', this.value)">${calcQuestionOptions(f, FormCalcBuilder.valueTypes, l._field || '', window.t('forms.calc.choose_question'))}</select>${times}`;
+                } else if (l.kind === 'grid') {
+                    const grid = fields.find(x => x._key === l._field);
+                    const numCols = grid ? FormLogic.gridLiveColumns(grid).filter(c => c.type === 'number') : [];
+                    const colOpts = (sel, blank) => (blank !== null ? `<option value="">${esc(blank)}</option>` : '')
+                        + numCols.map(c => `<option value="${c.id}"${String(c.id) === String(sel || '') ? ' selected' : ''}>${esc(c.label)}</option>`).join('');
+                    body = `<select onchange="setCalcLine(${i}, ${n}, '_field', this.value)">${calcQuestionOptions(f, ['grid'], l._field || '', window.t('forms.calc.choose_table'))}</select>`
+                         + `<select title="${escAttr(window.t('forms.calc.value_col'))}" onchange="setCalcLine(${i}, ${n}, 'value_col', this.value)">${colOpts(l.value_col, window.t('forms.calc.value_col'))}</select>`
+                         + `<span class="calc-x">&times;</span><select title="${escAttr(window.t('forms.calc.qty_col'))}" onchange="setCalcLine(${i}, ${n}, 'qty_col', this.value)">${colOpts(l.qty_col, window.t('forms.calc.qty_col_none'))}</select>`;
+                } else if (l.kind === 'item') {
+                    const items = calcItems || [];
+                    const known = items.some(x => x.id === Number(l.form_id));
+                    body = `<select onchange="setCalcLine(${i}, ${n}, 'form_id', this.value)"><option value="">${esc(window.t('forms.calc.choose_item'))}</option>`
+                         + (l.form_id && !known ? `<option value="${Number(l.form_id)}" selected>#${Number(l.form_id)}</option>` : '')
+                         + items.map(x => `<option value="${x.id}"${x.id === Number(l.form_id) ? ' selected' : ''}>${esc(x.title)}${x.label ? ' - ' + esc(x.label) : ''}</option>`).join('')
+                         + `</select><span class="calc-x">&times;</span><input type="text" inputmode="decimal" class="calc-qty" value="${escAttr(l.qty || '1')}" title="${escAttr(window.t('forms.calc.qty'))}" onchange="setCalcLine(${i}, ${n}, 'qty', this.value)">${times}`;
+                }
+                return `<div class="calc-line">${kindSel}${body}<button type="button" class="option-remove" onclick="removeCalcLine(${i}, ${n})" title="${escAttr(window.t('forms.calc.remove_line'))}"${calcLines(f).length === 1 ? ' disabled' : ''}>&times;</button></div>`;
+            }).join('');
+            return `
+                <div class="field-options field-calc-settings">
+                    <div class="field-options-label">${esc(window.t('forms.calc.adds_up'))}</div>
+                    ${lines}
+                    <button class="add-option-btn" onclick="addCalcLine(${i})">${esc(window.t('forms.calc.add_line'))}</button>
+                    <div class="calc-foot">
+                        <label>${esc(window.t('forms.calc.currency'))} <select class="calc-currency" data-calc-currency="${i}" onchange="setCalcCurrency(${i}, this.value)"></select></label>
+                        <label class="field-required-toggle"><input type="checkbox" ${cfg.calc_hide ? '' : 'checked'} onchange="setCalcShown(${i}, this.checked)"> ${esc(window.t('forms.calc.show'))}</label>
+                    </div>
+                    <small class="calc-hint">${esc(window.t('forms.calc.hint'))}</small>
+                </div>`;
+        }
+
+        /** Fill the currency selects once the cards are on the page (Money.fill needs the element). */
+        function fillCalcCurrencies() {
+            document.querySelectorAll('select[data-calc-currency]').forEach(sel => {
+                const f = fields[Number(sel.dataset.calcCurrency)];
+                if (f) Money.fill(sel, (f.config && f.config.calc_currency) || Money.def());
+            });
+        }
+
+        function setCalcLine(i, n, key, val) {
+            const l = calcLines(fields[i])[n];
+            if (!l) return;
+            if (key === 'kind') {
+                calcLines(fields[i])[n] = { kind: val };
+                if (val === 'item') calcLines(fields[i])[n].qty = '1';
+                markDirty(); renderFields(); updatePreview();
+                return;
+            }
+            if (key === 'amount' || key === 'qty') val = String(val || '').trim().replace(',', '.');
+            if (val === '' || val === null) delete l[key]; else l[key] = val;
+            if (key === '_field' && l.kind === 'grid') { delete l.value_col; delete l.qty_col; }
+            markDirty();
+            if (key === '_field') renderFields();
+            updatePreview();
+        }
+        function addCalcLine(i) { calcLines(fields[i]).push({ kind: 'fixed', amount: '' }); markDirty(); renderFields(); }
+        function removeCalcLine(i, n) { const ls = calcLines(fields[i]); if (ls.length > 1) ls.splice(n, 1); markDirty(); renderFields(); updatePreview(); }
+        function setCalcCurrency(i, code) { fields[i].config.calc_currency = code; markDirty(); updatePreview(); }
+        function setCalcShown(i, on) { if (on) delete fields[i].config.calc_hide; else fields[i].config.calc_hide = true; markDirty(); updatePreview(); }
+
+        /** Stored ids -> builder _keys, on load (the twin of rehydrateRuleRefs). */
+        function rehydrateCalcRefs(list) {
+            const keyById = {};
+            list.forEach(f => { if (f.id) keyById[f.id] = f._key; });
+            list.forEach(f => {
+                const ls = (f.config && Array.isArray(f.config.calc_lines)) ? f.config.calc_lines : [];
+                ls.forEach(l => {
+                    if (l.field) { l._field = keyById[parseInt(l.field, 10)]; delete l.field; }
+                    if (l.times) { l._times = keyById[parseInt(l.times, 10)]; delete l.times; }
+                });
+            });
+        }
+
+        /** Builder _keys -> ids, or "idx:N" for a question created by this same save. A line pointing nowhere keeps its kind, so the server says what is missing. */
+        function calcLinesForSave(f, payloadFields) {
+            const posByKey = {};
+            payloadFields.forEach((pf, n) => { posByKey[pf._key] = n; });
+            const ref = key => { const pos = posByKey[key]; if (pos === undefined) return null; const t = payloadFields[pos]; return t.id ? t.id : ('idx:' + pos); };
+            return calcLines(f).map(l => {
+                const out = {};
+                Object.keys(l).forEach(k => { if (k !== '_field' && k !== '_times') out[k] = l[k]; });
+                if (l._field) out.field = ref(l._field);
+                if (l._times) { const t = ref(l._times); if (t !== null) out.times = t; }
+                if (out.value_col) out.value_col = Number(out.value_col);
+                if (out.qty_col) out.qty_col = Number(out.qty_col);
+                if (out.form_id) out.form_id = Number(out.form_id);
+                return out;
+            });
+        }
+
         function addOption(fi) {
             fields[fi].options.push('');
             markDirty(); renderFields();
             setTimeout(() => {
-                const items = document.querySelectorAll(`.field-item[data-index="${fi}"] .option-item input[type="text"]`);
+                const items = document.querySelectorAll(`.field-item[data-index="${fi}"] .option-item input[type="text"]:not(.option-value)`);
                 if (items.length) items[items.length - 1].focus();
             }, 50);
         }
@@ -2522,6 +2693,9 @@ foreach ($formActionDefs as $def) {
             const was = fields[fi].options[oi];
             const ev = fields[fi].config && fields[fi].config.exception_values;
             if (Array.isArray(ev) && ev.indexOf(was) !== -1) ev[ev.indexOf(was)] = val;   // the tick follows a renamed option
+            // GH #160 Part D: and so does its value - option values are keyed by the option's text.
+            const ov = fields[fi].config && fields[fi].config.option_values;
+            if (ov && was !== val && Object.prototype.hasOwnProperty.call(ov, was)) { ov[val] = ov[was]; delete ov[was]; }
             fields[fi].options[oi] = val;
             markDirty(); updatePreview();
         }
@@ -2545,6 +2719,8 @@ foreach ($formActionDefs as $def) {
             }
             const ev = fields[fi].config && fields[fi].config.exception_values;
             if (Array.isArray(ev)) fields[fi].config.exception_values = ev.filter(v => v !== opt);
+            const ovr = fields[fi].config && fields[fi].config.option_values;
+            if (ovr) delete ovr[opt];   // GH #160 Part D
             fields[fi].options.splice(oi, 1);
             markDirty(); renderFields(); updatePreview();
         }
@@ -2792,6 +2968,10 @@ foreach ($formActionDefs as $def) {
                         ${noteBody ? `<p class="form-note-body">${esc(noteBody)}</p>` : ''}
                     </div>`;
                 }
+                case 'calculated':
+                    // GH #160 Part D: worked out as the person answers; the preview has no answers yet.
+                    return `<div class="preview-field"><label>${label}${condFlag}</label><output class="form-calc">-</output>`
+                         + (FormLogic.calcShown(f) ? '' : `<small style="color:var(--text-faint, #999)">${esc(window.t('forms.calc.hidden_note'))}</small>`) + `</div>`;
                 case 'text':
                     return `<div class="preview-field"><label>${label}${reqStar}${condFlag}</label><input type="text" disabled placeholder="${escAttr(window.t('forms.preview.text_ph'))}"></div>`;
                 case 'textarea':

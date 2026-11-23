@@ -326,6 +326,10 @@ return [
         'manager' => 'Vorgesetzte Person',
         'reports' => 'Unterstellte Personen',
         'groups' => 'Gruppen',
+        'responsible_for' => 'Verantwortlich für',   // GH #160 Part B
+        'role_owner' => 'verantwortlich',   // GH #160 Part B
+        'role_deputy' => 'Stellvertretung',   // GH #160 Part B
+        'cc_inactive' => 'inaktiv',   // GH #160 Part B
         'company' => 'Unternehmen',
         'source' => 'Von',
         'first_seen' => 'Erstmals gesehen',

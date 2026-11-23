@@ -134,7 +134,6 @@ try {
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIE => 'PHPSESSID=' . $sess, CURLOPT_FOLLOWLOCATION => false, CURLOPT_HEADER => false]);
             $body = (string)curl_exec($ch);
             $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
             return [$code, $body];
         };
         [$c, $b] = $get('api/forms/catalogue_approvals.php?filter=mine');

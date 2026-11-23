@@ -123,7 +123,7 @@ try {
             $ch = curl_init("$base/api/tickets/save_user.php");
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode($body),
                 CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: x', 'Cookie: PHPSESSID=' . $sid, 'Sec-Fetch-Site: same-origin']]);
-            $raw = (string)curl_exec($ch); curl_close($ch);
+            $raw = (string)curl_exec($ch);
             return json_decode(trim($raw), true) ?: ['raw' => substr($raw, 0, 200)];
         };
         try {

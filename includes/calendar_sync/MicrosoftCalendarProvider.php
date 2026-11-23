@@ -83,8 +83,7 @@ class MicrosoftCalendarProvider extends CalendarSyncProvider
         sslApplyCurl($ch);
         $response = curl_exec($ch);
         $http     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if (curl_errno($ch)) { $e = curl_error($ch); curl_close($ch); throw new Exception('cURL error: ' . $e); }
-        curl_close($ch);
+        if (curl_errno($ch)) { $e = curl_error($ch); throw new Exception('cURL error: ' . $e); }
 
         if ($http !== 200) {
             throw new Exception('Token request failed (HTTP ' . $http . '): ' . $this->briefly($response));
@@ -149,8 +148,7 @@ class MicrosoftCalendarProvider extends CalendarSyncProvider
         sslApplyCurl($ch);
         $raw  = curl_exec($ch);
         $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if (curl_errno($ch)) { $e = curl_error($ch); curl_close($ch); throw new Exception('cURL error: ' . $e); }
-        curl_close($ch);
+        if (curl_errno($ch)) { $e = curl_error($ch); throw new Exception('cURL error: ' . $e); }
         return [$http, json_decode((string)$raw, true), (string)$raw];
     }
 
@@ -376,8 +374,7 @@ class MicrosoftCalendarProvider extends CalendarSyncProvider
         sslApplyCurl($ch);
         $raw  = curl_exec($ch);
         $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if (curl_errno($ch)) { $e = curl_error($ch); curl_close($ch); throw new Exception('cURL error: ' . $e); }
-        curl_close($ch);
+        if (curl_errno($ch)) { $e = curl_error($ch); throw new Exception('cURL error: ' . $e); }
         return [$http, json_decode((string)$raw, true), (string)$raw];
     }
 

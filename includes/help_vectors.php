@@ -234,7 +234,7 @@ function helpVectorsBuild(PDO $conn, ?callable $log = null): array
                             VALUES (?, ?, ?, ?, 'built', NULL, UTC_TIMESTAMP())
                             ON DUPLICATE KEY UPDATE text_hash = VALUES(text_hash), vector = VALUES(vector), source = 'built', source_version = NULL, built_datetime = UTC_TIMESTAMP()");
     foreach (array_chunk($rows, HELP_VECTORS_BATCH) as $chunk) {
-        $r = aiEmbedBatch($cfg, array_map(fn($s) => $s['title'] . "\n\n" . $s['body'], $chunk));
+        $r = aiEmbedBatch($cfg, array_map(fn($s) => helpVectorsClip($s['title'] . "\n\n" . $s['body']), $chunk));
         if ($r['error'] !== null) { $out['error'] = $r['error']; break; }
         foreach ($chunk as $i => $s) $save->execute([$s['id'], $model, $s['text_hash'], aiVectorPack($r['vectors'][$i])]);
         $out['embedded'] += count($chunk);
@@ -255,6 +255,35 @@ function helpVectorsBuild(PDO $conn, ?callable $log = null): array
         $out['switched'] = true;
     }
     return $out;
+}
+
+/**
+ * What is sent to the embedding model for one section, cut to fit its input limit.
+ *
+ * TRAP: OpenAI's embedding models refuse any input over 8,192 tokens, and one refusal
+ * fails the whole batch - so one long section left EVERY section in it without a
+ * vector. Found cutting 5.10.0: Tickets help "Working with tickets" is ~20,000
+ * characters, fine in English and far too long in Greek. Tokens are estimated on the
+ * safe side - ASCII at 3 characters a token (English runs nearer 4), anything else at
+ * one token a BYTE, which can never be exceeded - and a section over the limit keeps
+ * its opening, which is what matching needs. English sections are not cut by this.
+ *
+ * @param string $text  the section's title and body
+ * @param int $maxTokens  the budget, under the model's 8,192
+ */
+function helpVectorsClip(string $text, int $maxTokens = 7500): string
+{
+    $est = function (string $t): float {
+        $ascii = strlen(preg_replace('/[^\x00-\x7F]/', '', $t));
+        return $ascii / 3 + (strlen($t) - $ascii);
+    };
+    if ($est($text) <= $maxTokens) return $text;
+    $lo = 0; $hi = strlen($text);
+    while ($hi - $lo > 64) {   // the longest opening that fits, by halving
+        $mid = intdiv($lo + $hi, 2);
+        if ($est(mb_strcut($text, 0, $mid, 'UTF-8')) <= $maxTokens) $lo = $mid; else $hi = $mid;
+    }
+    return mb_strcut($text, 0, $lo, 'UTF-8');
 }
 
 /**

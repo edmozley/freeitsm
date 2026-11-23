@@ -272,7 +272,6 @@ if (function_exists('curl_init') && function_exists('sslApplyCurl')) {
         sslApplyCurl($ch);   // the exact path every app call uses
         $ok  = curl_exec($ch) !== false;
         $err = curl_error($ch);
-        curl_close($ch);
         if ($ok) {
             $passes++;
             $results[] = sprintf("  %-28s OK  (certificate verified)", $label);

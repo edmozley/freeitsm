@@ -365,6 +365,7 @@ function apiTicketsCreate(PDO $conn, array $apiKey, array $params, array $body):
 // PATCH /tickets/{id}
 // ---------------------------------------------------------------------------
 function apiTicketsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, $params[0]);   // a ticket the key may not see is refused before anything is written
     try {
         TicketsService::updateTicket($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body, true);
     } catch (ServiceError $e) { apiFailFromService($e); }

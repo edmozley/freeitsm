@@ -283,6 +283,9 @@ function analystReferenceRegistry(): array {
         ['forms', 'modified_by', 'history'],
         ['form_collections', 'created_by', 'history'],
         ['form_collections', 'closed_by', 'history'],
+        // GH #160: who made an approval chain. A person named INSIDE a chain's steps is
+        // JSON, not a column: a leaver there finds nobody, so the step's fallback decides.
+        ['form_approval_chains', 'created_by', 'history'],
         ['form_submissions', 'approval_decided_by_id', 'history'],
         ['rfps', 'created_by_analyst_id', 'history'],
         ['rfp_conflicts', 'resolved_by_analyst_id', 'history'],
@@ -382,6 +385,7 @@ function analystReferenceRegistry(): array {
         ['files_permissions', 'granted_by', 'history'],
         ['files_audit', 'analyst_id', 'history'],
         ['files_shortcuts', 'created_by', 'history'],
+        ['files_thumbnails', 'made_by_id', 'history'],   // GH #424: whose browser drew a PDF thumbnail
         ['report_downloads', 'revoked_by', 'history'],   // 5.3.0: the admin who revoked a report link
     ];
 }

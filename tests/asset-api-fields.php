@@ -143,7 +143,6 @@ try {
                 CURLOPT_HTTPHEADER=>['Content-Type: application/json','Authorization: Bearer ' . $key]]);
             $raw=curl_exec($ch); $code=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);
             if ($raw===false) { throw new RuntimeException('HTTP test connection failed: ' . curl_error($ch)); }
-            curl_close($ch);
             return [$code,json_decode($raw,true)];
         };
         $hostname=$prefix . 'http'; $hostnames[]=$hostname;

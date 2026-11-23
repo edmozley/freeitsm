@@ -325,6 +325,10 @@ return [
         'manager' => 'Leiar',
         'reports' => 'Rapporterer til dei',
         'groups' => 'Grupper',
+        'responsible_for' => 'Ansvarleg for',   // GH #160 Part B
+        'role_owner' => 'eigar',   // GH #160 Part B
+        'role_deputy' => 'stedfortredar',   // GH #160 Part B
+        'cc_inactive' => 'inaktiv',   // GH #160 Part B
         'company' => 'Selskap',
         'source' => 'Frå',
         'first_seen' => 'Først sett',

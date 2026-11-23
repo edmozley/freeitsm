@@ -34,7 +34,7 @@ $schemas = $data['schemas']; $responses = $data['responses']; $reqBodies = $data
 function oaf_get($url, $key) {
     $ch = curl_init($url);
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$key], CURLOPT_TIMEOUT=>20]);
-    $b = curl_exec($ch); $c = curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+    $b = curl_exec($ch); $c = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     return [$c, json_decode($b, true)];
 }
 /**

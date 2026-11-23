@@ -159,6 +159,8 @@ class WorkflowEngine
             'catalogue_request.rejected'  => 'A catalogue request is rejected',
             // GH #348: the requester withdrew it while it waited for approval.
             'catalogue_request.cancelled' => 'A catalogue request is cancelled by the requester',
+            // GH #160 Part C1: one approval step passed and the request moved on to the next.
+            'catalogue_request.step_passed' => 'A catalogue request passes an approval step',
             'task.created'             => 'A task is created',
             'task.assigned'            => 'A task is assigned to somebody',
             // GH #89. SEPARATE events, never a widened task.assigned: that one
@@ -480,6 +482,12 @@ class WorkflowEngine
             'catalogue_request.cancelled' => [
                 'form.id', 'form.name', 'request.id', 'request.reason', 'request.comment',
                 'submission.email', 'approver.id', 'approval_team.id',
+            ],
+            // GH #160 Part C1: the step that passed, the step it is on now ("2 of 3")
+            // and who decides that one - so a rule can do something between steps.
+            'catalogue_request.step_passed' => [
+                'form.id', 'form.name', 'request.id', 'request.comment', 'step.passed', 'step.name',
+                'step.position', 'step.count', 'submission.email', 'approver.id', 'approval_team.id',
             ],
             'task.created' => [
                 'task.id', 'task.title', 'task.status_id', 'task.priority_id', 'task.assignee_id',
@@ -1286,6 +1294,7 @@ class WorkflowEngine
         'catalogue_request.approved',
         'catalogue_request.rejected',
         'catalogue_request.cancelled',
+        'catalogue_request.step_passed',
     ];
 
     /**

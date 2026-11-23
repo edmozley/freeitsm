@@ -325,6 +325,10 @@ return [
         'manager' => 'Gestor',
         'reports' => 'Subordinados',
         'groups' => 'Grupos',
+        'responsible_for' => 'Responsável por',   // GH #160 Part B
+        'role_owner' => 'responsável',   // GH #160 Part B
+        'role_deputy' => 'substituto',   // GH #160 Part B
+        'cc_inactive' => 'inativo',   // GH #160 Part B
         'company' => 'Empresa',
         'source' => 'Origem',
         'first_seen' => 'Visto pela primeira vez',

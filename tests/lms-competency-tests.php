@@ -34,7 +34,6 @@ function http(string $url, ?array $json = null): array {
     }
     $body = (string)curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    curl_close($ch);
     return [$code, $body, json_decode($body, true)];
 }
 

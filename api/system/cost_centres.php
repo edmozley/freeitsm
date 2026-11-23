@@ -6,6 +6,8 @@
  *                                                     every reachable company's when the header switcher is on "All companies"
  *   POST {action:'save', id?, company_id, code, name, description, parent_id, is_active}
  *   POST {action:'delete', id}
+ *   GET  ?action=people&company_id=N&q=               active people in that company, for the
+ *                                                     Owner and Deputy pickers (GH #160 Part B)
  *   GET  ?action=export&company_id=N&format=xlsx|csv  download the list
  *   POST multipart: action=import, company_id, file, deactivate_missing=0|1, apply=0|1
  *        apply=0 is the preview: the same run, stopped before it writes.
@@ -33,6 +35,10 @@ function costCentreColumns(): array
         'description' => ['description', 'desc', 'notes', 'beschreibung'],
         'parent_code' => ['parentcode', 'parent', 'parentcostcentre', 'parentcostcenter', 'parentnumber', 'parentcostcentrecode', 'parentcostcentercode', 'uebergeordnet', 'übergeordnet'],
         'is_active'   => ['active', 'isactive', 'status', 'enabled', 'aktiv'],
+        // GH #160 Part B: who answers for it, matched by email address / group name.
+        'owner_email'  => ['owneremail', 'owner', 'responsibleemail', 'responsible', 'budgetholder', 'budgetholderemail', 'verantwortlicher', 'verantwortlich', 'kostenstellenverantwortlicher'],
+        'owner_group'  => ['ownergroup', 'responsiblegroup', 'ownerteam', 'verantwortlichegruppe'],
+        'deputy_email' => ['deputyemail', 'deputy', 'substitute', 'substituteemail', 'stellvertreter', 'stellvertretung', 'vertreter'],
     ];
 }
 
@@ -93,18 +99,25 @@ try {
                     'parent_id'    => $r['parent_id'] === null ? null : (int)$r['parent_id'],
                     'is_active'    => (int)$r['is_active'] === 1,
                     'child_count'  => (int)$r['child_count'],
+                    // GH #160 Part B: who answers for it. *_left: a person since deactivated -
+                    // kept and flagged, never silently removed.
+                    'owner'        => !empty($r['owner_user_id']) ? ['id' => (int)$r['owner_user_id'], 'name' => $r['owner_name'] ?: $r['owner_email'], 'email' => $r['owner_email'], 'left' => !(int)$r['owner_active']] : null,
+                    'owner_group'  => !empty($r['owner_group_id']) ? ['id' => (int)$r['owner_group_id'], 'name' => $r['owner_group_name'], 'left' => !(int)$r['owner_group_active']] : null,
+                    'deputy'       => !empty($r['deputy_user_id']) ? ['id' => (int)$r['deputy_user_id'], 'name' => $r['deputy_name'] ?: $r['deputy_email'], 'email' => $r['deputy_email'], 'left' => !(int)$r['deputy_active']] : null,
                 ];
             }
         }
         echo json_encode([
             'success' => true, 'ready' => true, 'all' => $all, 'companies' => $companies, 'company_id' => $companyId,
             'cost_centres' => $out,
+            'owners'       => CostCentresService::peopleReady($conn),   // GH #160 Part B - false until Database Verification
+            'groups'       => CostCentresService::peopleReady($conn) ? $conn->query("SELECT id, name FROM knowledge_user_groups WHERE is_active = 1 ORDER BY name")->fetchAll(PDO::FETCH_ASSOC) : [],
         ]);
         exit;
     }
 
     if ($method === 'POST' && $action === 'save') {
-        $in = array_intersect_key($json, array_flip(['code', 'name', 'description', 'parent_id', 'is_active']));
+        $in = array_intersect_key($json, array_flip(['code', 'name', 'description', 'parent_id', 'is_active', 'owner_user_id', 'owner_group_id', 'deputy_user_id']));
         $id = (int)($json['id'] ?? 0);
         if ($id > 0) {
             CostCentresService::update($conn, $actor, $id, $in);
@@ -112,6 +125,29 @@ try {
             $id = CostCentresService::create($conn, $actor, $companyId, $in);
         }
         echo json_encode(['success' => true, 'id' => $id]);
+        exit;
+    }
+
+    // GH #160 Part B: the Owner and Deputy pickers. Here rather than People's own list so
+    // it works with the People module switched off; the same rule the service applies on
+    // save (active, in this company - a person with no company is the Default company's).
+    if ($method === 'GET' && $action === 'people') {
+        CostCentresService::assertCompany($conn, $actor, $companyId);
+        $q = trim((string)($_GET['q'] ?? ''));
+        $isDefault = $companyId === (int)getDefaultTenantId($conn);
+        $sql = "SELECT id, display_name, email FROM users
+                 WHERE is_active = 1 AND email IS NOT NULL AND email <> ''
+                   AND (tenant_id = ?" . ($isDefault ? " OR tenant_id IS NULL" : "") . ")";
+        $args = [$companyId];
+        if ($q !== '') {
+            $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
+            $sql .= " AND (display_name LIKE ? OR email LIKE ? OR preferred_name LIKE ?)";
+            array_push($args, $like, $like, $like);
+        }
+        $st = $conn->prepare($sql . " ORDER BY COALESCE(NULLIF(display_name, ''), email) LIMIT 20");
+        $st->execute($args);
+        $people = array_map(fn($r) => ['id' => (int)$r['id'], 'name' => $r['display_name'] ?: $r['email'], 'email' => $r['email']], $st->fetchAll(PDO::FETCH_ASSOC));
+        echo json_encode(['success' => true, 'people' => $people]);
         exit;
     }
 
@@ -126,6 +162,11 @@ try {
         $rows = CostCentresService::listForCompany($conn, $actor, $companyId);
         $header = ['Code', 'Name', 'Description', 'Parent code', 'Active'];
         $data = array_map(fn($r) => [$r['code'], $r['name'], (string)$r['description'], (string)$r['parent_code'], (int)$r['is_active'] ? 'Yes' : 'No'], $rows);
+        // GH #160 Part B: the owner and deputy, in the shape the import reads back.
+        if (CostCentresService::peopleReady($conn)) {
+            $header = array_merge($header, ['Owner email', 'Owner group', 'Deputy email']);
+            foreach ($rows as $i => $r) $data[$i] = array_merge($data[$i], [(string)($r['owner_email'] ?? ''), (string)($r['owner_group_name'] ?? ''), (string)($r['deputy_email'] ?? '')]);
+        }
 
         $companyName = '';
         foreach ($companies as $c) if ($c['id'] === $companyId) $companyName = $c['name'];
@@ -136,7 +177,7 @@ try {
             $body = spreadsheetWriteCsv($header, $data);
             header('Content-Type: text/csv; charset=utf-8');
         } else {
-            $body = spreadsheetWriteXlsx('Cost centres', $header, $data, [14, 36, 50, 14, 8]);
+            $body = spreadsheetWriteXlsx('Cost centres', $header, $data, array_slice([14, 36, 50, 14, 8, 30, 24, 30], 0, count($header)));
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         }
         header('Content-Disposition: attachment; filename="' . $file . '"');

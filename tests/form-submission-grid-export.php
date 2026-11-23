@@ -108,7 +108,6 @@ try {
                             CURLOPT_COOKIE => session_name() . '=' . $sid]);
     $raw  = (string)curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     $data = json_decode($raw, true);
 
     check('the endpoint answered 200', $code === 200, 'got ' . $code);

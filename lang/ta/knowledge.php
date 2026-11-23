@@ -75,6 +75,7 @@ return [
         'pdf' => 'PDF ஆக ஏற்றுமதி செய்',
         'email' => 'மின்னஞ்சல் (இணைப்பு + PDF)',
         'copy_manually' => 'உங்கள் உலாவி இதைத் தானாக நகலெடுக்கவில்லை. இதோ இணைப்பு:',
+        'pdf_picture_missing' => 'படம் கிடைக்கவில்லை',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'இந்தக் கட்டுரையைத் தேர்ந்தெடு',

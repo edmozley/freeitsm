@@ -46,7 +46,7 @@ $needsRecorder = true;
 
 // The rich-text editor, loaded only here — no other portal page needs 500KB of
 // editor. Bundled locally, so no third-party CDN is involved.
-$pageHead = '<script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>'
+$pageHead = '<script src="../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>'
           . '<link rel="stylesheet" href="../assets/css/ticket-fields.css?v=2">'
           . '<script src="../assets/js/ticket-fields.js?v=2"></script>';
 

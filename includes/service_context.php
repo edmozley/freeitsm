@@ -151,6 +151,10 @@ class ServiceError extends Exception
     public string $kind;
     /** @var string machine slug, e.g. 'missing_field', 'invalid_field', 'not_found' (named errorCode to avoid Exception::$code) */
     public string $errorCode;
+    /** @var ?array machine-readable facts for the API body's error.details (e.g. a limit and the size sent); set after construction */
+    public ?array $details = null;
+    /** @var ?int an HTTP status that beats the kind's (e.g. 413 for a size limit); set after construction */
+    public ?int $httpStatus = null;
 
     /**
      * A service failure with a kind (validation, not_found, conflict, forbidden...) that

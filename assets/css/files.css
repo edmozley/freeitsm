@@ -281,6 +281,20 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fx-view-icons .fx-item.fx-sel .fx-name { -webkit-line-clamp: 6; }
 .fx-view-icons .fx-ic { display: flex; height: 48px; align-items: center; }
 
+/* GH #424: thumbnails - a file's picture in place of its type icon, in Icons and in the
+   bigger Thumbnails view (which is Icons with larger tiles). object-fit keeps the shape;
+   the faint frame shows where a white page or picture ends. */
+.fx-view-icons .fx-ic { justify-content: center; }
+.fx-thumb {
+    display: block; max-width: 48px; max-height: 48px; object-fit: contain;
+    border-radius: 2px; box-shadow: 0 0 0 1px var(--border-soft, rgba(0, 0, 0, .12));
+    background: var(--surface, #fff);
+}
+.fx-view-thumbs .fx-item { width: 148px; }
+.fx-view-thumbs .fx-ic { height: 120px; width: 136px; }
+.fx-view-thumbs .fx-thumb { max-width: 136px; max-height: 120px; border-radius: 3px; }
+.fx-view-details .fx-thumb { max-width: 18px; max-height: 18px; box-shadow: none; }
+
 /* Details view */
 .fx-view-details { display: flex; flex-direction: column; padding: 0 4px 8px; }
 .fx-dhead, .fx-view-details .fx-item {

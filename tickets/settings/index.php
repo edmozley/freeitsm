@@ -163,7 +163,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
     <!-- Reply templates are rich text, so this page needs the same editor the reply
          box uses. Loaded for every tab because the tab bar is server-rendered and
          there is no navigation event to lazy-load on. -->
-    <script src="../../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="../../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
     <style>
         /* Page-specific overrides for settings page */
         #mailboxSmtpAuthEnabled:focus-visible + .toggle-slider {

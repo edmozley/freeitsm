@@ -689,6 +689,9 @@ return [
             'consumable' => [
                 'low_stock' => 'Raak min - tyd om weer te bestel',
             ],
+            'catalogue_request' => [
+                'awaiting' => '\'n Versoek wag vir jou goedkeuring',
+            ],
             'hyperv' => [
                 'collector' => '\'n Hyper-V-insamelaar het jou aandag nodig',
             ],
@@ -750,6 +753,9 @@ return [
             ],
             'consumable' => [
                 'low_stock' => '\'n Verbruiksgoed daal tot sy herbestelpunt (wie ingelig word, word gekies in Bates -> Instellings -> Verbruiksgoedere)',
+            ],
+            'catalogue_request' => [
+                'awaiting' => '\'n Katalogusversoek bereik \'n goedkeuringstap wat ek besluit (as sy goedkeurder, of as lid van die goedkeuringspan)',
             ],
             'hyperv' => [
                 'collector' => '\'n Hyper-V-insamelaar hou op rapporteer, of \'n groepering se berging kan nie gelees word nie (mense wat Hyper-V-verbindings bestuur)',

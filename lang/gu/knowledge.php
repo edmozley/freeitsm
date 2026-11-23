@@ -75,6 +75,7 @@ return [
         'pdf' => 'PDF તરીકે એક્સપોર્ટ કરો',
         'email' => 'ઇમેઇલ (લિંક + PDF)',
         'copy_manually' => 'તમારું બ્રાઉઝર આ આપમેળે કૉપિ કરી શક્યું નથી. અહીં લિંક છે:',
+        'pdf_picture_missing' => 'ચિત્ર ઉપલબ્ધ નથી',   // GH #423: a picture the PDF export could not read
     ],
     'bulk' => [
         'select_title' => 'આ લેખ પસંદ કરો',

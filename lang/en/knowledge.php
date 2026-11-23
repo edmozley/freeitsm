@@ -82,6 +82,7 @@ return [
         'pdf'        => 'Export as PDF',
         'email'      => 'Email (Link + PDF)',
         'copy_manually' => 'Your browser would not copy this automatically. Here is the link:',
+        'pdf_picture_missing' => 'Picture not available',   // GH #423: a picture the PDF export could not read
     ],
 
     'bulk' => [

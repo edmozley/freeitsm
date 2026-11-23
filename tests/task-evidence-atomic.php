@@ -184,7 +184,7 @@ if ($BASE) {
         $ch = curl_init($BASE . 'api/tasks/' . $path);
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIE => "PHPSESSID=$sess", CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($body), CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: zzatcsrf']]);
-        $r = json_decode((string)curl_exec($ch), true); curl_close($ch); return $r ?: [];
+        $r = json_decode((string)curl_exec($ch), true); return $r ?: [];
     };
     $t7 = zzTask($conn, 'ZZ-ATOM drag');
     $parent = zzTask($conn, 'ZZ-ATOM parent');

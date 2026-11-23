@@ -276,6 +276,7 @@ class TaskForms
             return FormsService::gridToText($field, $raw);
         }
         if ($type === 'checkbox') return $raw === '1' ? 'Yes' : 'No';
+        if ($type === 'calculated' && class_exists('FormCalc')) return FormCalc::text($raw, $field) ?: $raw;   // GH #160 Part D
         $d = json_decode($raw, true);
         if (is_array($d)) {
             if (isset($d['label'])) return (string)$d['label'];               // a lookup: {id, label}

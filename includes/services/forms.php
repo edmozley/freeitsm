@@ -37,11 +37,13 @@ require_once __DIR__ . '/../form_logic.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../rbac.php';   // analystMayAct() - "Design forms" (#180 Part 3)
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
+require_once __DIR__ . '/../form_calculated.php';   // GH #160 Part D: calculated answers, option values
 
 class FormsService
 {
     // 'section' is a heading, not a question — see ANSWERABLE_TYPES.
-    const FIELD_TYPES = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup', 'section', 'note', 'image', 'grid'];
+    // 'calculated' (GH #160 Part D) is worked out by the server from other answers - see includes/form_calculated.php.
+    const FIELD_TYPES = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup', 'section', 'note', 'image', 'grid', 'calculated'];
 
     /**
      * ⚠️ THIS LIST IS NARROWER THAN ITS NAME. It is what a conditional-visibility
@@ -50,6 +52,9 @@ class FormsService
      * condition trigger. Do not reach for it to mean "is this a question";
      * isAnswerable() below is that question.
      */
+    /** The connection validateFieldConfig() may check a bundle's items against (GH #160 Part D). */
+    private static ?PDO $calcConn = null;
+
     const ANSWERABLE_TYPES = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup'];
 
     /**
@@ -326,6 +331,23 @@ class FormsService
             // browse, whatever a form builder ticks.
             'portal_safe' => false,
         ],
+        // GH #160 Part A: the company's cost centres (System -> Cost Centres). Labelled
+        // "0010 - Logistics" (`label_sql`): two companies can both have a 0010, and a
+        // code alone means nothing to most people. Active ones only - one made inactive
+        // later stays on old requests, the rule cost centres already follow.
+        // `config.lookup_start_own` starts the answer on the requester's own cost centre.
+        'cost_centre' => [
+            'table'       => 'cost_centres',
+            'id_col'      => 'id',
+            'label_col'   => 'name',
+            'label_sql'   => "CONCAT(`code`, ' - ', `name`)",
+            'search_cols' => ['code', 'name'],
+            'tenant_col'  => 'tenant_id',
+            'where'       => '`is_active` = 1',
+            // A budget code and its name. Safe for a customer charging a request to
+            // their own company's cost centre - still off until the form owner ticks it.
+            'portal_safe' => true,
+        ],
         // GH #367: the companies themselves (People -> Companies). A company IS a
         // tenant, so its scope column is its own id: an analyst is offered exactly
         // the companies they can reach. Inactive companies are not offered.
@@ -371,6 +393,7 @@ class FormsService
         'consumable' => ['name', 'part_number'],
         'cmdb'       => ['name'],
         'location'   => ['name'],
+        'cost_centre' => ['code', 'name'],   // GH #160
     ];
 
     /**
@@ -648,6 +671,10 @@ class FormsService
 
         // A row with no label is unpickable — it would render as an empty option.
         $where[] = "`{$s['label_col']}` IS NOT NULL AND `{$s['label_col']}` <> ''";
+        // The label a person sees: one column, or a registry expression built from
+        // several (cost centres: "0010 - Logistics"). Both come from the registry, never
+        // the request, so interpolating them is safe.
+        $labelExpr = $s['label_sql'] ?? "`{$s['label_col']}`";
 
         if ($tenantIds !== null) {
             [$clause, $tParams] = self::lookupTenantClause($conn, $s, $tenantIds);
@@ -658,10 +685,10 @@ class FormsService
         $where  = array_merge($where, $fWhere);
         $params = array_merge($params, $fParams);
 
-        $sql = "SELECT `{$s['id_col']}` AS id, `{$s['label_col']}` AS label
+        $sql = "SELECT `{$s['id_col']}` AS id, $labelExpr AS label
                   FROM `{$s['table']}`"
              . ($where ? ' WHERE ' . implode(' AND ', $where) : '')
-             . " ORDER BY `{$s['label_col']}` LIMIT $limit";
+             . " ORDER BY $labelExpr LIMIT $limit";
 
         try {
             $stmt = $conn->prepare($sql);
@@ -751,6 +778,39 @@ class FormsService
     }
 
     /**
+     * The answer a lookup starts on, or null: today only a cost centre lookup with
+     * **Start on the requester's own cost centre** ticked (GH #160 Part A), which
+     * starts on the requester's own `users.cost_centre_id`.
+     *
+     * The record goes through the SAME check a submitted answer does - in the
+     * requester's company, active - so the form never starts on something the
+     * submit would refuse. The requester can still change it.
+     *
+     * @param array $field  a form_fields row (config holds the source and the tick)
+     * @param int $userId  the requester's users.id
+     * @return ?array{id:int,label:string}
+     */
+    public static function lookupDefaultFor(PDO $conn, array $field, int $userId): ?array
+    {
+        if ($userId <= 0 || self::lookupSourceOf($field) !== 'cost_centre') return null;
+        $config = $field['config'] ?? null;
+        if (is_string($config)) $config = json_decode($config, true);
+        if (!is_array($config) || empty($config['lookup_start_own'])) return null;
+        try {
+            if (!self::lookupColumnExists($conn, 'users', 'cost_centre_id')) return null;
+            $st = $conn->prepare('SELECT cost_centre_id FROM users WHERE id = ?');
+            $st->execute([$userId]);
+            $id = (int)$st->fetchColumn();
+            if ($id <= 0 || !self::lookupValueAllowed($conn, 'cost_centre', $id, self::lookupPortalScope($conn, $userId))) return null;
+            $label = self::lookupRecordLabel($conn, 'cost_centre', $id);
+            return $label !== null ? ['id' => $id, 'label' => $label] : null;
+        } catch (Throwable $e) {
+            error_log('FormsService::lookupDefaultFor: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * A record's own name, so a stored answer says what the record is called rather
      * than what the post claimed. Null when it has none, which is also why the
      * search would never have offered it.
@@ -761,7 +821,8 @@ class FormsService
     private static function lookupRecordLabel(PDO $conn, string $source, int $id): ?string
     {
         $s = self::LOOKUP_SOURCES[$source];
-        $stmt = $conn->prepare("SELECT `{$s['label_col']}` FROM `{$s['table']}` WHERE `{$s['id_col']}` = ?");
+        $labelExpr = $s['label_sql'] ?? "`{$s['label_col']}`";
+        $stmt = $conn->prepare("SELECT $labelExpr FROM `{$s['table']}` WHERE `{$s['id_col']}` = ?");
         $stmt->execute([$id]);
         $label = trim((string)$stmt->fetchColumn());
         if ($label !== '' && !empty($s['path_parent_col'])) {
@@ -1306,6 +1367,7 @@ class FormsService
                 if (!is_array($in['fields'])) {
                     throw new ServiceError('validation', 'invalid_field', "'fields' must be an array.");
                 }
+                self::$calcConn = $conn;   // GH #160 Part D: bundle items are checked to exist
                 $fields = self::validateFields($in['fields']);
             }
 
@@ -1371,6 +1433,7 @@ class FormsService
         if ($title === '') {
             throw new ServiceError('validation', 'missing_field', "'title' is required.");
         }
+        self::$calcConn = $conn;   // GH #160 Part D: bundle items are checked to exist
         $fields = self::validateFields(is_array($in['fields'] ?? null) ? $in['fields'] : []);
 
         $conn->beginTransaction();
@@ -1690,11 +1753,15 @@ class FormsService
             foreach ($srcFields as $f) {
                 if (empty($f['config'])) continue;
                 $config = json_decode((string)$f['config'], true);
-                if (!is_array($config) || !isset($config['visible_if']['rules'])) continue;
-                foreach ($config['visible_if']['rules'] as $r => $rule) {
+                if (!is_array($config)) continue;
+                $hasRules = isset($config['visible_if']['rules']);
+                $hasCalc  = !empty($config['calc_lines']);   // GH #160 Part D: a calculated answer's lines
+                if (!$hasRules && !$hasCalc) continue;
+                foreach (($hasRules ? $config['visible_if']['rules'] : []) as $r => $rule) {
                     $oldRef = (int)($rule['field'] ?? 0);
                     $config['visible_if']['rules'][$r]['field'] = $idMap[$oldRef] ?? $oldRef;
                 }
+                if ($hasCalc) $config = FormCalc::remapRefs($config, fn($ref) => $idMap[(int)$ref] ?? (int)$ref);
                 $updCfg->execute([json_encode($config), $idMap[(int)$f['id']]]);
             }
 
@@ -1916,6 +1983,12 @@ class FormsService
             }
             $normalised[(int)$fieldId] = (string)$value;
         }
+        /* GH #160 Part D: 🔴 what the browser sends for a calculated answer is thrown
+           away. The server works it out below, or anybody could post a total of 1 and
+           go round the board. */
+        foreach ($fieldsById as $cfid => $cf) {
+            if (($cf['field_type'] ?? '') === 'calculated') unset($normalised[(int)$cfid]);
+        }
 
         // Which questions were actually ASKED, given the answers given. Re-derived here
         // rather than trusted from the client, because "required" has to mean something
@@ -1951,6 +2024,7 @@ class FormsService
             if (!self::isAnswerable($type) || empty($visible[$fid])) {
                 continue;
             }
+            if ($type === 'calculated') continue;   // worked out below, never typed
 
             /* ---- A grid's answer -----------------------------------------
                Validated against the column definitions as they are NOW, which
@@ -2079,6 +2153,17 @@ class FormsService
             }
         }
 
+        /* GH #160 Part D: each Calculated answer, worked out here from the answers that
+           were actually asked (hidden ones are already gone) and stored like any other
+           answer - so the approval steps below, the ticket, the CSV and the workflow
+           merge codes all see the same frozen total. An answer that cannot be read
+           leaves it blank, and a blank total makes a threshold step run. */
+        foreach ($fields as $cField) {
+            if (($cField['field_type'] ?? '') !== 'calculated' || empty($visible[(int)$cField['id']])) continue;
+            $cTotal = FormCalc::compute($conn, $cField, $fieldsById, $normalised);
+            if ($cTotal !== null) $normalised[(int)$cField['id']] = $cTotal;
+        }
+
         // Catalogue-request approval (#928): gate a PORTAL submission behind the
         // form's designated approver, if one is configured. Only portal submissions
         // are gated — the feature auto-raises a ticket for the requester, and an
@@ -2091,8 +2176,21 @@ class FormsService
         // submission, so a later edit of the form never reroutes a waiting request.
         require_once __DIR__ . '/../catalogue_approvals.php';
         $gate = catalogueApprovalGate($form, $portalUserId);
-        $approvalStatus = $gate !== null ? 'pending' : 'not_required';
         $teamColumns = catalogueTeamApprovalAvailable($conn);
+        /* GH #160 Part C1: a form with approval steps (its own, or a chain's). Which
+           steps apply is decided NOW, from these answers, and the whole list is
+           snapshotted; the snapshot columns get the first step that applies. */
+        $stepPlan = null;
+        if ($portalUserId !== null && !empty($form['requires_approval']) && $teamColumns) {
+            $stepPlan = catalogueStepsPlan($conn, $form, ['submitted_by_user_id' => $portalUserId], $fieldsById, $normalised);
+            if ($stepPlan !== null) {
+                $gate = array_intersect_key($stepPlan, array_flip(['approver_id', 'approval_team_id', 'approvals_required',
+                                                                   'rejections_required', 'approval_exclude_requester',
+                                                                   'approver_kind', 'approval_cost_centre_id']));
+            }
+        }
+        $approvalStatus = $gate !== null ? 'pending' : 'not_required';
+        $autoDecided = null;
 
         $conn->beginTransaction();
         try {
@@ -2124,6 +2222,20 @@ class FormsService
                 $vals .= ', ?, ?, ?, ?';
                 array_push($args, $gate['approval_team_id'] ?? null, $gate['approvals_required'] ?? null,
                     $gate['rejections_required'] ?? null, (int)($gate['approval_exclude_requester'] ?? 0));
+            }
+            if ($stepPlan !== null) {
+                $cols .= ', approval_steps, approval_step_no';
+                $vals .= ', ?, ?';
+                array_push($args, json_encode($stepPlan['steps'], JSON_UNESCAPED_UNICODE), $stepPlan['step_no']);
+            }
+            /* GH #160 Part C2: a step decided by people in the portal (the manager, a
+               cost centre's owner), when the step was reached, and - #348 slice 4 - the
+               requester's cost centre as it was when they asked. */
+            if ($portalUserId !== null && cataloguePeopleAvailable($conn)) {
+                $cols .= ', approver_kind, approval_cost_centre_id, approval_step_datetime, requester_cost_centre_id';
+                $vals .= ', ?, ?, ' . ($gate !== null ? 'UTC_TIMESTAMP()' : 'NULL') . ', ?';
+                array_push($args, $gate['approver_kind'] ?? null, $gate['approval_cost_centre_id'] ?? null,
+                    catalogueRequesterCostCentre($conn, $portalUserId));
             }
             if ($hasCollections) {
                 $cols .= ', collection_id';
@@ -2162,6 +2274,11 @@ class FormsService
             // can never exist half-linked, and a lost race undoes the submission too.
             if (isset($link['within']) && is_callable($link['within'])) {
                 ($link['within'])($conn, $submissionId);
+            }
+            // GH #160: the skipped steps on the record - and, when none applied, the
+            // approval itself, with the answers already saved for the ticket to use.
+            if ($stepPlan !== null) {
+                $autoDecided = catalogueStepsRecordNew($conn, $stepPlan, $submissionId);
             }
             $conn->commit();
         } catch (Exception $e) {
@@ -2233,6 +2350,26 @@ class FormsService
            Exception and used to walk straight out of here. */
         } catch (Throwable $wfEx) {
             error_log('Workflow dispatch error in form submission: ' . $wfEx->getMessage());
+        }
+
+        // GH #160: no step applied, so it was approved at submission - now, after the
+        // commit, the outcome and the form's "when approved" list, as for any decision.
+        if ($autoDecided !== null) {
+            try {
+                $st = $conn->prepare('SELECT s.*, f.title AS form_title FROM form_submissions s JOIN forms f ON f.id = s.form_id WHERE s.id = ?');
+                $st->execute([$submissionId]);
+                catalogueAfterDecision($conn, $st->fetch(PDO::FETCH_ASSOC), 'approved', 'No approval step applied', $autoDecided);
+            } catch (Throwable $e) {
+                error_log('Approval after an automatic decision: ' . $e->getMessage());
+            }
+        } elseif ($stepPlan !== null && function_exists('catalogueTellStepApprovers')) {
+            try {
+                $st = $conn->prepare('SELECT s.*, f.title AS form_title FROM form_submissions s JOIN forms f ON f.id = s.form_id WHERE s.id = ?');
+                $st->execute([$submissionId]);
+                catalogueTellStepApprovers($conn, $st->fetch(PDO::FETCH_ASSOC));
+            } catch (Throwable $e) {
+                error_log('Approval step notice: ' . $e->getMessage());
+            }
         }
 
         // The form's OWN "when submitted" list (#95) — configured in the form
@@ -2421,6 +2558,25 @@ class FormsService
             $set[] = 'approval_exclude_requester = ?';
             $args[] = (int)(bool)$in['approval_exclude_requester'];
         }
+        // GH #160 Part C1: the form's own steps (null or [] = the single policy above)
+        // and a named chain instead (null = none). Each only when sent.
+        if (catalogueStepsAvailable($conn)) {
+            if (array_key_exists('approval_steps', $in)) {
+                $steps = catalogueNormaliseSteps($conn, $in['approval_steps'], true);
+                $set[] = 'approval_steps = ?';
+                $args[] = $steps ? json_encode($steps, JSON_UNESCAPED_UNICODE) : null;
+            }
+            if (array_key_exists('approval_chain_id', $in)) {
+                $chainId = ($in['approval_chain_id'] === null || $in['approval_chain_id'] === '') ? null : (int)$in['approval_chain_id'];
+                if ($chainId !== null) {
+                    $c = $conn->prepare('SELECT 1 FROM form_approval_chains WHERE id = ? AND is_active = 1');
+                    $c->execute([$chainId]);
+                    if (!$c->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'That approval chain was not found.');
+                }
+                $set[] = 'approval_chain_id = ?';
+                $args[] = $chainId;
+            }
+        }
         if (!$set) return;
         $args[] = $formId;
         $conn->prepare('UPDATE forms SET ' . implode(', ', $set) . ' WHERE id = ?')->execute($args);
@@ -2445,6 +2601,11 @@ class FormsService
             (int)($src['approval_exclude_requester'] ?? 0),
             $newId,
         ]);
+        // GH #160 Part C1. TRAP: a setting left out here is a setting Save deletes.
+        if (catalogueStepsAvailable($conn) && array_key_exists('approval_steps', $src)) {
+            $conn->prepare('UPDATE forms SET approval_steps = ?, approval_chain_id = ? WHERE id = ?')
+                 ->execute([$src['approval_steps'], $src['approval_chain_id'] !== null ? (int)$src['approval_chain_id'] : null, $newId]);
+        }
     }
 
     /**
@@ -2531,6 +2692,9 @@ class FormsService
                🔑 Asked of the LIST, not of 'section' by name, so a block added
                later cannot arrive here still able to be marked required. */
             $isRequired = (int)(bool)($field['is_required'] ?? false);
+            // GH #160 Part D: nobody types a calculated answer, so it is never "required"
+            // and has no options of its own.
+            if ($type === 'calculated') { $isRequired = 0; $options = null; }
             if (!self::isAnswerable($type)) {
                 if ($isRequired) {
                     throw new ServiceError('validation', 'invalid_field',
@@ -3270,6 +3434,15 @@ class FormsService
                 $config['width'] = (int)$w;
             }
         }
+        /* GH #160 Part A: "Start on the requester's own cost centre" - meaningful only on
+           a cost centre lookup, stored as true or not at all. */
+        if (array_key_exists('lookup_start_own', $config)) {
+            if ($type === 'lookup' && ($config['lookup_source'] ?? null) === 'cost_centre' && !empty($config['lookup_start_own'])) {
+                $config['lookup_start_own'] = true;
+            } else {
+                unset($config['lookup_start_own']);
+            }
+        }
         /* A lookup's filters (discussion #330): only known kinds, on a source that
            allows them, with a real value. Empty means none, and is not stored. */
         if (array_key_exists('lookup_filters', $config)) {
@@ -3405,6 +3578,18 @@ class FormsService
             if ($keep) $config['exception_values'] = $keep; else unset($config['exception_values']);
         } else {
             unset($config['exception_values']);
+        }
+
+        /* GH #160 Part D: an amount on each option of a dropdown or choose-one question,
+           keyed by the option's text, and a Calculated question's lines. Both dropped
+           from every other type, as date_mode is. */
+        $optsForValues = $fields[$i]['options'] ?? [];
+        if (is_string($optsForValues)) $optsForValues = json_decode($optsForValues, true) ?: [];
+        FormCalc::cleanOptionValues($config, is_array($optsForValues) ? $optsForValues : [], $type, $i);
+        if ($type === 'calculated') {
+            $config = FormCalc::cleanConfig(self::$calcConn, $config, $i, $fields, $indexById);
+        } else {
+            FormCalc::stripConfig($config);
         }
 
         /* ---- Grid columns ------------------------------------------------
@@ -3626,6 +3811,12 @@ class FormsService
                         $config['visible_if']['rules'][$r]['field'] = (int)$ref;
                     }
                 }
+            }
+            // GH #160 Part D: a calculated answer's lines point at questions the same way.
+            if (is_array($config) && !empty($config['calc_lines'])) {
+                $config = FormCalc::remapRefs($config, function ($ref) use ($idByIndex) {
+                    return (is_string($ref) && str_starts_with($ref, 'idx:')) ? ($idByIndex[(int)substr($ref, 4)] ?? 0) : (int)$ref;
+                });
             }
             $updCfg->execute([
                 $config ? json_encode($config) : null,

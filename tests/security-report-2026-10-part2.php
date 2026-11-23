@@ -73,13 +73,12 @@ function http(string $method, string $path, ?string $sid = null, $body = null, a
     curl_setopt_array($ch, $o);
     $raw = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     return [$code, $raw === false ? '' : (string)$raw];
 }
 $online = (function () use ($base) {
     $ch = curl_init($base . 'auth/login.php');
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5, CURLOPT_NOBODY => true]);
-    curl_exec($ch); $c = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+    curl_exec($ch); $c = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     return $c > 0 && $c < 500;
 })();
 $mkAnalyst = function (string $suffix, array $cols = []) use ($conn, $tag, &$made): int {

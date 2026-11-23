@@ -31,6 +31,22 @@
     };
 
     // ── Small helpers ──────────────────────────────────────────────────────
+    /** 'image', 'pdf' or null - which files can have a thumbnail (GH #424; the server's FilesThumbs::kind). */
+    function thumbKind(name) {
+        var m = /\.([a-z0-9]+)$/i.exec(name || '');
+        var x = m ? m[1].toLowerCase() : '';
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp'].indexOf(x) >= 0 ? 'image' : x === 'pdf' ? 'pdf' : null;
+    }
+    /** A thumbnail that will not load shows the type icon kept beside it instead. */
+    function thumbFallbacks(root) {
+        root.querySelectorAll('img.fx-thumb').forEach(function (img) {
+            img.addEventListener('error', function () {
+                var ic = img.nextElementSibling;
+                if (ic) ic.hidden = false;
+                img.remove();
+            }, { once: true });
+        });
+    }
     function api(path, body, method) {
         var opts = { method: method || (body !== undefined ? 'POST' : 'GET'), credentials: 'same-origin', headers: {} };
         if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
@@ -131,6 +147,7 @@
         perms: svgIcon('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'),
         props: svgIcon('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'),
         icons: svgIcon('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>'),
+        thumbs: svgIcon('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'),
         details: svgIcon('<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>'),
         open: svgIcon('<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>'),
         shortcut: svgIcon('<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 16c0-4.5 2.5-7 7-7M12 6l3 3-3 3"/>'),
@@ -357,6 +374,7 @@
                 '<button type="button" data-act="props" title="' + esc(L('ex.properties', 'Properties')) + '">' + IC.props + '</button>' +
                 '<span class="fx-cmd-grow"></span>' +
                 '<button type="button" data-act="view-icons" title="' + esc(L('ex.view_icons', 'Icons')) + '">' + IC.icons + '</button>' +
+                '<button type="button" data-act="view-thumbs" title="' + esc(L('ex.view_thumbs', 'Thumbnails')) + '">' + IC.thumbs + '</button>' +
                 '<button type="button" data-act="view-details" title="' + esc(L('ex.view_details', 'Details')) + '">' + IC.details + '</button>' +
             '</div>' +
             '<div class="fx-main">' +
@@ -480,7 +498,7 @@
         if (!d) return out;
         var lvl = d.folder ? d.folder.level : 0;
         d.folders.forEach(function (f) { out.push({ key: 'f:' + f.id, type: 'folder', id: f.id, name: f.name, modified: f.modified, level: f.level, path: f.path }); });
-        d.items.forEach(function (i) { out.push({ key: 'i:' + i.id, type: 'item', id: i.id, name: i.name, modified: i.modified, size: i.size, level: lvl, by: i.modified_by, versions: i.versions }); });
+        d.items.forEach(function (i) { out.push({ key: 'i:' + i.id, type: 'item', id: i.id, name: i.name, modified: i.modified, size: i.size, level: lvl, by: i.modified_by, versions: i.versions, thumb: i.thumb || null, sha: i.sha || null }); });
         // Shortcuts: `level` is THIS folder's (it decides rename/delete); the
         // target's own permissions decide what opening it does.
         (d.shortcuts || []).forEach(function (s) {
@@ -519,7 +537,8 @@
         this.order = shown.map(function (e) { return e.key; });
 
         var L_ = this.list;
-        L_.className = 'fx-list fx-view-' + this.view;
+        // Thumbnails is Icons with bigger tiles, so it keeps every Icons rule (selection, drag, focus).
+        L_.className = 'fx-list fx-view-' + (this.view === 'thumbs' ? 'icons fx-view-thumbs' : this.view);
         var html = '';
         if (this.view === 'details') {
             /** Returns the up or down sort arrow for a Details column header when that column is the sort. */
@@ -530,15 +549,23 @@
                 '<button type="button" data-sort="type">' + esc(L('col.type', 'Type')) + arrow('type') + '</button>' +
                 '<button type="button" data-sort="size">' + esc(L('col.size', 'Size')) + arrow('size') + '</button></div>';
         }
+        var grid = self.view === 'icons' || self.view === 'thumbs';
         shown.forEach(function (e) {
             var cls = 'fx-item' + (self.sel[e.key] ? ' fx-sel' : '') + (self.isCut(e) ? ' fx-cut' : '');
-            var px = self.view === 'icons' ? 48 : 18;
+            var px = self.view === 'thumbs' ? 96 : self.view === 'icons' ? 48 : 18;
             var icon = e.type === 'shortcut' ? shortcutIcon(e.target_type, e.target_name, px)
                      : e.type === 'folder' ? FI.folder(px) : FI.file(e.name, px);
+            // GH #424: a picture or PDF shows its thumbnail - 'make' is a picture the server
+            // makes on this first request; 'draw' a PDF waiting for a browser (wireThumbs).
+            if (e.type === 'item' && (e.thumb === 'ready' || e.thumb === 'make') && window.FilesThumbs) {
+                icon = '<img class="fx-thumb" alt="" loading="lazy" decoding="async" src="' + esc(window.FilesThumbs.url(e.id, e.sha)) + '">' +
+                       '<span class="fx-thumb-ic" hidden>' + icon + '</span>';
+            }
             var tip = e.type === 'shortcut' ? L('sc.tip', 'Shortcut to {path}', { path: e.path }) : (e.path ? e.path : e.name);
             var drag = 'true';
-            if (self.view === 'icons') {
-                html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="' + drag + '" title="' + esc(tip) + '">' +
+            if (grid) {
+                html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="' + drag + '" title="' + esc(tip) + '"' +
+                    (e.type === 'item' && e.thumb === 'draw' ? ' data-draw="' + e.id + '"' : '') + '>' +
                     '<div class="fx-ic">' + icon + '</div><div class="fx-name">' + esc(e.name) + '</div></div>';
             } else {
                 html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="' + drag + '" title="' + esc(tip) + '">' +
@@ -550,6 +577,7 @@
             }
         });
         L_.innerHTML = html;
+        this.wireThumbs();
         L_.querySelectorAll('.fx-dhead [data-sort]').forEach(function (b) {
             b.addEventListener('click', function () {
                 var k = b.dataset.sort;
@@ -571,6 +599,42 @@
         }
         this.updateStatus();
         this.updateCommands();
+    };
+
+    /**
+     * GH #424: a thumbnail that fails to load falls back to the type icon; and for someone who
+     * may upload here, PDFs with no thumbnail yet are drawn by this browser as they come on
+     * screen (two at a time, each once - the server keeps the result for everybody).
+     */
+    Explorer.prototype.wireThumbs = function () {
+        var self = this, L_ = this.list;
+        thumbFallbacks(L_);
+        if (this.drawObs) { this.drawObs.disconnect(); this.drawObs = null; }
+        var can = this.data && this.data.can && this.data.can.upload;
+        var targets = L_.querySelectorAll('[data-draw]');
+        if (!can || !targets.length || !window.FilesThumbs || !window.IntersectionObserver) return;
+        this.drawObs = new IntersectionObserver(function (seen) {
+            seen.forEach(function (s) {
+                if (!s.isIntersecting) return;
+                var n = s.target, id = +n.dataset.draw;
+                self.drawObs.unobserve(n);
+                window.FilesThumbs.fromItem(id).then(function () { self.showThumb(id); }).catch(function () { /* keeps its icon */ });
+            });
+        }, { root: this.pane, rootMargin: '100px' });
+        targets.forEach(function (n) { self.drawObs.observe(n); });
+    };
+    /** Swaps an item's icon for its (new) thumbnail without listing the folder again. */
+    Explorer.prototype.showThumb = function (id) {
+        var e = this.data && (this.data.items || []).filter(function (x) { return x.id === id; })[0];
+        if (!e) return;
+        e.thumb = 'ready';
+        var n = this.list.querySelector('.fx-item[data-key="i:' + id + '"]');
+        var ic = n && n.querySelector('.fx-ic');
+        if (!ic) return;
+        n.removeAttribute('data-draw');
+        var old = ic.querySelector('.fx-thumb-ic') ? ic.querySelector('.fx-thumb-ic').innerHTML : ic.innerHTML;
+        ic.innerHTML = '<img class="fx-thumb" alt="" decoding="async" src="' + esc(window.FilesThumbs.url(id, (e.sha || '') + '-' + Date.now())) + '"><span class="fx-thumb-ic" hidden>' + old + '</span>';
+        thumbFallbacks(ic);
     };
 
     Explorer.prototype.updateStatus = function () {
@@ -614,6 +678,7 @@
         set('paste', c.paste); set('rename', c.rename); set('delete', c.del); set('download', c.download);
         set('perms', c.perms); set('props', c.props);
         cmd.querySelector('[data-act="view-icons"]').classList.toggle('fx-on', this.view === 'icons');
+        cmd.querySelector('[data-act="view-thumbs"]').classList.toggle('fx-on', this.view === 'thumbs');
         cmd.querySelector('[data-act="view-details"]').classList.toggle('fx-on', this.view === 'details');
     };
 
@@ -658,6 +723,7 @@
                 else if (d.folder) openProperties('folder', d.folder.id);
                 return;
             case 'view-icons': return this.setView('icons');
+            case 'view-thumbs': return this.setView('thumbs');
             case 'view-details': return this.setView('details');
         }
     };
@@ -782,6 +848,10 @@
             // GH #303
             e.type === 'item' ? { label: L('ex.new_version', 'Upload new version'), icon: IC.upload || null, action: function () { Uploads.newVersion(e, self.data.folder.id); }, disabled: many || e.level < LV.UPLOAD } : null,
             e.type === 'item' ? { label: L('ex.version_history', 'Version history'), action: function () { openProperties('item', e.id, true); }, disabled: many } : null,
+            // GH #424: fixes a straggler, or redraws one that looks wrong. A PDF needs Upload (its
+            // picture comes from this browser); a picture is made by the server.
+            e.type === 'item' && thumbKind(e.name) ? { label: L('ex.make_thumbnail', 'Make thumbnail'), action: function () { self.makeThumb(e); },
+                disabled: many || (thumbKind(e.name) === 'pdf' && e.level < LV.UPLOAD) } : null,
             { sep: true },
             { label: L('ex.cut', 'Cut'), icon: IC.cut, shortcut: 'Ctrl+X', action: function () { self.command('cut'); }, disabled: !c.cut },
             { label: L('ex.copy', 'Copy'), icon: IC.copy, shortcut: 'Ctrl+C', action: function () { self.command('copy'); }, disabled: !c.copy },
@@ -796,6 +866,18 @@
         ];
         WM.menu(ev.clientX, ev.clientY, items);
     };
+    /** Make thumbnail: the server remakes a picture; a PDF is drawn here and sent. */
+    Explorer.prototype.makeThumb = function (e) {
+        var self = this;
+        api('thumbnail.php', { action: 'make', item: e.id }).then(function (r) {
+            if (r.draw) return window.FilesThumbs.fromItem(e.id, true).then(function () { return 'ready'; });
+            return r.status;
+        }).then(function (status) {
+            if (status === 'ready') { self.showThumb(e.id); return; }
+            alert(L('thumb.cannot', 'This file cannot have a thumbnail ({why}).', { why: L('thumb.why_' + status, status) }));
+        }).catch(function (err) { alert(err.message); });
+    };
+
     Explorer.prototype.paneMenu = function (ev) {
         var self = this, c = this.can(), d = this.data;
         /** Returns a menu action that sorts by a column, flipping the direction when it is already the sort. */
@@ -803,6 +885,7 @@
         WM.menu(ev.clientX, ev.clientY, [
             { label: L('ex.view', 'View'), sub: [
                 { label: L('ex.view_icons', 'Icons'), checked: this.view === 'icons', action: function () { self.setView('icons'); } },
+                { label: L('ex.view_thumbs', 'Thumbnails'), checked: this.view === 'thumbs', action: function () { self.setView('thumbs'); } },
                 { label: L('ex.view_details', 'Details'), checked: this.view === 'details', action: function () { self.setView('details'); } }
             ] },
             { label: L('ex.sort_by', 'Sort by'), sub: [
@@ -1036,11 +1119,12 @@
         if (!this.order.length) return;
         var i = this.order.indexOf(this.anchor);
         var cols = 1;
-        if (this.view === 'icons') {
+        var gridView = this.view === 'icons' || this.view === 'thumbs';
+        if (gridView) {
             var first = this.list.querySelector('.fx-item');
             if (first) cols = Math.max(1, Math.floor(this.list.clientWidth / first.offsetWidth));
         }
-        var step = { ArrowDown: cols, ArrowUp: -cols, ArrowRight: this.view === 'icons' ? 1 : 0, ArrowLeft: this.view === 'icons' ? -1 : 0 }[key];
+        var step = { ArrowDown: cols, ArrowUp: -cols, ArrowRight: gridView ? 1 : 0, ArrowLeft: gridView ? -1 : 0 }[key];
         var j = key === 'Home' ? 0 : key === 'End' ? this.order.length - 1 : (i < 0 ? 0 : Math.max(0, Math.min(this.order.length - 1, i + step)));
         var k = this.order[j];
         if (!extend) this.sel = {};
@@ -1247,6 +1331,11 @@
                         u.status = 'done';
                         u.versionNo = fin.version_no;
                         changed([u.folder]);
+                        // GH #424: a PDF's first page is drawn from the file on THIS computer -
+                        // nothing downloaded - and kept for everybody. Never holds the upload up.
+                        if (window.FilesThumbs && fin.item_id && thumbKind(u.name) === 'pdf') {
+                            window.FilesThumbs.fromFile(fin.item_id, u.file).then(function (ok) { if (ok) changed([u.folder]); });
+                        }
                     });
                 })
                 .catch(function (e) {

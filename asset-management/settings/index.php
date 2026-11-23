@@ -508,7 +508,8 @@ $translationNamespaces = ['common', 'asset-management'];
     <?php /* Mobile-friendly opt-in (#937). AFTER this page's own <style> so its
              @media rules win on ties. Every rule inside is gated at 768px. */ ?>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
-    <script src="../../assets/js/qrcode.min.js"></script>
+    <script src="../../assets/js/vendor/qrcode.js?v=2.0.4"></script>
+    <script src="../../assets/js/vendor/qrcode_UTF8.js?v=2.0.4"></script>
     <style>
         #consumables-tab input[type=text], #consumables-tab select { width: 100%; max-width: 420px; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); font-size: var(--font-size-md, 13px); }
         #consumables-tab p > .add-btn { margin-top: 12px; }

@@ -915,6 +915,10 @@ CREATE TABLE IF NOT EXISTS `users` (
     -- Wanted before sync existed — catalogue-request approvals need a chain to
     -- route along, and a directory hands you the org chart for free.
     `manager_id`      INT NULL,
+    -- GH #160 C2: "I am away until" (the portal's Approvals page). A cost centre's
+    -- deputy may decide while the owner is away, when Forms -> Settings says the
+    -- deputy is only cover. NULL = here.
+    `approvals_away_until` DATE NULL,
 
     -- What the DIRECTORY calls them, which is not the same fact as what they
     -- type into the portal. sAMAccountName is unique only within one directory,
@@ -6711,6 +6715,23 @@ CREATE TABLE IF NOT EXISTS `form_collections` (
     CONSTRAINT `fk_form_collections_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Named approval chains (GH #160 Part C): the same steps chosen on many forms
+-- (forms.approval_chain_id) instead of copied onto each. steps is the JSON list a
+-- form's own approval_steps holds. A request snapshots the steps when it is made,
+-- so changing a chain affects new requests only.
+CREATE TABLE IF NOT EXISTS `form_approval_chains` (
+    `id`            INT NOT NULL AUTO_INCREMENT,
+    `name`          VARCHAR(100) NOT NULL,
+    `description`   TEXT NULL,
+    `steps`         LONGTEXT NOT NULL,
+    `is_active`     TINYINT(1) NOT NULL DEFAULT 1,
+    `created_by`    INT NULL,
+    `created_date`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `modified_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_form_approval_chains_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `forms` (
     `id`             INT NOT NULL AUTO_INCREMENT,
     `title`          VARCHAR(255) NOT NULL,
@@ -6749,6 +6770,13 @@ CREATE TABLE IF NOT EXISTS `forms` (
     `rejections_required`        INT NOT NULL DEFAULT 1,
     -- Named-person mode only: refuse the requester approving their own request.
     `approval_exclude_requester` TINYINT(1) NOT NULL DEFAULT 0,
+    -- Approval steps (GH #160 Part C): an ordered JSON list, each step a person or a
+    -- team with an optional "Only when" condition and a fallback approver. NULL =
+    -- the single policy above, exactly as before - no migration. approval_chain_id
+    -- chooses a named chain (form_approval_chains) instead of the form's own steps.
+    -- Both carried forward by createVersion() via copyApprovalPolicy().
+    `approval_steps`             LONGTEXT NULL,
+    `approval_chain_id`          INT NULL,
     -- What happens when this form is submitted, approved or rejected (#95).
     -- JSON: {"submitted":[…],"approved":[…],"rejected":[…]}, each a list of
     -- {type, args} in the workflow engine's own action shape — they ARE workflow
@@ -6795,6 +6823,7 @@ CREATE TABLE IF NOT EXISTS `forms` (
     `catalogue_image_path`   VARCHAR(100) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
+    KEY `idx_forms_approval_chain` (`approval_chain_id`),
     -- RESTRICT (no delete rule): a frozen version can't be deleted while
     -- newer versions chain off it — delete leaf-first (or the whole chain).
     CONSTRAINT `fk_forms_parent` FOREIGN KEY (`parent_form_id`) REFERENCES `forms` (`id`),
@@ -6874,6 +6903,29 @@ CREATE TABLE IF NOT EXISTS `form_submissions` (
     `rejections_required`        INT NULL,
     `approval_exclude_requester` TINYINT(1) NOT NULL DEFAULT 0,
     `approval_round`             INT NOT NULL DEFAULT 1,
+    -- Approval steps (GH #160 Part C), SNAPSHOTTED at submit time: the whole list,
+    -- each step marked skipped or not ("Only when" is decided then), and which step
+    -- it is on. The columns above always hold the CURRENT step's policy, so votes,
+    -- Stuck, Move and Override work per step with no second code path. NULL = a
+    -- single-policy request, as before.
+    `approval_steps`             LONGTEXT NULL,
+    `approval_step_no`           INT NULL,
+    -- GH #160 Part C2: a step decided by PEOPLE in the portal, not staff. 'manager' =
+    -- the requester's manager, 'cc_owner' = the owner (or deputy) of
+    -- approval_cost_centre_id. NULL = a staff step (approver_id / approval_team_id).
+    -- WHO that is, is worked out at every decision, never stored: a manager who
+    -- changes, or an owner who leaves, changes who can decide.
+    `approver_kind`              VARCHAR(20) NULL,
+    `approval_cost_centre_id`    INT NULL,
+    -- A person (users) who decided - the portal's twin of approval_decided_by_id.
+    `approval_decided_by_user_id` INT NULL,
+    -- When the current step was reached (a deputy "after N days") and last reminded
+    -- (Remind, at most once a day per step). Both reset when the step changes.
+    `approval_step_datetime`     DATETIME NULL,
+    `approval_reminded_datetime` DATETIME NULL,
+    -- #348 slice 4: the requester's own cost centre WHEN THEY ASKED, shown to the
+    -- approver and in the ticket. A snapshot, like the price.
+    `requester_cost_centre_id`   INT NULL,
     -- Which collection this submission WAS part of, stamped at submit time
     -- from forms.collection_id. The two are ALLOWED TO DISAGREE and that is
     -- the point: re-pairing a form must never rewrite what last year's
@@ -6948,6 +7000,7 @@ CREATE TABLE IF NOT EXISTS `form_submission_approval_events` (
     `id`             INT NOT NULL AUTO_INCREMENT,
     `submission_id`  INT NOT NULL,
     `analyst_id`     INT NULL,
+    `user_id`        INT NULL,                        -- GH #160 C2: a person in the portal (a manager, a cost centre owner, the requester's Remind)
     `action`         VARCHAR(30) NOT NULL,            -- override_approved / override_rejected / moved
     `detail`         TEXT NULL,
     `reason`         TEXT NULL,
@@ -9997,12 +10050,22 @@ CREATE TABLE IF NOT EXISTS `cost_centres` (
     -- Inactive = not offered for NEW assignments. Anything already charged to it
     -- keeps it. Retiring, not deleting, is the normal path.
     `is_active`        TINYINT(1) NOT NULL DEFAULT 1,
+    -- GH #160 Part B: who answers for it. The owner is a PERSON (users) or a PEOPLE
+    -- GROUP (knowledge_user_groups - analysts and portal users alike), never both;
+    -- the deputy is a person. A named person must be in the cost centre's company.
+    -- People, not analysts: most budget holders have no service desk account.
+    `owner_user_id`    INT NULL,
+    `owner_group_id`   INT NULL,
+    `deputy_user_id`   INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_cost_centres_code` (`tenant_id`, `code`),
     KEY `ix_cost_centres_parent` (`parent_id`),
+    KEY `ix_cost_centres_owner` (`owner_user_id`),
+    KEY `ix_cost_centres_owner_group` (`owner_group_id`),
+    KEY `ix_cost_centres_deputy` (`deputy_user_id`),
     -- SET NULL rather than RESTRICT: the service already refuses to delete a cost
     -- centre that has children, and RESTRICT on a self-reference can block the
     -- company CASCADE below part-way through.
@@ -11094,6 +11157,7 @@ CREATE TABLE IF NOT EXISTS `files_versions` (
     PRIMARY KEY (`id`),
     KEY `ix_files_versions_item` (`item_id`, `version_no`),
     KEY `ix_files_versions_path` (`storage_path`),
+    KEY `ix_files_versions_sha` (`sha256`),
     CONSTRAINT `fk_files_versions_item` FOREIGN KEY (`item_id`) REFERENCES `files_items` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -11204,6 +11268,28 @@ CREATE TABLE IF NOT EXISTS `files_purge_pending` (
     `updated_datetime`      DATETIME NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_files_purge_pending_path` (`storage_path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Files thumbnails (GH #424): one small picture per stored fingerprint, shared by
+-- every copy of the same file. Made once - by the server for pictures, by the
+-- uploader's browser for a PDF's first page - and kept in the database, so a move
+-- to another storage location takes nothing to carry over. status says why a file
+-- has none (waiting for a browser, too large, unsupported, failed), so a file is
+-- tried once and set aside rather than retried on every folder open.
+CREATE TABLE IF NOT EXISTS `files_thumbnails` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `sha256`                CHAR(64) NOT NULL,                      -- files_versions.sha256
+    `status`                VARCHAR(16) NOT NULL,                   -- ready | too_large | unsupported | failed
+    `mime_type`             VARCHAR(30) NULL,                       -- image/webp, or image/jpeg without WebP in GD
+    `width`                 SMALLINT NULL,
+    `height`                SMALLINT NULL,
+    `data`                  MEDIUMBLOB NULL,                        -- the picture, a few KB
+    `made_by`               VARCHAR(10) NULL,                       -- server | browser
+    `made_by_id`            INT NULL,                               -- the analyst whose browser drew it
+    `detail`                VARCHAR(255) NULL,                      -- why it could not be made
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_files_thumbnails_sha` (`sha256`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 

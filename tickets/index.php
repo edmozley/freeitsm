@@ -68,7 +68,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/address-suggest.css?v=1">   <!-- GH #307 -->
     <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
-    <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
+    <link rel="stylesheet" href="../assets/css/float-window.css?v=2">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=10">
     <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=4">
@@ -106,7 +106,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
-    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
 </head>
 <body class="inbox-page<?php echo $workspaceConfig['mode'] === 'selected' ? ' workspace-choice-available' : ''; ?>">
     <?php include 'includes/header.php'; ?>
@@ -1202,9 +1202,9 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/ticket-workspace.js?v=7"></script>
     <script src="../assets/js/data-table.js?v=11"></script>
     <!-- Note images open in the Files viewer, in a floating window (GH #226). -->
-    <script src="../assets/js/float-window.js?v=2"></script>
+    <script src="../assets/js/float-window.js?v=3"></script>
     <script src="../assets/js/files-icons.js?v=4"></script>
-    <script src="../assets/js/files-viewer.js?v=10"></script>
+    <script src="../assets/js/files-viewer.js?v=11"></script>
     <script src="../assets/js/note-images.js?v=2"></script>
     <script src="../assets/js/save-to-files.js?v=2"></script>
     <script src="../assets/js/files-picker.js?v=3"></script>

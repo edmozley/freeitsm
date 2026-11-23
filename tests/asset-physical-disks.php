@@ -61,7 +61,6 @@ function agentPost(string $url, string $key, array $payload): array {
     $body = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
-    curl_close($ch);
     return ['code' => $code, 'body' => (string)$body, 'json' => json_decode((string)$body, true), 'err' => $err];
 }
 
@@ -183,7 +182,6 @@ try {
             CURLOPT_TIMEOUT        => 20,
         ]);
         $body = (string)curl_exec($ch);
-        curl_close($ch);
         @unlink($sessFile);
 
         $data = json_decode($body, true);

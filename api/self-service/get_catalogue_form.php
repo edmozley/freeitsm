@@ -80,6 +80,11 @@ try {
     // not asked, so a required one never blocks the customer.
     $form['fields'] = array_values(array_filter($form['fields'],
         fn($f) => $f['field_type'] !== 'lookup' || FormsService::lookupPortalAllowed($f)));
+    // GH #160 Part A: a cost centre lookup that starts on the requester's own.
+    foreach ($form['fields'] as &$lf) {
+        if ($lf['field_type'] === 'lookup' && ($d = FormsService::lookupDefaultFor($conn, $lf, (int)$_SESSION['ss_user_id']))) $lf['lookup_default'] = $d;
+    }
+    unset($lf);
 
     /* The same resolved layout the analyst side gets, from the same service —
        a customer must see the form laid out the way it was designed, not a
@@ -95,6 +100,8 @@ try {
     }
     $form['layout'] = FormsService::layoutFor($storedLayout, $form['fields']);
 
+    // GH #160 Part D: a bundle's items at their prices now, for the live total.
+    FormCalc::annotate($conn, $form['fields']);
     echo json_encode(['success' => true, 'form' => $form]);
 
 } catch (Exception $e) {
