@@ -283,6 +283,9 @@ function analystReferenceRegistry(): array {
         ['forms', 'modified_by', 'history'],
         ['form_collections', 'created_by', 'history'],
         ['form_collections', 'closed_by', 'history'],
+        // GH #160: who made an approval chain. A person named INSIDE a chain's steps is
+        // JSON, not a column: a leaver there finds nobody, so the step's fallback decides.
+        ['form_approval_chains', 'created_by', 'history'],
         ['form_submissions', 'approval_decided_by_id', 'history'],
         ['rfps', 'created_by_analyst_id', 'history'],
         ['rfp_conflicts', 'resolved_by_analyst_id', 'history'],

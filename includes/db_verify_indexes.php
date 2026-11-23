@@ -403,6 +403,8 @@ return [
     ['form_audiences', 'idx_form_audiences_form', 'key', '(`form_id`)'],
     ['form_audiences', 'uq_form_audiences', 'unique', '(`form_id`,`principal_type`,`principal_id`)'],
     ['form_drafts', 'uq_form_drafts_owner', 'unique', '(`form_id`,`owner_kind`,`owner_id`)'],
+    ['form_approval_chains', 'uq_form_approval_chains_name', 'unique', '(`name`)'],
+    ['forms', 'idx_forms_approval_chain', 'key', '(`approval_chain_id`)'],
     ['form_submissions', 'idx_form_submissions_user', 'key', '(`submitted_by_user_id`)'],
     ['form_submissions', 'idx_form_submissions_task', 'key', '(`task_id`)'],
     ['form_submissions', 'idx_form_submissions_for_ticket', 'key', '(`for_ticket_id`)'],

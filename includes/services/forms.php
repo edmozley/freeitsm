@@ -2147,8 +2147,20 @@ class FormsService
         // submission, so a later edit of the form never reroutes a waiting request.
         require_once __DIR__ . '/../catalogue_approvals.php';
         $gate = catalogueApprovalGate($form, $portalUserId);
-        $approvalStatus = $gate !== null ? 'pending' : 'not_required';
         $teamColumns = catalogueTeamApprovalAvailable($conn);
+        /* GH #160 Part C1: a form with approval steps (its own, or a chain's). Which
+           steps apply is decided NOW, from these answers, and the whole list is
+           snapshotted; the snapshot columns get the first step that applies. */
+        $stepPlan = null;
+        if ($portalUserId !== null && !empty($form['requires_approval']) && $teamColumns) {
+            $stepPlan = catalogueStepsPlan($conn, $form, ['submitted_by_user_id' => $portalUserId], $fieldsById, $normalised);
+            if ($stepPlan !== null) {
+                $gate = array_intersect_key($stepPlan, array_flip(['approver_id', 'approval_team_id', 'approvals_required',
+                                                                   'rejections_required', 'approval_exclude_requester']));
+            }
+        }
+        $approvalStatus = $gate !== null ? 'pending' : 'not_required';
+        $autoDecided = null;
 
         $conn->beginTransaction();
         try {
@@ -2180,6 +2192,11 @@ class FormsService
                 $vals .= ', ?, ?, ?, ?';
                 array_push($args, $gate['approval_team_id'] ?? null, $gate['approvals_required'] ?? null,
                     $gate['rejections_required'] ?? null, (int)($gate['approval_exclude_requester'] ?? 0));
+            }
+            if ($stepPlan !== null) {
+                $cols .= ', approval_steps, approval_step_no';
+                $vals .= ', ?, ?';
+                array_push($args, json_encode($stepPlan['steps'], JSON_UNESCAPED_UNICODE), $stepPlan['step_no']);
             }
             if ($hasCollections) {
                 $cols .= ', collection_id';
@@ -2218,6 +2235,11 @@ class FormsService
             // can never exist half-linked, and a lost race undoes the submission too.
             if (isset($link['within']) && is_callable($link['within'])) {
                 ($link['within'])($conn, $submissionId);
+            }
+            // GH #160: the skipped steps on the record - and, when none applied, the
+            // approval itself, with the answers already saved for the ticket to use.
+            if ($stepPlan !== null) {
+                $autoDecided = catalogueStepsRecordNew($conn, $stepPlan, $submissionId);
             }
             $conn->commit();
         } catch (Exception $e) {
@@ -2289,6 +2311,26 @@ class FormsService
            Exception and used to walk straight out of here. */
         } catch (Throwable $wfEx) {
             error_log('Workflow dispatch error in form submission: ' . $wfEx->getMessage());
+        }
+
+        // GH #160: no step applied, so it was approved at submission - now, after the
+        // commit, the outcome and the form's "when approved" list, as for any decision.
+        if ($autoDecided !== null) {
+            try {
+                $st = $conn->prepare('SELECT s.*, f.title AS form_title FROM form_submissions s JOIN forms f ON f.id = s.form_id WHERE s.id = ?');
+                $st->execute([$submissionId]);
+                catalogueAfterDecision($conn, $st->fetch(PDO::FETCH_ASSOC), 'approved', 'No approval step applied', $autoDecided);
+            } catch (Throwable $e) {
+                error_log('Approval after an automatic decision: ' . $e->getMessage());
+            }
+        } elseif ($stepPlan !== null && function_exists('catalogueTellStepApprovers')) {
+            try {
+                $st = $conn->prepare('SELECT s.*, f.title AS form_title FROM form_submissions s JOIN forms f ON f.id = s.form_id WHERE s.id = ?');
+                $st->execute([$submissionId]);
+                catalogueTellStepApprovers($conn, $st->fetch(PDO::FETCH_ASSOC));
+            } catch (Throwable $e) {
+                error_log('Approval step notice: ' . $e->getMessage());
+            }
         }
 
         // The form's OWN "when submitted" list (#95) — configured in the form
@@ -2477,6 +2519,25 @@ class FormsService
             $set[] = 'approval_exclude_requester = ?';
             $args[] = (int)(bool)$in['approval_exclude_requester'];
         }
+        // GH #160 Part C1: the form's own steps (null or [] = the single policy above)
+        // and a named chain instead (null = none). Each only when sent.
+        if (catalogueStepsAvailable($conn)) {
+            if (array_key_exists('approval_steps', $in)) {
+                $steps = catalogueNormaliseSteps($conn, $in['approval_steps'], true);
+                $set[] = 'approval_steps = ?';
+                $args[] = $steps ? json_encode($steps, JSON_UNESCAPED_UNICODE) : null;
+            }
+            if (array_key_exists('approval_chain_id', $in)) {
+                $chainId = ($in['approval_chain_id'] === null || $in['approval_chain_id'] === '') ? null : (int)$in['approval_chain_id'];
+                if ($chainId !== null) {
+                    $c = $conn->prepare('SELECT 1 FROM form_approval_chains WHERE id = ? AND is_active = 1');
+                    $c->execute([$chainId]);
+                    if (!$c->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'That approval chain was not found.');
+                }
+                $set[] = 'approval_chain_id = ?';
+                $args[] = $chainId;
+            }
+        }
         if (!$set) return;
         $args[] = $formId;
         $conn->prepare('UPDATE forms SET ' . implode(', ', $set) . ' WHERE id = ?')->execute($args);
@@ -2501,6 +2562,11 @@ class FormsService
             (int)($src['approval_exclude_requester'] ?? 0),
             $newId,
         ]);
+        // GH #160 Part C1. TRAP: a setting left out here is a setting Save deletes.
+        if (catalogueStepsAvailable($conn) && array_key_exists('approval_steps', $src)) {
+            $conn->prepare('UPDATE forms SET approval_steps = ?, approval_chain_id = ? WHERE id = ?')
+                 ->execute([$src['approval_steps'], $src['approval_chain_id'] !== null ? (int)$src['approval_chain_id'] : null, $newId]);
+        }
     }
 
     /**

@@ -4968,6 +4968,18 @@ return [
         'is_demo'         => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 
+    // Named approval chains (GH #160 Part C): steps chosen on many forms.
+    'form_approval_chains' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'name'          => 'VARCHAR(100) NOT NULL',
+        'description'   => 'TEXT NULL',
+        'steps'         => 'LONGTEXT NOT NULL',
+        'is_active'     => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by'    => 'INT NULL',
+        'created_date'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'modified_date' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'forms' => [
         'id'             => 'INT NOT NULL AUTO_INCREMENT',
         'title'          => 'VARCHAR(255) NOT NULL',
@@ -5004,6 +5016,12 @@ return [
         'approvals_required'         => 'INT NOT NULL DEFAULT 1',
         'rejections_required'        => 'INT NOT NULL DEFAULT 1',
         'approval_exclude_requester' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        // Approval steps (GH #160 Part C): an ordered JSON list of steps (a person or a
+        // team, "Only when", a fallback). NULL = the single policy above, unchanged.
+        // approval_chain_id picks a named chain instead. TRAP: copyApprovalPolicy()
+        // carries both to a new version - a setting Save drops is a setting lost.
+        'approval_steps'             => 'LONGTEXT NULL',
+        'approval_chain_id'          => 'INT NULL',
         // What happens when this form is submitted, approved or rejected
         // (discussion #95). JSON: {"submitted":[…],"approved":[…],"rejected":[…]},
         // each a list of {type, args} in the same shape the workflow engine's
@@ -5105,6 +5123,10 @@ return [
         'rejections_required'        => 'INT NULL',
         'approval_exclude_requester' => 'TINYINT(1) NOT NULL DEFAULT 0',
         'approval_round'             => 'INT NOT NULL DEFAULT 1',
+        // GH #160 Part C: the steps SNAPSHOTTED at submit time (each marked skipped or
+        // not) and the step it is on. The columns above hold the CURRENT step.
+        'approval_steps'             => 'LONGTEXT NULL',
+        'approval_step_no'           => 'INT NULL',
         // Which collection this submission WAS part of, stamped at submit
         // time from forms.collection_id. 🔑 The two are allowed to disagree:
         // re-pairing a form must never rewrite what last year's responses

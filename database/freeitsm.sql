@@ -6711,6 +6711,23 @@ CREATE TABLE IF NOT EXISTS `form_collections` (
     CONSTRAINT `fk_form_collections_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Named approval chains (GH #160 Part C): the same steps chosen on many forms
+-- (forms.approval_chain_id) instead of copied onto each. steps is the JSON list a
+-- form's own approval_steps holds. A request snapshots the steps when it is made,
+-- so changing a chain affects new requests only.
+CREATE TABLE IF NOT EXISTS `form_approval_chains` (
+    `id`            INT NOT NULL AUTO_INCREMENT,
+    `name`          VARCHAR(100) NOT NULL,
+    `description`   TEXT NULL,
+    `steps`         LONGTEXT NOT NULL,
+    `is_active`     TINYINT(1) NOT NULL DEFAULT 1,
+    `created_by`    INT NULL,
+    `created_date`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `modified_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_form_approval_chains_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `forms` (
     `id`             INT NOT NULL AUTO_INCREMENT,
     `title`          VARCHAR(255) NOT NULL,
@@ -6749,6 +6766,13 @@ CREATE TABLE IF NOT EXISTS `forms` (
     `rejections_required`        INT NOT NULL DEFAULT 1,
     -- Named-person mode only: refuse the requester approving their own request.
     `approval_exclude_requester` TINYINT(1) NOT NULL DEFAULT 0,
+    -- Approval steps (GH #160 Part C): an ordered JSON list, each step a person or a
+    -- team with an optional "Only when" condition and a fallback approver. NULL =
+    -- the single policy above, exactly as before - no migration. approval_chain_id
+    -- chooses a named chain (form_approval_chains) instead of the form's own steps.
+    -- Both carried forward by createVersion() via copyApprovalPolicy().
+    `approval_steps`             LONGTEXT NULL,
+    `approval_chain_id`          INT NULL,
     -- What happens when this form is submitted, approved or rejected (#95).
     -- JSON: {"submitted":[…],"approved":[…],"rejected":[…]}, each a list of
     -- {type, args} in the workflow engine's own action shape — they ARE workflow
@@ -6795,6 +6819,7 @@ CREATE TABLE IF NOT EXISTS `forms` (
     `catalogue_image_path`   VARCHAR(100) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
+    KEY `idx_forms_approval_chain` (`approval_chain_id`),
     -- RESTRICT (no delete rule): a frozen version can't be deleted while
     -- newer versions chain off it — delete leaf-first (or the whole chain).
     CONSTRAINT `fk_forms_parent` FOREIGN KEY (`parent_form_id`) REFERENCES `forms` (`id`),
@@ -6874,6 +6899,13 @@ CREATE TABLE IF NOT EXISTS `form_submissions` (
     `rejections_required`        INT NULL,
     `approval_exclude_requester` TINYINT(1) NOT NULL DEFAULT 0,
     `approval_round`             INT NOT NULL DEFAULT 1,
+    -- Approval steps (GH #160 Part C), SNAPSHOTTED at submit time: the whole list,
+    -- each step marked skipped or not ("Only when" is decided then), and which step
+    -- it is on. The columns above always hold the CURRENT step's policy, so votes,
+    -- Stuck, Move and Override work per step with no second code path. NULL = a
+    -- single-policy request, as before.
+    `approval_steps`             LONGTEXT NULL,
+    `approval_step_no`           INT NULL,
     -- Which collection this submission WAS part of, stamped at submit time
     -- from forms.collection_id. The two are ALLOWED TO DISAGREE and that is
     -- the point: re-pairing a form must never rewrite what last year's

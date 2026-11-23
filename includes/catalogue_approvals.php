@@ -27,6 +27,7 @@ require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/tenancy.php';
 require_once __DIR__ . '/ticket_numbering.php';
 require_once __DIR__ . '/ticket_priorities.php';
+require_once __DIR__ . '/catalogue_approval_steps.php';   // GH #160 Part C1: approval steps and chains
 
 // The workflow engine powers the outcome notifications. Load it if nothing else has;
 // dispatch is always guarded, so a missing engine degrades to "no notification", never
@@ -314,7 +315,9 @@ function catalogueApprovalOverride(PDO $conn, int $actorId, int $submissionId, s
     $conn->beginTransaction();
     try {
         $sub = catalogueLockSubmission($conn, $submissionId);
-        if (catalogueApprovalPolicy($sub)['mode'] !== 'team') {
+        // GH #160: a request with steps can be overridden on any step - and only
+        // that step: approving it moves the request on, it never waves through the rest.
+        if (catalogueApprovalPolicy($sub)['mode'] !== 'team' && catalogueSubmissionSteps($sub) === null) {
             throw new Exception('Override is for team approvals - decide this request directly');
         }
         catalogueApprovalEvent($conn, $submissionId, $actorId, 'override_' . $decision, null, $reason);
@@ -531,6 +534,16 @@ function catalogueApprovalEvent(PDO $conn, int $submissionId, int $actorId, stri
  * @return array{ticket_id:?int, ticket_number:?string, list:?array}
  */
 function catalogueFinishDecision(PDO $conn, array $sub, string $decision, int $actorId, string $comment): array {
+    // GH #160 Part C1: approving a step that is not the last moves the request on to
+    // the next step that applies, here inside the same lock, instead of approving it.
+    // A rejection at any step ends the request, as below.
+    if ($decision === 'approved') {
+        $advanced = catalogueAdvanceStep($conn, $sub, $actorId, $comment);
+        if ($advanced !== null) {
+            return ['ticket_id' => null, 'ticket_number' => null, 'list' => null, 'advanced' => $advanced];
+        }
+    }
+
     // Does this form configure its own actions for this decision (#95)?
     //
     // 🔑 NULL means never configured, and the pre-#95 behaviour stands: approving
@@ -580,6 +593,7 @@ function catalogueFinishDecision(PDO $conn, array $sub, string $decision, int $a
  */
 function catalogueAfterDecision(PDO $conn, array $sub, string $decision, string $comment, array $done): array {
     $submissionId = (int)$sub['id'];
+    if (!empty($done['advanced'])) return catalogueAfterStepPassed($conn, $sub, $comment, $done['advanced']);
     $ticketId     = $done['ticket_id'];
     $ticketNumber = $done['ticket_number'];
     $decisionList = $done['list'];
@@ -649,6 +663,47 @@ function catalogueAfterDecision(PDO $conn, array $sub, string $decision, string 
     }
 
     return ['decision' => $decision, 'ticket_id' => $ticketId, 'ticket_number' => $ticketNumber];
+}
+
+/**
+ * After the commit, when a step passed and the request moved on (GH #160 Part C1):
+ * the catalogue_request.step_passed event, and telling the next step's approvers.
+ * Best-effort, like the outcome above - the step has passed whatever happens here.
+ *
+ * @param array $sub  the form_submissions row as it was before the step passed
+ * @param string $comment  the step decision's note
+ * @param array $adv  catalogueAdvanceStep()'s result
+ */
+function catalogueAfterStepPassed(PDO $conn, array $sub, string $comment, array $adv): array {
+    $submissionId = (int)$sub['id'];
+    $now = $adv['sub'];
+    if (class_exists('WorkflowEngine')) {
+        try {
+            $answers = catalogueSubmissionAnswerMap($conn, $submissionId);
+            $payload = [
+                'form'    => ['id' => (int)$sub['form_id'], 'name' => $sub['form_title']],
+                'request' => ['id' => $submissionId, 'comment' => $comment],
+                'step'    => ['passed' => $adv['from'], 'number' => $adv['step_no'], 'name' => $adv['name'],
+                              'position' => $adv['position'], 'count' => $adv['count']],
+                'submission' => [
+                    'id'      => $submissionId,
+                    'email'   => $answers['email'],
+                    'fields'  => $answers['fields'],
+                    'lookups' => $answers['lookups'] ?? [],
+                ],
+            ];
+            if (!empty($now['approver_id'])) $payload['approver'] = ['id' => (int)$now['approver_id']];
+            if (!empty($now['approval_team_id'])) {
+                $payload['approval_team'] = ['id' => (int)$now['approval_team_id'], 'approvals_required' => (int)$now['approvals_required']];
+            }
+            WorkflowEngine::dispatch('catalogue_request.step_passed', $payload);
+        } catch (Throwable) { /* a bonus, not the mechanism */ }
+    }
+    if (function_exists('catalogueTellStepApprovers')) {
+        try { catalogueTellStepApprovers($conn, $now); } catch (Throwable $e) { error_log('Approval step notice: ' . $e->getMessage()); }
+    }
+    return ['decision' => 'step_passed', 'ticket_id' => null, 'ticket_number' => null,
+            'step' => ['number' => $adv['step_no'], 'name' => $adv['name'], 'position' => $adv['position'], 'count' => $adv['count']]];
 }
 
 /**
@@ -1177,6 +1232,8 @@ function catalogueApprovalsList(PDO $conn, int $analystId, string $filter = 'min
              tm.name AS approval_team_name"
         : '';
     $teamJoin = $team ? ' LEFT JOIN teams tm ON tm.id = s.approval_team_id ' : '';
+    $steps = catalogueStepsAvailable($conn);
+    if ($steps) $teamCols .= ', s.approval_steps, s.approval_step_no';
     $base =
         "SELECT s.id, s.form_id, f.title AS form_title, s.submitted_date, s.submitted_by_user_id,
                 s.approval_status, s.approver_id, s.approval_decided_datetime, s.approval_comment,
@@ -1195,8 +1252,10 @@ function catalogueApprovalsList(PDO $conn, int $analystId, string $filter = 'min
     $minePerson = $team ? "s.approver_id = ? AND s.approval_team_id IS NULL" : "s.approver_id = ?";
     $mineSql = "s.approval_status = 'pending' AND (($minePerson)" . ($team ? " OR s.approval_team_id IN ($teamIn)" : '') . ")";
     $decidedSql = "(s.approval_status IN ('approved','rejected') AND s.approval_decided_by_id = ?)"
-        . ($team ? " OR s.id IN (SELECT submission_id FROM form_submission_votes WHERE analyst_id = ?)" : '');
-    $decidedArgs = $team ? [$analystId, $analystId] : [$analystId];
+        . ($team ? " OR s.id IN (SELECT submission_id FROM form_submission_votes WHERE analyst_id = ?)" : '')
+        // GH #160: a step I approved, that moved the request on to someone else.
+        . ($team ? " OR s.id IN (SELECT submission_id FROM form_submission_approval_events WHERE analyst_id = ? AND action = 'step_passed')" : '');
+    $decidedArgs = $team ? [$analystId, $analystId, $analystId] : [$analystId];
 
     if ($filter === 'all') {
         $where = "WHERE s.approval_status = 'pending' ORDER BY s.submitted_date ASC";
@@ -1225,7 +1284,8 @@ function catalogueApprovalsList(PDO $conn, int $analystId, string $filter = 'min
         $it['can_decide'] = $pending && $policy['mode'] === 'person'
             && ($policy['approver_id'] === $analystId || $isAdmin)
             && !($policy['exclude_requester'] && catalogueAnalystIsRequester($conn, $analystId, $it));
-        $it['can_override'] = $pending && $isAdmin && $policy['mode'] === 'team';
+        $it['steps'] = $steps ? catalogueStepProgress($it) : null;   // GH #160: "step 2 of 3"
+        $it['can_override'] = $pending && $isAdmin && ($policy['mode'] === 'team' || $it['steps'] !== null);
         $it['can_move'] = $pending && $isAdmin;
         // #298: the approver may correct or complete the answers while it waits. The events
         // table arrived with team approvals, so both need it ($team).
