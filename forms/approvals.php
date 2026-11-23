@@ -349,7 +349,7 @@ $translationNamespaces = ['common', 'forms'];
                     // Buttons only for someone they will work for (GH #220): a voter, the
                     // named approver - or, on a team request, an administrator, whose
                     // Approve / Reject is an OVERRIDE with the note as its reason.
-                    const override = !it.can_vote && it.can_override;
+                    const override = !it.can_vote && !it.can_decide && it.can_override;   // the named approver decides, even when an administrator
                     const canAct = it.can_vote || it.can_decide || override;
                     const placeholder = team || override ? window.t('forms.approval.reason_placeholder') : window.t('forms.approval.comment_placeholder');
                     // #298: change the answers before deciding - every change recorded.

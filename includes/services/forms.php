@@ -37,11 +37,13 @@ require_once __DIR__ . '/../form_logic.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../rbac.php';   // analystMayAct() - "Design forms" (#180 Part 3)
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
+require_once __DIR__ . '/../form_calculated.php';   // GH #160 Part D: calculated answers, option values
 
 class FormsService
 {
     // 'section' is a heading, not a question — see ANSWERABLE_TYPES.
-    const FIELD_TYPES = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup', 'section', 'note', 'image', 'grid'];
+    // 'calculated' (GH #160 Part D) is worked out by the server from other answers - see includes/form_calculated.php.
+    const FIELD_TYPES = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup', 'section', 'note', 'image', 'grid', 'calculated'];
 
     /**
      * ⚠️ THIS LIST IS NARROWER THAN ITS NAME. It is what a conditional-visibility
@@ -50,6 +52,9 @@ class FormsService
      * condition trigger. Do not reach for it to mean "is this a question";
      * isAnswerable() below is that question.
      */
+    /** The connection validateFieldConfig() may check a bundle's items against (GH #160 Part D). */
+    private static ?PDO $calcConn = null;
+
     const ANSWERABLE_TYPES = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup'];
 
     /**
@@ -1362,6 +1367,7 @@ class FormsService
                 if (!is_array($in['fields'])) {
                     throw new ServiceError('validation', 'invalid_field', "'fields' must be an array.");
                 }
+                self::$calcConn = $conn;   // GH #160 Part D: bundle items are checked to exist
                 $fields = self::validateFields($in['fields']);
             }
 
@@ -1427,6 +1433,7 @@ class FormsService
         if ($title === '') {
             throw new ServiceError('validation', 'missing_field', "'title' is required.");
         }
+        self::$calcConn = $conn;   // GH #160 Part D: bundle items are checked to exist
         $fields = self::validateFields(is_array($in['fields'] ?? null) ? $in['fields'] : []);
 
         $conn->beginTransaction();
@@ -1746,11 +1753,15 @@ class FormsService
             foreach ($srcFields as $f) {
                 if (empty($f['config'])) continue;
                 $config = json_decode((string)$f['config'], true);
-                if (!is_array($config) || !isset($config['visible_if']['rules'])) continue;
-                foreach ($config['visible_if']['rules'] as $r => $rule) {
+                if (!is_array($config)) continue;
+                $hasRules = isset($config['visible_if']['rules']);
+                $hasCalc  = !empty($config['calc_lines']);   // GH #160 Part D: a calculated answer's lines
+                if (!$hasRules && !$hasCalc) continue;
+                foreach (($hasRules ? $config['visible_if']['rules'] : []) as $r => $rule) {
                     $oldRef = (int)($rule['field'] ?? 0);
                     $config['visible_if']['rules'][$r]['field'] = $idMap[$oldRef] ?? $oldRef;
                 }
+                if ($hasCalc) $config = FormCalc::remapRefs($config, fn($ref) => $idMap[(int)$ref] ?? (int)$ref);
                 $updCfg->execute([json_encode($config), $idMap[(int)$f['id']]]);
             }
 
@@ -1972,6 +1983,12 @@ class FormsService
             }
             $normalised[(int)$fieldId] = (string)$value;
         }
+        /* GH #160 Part D: 🔴 what the browser sends for a calculated answer is thrown
+           away. The server works it out below, or anybody could post a total of 1 and
+           go round the board. */
+        foreach ($fieldsById as $cfid => $cf) {
+            if (($cf['field_type'] ?? '') === 'calculated') unset($normalised[(int)$cfid]);
+        }
 
         // Which questions were actually ASKED, given the answers given. Re-derived here
         // rather than trusted from the client, because "required" has to mean something
@@ -2007,6 +2024,7 @@ class FormsService
             if (!self::isAnswerable($type) || empty($visible[$fid])) {
                 continue;
             }
+            if ($type === 'calculated') continue;   // worked out below, never typed
 
             /* ---- A grid's answer -----------------------------------------
                Validated against the column definitions as they are NOW, which
@@ -2133,6 +2151,17 @@ class FormsService
                 }
 
             }
+        }
+
+        /* GH #160 Part D: each Calculated answer, worked out here from the answers that
+           were actually asked (hidden ones are already gone) and stored like any other
+           answer - so the approval steps below, the ticket, the CSV and the workflow
+           merge codes all see the same frozen total. An answer that cannot be read
+           leaves it blank, and a blank total makes a threshold step run. */
+        foreach ($fields as $cField) {
+            if (($cField['field_type'] ?? '') !== 'calculated' || empty($visible[(int)$cField['id']])) continue;
+            $cTotal = FormCalc::compute($conn, $cField, $fieldsById, $normalised);
+            if ($cTotal !== null) $normalised[(int)$cField['id']] = $cTotal;
         }
 
         // Catalogue-request approval (#928): gate a PORTAL submission behind the
@@ -2663,6 +2692,9 @@ class FormsService
                🔑 Asked of the LIST, not of 'section' by name, so a block added
                later cannot arrive here still able to be marked required. */
             $isRequired = (int)(bool)($field['is_required'] ?? false);
+            // GH #160 Part D: nobody types a calculated answer, so it is never "required"
+            // and has no options of its own.
+            if ($type === 'calculated') { $isRequired = 0; $options = null; }
             if (!self::isAnswerable($type)) {
                 if ($isRequired) {
                     throw new ServiceError('validation', 'invalid_field',
@@ -3548,6 +3580,18 @@ class FormsService
             unset($config['exception_values']);
         }
 
+        /* GH #160 Part D: an amount on each option of a dropdown or choose-one question,
+           keyed by the option's text, and a Calculated question's lines. Both dropped
+           from every other type, as date_mode is. */
+        $optsForValues = $fields[$i]['options'] ?? [];
+        if (is_string($optsForValues)) $optsForValues = json_decode($optsForValues, true) ?: [];
+        FormCalc::cleanOptionValues($config, is_array($optsForValues) ? $optsForValues : [], $type, $i);
+        if ($type === 'calculated') {
+            $config = FormCalc::cleanConfig(self::$calcConn, $config, $i, $fields, $indexById);
+        } else {
+            FormCalc::stripConfig($config);
+        }
+
         /* ---- Grid columns ------------------------------------------------
            🔑 Identified by a STABLE ID, never a position or a label. An id is
            what lets a column be reordered, renamed and retired without
@@ -3767,6 +3811,12 @@ class FormsService
                         $config['visible_if']['rules'][$r]['field'] = (int)$ref;
                     }
                 }
+            }
+            // GH #160 Part D: a calculated answer's lines point at questions the same way.
+            if (is_array($config) && !empty($config['calc_lines'])) {
+                $config = FormCalc::remapRefs($config, function ($ref) use ($idByIndex) {
+                    return (is_string($ref) && str_starts_with($ref, 'idx:')) ? ($idByIndex[(int)substr($ref, 4)] ?? 0) : (int)$ref;
+                });
             }
             $updCfg->execute([
                 $config ? json_encode($config) : null,

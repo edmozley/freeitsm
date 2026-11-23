@@ -318,4 +318,17 @@ return [
         'link'     => 'forms/settings/?tab=approvals',
         'check'    => ['rows', 'form_submissions', 'approval_decided_by_user_id IS NOT NULL AND is_demo = 0'],
     ],
+    // GH #160 Part D.
+    [
+        'id'       => 'forms.calculated_total',
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'An order total, worked out for you',
+        'what'     => 'A Calculated total on a form: prices on dropdown options times a quantity, a basket table, or a bundle of catalogue items at their own prices - shown as the person answers, worked out again by the server and frozen on the request.',
+        'why'      => 'The approver sees what they are saying yes to, and an approval step can send anything over 5,000 to the board - without anybody typing a total that could be wrong.',
+        'done'     => 'At least one form has a calculated total.',
+        'link'     => 'forms/',
+        'check'    => ['rows', 'form_fields', "field_type = 'calculated' AND is_deleted = 0"],
+    ],
 ];

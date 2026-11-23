@@ -14,6 +14,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3135 | Forms             | Fix         | On a request with approval steps, an administrator who is the step's named approver is no longer shown the override note and made to give a reason; they decide it as its approver. |
+| 3134 | Forms             | Feature     | Dropdown and choose-one options can carry a value, and the builder, filler, portal, submissions list and PDF all handle the new Calculated total (GH #160 Part D). |
+| 3133 | Forms             | Feature     | A Calculated total question works out an order total on the server from option values x a quantity, a fixed amount, a basket table or a bundle of catalogue items at their own prices, frozen on the request (GH #160 Part D). |
 | 3132 | Forms             | Improvement | The requester's cost centre is kept with each catalogue request and shown to approvers and in the raised ticket (GH #348 slice 4), and a manager's or cost centre owner's rejection reason is shown to the requester (slice 2). |
 | 3131 | Forms             | Feature     | Forms -> Settings -> Approvals sets when a cost centre's deputy may decide (any time, or only as cover: owner away, left, or N days), a mailbox to email approvers a link from, and whether requesters can press Remind (once a day per step) (GH #160 Part C2). |
 | 3130 | Forms             | Feature     | An approval step can be decided by the requester's manager or a cost centre's owner (person or people group) and deputy, worked out at each decision, on a new portal Approvals page with the portal bell (GH #160 Part C2). |

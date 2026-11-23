@@ -122,6 +122,8 @@ try {
     }
     $form['layout'] = FormsService::layoutFor($storedLayout, $form['fields']);
 
+    // GH #160 Part D: a bundle's items at their prices now, for the live total.
+    FormCalc::annotate($conn, $form['fields']);
     echo json_encode(['success' => true, 'form' => $form]);
 
 } catch (Exception $e) {

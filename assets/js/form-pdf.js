@@ -119,6 +119,11 @@
                 empty: grows.length === 0
             };
         }
+        if (f.field_type === 'calculated') {
+            // GH #160 Part D: the frozen total, in its currency.
+            var ct = (window.FormLogic ? FormLogic.calcText(f, val) : '') || String(val);
+            return { kind: 'text', text: ct, empty: String(val) === '' };
+        }
         if (f.field_type === 'lookup') {
             /* The label the person actually chose. The id stays in the stored
                JSON for anything that wants the record. */

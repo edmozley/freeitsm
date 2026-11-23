@@ -1061,6 +1061,11 @@ function catalogueAnswerText(?string $raw, ?string $fieldType, array $field = []
        special-cases 'grid' before its own implode. The note was there; this
        copy simply never received it. */
     // GH #420: a lookup is {"id","label"}; the implode below said "2, User Test".
+    // GH #160 Part D: a calculated total, in its currency - "3.000,00 €".
+    if ($fieldType === 'calculated') {
+        require_once __DIR__ . '/form_calculated.php';
+        return FormCalc::text($val, $field) ?: $val;
+    }
     if ($fieldType === 'lookup') {
         $d = json_decode($val, true);
         return (is_array($d) && array_key_exists('label', $d)) ? (string)$d['label'] : $val;

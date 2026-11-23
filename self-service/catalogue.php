@@ -282,6 +282,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     return '<div class="cat-section" ' + ctx.wrapAttrs + '><h2>'
                          + esc(f.label || '') + '</h2></div>';
                 }
+                /* GH #160 Part D: a total worked out from the other answers - shown as
+                   it changes, worked out again by the server, never sent from here. A
+                   total the form hides from customers keeps an empty, hidden wrapper. */
+                if (f.field_type === 'calculated') {
+                    return FormLogic.calcShown(f)
+                        ? '<div class="cat-field form-calc-field" ' + ctx.wrapAttrs + '><label class="cat-label">' + esc(f.label || '') + '</label>' + FormLogic.calcBox(f) + '</div>'
+                        : '<div class="form-calc-field" ' + ctx.wrapAttrs + ' hidden></div>';
+                }
                 /* A table question. Same shape as the analyst filler and the
                    same shared table styling — only the surrounding wrapper
                    differs. Cells are addressed by COLUMN ID, never by position. */
@@ -549,7 +557,9 @@ document.addEventListener('DOMContentLoaded', function () {
          * this on submit — this copy only exists so the page reacts as someone types.
          */
         function applyVisibility() {
-            const vis = FormLogic.visibility(currentForm.fields || [], collectAnswers(true));
+            const answers = collectAnswers(true);
+            const vis = FormLogic.visibility(currentForm.fields || [], answers);
+            FormLogic.renderCalcs(document, currentForm.fields || [], answers, vis);   // GH #160 Part D
             (currentForm.fields || []).forEach(f => {
                 const wrap = document.querySelector('[data-wrap-id="' + f.id + '"]');
                 if (wrap) wrap.classList.toggle('is-hidden', vis[f.id] === false);

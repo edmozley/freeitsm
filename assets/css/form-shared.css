@@ -369,3 +369,16 @@
 @media (max-width: 768px) {
     .form-table th, .form-table td { font-size: var(--font-size-sm, 12px); padding: 5px 6px; }
 }
+
+/* GH #160 Part D: a calculated total - read-only, worked out as the person answers.
+   Looks like a field (so it lines up in the grid) but plainly not one to type into. */
+.form-calc {
+    display: block;
+    padding: 9px 12px;
+    border: 1px dashed var(--border, #d0d7de);
+    border-radius: 6px;
+    background: var(--surface-2, #f6f8fa);
+    color: var(--text, #333);
+    font-weight: var(--font-weight-bold, 600);
+    font-variant-numeric: tabular-nums;
+}

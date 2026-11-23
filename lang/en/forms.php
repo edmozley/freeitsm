@@ -401,6 +401,32 @@ return [
     ],
 
     // Field-type palette in the Add menu (forms/edit/index.php)
+    // GH #160 Part D: a total worked out from other answers, and an amount on each option.
+    'calc' => [
+        'adds_up'         => 'Adds up',
+        'kind_fixed'      => 'A fixed amount',
+        'kind_option'     => 'The value of the option chosen in',
+        'kind_grid'       => 'A table: amount x quantity, down the rows',
+        'kind_item'       => 'A catalogue item at its own price',
+        'amount_ph'       => 'Amount',
+        'times_one'       => 'x 1',
+        'times_title'     => 'Times the answer to this question (a number)',
+        'choose_question' => 'Choose a question',
+        'choose_table'    => 'Choose a table',
+        'value_col'       => 'Amount column',
+        'qty_col'         => 'Quantity column',
+        'qty_col_none'    => 'Quantity: 1 a row',
+        'choose_item'     => 'Choose an item',
+        'qty'             => 'Quantity',
+        'add_line'        => '+ Add line',
+        'remove_line'     => 'Remove this line',
+        'currency'        => 'Currency',
+        'show'            => 'Show the total to the person filling in the form',
+        'hint'            => 'Worked out again by the server when the form is sent, so what the browser shows is a courtesy. Hidden questions add nothing; an answer that cannot be read leaves the total blank. A catalogue item adds its own price as it is when the request is made.',
+        'hidden_note'     => 'Hidden from the person filling in the form - still worked out and kept.',
+        'value_ph'        => 'Value',
+        'value_title'     => 'An amount for this option, for a calculated total. Optional.',
+    ],
     'fieldtypes' => [
         'lookup' => 'Lookup',
         'text'       => 'Text input',
@@ -419,6 +445,7 @@ return [
         // A picture on the form: a logo, a diagram, a floor plan.
         'image'      => 'Image',
         'grid'       => 'Table',
+        'calculated' => 'Calculated total',   // GH #160 Part D
     ],
 
     // Short type-name badges shown on each field row + proposal diff
@@ -442,6 +469,7 @@ return [
         'lookup'     => 'Lookup',
         'image'      => 'Image',
         'grid'       => 'Table',
+        'calculated' => 'Calculated total',   // GH #160 Part D
         // The badge shows the MODE, so a glance down the field list tells you what
         // each date field actually asks for without opening it.
         'date_date'     => 'Date',

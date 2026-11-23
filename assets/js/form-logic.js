@@ -19,7 +19,8 @@
 
     // Every type the module knows. 'section' is presentational — a heading that owns
     // the fields below it until the next section, and never produces an answer.
-    var TYPES = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup', 'section', 'note', 'image', 'grid'];
+    // 'calculated' (GH #160 Part D) is worked out from other answers - see calcTotal() below.
+    var TYPES = ['text', 'textarea', 'email', 'number', 'checkbox', 'checkboxes', 'dropdown', 'radio', 'datetime', 'lookup', 'section', 'note', 'image', 'grid', 'calculated'];
 
     /* The types that are READ, not answered. Mirrors
        FormsService::PRESENTATIONAL_TYPES — see isAnswerable() for why this is a
@@ -340,7 +341,116 @@
 
     /** True when a rule on `field` may point at `candidate` — earlier fields only, which is what stops cycles. */
     function canReference(fields, fieldIndex, candidateIndex) {
-        return candidateIndex < fieldIndex && isAnswerable(fields[candidateIndex].field_type);
+        // A calculated total is worked out on the server, so nothing can be shown or
+        // hidden by it while somebody types (FormsService::ANSWERABLE_TYPES leaves it out).
+        return candidateIndex < fieldIndex && isAnswerable(fields[candidateIndex].field_type)
+            && fields[candidateIndex].field_type !== 'calculated';
+    }
+
+    /* ══ Calculated answers (GH #160 Part D) ════════════════════════════════
+       🔴 A COURTESY COPY. The server works the total out again on submit
+       (includes/form_calculated.php, FormCalc::compute) and throws away whatever
+       the browser sends - a total typed into the request must never reach the
+       approval steps. This copy only lets the person see it as they answer, so it
+       follows the same rules: hidden questions add nothing, and an answer that
+       cannot be read gives a blank total, never a guess. */
+
+    /** A choice question's amounts: option text -> amount text. */
+    function optionValues(field) {
+        var v = configOf(field).option_values;
+        return (v && typeof v === 'object') ? v : {};
+    }
+
+    /**
+     * The total for one Calculated question, or null when it cannot be told.
+     *
+     * @param field    the Calculated question (config.calc_lines; calc_prices from the server)
+     * @param fields   every question on the form
+     * @param values   { fieldId: answer } as collected
+     * @param visible  { fieldId: bool } from visibility() - hidden answers add nothing
+     * @returns {number|null}  in minor units' worth of precision, as a plain number
+     */
+    function calcTotal(field, fields, values, visible) {
+        var cfg = configOf(field);
+        var byId = {};
+        (fields || []).forEach(function (f) { byId[String(f.id)] = f; });
+        var cur = cfg.calc_currency || '';
+        var dp = (global.Money && global.Money.info) ? (global.Money.info(cur)[2] || 0) : 2;
+        var scale = Math.pow(10, dp);
+        var prices = field.calc_prices || {};
+        var asked = function (id) { return !visible || visible[id] !== false; };
+        var num = function (id) {
+            if (!asked(id)) return 0;
+            var v = String(values[id] == null ? '' : values[id]).trim();
+            if (v === '') return 0;
+            return isFinite(Number(v)) ? Number(v) : null;
+        };
+        var total = 0;
+        var lines = Array.isArray(cfg.calc_lines) ? cfg.calc_lines : [];
+        for (var n = 0; n < lines.length; n++) {
+            var l = lines[n], times = 1;
+            if (l.times) { times = num(l.times); if (times === null) return null; }
+            if (l.kind === 'fixed') {
+                total += Math.round(Number(l.amount) * scale * times);
+            } else if (l.kind === 'option') {
+                if (!asked(l.field)) continue;
+                var chosen = String(values[l.field] == null ? '' : values[l.field]).trim();
+                var ov = optionValues(byId[String(l.field)]);
+                if (chosen === '' || ov[chosen] === undefined) continue;
+                total += Math.round(Number(ov[chosen]) * scale * times);
+            } else if (l.kind === 'grid') {
+                if (!asked(l.field)) continue;
+                var rows = gridRows(values[l.field]);
+                for (var r = 0; r < rows.length; r++) {
+                    var cell = String(rows[r][l.value_col] == null ? '' : rows[r][l.value_col]).trim();
+                    if (cell === '') continue;
+                    if (!isFinite(Number(cell))) return null;
+                    var q = 1;
+                    if (l.qty_col) {
+                        var qs = String(rows[r][l.qty_col] == null ? '' : rows[r][l.qty_col]).trim();
+                        if (qs === '') continue;
+                        if (!isFinite(Number(qs))) return null;
+                        q = Number(qs);
+                    }
+                    total += Math.round(Number(cell) * scale * q);
+                }
+            } else if (l.kind === 'item') {
+                var p = prices[String(l.form_id)];
+                if (!p || p.price === null || p.price === undefined || p.price === '' || (cur && p.currency !== cur)) return null;
+                total += Math.round(Number(p.price) * scale * Number(l.qty || 1) * times);
+            }
+        }
+        return total / scale;
+    }
+
+    /** A total for a person to read, in its currency; '' when it cannot be told. */
+    function calcText(field, amount) {
+        if (amount === null || amount === undefined || amount === '' || !isFinite(Number(amount))) return '';
+        var cur = configOf(field).calc_currency || '';
+        return global.Money ? global.Money.format(Number(amount), cur || undefined) : (Number(amount).toFixed(2) + (cur ? ' ' + cur : ''));
+    }
+
+    /** Is a Calculated question's total shown to the person filling the form in? */
+    function calcShown(field) { return !configOf(field).calc_hide; }
+
+    /**
+     * The read-only box a filler draws for a Calculated question. 🔑 It carries
+     * data-calc-id, NEVER data-field-id: every filler collects answers from
+     * data-field-id, and a total must not be sent (the server ignores it anyway).
+     */
+    function calcBox(field) {
+        return '<output class="form-calc" data-calc-id="' + Number(field.id) + '" aria-live="polite">-</output>';
+    }
+
+    /** Refresh every total on the page from the answers so far. Called with each visibility pass. */
+    function renderCalcs(root, fields, values, visible) {
+        (fields || []).forEach(function (f) {
+            if (f.field_type !== 'calculated') return;
+            var el = (root || document).querySelector('[data-calc-id="' + Number(f.id) + '"]');
+            if (!el) return;
+            var text = calcText(f, calcTotal(f, fields, values, visible));
+            el.textContent = text || '-';
+        });
     }
 
     /**
@@ -480,6 +590,12 @@
         testRule: testRule,
         visibility: visibility,
         canReference: canReference,
+        optionValues: optionValues,
+        calcTotal: calcTotal,
+        calcText: calcText,
+        calcShown: calcShown,
+        calcBox: calcBox,
+        renderCalcs: renderCalcs,
         lookupLabel: lookupLabel,
         lookupSource: lookupSource,
         attachLookups: attachLookups
