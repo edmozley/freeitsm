@@ -237,6 +237,8 @@
         if (viewOnly) host.classList.add('fdv-viewonly');
         host.innerHTML =
             '<div class="fdv-bar">' +
+                // GH #424: the gallery's previous / next sit at the start of this bar.
+                (opts.nav ? '<span class="fdv-nav"></span>' : '') +
                 (info.is_current ? '' : '<span class="fdv-badge">' + esc(L('viewer.version', 'Version {n}', { n: info.version_no })) + '</span>') +
                 (viewOnly ? '<span class="fdv-badge fdv-badge-vo" title="' + esc(L('viewer.view_only_tip', 'You can view this file but not download it.')) + '">' + IC.eye + esc(L('viewer.view_only', 'View only')) + '</span>' : '') +
                 '<span class="fdv-grow"></span>' +
@@ -702,9 +704,218 @@
         }
     }
 
-    /** Open a file in a viewer window. versionId optional (Properties -> Versions). */
+    // ── The gallery: one window stepping through several files (GH #424) ──
+    // Every step is a real open through view.php - so the folder's permission, View
+    // only, the watermark, the version shown and the audit trail are exactly what
+    // opening that file on its own would give. Nothing is fetched ahead.
+    var SLIDE_MS = 4000;
+    /** True when a key press belongs to something being typed into, not to the gallery. */
+    function typing(t) { return t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|VIDEO|AUDIO)$/.test(t.tagName)); }
+
+    /**
+     * Shows list[index] in host and steps through the list: previous / next in the bar,
+     * the left / right arrow keys, Home / End, and a slideshow of the pictures.
+     *
+     *   list    [{id, name}] - files only, in the order to step through
+     *   opts    { onShow(info), onProperties(id) } - onShow sets the window title
+     *
+     * The slideshow plays the PICTURES once, in order, a few seconds each, full screen
+     * where the browser allows it: Space pauses, Escape stops. Once, not round and
+     * round - every picture shown is an open in the audit trail, so a slideshow left
+     * running must not add an entry every few seconds for ever.
+     *
+     * Returns {destroy()}.
+     */
+    function gallery(host, list, index, opts) {
+        opts = opts || {};
+        var cur = -1, viewer = null, seq = 0, destroyed = false;
+        var show = { on: false, paused: false, timer: 0 };
+        var pictures = list.map(function (f, i) { return kindOf(f.name) === 'image' ? i : -1; }).filter(function (i) { return i >= 0; });
+        host.classList.add('fdv-gallery');
+
+        /** Fills the bar's nav slot: previous, "n of total", next, and the slideshow controls. */
+        function nav() {
+            var slot = host.querySelector('.fdv-nav');
+            if (!slot) return;
+            var b = function (act, label, path, off) {
+                return '<button type="button" class="fdv-btn" data-g="' + act + '" title="' + esc(label) + '" aria-label="' + esc(label) + '"' + (off ? ' disabled' : '') + '>' + icon(path) + '</button>';
+            };
+            slot.innerHTML =
+                b('prev', L('viewer.previous', 'Previous'), '<path d="M15 18l-6-6 6-6"/>', cur <= 0) +
+                '<span class="fdv-page fdv-gal-pos">' + esc(L('viewer.page_of', '{n} of {total}', { n: cur + 1, total: list.length })) + '</span>' +
+                b('next', L('viewer.next', 'Next'), '<path d="M9 18l6-6-6-6"/>', cur >= list.length - 1) +
+                (!pictures.length ? '' : show.on
+                    ? '<button type="button" class="fdv-btn" data-g="pause">' + esc(show.paused ? L('viewer.play', 'Play') : L('viewer.pause', 'Pause')) + '</button>' +
+                      '<button type="button" class="fdv-btn" data-g="stop">' + esc(L('viewer.stop', 'Stop')) + '</button>'
+                    : '<button type="button" class="fdv-btn" data-g="slideshow" title="' + esc(L('viewer.slideshow_tip', 'Shows the pictures one after another. Space pauses, Escape stops.')) + '">' +
+                      icon('<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M10 8.5v5l4-2.5z"/>') + '<span>' + esc(L('viewer.slideshow', 'Slideshow')) + '</span></button>');
+        }
+
+        /** Opens list[i] through view.php and draws it; a later step overtakes an earlier one still loading. */
+        function go(i) {
+            if (destroyed || i < 0 || i >= list.length) return Promise.resolve();
+            cur = i;
+            var mine = ++seq;
+            return api({ action: 'open', id: list[i].id, version: 0 }).then(function (info) {
+                if (mine !== seq || destroyed) return;
+                info.id = list[i].id;
+                if (viewer) viewer.destroy();
+                // TRAP: renderInto only ever ADDS these - one host now shows many files, so a
+                // View only file would leave the next, downloadable one looking View only.
+                host.classList.remove('fdv-viewonly', 'fdv-in-entry');
+                viewer = renderInto(host, info, {
+                    nav: true,
+                    onProperties: opts.onProperties ? function () { opts.onProperties(info.id); } : null
+                });
+                if (opts.onShow) opts.onShow(info);
+                nav();
+                var st = host.querySelector('.fdv-stage');
+                if (st) st.focus({ preventScroll: true });
+            }).catch(function (e) {
+                if (mine !== seq || destroyed) return;
+                // No access any more, deleted since it was selected: say so, and let them step on.
+                if (viewer) { viewer.destroy(); viewer = null; }
+                host.classList.remove('fdv-viewonly', 'fdv-in-entry');
+                host.classList.add('fdv');
+                host.innerHTML = '<div class="fdv-bar"><span class="fdv-nav"></span><span class="fdv-grow"></span></div>' +
+                    '<div class="fdv-stagewrap"><div class="fdv-stage" tabindex="0"><div class="fdv-msg"></div></div></div>';
+                host.querySelector('.fdv-msg').textContent = list[i].name + ': ' + (e && e.message ? e.message : String(e));
+                if (opts.onShow) opts.onShow({ name: list[i].name, is_current: true });
+                nav();
+                host.querySelector('.fdv-stage').focus({ preventScroll: true });
+            });
+        }
+
+        // ── Slideshow ────────────────────────────────────────────────────
+        /** The next picture after position i, or -1 when there are none left. */
+        function nextPicture(i) { for (var k = 0; k < pictures.length; k++) if (pictures[k] > i) return pictures[k]; return -1; }
+        /** Waits a slide's time, then shows the next picture - or stops after the last one. */
+        function schedule() {
+            clearTimeout(show.timer);
+            if (!show.on || show.paused) return;
+            show.timer = setTimeout(function () {
+                var n = nextPicture(cur);
+                if (n < 0) { stopShow(); return; }
+                go(n).then(schedule);
+            }, SLIDE_MS);
+        }
+        /** Starts the slideshow at this picture, or the next one when this file is not a picture. */
+        function startShow() {
+            var start = kindOf(list[cur] && list[cur].name) === 'image' ? cur : nextPicture(cur);
+            if (start < 0) start = pictures[0];
+            show.on = true; show.paused = false;
+            host.classList.add('fdv-slideshow');
+            if (host.requestFullscreen && !document.fullscreenElement) host.requestFullscreen().catch(function () { /* refused: the window will do */ });
+            (start === cur ? Promise.resolve(nav()) : go(start)).then(schedule);
+        }
+        /** Stops the slideshow and leaves full screen, staying on the picture shown. */
+        function stopShow() {
+            if (!show.on) return;
+            show.on = false; show.paused = false;
+            clearTimeout(show.timer);
+            host.classList.remove('fdv-slideshow');
+            if (document.fullscreenElement === host && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+            nav();
+        }
+        /** Pauses or carries on. */
+        function togglePause() {
+            if (!show.on) return;
+            show.paused = !show.paused;
+            nav();
+            schedule();
+        }
+        /** Leaving full screen any other way (the browser's own Escape) ends the slideshow too. */
+        function onFullscreen() { if (show.on && document.fullscreenElement !== host) stopShow(); }
+        document.addEventListener('fullscreenchange', onFullscreen);
+
+        /** Steps by hand. During a slideshow the clock starts again from the new picture. */
+        function step(d) {
+            var target = cur + d;
+            if (show.on) { target = d > 0 ? nextPicture(cur) : pictures.filter(function (p) { return p < cur; }).pop(); if (target == null || target < 0) return; }
+            go(target).then(schedule);
+        }
+
+        host.addEventListener('click', function (ev) {
+            var b = ev.target.closest('[data-g]');
+            if (!b || b.disabled) return;
+            var a = b.dataset.g;
+            if (a === 'prev') step(-1);
+            else if (a === 'next') step(1);
+            else if (a === 'slideshow') startShow();
+            else if (a === 'stop') stopShow();
+            else if (a === 'pause') togglePause();
+        });
+        host.addEventListener('keydown', function (ev) {
+            if (typing(ev.target) || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+            var k = ev.key;
+            if (k === 'ArrowRight' || k === 'ArrowLeft') { ev.preventDefault(); step(k === 'ArrowRight' ? 1 : -1); }
+            else if (k === 'Home' && !show.on) { ev.preventDefault(); go(0); }
+            else if (k === 'End' && !show.on) { ev.preventDefault(); go(list.length - 1); }
+            else if (k === ' ' && show.on) { ev.preventDefault(); togglePause(); }
+            // Escape in a slideshow stops it - and must not also close the window.
+            else if (k === 'Escape' && show.on) { ev.preventDefault(); ev.stopPropagation(); stopShow(); }
+        });
+
+        go(Math.max(0, Math.min(list.length - 1, index || 0)));
+        return {
+            destroy: function () {
+                destroyed = true;
+                clearTimeout(show.timer);
+                document.removeEventListener('fullscreenchange', onFullscreen);
+                if (document.fullscreenElement === host && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+                if (viewer) viewer.destroy();
+            }
+        };
+    }
+
+    /**
+     * Open several files in ONE viewer window and step through them (GH #424).
+     *
+     *   list   [{id, name}] - files, in the order shown
+     *   index  where to start
+     *   opts   { geometry, onProperties(id), key }
+     *
+     * opts.key makes the window single: opening the same file from its folder again
+     * brings that window forward rather than opening a second one. A selection
+     * opened together always gets a window of its own.
+     */
+    function openList(list, index, opts) {
+        opts = opts || {};
+        var host = wm() || window.FloatWin.page();
+        var first = list[index || 0] || list[0];
+        var w = host.open({
+            kind: 'viewer', key: opts.key || ('g' + (++galleryCount) + '-' + Date.now()), single: !!opts.key,
+            title: first.name, icon: FI.file(first.name, 16), width: 920, height: 680, geometry: opts.geometry || null,
+            /** Tears down the gallery and whatever it is showing when its window closes. */
+            onClose: function () { if (w.viewer) w.viewer.destroy(); }
+        });
+        if (w.viewer) return w;   // already open: just focused
+        w.viewer = gallery(w.body, list, index || 0, {
+            onProperties: opts.onProperties,
+            /** Keeps the window title and icon on the file being shown. */
+            onShow: function (info) {
+                w.setTitle(info.name + (info.is_current ? '' : ' - ' + L('viewer.version', 'Version {n}', { n: info.version_no })));
+                w.setIcon(FI.file(info.name, 16));
+            }
+        });
+        return w;
+    }
+    var galleryCount = 0;
+
+    /**
+     * Open a file in a viewer window. versionId optional (Properties -> Versions).
+     *
+     * opts.list (GH #424): the files around it - the folder, in its order - so the
+     * window can step on to the next one. Only for the current version; a phone keeps
+     * the single-file viewer.
+     */
     function open(id, versionId, opts) {
         opts = opts || {};
+        if (opts.list && opts.list.length > 1 && !versionId && !opts.phone) {
+            var at = -1;
+            opts.list.forEach(function (f, i) { if (f.id === id) at = i; });
+            if (at >= 0) return Promise.resolve(openList(opts.list, at, { geometry: opts.geometry, onProperties: opts.onProperties, key: 'f' + id }));
+        }
         return api({ action: 'open', id: id, version: versionId || 0 }).then(function (info) {
             info.id = id;
             if (opts.phone) return openPhone(info, opts);
@@ -796,5 +1007,5 @@
         });
     }
 
-    window.FilesViewer = { open: open, openUrl: openUrl, openItem: openItem, sanitise: sanitise };
+    window.FilesViewer = { open: open, openList: openList, openUrl: openUrl, openItem: openItem, sanitise: sanitise };
 })();

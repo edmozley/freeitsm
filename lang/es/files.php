@@ -65,6 +65,7 @@ return [
         'no_match' => 'Nada aquí coincide con "{q}".',
         'open' => 'Abrir',
         'open_location' => 'Abrir ubicación del archivo',
+        'open_separately' => 'Abrir por separado',
         'open_new' => 'Abrir en una ventana nueva',
         'paste' => 'Pegar',
         'paste_into' => 'Pegar en la carpeta',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Mostrar siempre',
         'navbar' => 'Barra de navegación superior',
         'note' => 'Estas opciones son solo suyas. El logotipo del escritorio lo establece un administrador.',
+        'multi' => 'Abrir varios archivos',
+        'multi_viewer' => 'En un solo visor: recórrelos con las teclas de flecha',
+        'multi_windows' => 'En ventanas separadas: hasta 10; si son más, se abren en un solo visor',
     ],
     'props' => [
         'restore' => 'Restaurar',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Cerrar sesión',
         'title' => 'Inicio',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Este archivo no puede tener miniatura ({why}).',
         'why_too_large' => 'es demasiado grande para reducirlo',
         'why_unsupported' => 'este servidor no puede leer ese tipo de imagen',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Este archivo comprimido está vacío.',
         'zoom_in' => 'Acercar',
         'zoom_out' => 'Alejar',
+        'previous' => 'Anterior',
+        'next' => 'Siguiente',
+        'slideshow' => 'Presentación',
+        'slideshow_tip' => 'Muestra las imágenes una tras otra. Espacio pausa, Escape detiene.',
+        'pause' => 'Pausa',
+        'play' => 'Reproducir',
+        'stop' => 'Detener',
     ],
     'wm' => [
         'close' => 'Cerrar',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Cada archivo abierto queda en el registro de auditoría, con la versión y, en un zip, el archivo concreto de su interior.',
             'p7' => 'Una imagen o un PDF se reajusta al cambiar el tamaño de su ventana o al maximizarla, hasta que se acerca o se aleja manualmente; **Ajustar** lo devuelve al ajuste automático. El mismo visor abre las imágenes y los PDF adjuntos a los tickets, en una ventana sobre el ticket.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Varios archivos a la vez',
+            'title' => 'Varios archivos a la vez',
+            'intro' => 'Recorre una carpeta, o una selección, en una sola ventana.',
+            'p1' => 'Con un archivo abierto, **Anterior** y **Siguiente** en la barra de herramientas del visor - o las flechas izquierda y derecha - pasan al archivo anterior o siguiente de la carpeta, en el orden en que está ordenada. Inicio y Fin van al primero y al último.',
+            'p2' => 'Selecciona varios archivos y pulsa **Enter**, o haz clic derecho y elige **Abrir**, para abrir solo esos en un visor. Las carpetas de la selección se omiten. Para que cada archivo tenga su propia ventana - y poner dos uno al lado del otro -, haz clic derecho y elige **Abrir por separado** (hasta 10 archivos), o cambia **Abrir varios archivos** en **Personalizar** para que Enter lo haga. Más de 10 archivos se abren siempre en un solo visor.',
+            'p3' => '**Presentación** muestra las imágenes que haya entre ellos una tras otra, a pantalla completa cuando el navegador lo permite, unos segundos cada una. **Espacio** la pausa y **Escape** la detiene. Se reproduce una vez, desde la imagen en la que estás hasta la última, y salta todo lo que no sea una imagen.',
+            'p4' => 'Cada archivo al que pasas se abre como si lo hubieras abierto tú: necesita **Ver** en su carpeta, se aplican Solo ver y la marca de agua, y queda registrado en el registro de auditoría.',
+        ],
+        'thumbnails' => [
             'nav' => 'Miniaturas',
             'title' => 'Miniaturas',
             'intro' => 'Las imágenes y los PDF muestran lo que contienen.',

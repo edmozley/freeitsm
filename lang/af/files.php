@@ -65,6 +65,7 @@ return [
         'no_match' => 'Niks hier pas by "{q}" nie.',
         'open' => 'Maak oop',
         'open_location' => 'Maak lêerligging oop',
+        'open_separately' => 'Open afsonderlik',
         'open_new' => 'Maak in nuwe venster oop',
         'paste' => 'Plak',
         'paste_into' => 'Plak in vouer',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Wys altyd',
         'navbar' => 'Boonste navigasiebalk',
         'note' => 'Hierdie keuses is joune alleen. Die logo op die werkskerm word deur \'n administrateur gestel.',
+        'multi' => 'Verskeie lêers oopmaak',
+        'multi_viewer' => 'In een kyker - blaai daardeur met die pyltjiesleutels',
+        'multi_windows' => 'In aparte vensters - tot 10; meer as dit maak in een kyker oop',
     ],
     'props' => [
         'restore' => 'Herstel',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Meld af',
         'title' => 'Begin',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Hierdie lêer kan nie \'n duimnael hê nie ({why}).',
         'why_too_large' => 'dit is te groot om te verklein',
         'why_unsupported' => 'hierdie bediener kan nie daardie soort prent lees nie',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Hierdie argief is leeg.',
         'zoom_in' => 'Zoem in',
         'zoom_out' => 'Zoem uit',
+        'previous' => 'Vorige',
+        'next' => 'Volgende',
+        'slideshow' => 'Skyfievertoning',
+        'slideshow_tip' => 'Wys die prente een na die ander. Spasie onderbreek, Escape stop.',
+        'pause' => 'Onderbreek',
+        'play' => 'Speel',
+        'stop' => 'Stop',
     ],
     'wm' => [
         'close' => 'Maak toe',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Elke lêer wat oopgemaak word, word in die ouditspoor aangeteken, insluitend watter weergawe en, vir \'n zip, watter lêer daarin.',
             'p7' => '\'n Prent of PDF pas weer in wanneer jy sy venster se grootte verander of maksimeer, totdat jy self in- of uitzoem; **Pas** gee dit terug. Dieselfde kyker maak prente en PDF\'s oop wat aan kaartjies geheg is, in \'n venster oor die kaartjie.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Verskeie lêers tegelyk',
+            'title' => 'Verskeie lêers tegelyk',
+            'intro' => 'Blaai deur \'n vouer, of \'n keuse, in een venster.',
+            'p1' => 'Wanneer \'n lêer oop is, skuif **Vorige** en **Volgende** in die kyker se nutsbalk - of die linker- en regterpyltjiesleutels - na die lêer voor of ná dit in die vouer, in die volgorde waarin die vouer gesorteer is. Home en End gaan na die eerste en die laaste.',
+            'p2' => 'Kies verskeie lêers en druk **Enter**, of regsklik en kies **Maak oop**, om net daardie lêers in een kyker oop te maak. Vouers in die keuse word uitgelaat. Om elke lêer eerder in sy eie venster te hê - om twee langs mekaar te sit - regsklik en kies **Open afsonderlik** (tot 10 lêers), of verander **Verskeie lêers oopmaak** in **Verpersoonlik** sodat Enter dit doen. Meer as 10 lêers maak altyd in een kyker oop.',
+            'p3' => '**Skyfievertoning** wys die prente daartussen een na die ander, volskerm waar die blaaier dit toelaat, \'n paar sekondes elk. **Spasie** onderbreek dit en **Escape** stop dit. Dit speel een keer, van die prent waarop jy is tot die laaste, en slaan alles oor wat nie \'n prent is nie.',
+            'p4' => 'Elke lêer waarheen jy skuif, word oopgemaak asof jy dit self oopgemaak het: dit het **Bekyk** op sy vouer nodig, Net kyk en die watermerk geld, en dit word in die ouditspoor aangeteken.',
+        ],
+        'thumbnails' => [
             'nav' => 'Duimnaels',
             'title' => 'Duimnaels',
             'intro' => 'Prente en PDF\'s wys wat in hulle is.',

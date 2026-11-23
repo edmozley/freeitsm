@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3148 | Files             | Feature     | The viewer steps through several files: previous / next and the arrow keys through the folder, Enter or Open on a selection opens it in one viewer, Open separately gives a window each (up to 10, or by default through Personalise -> Opening several files), and a Slideshow plays the pictures once - every step a real, audited open; strings in 22 languages (GH #424). |
 | 3147 | System            | Fix         | Security -> Trusted Device -> Trust duration now applies to devices already trusted: setting it to 0 turns the skip off for everyone and shortening it shortens existing trust, and the trusted-device cookie is marked Secure on HTTPS (GH #429). |
 
 

@@ -65,6 +65,7 @@ return [
         'no_match' => 'Tiada apa-apa di sini yang sepadan dengan "{q}".',
         'open' => 'Buka',
         'open_location' => 'Buka lokasi fail',
+        'open_separately' => 'Buka secara berasingan',
         'open_new' => 'Buka dalam tetingkap baharu',
         'paste' => 'Tampal',
         'paste_into' => 'Tampal ke dalam folder',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Sentiasa tunjukkan',
         'navbar' => 'Bar navigasi atas',
         'note' => 'Pilihan ini milik anda sahaja. Logo pada desktop ditetapkan oleh pentadbir.',
+        'multi' => 'Membuka beberapa fail',
+        'multi_viewer' => 'Dalam satu pemapar - lalu satu demi satu dengan kekunci anak panah',
+        'multi_windows' => 'Dalam tetingkap berasingan - hingga 10; lebih daripada itu dibuka dalam satu pemapar',
     ],
     'props' => [
         'restore' => 'Pulihkan',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Log keluar',
         'title' => 'Mula',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Fail ini tidak boleh mempunyai lakaran kecil ({why}).',
         'why_too_large' => 'ia terlalu besar untuk dikecilkan',
         'why_unsupported' => 'pelayan ini tidak dapat membaca jenis gambar itu',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Arkib ini kosong.',
         'zoom_in' => 'Zum masuk',
         'zoom_out' => 'Zum keluar',
+        'previous' => 'Sebelumnya',
+        'next' => 'Seterusnya',
+        'slideshow' => 'Tayangan slaid',
+        'slideshow_tip' => 'Menunjukkan gambar satu demi satu. Space menjeda, Escape menghentikan.',
+        'pause' => 'Jeda',
+        'play' => 'Main',
+        'stop' => 'Henti',
     ],
     'wm' => [
         'close' => 'Tutup',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Setiap fail yang dibuka direkodkan dalam jejak audit, termasuk versi mana dan, untuk zip, fail mana di dalamnya.',
             'p7' => 'Gambar atau PDF disesuaikan semula apabila anda mengubah saiz atau memaksimumkan tetingkapnya, sehingga anda zum masuk atau keluar sendiri; **Muat** mengembalikannya. Pemapar yang sama membuka gambar dan PDF yang dilampirkan pada tiket, dalam tetingkap di atas tiket.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Beberapa fail serentak',
+            'title' => 'Beberapa fail serentak',
+            'intro' => 'Lalu satu demi satu dalam folder, atau pilihan, dalam satu tetingkap.',
+            'p1' => 'Apabila fail dibuka, **Sebelumnya** dan **Seterusnya** dalam bar alat pemapar - atau kekunci anak panah kiri dan kanan - beralih ke fail sebelum atau selepasnya dalam folder, mengikut susunan folder diisih. Home dan End pergi ke yang pertama dan yang terakhir.',
+            'p2' => 'Pilih beberapa fail dan tekan **Enter**, atau klik kanan dan pilih **Buka**, untuk membuka fail-fail itu sahaja dalam satu pemapar. Folder dalam pilihan ditinggalkan. Untuk setiap fail mempunyai tetingkapnya sendiri - untuk meletakkan dua bersebelahan - klik kanan dan pilih **Buka secara berasingan** (hingga 10 fail), atau tukar **Membuka beberapa fail** dalam **Peribadikan** supaya Enter melakukannya. Lebih daripada 10 fail sentiasa dibuka dalam satu pemapar.',
+            'p3' => '**Tayangan slaid** menunjukkan gambar di antaranya satu demi satu, skrin penuh jika pelayar membenarkan, beberapa saat setiap satu. **Space** menjedanya dan **Escape** menghentikannya. Ia dimainkan sekali, dari gambar yang sedang anda lihat hingga yang terakhir, dan melangkau apa-apa yang bukan gambar.',
+            'p4' => 'Setiap fail yang anda tuju dibuka seolah-olah anda membukanya sendiri: ia memerlukan **Lihat** pada foldernya, Lihat sahaja dan tera air terpakai, dan ia direkodkan dalam jejak audit.',
+        ],
+        'thumbnails' => [
             'nav' => 'Lakaran kecil',
             'title' => 'Lakaran kecil',
             'intro' => 'Gambar dan PDF menunjukkan kandungannya.',

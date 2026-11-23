@@ -301,10 +301,16 @@
         else openLocation(s.target_folder_id, 'i:' + s.target_id);
     }
 
-    /** Open a file in the viewer (files-viewer.js). Every open is a 'view' in the audit trail. */
-    function viewFile(itemId, versionId) {
+    /**
+     * Open a file in the viewer (files-viewer.js). Every open is a 'view' in the audit trail.
+     *
+     * list (GH #424): the folder's files in the order shown, so the viewer can step on
+     * to the next one with the arrow keys.
+     */
+    function viewFile(itemId, versionId, list) {
         return window.FilesViewer.open(itemId, versionId || 0, {
             geometry: geoFor('viewer'),
+            list: list || null,
             phone: window.matchMedia('(max-width: 768px)').matches,
             /** Opens Properties for the file shown in the viewer. */
             onProperties: function (id) { openProperties('item', id); }
@@ -741,7 +747,46 @@
             else this.load(e.id);
             return;
         }
-        viewFile(e.id);
+        viewFile(e.id, 0, this.fileList(this.order));
+    };
+
+    /** The files (not folders or shortcuts) among these keys, in that order, as the viewer wants them. */
+    Explorer.prototype.fileList = function (keys) {
+        var byKey = {};
+        this.entries().forEach(function (x) { byKey[x.key] = x; });
+        return keys.map(function (k) { return byKey[k]; })
+            .filter(function (x) { return x && x.type === 'item'; })
+            .map(function (x) { return { id: x.id, name: x.name }; });
+    };
+
+    // GH #424: more windows than this at once is a mess, not a comparison.
+    var SEPARATE_MAX = 10;
+    /**
+     * Opens the selected files together. 'viewer' (or more than SEPARATE_MAX files): one
+     * viewer window that steps through them. 'windows': one window each, staggered.
+     * Folders and shortcuts in the selection are left out - Open on one of those
+     * goes somewhere else.
+     *
+     * @param string how  'viewer' | 'windows' | omitted = the person's own choice in Personalise
+     */
+    Explorer.prototype.openSelection = function (how) {
+        var self = this;
+        var keys = this.order.filter(function (k) { return self.sel[k]; });
+        var files = this.fileList(keys);
+        if (!files.length) { if (keys.length === 1) this.open(this.findEntry(keys[0])); return; }
+        if (files.length === 1) { viewFile(files[0].id, 0, this.fileList(this.order)); return; }
+        how = how || prefs.multi_open || 'viewer';
+        if (how === 'windows' && files.length <= SEPARATE_MAX) {
+            // No saved geometry: the window manager staggers each one, so all of them show.
+            // One after another, so they stack in the order they were listed.
+            files.reduce(function (chain, f) {
+                return chain.then(function () {
+                    return window.FilesViewer.open(f.id, 0, { onProperties: function (id) { openProperties('item', id); } }).catch(fail);
+                });
+            }, Promise.resolve());
+            return;
+        }
+        window.FilesViewer.openList(files, 0, { geometry: geoFor('viewer'), onProperties: function (id) { openProperties('item', id); } });
     };
 
     Explorer.prototype.newFolder = function () {
@@ -826,6 +871,7 @@
     // Context menus: on an entry, or on empty space.
     Explorer.prototype.entryMenu = function (ev, e) {
         var self = this, c = this.can(), many = this.selected().length > 1;
+        var nFiles = many ? this.selected().filter(function (x) { return x.type === 'item'; }).length : 0;
         if (e.type === 'shortcut') {
             WM.menu(ev.clientX, ev.clientY, [
                 { label: L('ex.open', 'Open'), icon: IC.open, action: function () { self.open(e); }, disabled: many },
@@ -842,7 +888,9 @@
             return;
         }
         var items = [
-            { label: L('ex.open', 'Open'), icon: IC.open, action: function () { self.open(e); }, disabled: many },
+            // GH #424: with several selected, Open opens the files among them together.
+            { label: L('ex.open', 'Open'), icon: IC.open, action: function () { if (many) self.openSelection(); else self.open(e); }, disabled: many && !nFiles },
+            many && nFiles >= 2 && nFiles <= SEPARATE_MAX ? { label: L('ex.open_separately', 'Open separately'), action: function () { self.openSelection('windows'); } } : null,
             e.type === 'folder' ? { label: L('ex.open_new', 'Open in new window'), action: function () { self.open(e, true); }, disabled: many } : null,
             e.type === 'item' ? { label: L('ex.download', 'Download'), icon: IC.download, action: function () { self.command('download'); }, disabled: !c.download } : null,
             // GH #303
@@ -960,7 +1008,7 @@
             else if (ev.key === 'Delete') { if (self.can().del) self.command('delete'); }
             else if (ev.key === 'F2') { ev.preventDefault(); if (self.can().rename) self.command('rename'); }
             else if (ev.key === 'F5') { ev.preventDefault(); self.reload(); }
-            else if (ev.key === 'Enter') { if (sel.length === 1) self.open(sel[0]); }
+            else if (ev.key === 'Enter') { if (sel.length === 1) self.open(sel[0]); else if (sel.length > 1) self.openSelection(); }
             else if (ev.key === 'Backspace' || (ev.altKey && ev.key === 'ArrowLeft')) { ev.preventDefault(); self.goBack(); }
             else if (ev.altKey && ev.key === 'ArrowRight') { ev.preventDefault(); self.goForward(); }
             else if (ev.altKey && ev.key === 'ArrowUp') { ev.preventDefault(); self.goUp(); }
@@ -1853,7 +1901,7 @@
      * Opens Personalise, where the person picks their desktop colour and how the top navigation bar shows; both save to their own preferences.
      */
     function openPersonalise() {
-        var w = WM.open({ kind: 'personalise', single: true, title: L('app.personalise', 'Personalise'), icon: FI.app('personalise', 16), width: 440, height: 400, geometry: geoFor('personalise') });
+        var w = WM.open({ kind: 'personalise', single: true, title: L('app.personalise', 'Personalise'), icon: FI.app('personalise', 16), width: 440, height: 520, geometry: geoFor('personalise') });
         if (w.loaded) return;
         w.loaded = true;
         w.body.classList.add('fd-pers');
@@ -1866,6 +1914,13 @@
             ['on', 'auto', 'off'].map(function (m) {
                 var lab = { on: L('pers.nav_on', 'Always show'), auto: L('pers.nav_auto', 'Show when the mouse reaches the top'), off: L('pers.nav_off', 'Hide - use the start menu instead') }[m];
                 return '<label class="fd-radio"><input type="radio" name="fdnav" value="' + m + '"' + (nav === m ? ' checked' : '') + '> ' + esc(lab) + '</label>';
+            }).join('') +
+            // GH #424
+            '<h4>' + esc(L('pers.multi', 'Opening several files')) + '</h4>' +
+            ['viewer', 'windows'].map(function (m) {
+                var lab = { viewer: L('pers.multi_viewer', 'In one viewer - step through them with the arrow keys'),
+                            windows: L('pers.multi_windows', 'In separate windows - up to 10; more than that open in one viewer') }[m];
+                return '<label class="fd-radio"><input type="radio" name="fdmulti" value="' + m + '"' + ((prefs.multi_open || 'viewer') === m ? ' checked' : '') + '> ' + esc(lab) + '</label>';
             }).join('') +
             '<p class="fd-muted fd-pers-note">' + esc(L('pers.note', 'These choices are yours alone. The logo on the desktop is set by an administrator.')) + '</p>';
         var current = getComputedStyle(document.getElementById('fdDesktop')).getPropertyValue('--fd-bg').trim();
@@ -1887,6 +1942,12 @@
             r.addEventListener('change', function () {
                 WM.setNavbar(r.value);
                 api('prefs.php', { navbar: r.value }).catch(fail);
+            });
+        });
+        w.body.querySelectorAll('input[name=fdmulti]').forEach(function (r) {
+            r.addEventListener('change', function () {
+                prefs.multi_open = r.value;
+                api('prefs.php', { multi_open: r.value }).catch(fail);
             });
         });
     }

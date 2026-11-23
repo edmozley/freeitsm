@@ -38,6 +38,7 @@ $sections = [
     'attaching'   => 4,   // GH #303
     'upload_errors' => 7,
     'viewing'     => 7,
+    'gallery'     => 4,   // GH #424
     'thumbnails'  => 4,   // GH #424
     'permissions' => 7,
     'inheritance' => 4,
