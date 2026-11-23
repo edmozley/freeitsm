@@ -163,7 +163,7 @@
     async function ready(text) {
         if (!ready_) {
             ready_ = (async () => {
-                lib = await import(ROOT + 'assets/js/vendor/pdfkit/pdfkit.bundle.js');
+                lib = await import(ROOT + 'assets/js/vendor/pdfkit/pdfkit.bundle.js?v=0.21.0');
                 const entries = await Promise.all(Object.entries(BASE_FILES).map(async ([k, f]) => [k, await fetchFont(f)]));
                 metrics = new lib.PDFDocument({ font: null, autoFirstPage: false });
                 entries.forEach(([k, b]) => metrics.registerFont(k, b));

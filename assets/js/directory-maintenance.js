@@ -251,7 +251,7 @@
         if (window.FitsmPdf) return Promise.resolve(window.FitsmPdf);
         return new Promise((ok, fail) => {
             const s = document.createElement('script');
-            s.src = ROOT + 'assets/js/pdf-writer.js?v=2';
+            s.src = ROOT + 'assets/js/pdf-writer.js?v=4';
             s.onload = () => ok(window.FitsmPdf);
             s.onerror = fail;
             document.head.appendChild(s);

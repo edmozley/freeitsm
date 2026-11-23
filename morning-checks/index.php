@@ -449,7 +449,7 @@ $translationNamespaces = ['common', 'morning-checks'];
 
     <script src="../assets/js/chart.min.js?v=4.6.1"></script>
     <!-- The shared PDF writer (PDFKit + bundled fonts, every language - GH #254) -->
-    <script src="../assets/js/pdf-writer.js?v=3"></script>
+    <script src="../assets/js/pdf-writer.js?v=4"></script>
     <script>
         const API_BASE = '../api/morning-checks/';
         const TICKETS_API = '../api/tickets/';

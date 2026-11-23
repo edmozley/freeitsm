@@ -37,7 +37,7 @@ $translationNamespaces = ['common', 'forms'];
     <script src="../assets/js/form-logic.js?v=11"></script>
     <!-- The shared PDF writer (PDFKit + bundled fonts, every language - GH #254). A
          table QUESTION is drawn as a real table in the PDF, by its autoTable(). -->
-    <script src="../assets/js/pdf-writer.js?v=3"></script>
+    <script src="../assets/js/pdf-writer.js?v=4"></script>
     <!-- The shared document builder, also used by forms/collection.php. One
          implementation of what a record looks like, so the two pages cannot
          disagree the first time a field type changes. -->

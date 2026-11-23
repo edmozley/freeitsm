@@ -752,7 +752,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
     <?php /* The "what if" before a source is deleted (#261): DirectoryMaintenance.previewDelete(). */ ?>
-    <script src="../../assets/js/directory-maintenance.js?v=5"></script>
+    <script src="../../assets/js/directory-maintenance.js?v=6"></script>
     <script>
     const API = '<?php echo $path_prefix; ?>api/';
     const MULTI_TENANT = <?php echo $ssoMultiTenant ? 'true' : 'false'; ?>;

@@ -246,7 +246,7 @@ foreach ($channels as $ch) {
          libraries (pdf.js and the rest) ship with FreeITSM and load on first use. -->
     <script src="../assets/js/float-window.js?v=3"></script>
     <script src="../assets/js/files-icons.js?v=4"></script>
-    <script src="../assets/js/files-viewer.js?v=10"></script>
+    <script src="../assets/js/files-viewer.js?v=11"></script>
     <!-- + -> Files (5.9.0): the Files picker, as Tickets uses it. -->
     <script src="../assets/js/files-picker.js?v=3"></script>
     <script src="../assets/js/war-room.js?v=16"></script>

@@ -68,7 +68,7 @@ require_once __DIR__ . '/../includes/org_chart_view.php';   // the markup, share
     ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
     </script>
     <script src="<?php echo BASE_URL; ?>assets/js/people-org.js?v=9"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/pdf-writer.js?v=3"></script>   <!-- the shared PDF writer (GH #254) -->
+    <script src="<?php echo BASE_URL; ?>assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer (GH #254) -->
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=87"></script>
 </body>
 </html>

@@ -244,7 +244,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
     <!-- GH #424: the Thumbnails tab draws PDFs with the same module as the desktop. -->
     <script>window.FILES_BOOT = window.FILES_BOOT || { base: <?php echo json_encode(BASE_URL); ?>, api: <?php echo json_encode(BASE_URL . 'api/files/'); ?> };</script>
-    <script src="../../assets/js/files-thumbs.js?v=2"></script>
+    <script src="../../assets/js/files-thumbs.js?v=3"></script>
     <script src="../../assets/js/files-settings.js?v=13"></script>
     <script src="../../assets/js/mobile.js?v=87"></script>
 </body>

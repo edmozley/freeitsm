@@ -84,7 +84,7 @@ $pageData = ['peopleOrg' => [
 // $pageScripts, after anything the page prints itself.
 $pageScripts = <<<'JS'
 window.PEOPLE_ORG = window.PAGE.peopleOrg;
-['../assets/js/people-org.js?v=9', '../assets/js/pdf-writer.js?v=3'].forEach(function (src) {
+['../assets/js/people-org.js?v=9', '../assets/js/pdf-writer.js?v=4'].forEach(function (src) {
     var s = document.createElement('script');
     s.src = src;
     s.async = false;   // in this order

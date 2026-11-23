@@ -336,7 +336,7 @@ check("jsPDF is no longer bundled - every PDF goes through assets/js/pdf-writer.
       !is_file("$APP/assets/js/vendor/jspdf.umd.min.js") && !is_file("$APP/assets/js/vendor/jspdf.plugin.autotable.min.js"));
 $pdfkit = (string)@file_get_contents("$APP/assets/js/vendor/pdfkit/pdfkit.bundle.js", false, null, 0, 200);
 preg_match('/pdfkit@(\d+\.\d+\.\d+)/', $pdfkit, $pm);
-check("bundled PDFKit is the version VENDOR.md records (0.20.2)", ($pm[1] ?? '') === '0.20.2', 'found ' . ($pm[1] ?? 'none'));
+check("bundled PDFKit is the version VENDOR.md records (0.21.0)", ($pm[1] ?? '') === '0.21.0', 'found ' . ($pm[1] ?? 'none'));
 $prism = @file_get_contents("$APP/assets/js/vendor/prism.min.js");
 check("bundled Prism has the CVE-2024-53382 fix (1.30.0: currentScript must be a SCRIPT)",
       is_string($prism) && str_contains($prism, '"SCRIPT"===document.currentScript.tagName'));

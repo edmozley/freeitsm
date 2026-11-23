@@ -29,8 +29,8 @@
     function pdfjs() {
         if (!pdfjsPromise) {
             var V = B.base + 'assets/js/vendor/';
-            pdfjsPromise = import(V + 'pdfjs/pdf.min.js').then(function (lib) {
-                lib.GlobalWorkerOptions.workerSrc = V + 'pdfjs/pdf.worker.min.js';
+            pdfjsPromise = import(V + 'pdfjs/pdf.min.js?v=6.5.438').then(function (lib) {
+                lib.GlobalWorkerOptions.workerSrc = V + 'pdfjs/pdf.worker.min.js?v=6.5.438';
                 return lib;
             });
         }
