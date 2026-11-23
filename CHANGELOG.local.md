@@ -14,14 +14,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
-| 3146 | System            | Improvement | php-jwt (checks single sign-on and Teams tokens) updated from 6.x to 7.2.2, which refuses signing keys too short to be safe and limits how far a malformed token is split; the security test now checks it stays on 7.x. |
-| 3145 | System            | Improvement | TinyMCE (the rich text editor) updated from 8.10.0 to 8.10.2 - bug fixes only, such as the image dialog sticking on "Uploading image" with an unreadable file. |
-| 3144 | Assets, Calendar  | Fix         | A QR code holding accented or non-Latin text (an asset named "Łódź laptop" or "Ноутбук") came out with the wrong characters or could not be read by the app's own scanner; QR codes now store text as UTF-8, and codes with plain text are unchanged. |
-| 3143 | System            | Improvement | The bundled list of trusted certificate authorities (includes/cacert.pem) updated to Mozilla's 2026-11-05 list: 4 roots added, 5 retired. |
-| 3142 | Assets, Calendar  | Improvement | qrcode-generator (QR codes on asset labels, calendar subscribe and the phone sign-in codes) updated from 1.x to 2.0.4; it makes exactly the same codes. |
-| 3141 | Files             | Improvement | pdf.js (the Files viewer and PDF thumbnails) updated from 6.3.289 to 6.5.438. |
-| 3140 | System            | Improvement | PDFKit (every PDF the app makes) updated from 0.20.2 to 0.21.0, built on fontkit 3; the bundle no longer carries any Apache-licensed helper code. |
-| 3139 | System            | Improvement | Chart.js updated to 4.6.1 and merged into one bundled copy - Domains and Morning Checks used their own older 4.4.0 copy, now removed; every chart page loads it with a version cache-buster. |
 
 
 
@@ -1175,6 +1167,19 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 317 | Tasks             | Fix         | **Drag-reorder drop indicator invisible in scrolling board columns.** The purple line that shows where a dragged card will land vanished whenever its column had enough cards to scroll. Cause: `.board-cards` is a `flex-direction:column` container and the `.drop-indicator` is an empty `<div>` &mdash; so its min-content height is 0, and when the column overflowed, flexbox's `flex-shrink` compressed the indicator to 0px (the cards resist because their text gives them a min-content height; the empty indicator does not). Fixed by adding `flex-shrink:0` to `.drop-indicator` (and to `.task-card` for good measure, so cards can never be squished either). `tasks.css` bumped to `?v=6`. |
 
 ## Published
+
+### 5.10.1 - 23 November 2026
+
+| ID   | Module            | Type        | Description |
+|------|-------------------|-------------|-------------|
+| 3146 | System            | Improvement | php-jwt (checks single sign-on and Teams tokens) updated from 6.x to 7.2.2, which refuses signing keys too short to be safe and limits how far a malformed token is split; the security test now checks it stays on 7.x. |
+| 3145 | System            | Improvement | TinyMCE (the rich text editor) updated from 8.10.0 to 8.10.2 - bug fixes only, such as the image dialog sticking on "Uploading image" with an unreadable file. |
+| 3144 | Assets, Calendar  | Fix         | A QR code holding accented or non-Latin text (an asset named "Łódź laptop" or "Ноутбук") came out with the wrong characters or could not be read by the app's own scanner; QR codes now store text as UTF-8, and codes with plain text are unchanged. |
+| 3143 | System            | Improvement | The bundled list of trusted certificate authorities (includes/cacert.pem) updated to Mozilla's 2026-11-05 list: 4 roots added, 5 retired. |
+| 3142 | Assets, Calendar  | Improvement | qrcode-generator (QR codes on asset labels, calendar subscribe and the phone sign-in codes) updated from 1.x to 2.0.4; it makes exactly the same codes. |
+| 3141 | Files             | Improvement | pdf.js (the Files viewer and PDF thumbnails) updated from 6.3.289 to 6.5.438. |
+| 3140 | System            | Improvement | PDFKit (every PDF the app makes) updated from 0.20.2 to 0.21.0, built on fontkit 3; the bundle no longer carries any Apache-licensed helper code. |
+| 3139 | System            | Improvement | Chart.js updated to 4.6.1 and merged into one bundled copy - Domains and Morning Checks used their own older 4.4.0 copy, now removed; every chart page loads it with a version cache-buster. |
 
 ### 5.10.0 - 23 November 2026
 
