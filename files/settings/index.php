@@ -79,7 +79,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         .th-counts { font-size: var(--font-size-md, 13px); color: var(--text); line-height: 1.7; }
         .th-counts b { font-variant-numeric: tabular-nums; }
         .th-run { margin-top: 16px; padding: 16px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--surface-2); }
-        .th-big { font-size: 34px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+        .th-big { font-size: calc(var(--font-size-4xl, 24px) * 1.4); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
         .th-big small { font-size: var(--font-size-lg, 14px); font-weight: 500; color: var(--text-dim); margin-left: 8px; }
         .th-bar { height: 10px; margin: 12px 0; border-radius: 99px; background: var(--border-soft); overflow: hidden; }
         .th-fill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--fil-accent, #2563eb), var(--success-text, #16a34a)); transition: width .35s ease; }
