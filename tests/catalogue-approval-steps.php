@@ -135,6 +135,10 @@ try {
     $as($alice);
     catalogueApprovalDecide($conn, $alice, $s, 'rejected', 'not this one');
     $r = $row($s);
+    // Found making the #160 guide: someone named only in a form's steps (no Forms
+    // module), or who has decided a request, must still reach the approvals inbox.
+    check('a step approver without Forms can open the approvals inbox', catalogueApproverCanEnter($conn, $alice) && catalogueApproverCanEnter($conn, $carol));
+    check('...and an analyst named nowhere cannot', !catalogueApproverCanEnter($conn, $rita) || analystCanAccessModule($conn, $rita, 'forms'));
     check('a rejection at step 1 ends it - step 2 never runs', $r['approval_status'] === 'rejected' && (int)$r['approval_step_no'] === 1 && $r['ticket_id'] === null);
     $as($admin);
 

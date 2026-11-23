@@ -1268,10 +1268,54 @@ function catalogueApproverCanEnter(PDO $conn, int $analystId): bool {
         if ($st->fetchColumn()) return true;
         // GH #220: a member of a team that approves - on a form, or on a request
         // still waiting - has the same door, and nothing more.
-        return catalogueTeamApprovalAvailable($conn) && catalogueAnalystApprovesAsTeam($conn, $analystId);
+        if (catalogueTeamApprovalAvailable($conn) && catalogueAnalystApprovesAsTeam($conn, $analystId)) return true;
+        // GH #160: named in a form's steps or an approval chain (as the person, the team,
+        // or a fallback) - and anybody who has decided a request, so "Decided by me"
+        // stays reachable once nothing is waiting. Found making the #160 guide: a board
+        // member approved a request and could no longer open the inbox to see it.
+        return catalogueAnalystInSteps($conn, $analystId) || catalogueAnalystHasDecided($conn, $analystId);
     } catch (Throwable) {
         return false;
     }
+}
+
+/**
+ * Is this analyst named in any current form's approval steps or in an active approval
+ * chain (GH #160) - as a step's person, a member of a step's team, or a fallback?
+ * Read in PHP: the steps are JSON, and there are few forms with steps and few chains.
+ */
+function catalogueAnalystInSteps(PDO $conn, int $analystId): bool {
+    if (!catalogueStepsAvailable($conn)) return false;
+    $teams = catalogueAnalystTeamIds($conn, $analystId);
+    $lists = $conn->query(
+        "SELECT approval_steps FROM forms f WHERE requires_approval = 1 AND approval_steps IS NOT NULL
+            AND NOT EXISTS (SELECT 1 FROM forms ch WHERE ch.parent_form_id = f.id)
+         UNION ALL SELECT steps FROM form_approval_chains WHERE is_active = 1"
+    )->fetchAll(PDO::FETCH_COLUMN);
+    foreach ($lists as $json) {
+        foreach ((array)json_decode((string)$json, true) as $step) {
+            foreach ([$step, $step['fallback'] ?? null] as $p) {
+                if (!is_array($p)) continue;
+                if ((int)($p['approver_id'] ?? 0) === $analystId) return true;
+                if (!empty($p['team_id']) && in_array((int)$p['team_id'], $teams, true)) return true;
+            }
+        }
+    }
+    return false;
+}
+
+/** Has this analyst decided a catalogue request, voted on one, or passed one of its steps? */
+function catalogueAnalystHasDecided(PDO $conn, int $analystId): bool {
+    $st = $conn->prepare("SELECT 1 FROM form_submissions WHERE approval_decided_by_id = ? LIMIT 1");
+    $st->execute([$analystId]);
+    if ($st->fetchColumn()) return true;
+    if (!catalogueTeamApprovalAvailable($conn)) return false;
+    $st = $conn->prepare(
+        "SELECT 1 FROM form_submission_votes WHERE analyst_id = ?
+         UNION SELECT 1 FROM form_submission_approval_events WHERE analyst_id = ? AND action = 'step_passed' LIMIT 1"
+    );
+    $st->execute([$analystId, $analystId]);
+    return (bool)$st->fetchColumn();
 }
 
 /**

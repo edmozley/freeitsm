@@ -14,6 +14,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3137 | Forms             | Fix         | On an approved request with approval steps, the step trail now ticks the last step as passed instead of still showing it as current. |
+| 3136 | Forms             | Fix         | Analysts named in a form's approval steps or an approval chain (person, team or fallback), and anyone who has decided a request, can now open the Approvals inbox without the Forms module. |
 | 3135 | Forms             | Fix         | On a request with approval steps, an administrator who is the step's named approver is no longer shown the override note and made to give a reason; they decide it as its approver. |
 | 3134 | Forms             | Feature     | Dropdown and choose-one options can carry a value, and the builder, filler, portal, submissions list and PDF all handle the new Calculated total (GH #160 Part D). |
 | 3133 | Forms             | Feature     | A Calculated total question works out an order total on the server from option values x a quantity, a fixed amount, a basket table or a bundle of catalogue items at their own prices, frozen on the request (GH #160 Part D). |

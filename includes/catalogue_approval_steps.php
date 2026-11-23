@@ -480,10 +480,12 @@ function catalogueStepProgress(array $sub): ?array {
         if ($i + 1 === $no) $position = $applying;
     }
     $out = [];
+    // Once approved, every step that applied has passed - the last one too.
+    $approved = ($sub['approval_status'] ?? '') === 'approved';
     foreach ($steps as $i => $s) {
         $out[] = ['no' => $i + 1, 'name' => (string)($s['name'] ?? ''), 'who' => $s['who'] ?? '',
                   'skipped' => !empty($s['skipped']), 'skip_detail' => $s['skip_detail'] ?? null,
-                  'state' => !empty($s['skipped']) ? 'skipped' : ($i + 1 < $no ? 'passed' : ($i + 1 === $no ? 'current' : 'waiting'))];
+                  'state' => !empty($s['skipped']) ? 'skipped' : (($approved || $i + 1 < $no) ? 'passed' : ($i + 1 === $no ? 'current' : 'waiting'))];
     }
     return ['step_no' => $no, 'total' => count($steps), 'position' => $position, 'count' => $applying,
             'name' => $no > 0 ? (string)($steps[$no - 1]['name'] ?? '') : '', 'steps' => $out];
