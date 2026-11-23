@@ -33,7 +33,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/record-preview.css?v=1">
     <script src="<?php echo BASE_URL; ?>assets/js/record-preview.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/project-links.css?v=1">
 </head>
 <?php $cmLevel = analystModuleLevel(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0), 'changes'); /* #180: 'full' or 'read' */ ?>

@@ -1387,7 +1387,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
     <script src="../../assets/js/vendor/qrcode.js?v=2.0.4"></script>
     <script src="../../assets/js/vendor/qrcode_UTF8.js?v=2.0.4"></script>
     <script src="../../assets/js/subscribe.js?v=1"></script>
-    <script src="../../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="../../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
     <script>
         // Initial preference values pre-fetched server-side. The page
         // hydrates UI controls from these instead of localStorage.

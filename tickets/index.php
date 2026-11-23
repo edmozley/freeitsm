@@ -106,7 +106,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
-    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
 </head>
 <body class="inbox-page<?php echo $workspaceConfig['mode'] === 'selected' ? ' workspace-choice-available' : ''; ?>">
     <?php include 'includes/header.php'; ?>

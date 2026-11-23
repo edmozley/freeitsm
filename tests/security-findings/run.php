@@ -342,6 +342,11 @@ check("bundled Prism has the CVE-2024-53382 fix (1.30.0: currentScript must be a
       is_string($prism) && str_contains($prism, '"SCRIPT"===document.currentScript.tagName'));
 check("no second PDF library is bundled (html2pdf carried its own jsPDF until 4.1.0)",
       !is_file("$APP/assets/js/vendor/html2pdf.bundle.min.js"));
+// php-jwt 7.0 added key-size checks (an RSA key under 2048 bits is refused) - the
+// OIDC sign-in and Teams webhooks verify tokens with it, so it must not fall back to 6.x.
+$jwt = (string)@file_get_contents("$APP/includes/vendor/firebase-jwt/src/JWT.php");
+check("bundled php-jwt is 7.x, with the key-size checks (RSA_KEY_MIN_LENGTH = 2048)",
+      str_contains($jwt, 'RSA_KEY_MIN_LENGTH = 2048'));
 check("VENDOR.md exists so a scanner-invisible dependency is at least written down",
       is_file("$APP/VENDOR.md"));
 $vendor = (string)@file_get_contents("$APP/VENDOR.md");

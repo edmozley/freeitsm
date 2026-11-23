@@ -34,7 +34,7 @@ $contract_id = $_GET['id'] ?? null;
     <script src="../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
+    <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
     <style>
         /* Full-screen layout with sidebar - matches contracts dashboard */
         body { --accent: var(--con-accent, #f59e0b); }
