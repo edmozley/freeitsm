@@ -147,6 +147,10 @@
     add('line_h',            { cat: 'text', w: 200, h: 20, style: { fill: 'none', stroke: 'solid', strokeColour: '#475569', strokeWidth: 2 }, draw: (w, h) => ({ d: '', lines: 'M0,' + f(h / 2) + ' H' + f(w) }), text: () => box(0, 0, 0, 0) });
     add('line_v',            { cat: 'text', w: 20, h: 200, style: { fill: 'none', stroke: 'solid', strokeColour: '#475569', strokeWidth: 2 }, draw: (w, h) => ({ d: '', lines: 'M' + f(w / 2) + ',0 V' + f(h) }), text: () => box(0, 0, 0, 0) });
 
+    // An icon from an imported library (GH #433): no drawn outline by default, the picture is an
+    // <img> the editor adds, and the label sits underneath like draw.io's.
+    add('icon',              { cat: 'library', w: 64, h: 64, rounded: true, style: { fill: 'none', stroke: 'none', valign: 'top', fontSize: 12 }, draw: (w, h, r) => ({ d: rrect(0, 0, w, h, r) }), text: (w, h) => box(-40, h + 2, w + 80, 44) });
+
     window.NM_SHAPES = S;
     window.NM_SHAPE_CATS = ['basic', 'flow', 'arrows', 'containers', 'text'];
 

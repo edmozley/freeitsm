@@ -201,6 +201,7 @@
         elShapePanel      = document.getElementById('shapeFormatPanel');   // GH #433
         elShapePalette    = document.getElementById('shapePalette');
         renderShapePalette();
+        loadIconPalette();   // GH #433: imported icon libraries
 
         // Close toolbar dropdowns on outside click. Each dropdown checks for
         // its anchor button + its panel; click outside both → dismiss. Same
@@ -562,7 +563,7 @@
         try { payload = JSON.parse(e.dataTransfer.getData('text/plain') || '{}'); } catch (_) { /* ignore */ }
         if (payload && payload.kind === 'nm-shape') {   // GH #433: a shape from the Shapes tab
             const at = canvasModelCoords(e);
-            addShapeAt(String(payload.shape_type || ''), at.x, at.y);
+            addShapeAt(String(payload.shape_type || ''), at.x, at.y, { icon_id: payload.icon_id || null });
             return;
         }
         if (!payload || payload.kind !== 'nm-class') return;
@@ -2011,6 +2012,12 @@
         if (st.opacity != null && +st.opacity < 100) el.style.opacity = String(+st.opacity / 100);
 
         let html = window.nmShapeSvg ? window.nmShapeSvg(s, 'nms-' + key) : '';
+        if (s.shape_type === 'icon') {
+            // GH #433: an <img>, not an SVG <image> - html2canvas draws an <img> on export, but an
+            // SVG rasterised from markup may not load anything outside itself.
+            if (s.icon_id) html += '<img class="nm-shape-img" src="' + iconUrl(s.icon_id) + '" alt="" draggable="false">';
+            else el.classList.add('is-missing');
+        }
         const tb = window.nmShapeTextBox ? window.nmShapeTextBox(s) : { x: 0, y: 0, w: s.w, h: s.h };
         const editing = key === shapeEditKey;
         if ((s.text || editing) && tb.w > 0 && tb.h > 0) {
@@ -2162,15 +2169,25 @@
     }
 
     /** Adds a shape centred on (cx, cy) in model px, selects it and marks the diagram dirty. */
-    function addShapeAt(type, cx, cy) {
+    function addShapeAt(type, cx, cy, extra) {
         if (!canEdit() || !window.NM_SHAPES) return;
         const def = window.NM_SHAPES[type];
         if (!def) return;
+        let w = def.w, h = def.h, iconId = null;
+        if (type === 'icon') {
+            // An imported icon, at most 64px on its longer side, keeping its proportions.
+            const ic = iconsById[(extra || {}).icon_id];
+            if (!ic) return;
+            iconId = ic.id;
+            const k = 64 / Math.max(ic.w || 64, ic.h || 64);
+            w = Math.max(16, Math.round((ic.w || 64) * k));
+            h = Math.max(16, Math.round((ic.h || 64) * k));
+        }
         const maxZ = shapes.reduce((m, s) => Math.max(m, s.z || 0), 0);
         const s = {
-            id: null, tempId: nextTempShapeId--, shape_type: type,
-            x: Math.max(0, snapS(cx - def.w / 2)), y: Math.max(0, snapS(cy - def.h / 2)),
-            w: def.w, h: def.h, rotation: 0, text: defaultShapeText(type),
+            id: null, tempId: nextTempShapeId--, shape_type: type, icon_id: iconId,
+            x: Math.max(0, snapS(cx - w / 2)), y: Math.max(0, snapS(cy - h / 2)),
+            w: w, h: h, rotation: 0, text: defaultShapeText(type),
             style: window.nmShapeStyle(type, {}),   // the full look, so later library changes never move it
             layer: 'back', z: maxZ + 1
         };
@@ -2181,11 +2198,11 @@
     }
 
     /** Adds a shape in the middle of what the canvas is showing (palette click). */
-    function addShapeInView(type) {
+    function addShapeInView(type, extra) {
         if (!elCanvas) return;
         const cx = (elCanvas.scrollLeft + elCanvas.clientWidth / 2) / zoom;
         const cy = (elCanvas.scrollTop + elCanvas.clientHeight / 2) / zoom;
-        addShapeAt(type, cx, cy);
+        addShapeAt(type, cx, cy, extra);
     }
 
     function deleteSelectedShape() {
@@ -2262,8 +2279,10 @@
             });
             html += '</div>';
         });
-        body.innerHTML = html || '<div class="nm-palette-empty">' + escapeHtml(t('network-mapper.shapes.no_match')) + '</div>';
-        body.querySelectorAll('.nm-shape-tile').forEach(tile => {
+        const iconsHtml = iconPaletteHtml(q);
+        body.innerHTML = (html || (q ? '<div class="nm-palette-empty">' + escapeHtml(t('network-mapper.shapes.no_match')) + '</div>' : '')) + iconsHtml;
+        bindIconPalette(body);
+        body.querySelectorAll('.nm-shape-tile:not(.nm-icon-tile)').forEach(tile => {
             tile.addEventListener('dragstart', e => {
                 e.dataTransfer.setData('text/plain', JSON.stringify({ kind: 'nm-shape', shape_type: tile.dataset.shape }));
                 e.dataTransfer.effectAllowed = 'copy';
@@ -2272,6 +2291,275 @@
         });
     }
     function onShapeSearchInput(v) { shapeFilter = v || ''; renderShapePalette(); }
+
+    // ---- GH #433: icon libraries imported from icons.diagrams.net ----
+    // Imported sets show on the Shapes tab after the drawn shapes; the browser (a large modal)
+    // previews any of the site's ~1,000 sets before importing it. The pictures are copied into
+    // the install - icon.php serves them - so a diagram never depends on that site.
+    let iconLibs = [];            // imported libraries (with licence / author)
+    let iconsById = {};           // icon id -> {id, library_id, title, tags, w, h}
+    let iconsByLib = {};          // library id -> [icon]
+    const iconLibOpen = {};       // library id -> expanded in the palette
+    let libCatalogue = null;      // the site's sets, fetched once per page
+    let libFilter = 'all';
+    let libSearch = '';
+    let libSelected = null;       // slug being previewed
+    const libPreviews = {};       // slug -> preview data
+    let libIconSearch = '';
+    let libShowAll = false;
+    let libImporting = null;      // {slug, done, total}
+
+    const ICON_API = API + 'icon_libraries.php';
+    function iconUrl(id) { return API + 'icon.php?id=' + encodeURIComponent(id); }
+
+    /** Loads the imported libraries and their icon list (no pictures) for the Shapes tab. */
+    async function loadIconPalette() {
+        try {
+            const r = await fetch(ICON_API + '?action=palette', { credentials: 'same-origin' });
+            const d = await r.json();
+            if (!d.success) throw new Error(d.error || 'load failed');
+            iconLibs = (d.libraries || []).filter(l => l.status === 'ready');
+            iconsById = {};
+            iconsByLib = {};
+            (d.icons || []).forEach(i => {
+                iconsById[i.id] = i;
+                (iconsByLib[i.library_id] = iconsByLib[i.library_id] || []).push(i);
+            });
+        } catch (e) {
+            iconLibs = [];
+        }
+        if (paletteTab === 'shapes') renderShapePalette();
+        if (elCanvasInner && shapes.some(s => s.icon_id)) renderShapes();
+    }
+
+    /** The Icon libraries part of the Shapes tab: a Libraries button, then each imported set. */
+    function iconPaletteHtml(q) {
+        let html = '<div class="nm-shape-cat nm-iconlib-head"><span>' + escapeHtml(t('network-mapper.iconlib.section')) + '</span>'
+            + '<button type="button" class="nm-detail-icon-btn" id="openIconLibs">' + escapeHtml(t('network-mapper.iconlib.button')) + '</button></div>';
+        if (!iconLibs.length) {
+            return html + '<div class="nm-iconlib-empty">' + escapeHtml(t('network-mapper.iconlib.none_yet')) + '</div>';
+        }
+        iconLibs.forEach(lib => {
+            const all = iconsByLib[lib.id] || [];
+            const hits = q ? all.filter(i => (i.title || '').toLowerCase().indexOf(q) >= 0 || (i.tags || '').toLowerCase().indexOf(q) >= 0) : all;
+            if (q && !hits.length) return;
+            const open = q ? true : !!iconLibOpen[lib.id];
+            html += '<div class="nm-iconlib-group' + (open ? ' open' : '') + '">'
+                + '<button type="button" class="nm-iconlib-toggle" data-lib="' + lib.id + '" title="' + escapeAttr((lib.licence ? t('network-mapper.iconlib.licence') + ': ' + lib.licence : '') + (lib.author ? ' - ' + lib.author : '')) + '">'
+                + '<span class="nm-iconlib-caret">' + (open ? '&#9662;' : '&#9656;') + '</span>' + escapeHtml(lib.title)
+                + '<span class="nm-iconlib-count">' + (q ? hits.length + ' / ' : '') + all.length + '</span></button>';
+            if (open) {
+                html += '<div class="nm-shape-grid">' + hits.slice(0, 300).map(i =>
+                    '<div class="nm-shape-tile nm-icon-tile" draggable="true" data-icon="' + i.id + '" title="' + escapeAttr((i.title || '') + ' - ' + t('network-mapper.shapes.tile_title')) + '">'
+                    + '<img src="' + iconUrl(i.id) + '" alt="" loading="lazy" draggable="false"></div>').join('') + '</div>';
+                if (hits.length > 300) html += '<div class="nm-iconlib-empty">' + escapeHtml(t('network-mapper.iconlib.more_hint', { count: hits.length - 300 })) + '</div>';
+            }
+            html += '</div>';
+        });
+        return html;
+    }
+
+    /** Wires the Libraries button, the group toggles and the icon tiles after the palette is drawn. */
+    function bindIconPalette(body) {
+        const btn = body.querySelector('#openIconLibs');
+        if (btn) btn.addEventListener('click', openLibraryBrowser);
+        body.querySelectorAll('.nm-iconlib-toggle').forEach(b => b.addEventListener('click', () => {
+            const id = b.dataset.lib;
+            iconLibOpen[id] = !iconLibOpen[id];
+            renderShapePalette();
+        }));
+        body.querySelectorAll('.nm-icon-tile').forEach(tile => {
+            tile.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ kind: 'nm-shape', shape_type: 'icon', icon_id: +tile.dataset.icon }));
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+            tile.addEventListener('click', () => addShapeInView('icon', { icon_id: +tile.dataset.icon }));
+        });
+    }
+
+    // ---- the library browser ----
+    async function openLibraryBrowser() {
+        const m = document.getElementById('iconLibModal');
+        if (!m) return;
+        m.classList.add('active');
+        renderLibraryList();
+        if (!libCatalogue) {
+            document.getElementById('libList').innerHTML = '<div class="nm-iconlib-empty">' + escapeHtml(t('network-mapper.iconlib.loading')) + '</div>';
+            try {
+                const r = await fetch(ICON_API + '?action=catalogue', { credentials: 'same-origin' });
+                const d = await r.json();
+                if (!d.success) throw new Error(d.error || 'failed');
+                libCatalogue = d.sets || [];
+            } catch (e) {
+                libCatalogue = [];
+                document.getElementById('libList').innerHTML = '<div class="nm-iconlib-empty nm-iconlib-error">' + escapeHtml(t('network-mapper.iconlib.error', { message: e.message })) + '</div>';
+                return;
+            }
+            renderLibraryList();
+        }
+        setTimeout(() => { const s = document.getElementById('libSearch'); if (s) s.focus(); }, 50);
+    }
+    function closeLibraryBrowser() {
+        const m = document.getElementById('iconLibModal');
+        if (m) m.classList.remove('active');
+    }
+
+    function isImported(slug) { return iconLibs.some(l => l.slug === slug); }
+
+    /** The left-hand list of sets, filtered by the search box and All / Vendors / Imported. */
+    function renderLibraryList() {
+        const box = document.getElementById('libList');
+        if (!box) return;
+        document.querySelectorAll('#libFilter button').forEach(b => b.classList.toggle('active', b.dataset.value === libFilter));
+        let sets = (libCatalogue || []).slice();
+        // Imported sets that the catalogue does not list (offline, renamed) still appear.
+        iconLibs.forEach(l => { if (!sets.some(s => s.slug === l.slug)) sets.push({ slug: l.slug, title: l.title, count: l.icon_count, group: '' }); });
+        const q = libSearch.trim().toLowerCase();
+        if (q) sets = sets.filter(s => s.title.toLowerCase().indexOf(q) >= 0 || s.slug.toLowerCase().indexOf(q) >= 0 || (s.group || '').toLowerCase().indexOf(q) >= 0);
+        if (libFilter === 'vendor') sets = sets.filter(s => s.group);
+        if (libFilter === 'imported') sets = sets.filter(s => isImported(s.slug));
+        if (!libCatalogue && !sets.length) return;
+        if (!sets.length) { box.innerHTML = '<div class="nm-iconlib-empty">' + escapeHtml(t('network-mapper.iconlib.no_sets')) + '</div>'; return; }
+        let html = '', lastGroup = null;
+        sets.forEach(s => {
+            const g = s.group ? s.group : t('network-mapper.iconlib.group_community');
+            if (g !== lastGroup && !q) { html += '<div class="nm-lib-group">' + escapeHtml(g) + '</div>'; lastGroup = g; }
+            html += '<button type="button" class="nm-lib-item' + (s.slug === libSelected ? ' active' : '') + '" data-slug="' + escapeAttr(s.slug) + '">'
+                + '<span class="nm-lib-name">' + escapeHtml(s.title) + '</span>'
+                + (isImported(s.slug) ? '<span class="nm-lib-badge">&#10003;</span>' : '')
+                + '<span class="nm-lib-n">' + (+s.count || 0) + '</span></button>';
+        });
+        box.innerHTML = html;
+        box.querySelectorAll('.nm-lib-item').forEach(b => b.addEventListener('click', () => selectLibrary(b.dataset.slug)));
+    }
+
+    async function selectLibrary(slug) {
+        libSelected = slug;
+        libIconSearch = '';
+        libShowAll = false;
+        renderLibraryList();
+        const main = document.getElementById('libMain');
+        if (!libPreviews[slug]) {
+            main.innerHTML = '<div class="nm-lib-placeholder">' + escapeHtml(t('network-mapper.iconlib.loading')) + '</div>';
+            try {
+                const r = await fetch(ICON_API + '?action=preview&slug=' + encodeURIComponent(slug), { credentials: 'same-origin' });
+                const d = await r.json();
+                if (!d.success) throw new Error(d.error || 'failed');
+                libPreviews[slug] = d.library;
+            } catch (e) {
+                if (libSelected === slug) main.innerHTML = '<div class="nm-lib-placeholder nm-iconlib-error">' + escapeHtml(t('network-mapper.iconlib.error', { message: e.message })) + '</div>';
+                return;
+            }
+        }
+        if (libSelected === slug) renderLibraryPreview();
+    }
+
+    /** The right-hand preview: licence, author, Import / progress / Remove, and the icons. */
+    function renderLibraryPreview() {
+        const main = document.getElementById('libMain');
+        const lib = libPreviews[libSelected];
+        if (!main || !lib) return;
+        const imported = iconLibs.find(l => l.slug === lib.slug);
+        const unknown = escapeHtml(t('network-mapper.iconlib.not_stated'));
+        const author = lib.author ? (lib.author_url ? '<a href="' + escapeAttr(lib.author_url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(lib.author) + '</a>' : escapeHtml(lib.author)) : unknown;
+        let action = '';
+        if (libImporting && libImporting.slug === lib.slug) {
+            const pct = libImporting.total ? Math.round(libImporting.done / libImporting.total * 100) : 0;
+            action = '<div class="nm-lib-progress"><div class="nm-lib-bar"><span style="width:' + pct + '%"></span></div>'
+                + '<div class="nm-lib-progress-text">' + escapeHtml(t('network-mapper.iconlib.importing', { done: libImporting.done, total: libImporting.total })) + '</div></div>';
+        } else if (imported) {
+            action = '<span class="nm-lib-done">&#10003; ' + escapeHtml(t('network-mapper.iconlib.imported')) + '</span>'
+                + '<button type="button" class="nm-btn secondary" id="libRemove">' + escapeHtml(t('network-mapper.iconlib.remove')) + '</button>'
+                + (imported.used ? '<div class="nm-lib-used">' + escapeHtml(t('network-mapper.iconlib.used', { count: imported.used })) + '</div>' : '');
+        } else {
+            action = '<button type="button" class="nm-btn" id="libImport"' + (libImporting ? ' disabled' : '') + '>'
+                + escapeHtml(t('network-mapper.iconlib.import_n', { count: lib.icons.length })) + '</button>';
+        }
+        const q = libIconSearch.trim().toLowerCase();
+        const icons = q ? lib.icons.filter(i => (i.title || '').toLowerCase().indexOf(q) >= 0 || (i.tags || '').toLowerCase().indexOf(q) >= 0) : lib.icons;
+        const LIMIT = 240;
+        const shown = libShowAll ? icons : icons.slice(0, LIMIT);
+        main.innerHTML =
+            '<div class="nm-lib-head"><div class="nm-lib-titles"><h3>' + escapeHtml(lib.title) + '</h3>'
+            + '<div class="nm-lib-meta"><span>' + escapeHtml(t('network-mapper.iconlib.icons_count', { count: lib.icons.length })) + '</span>'
+            + '<span><strong>' + escapeHtml(t('network-mapper.iconlib.licence')) + ':</strong> ' + (lib.licence ? escapeHtml(lib.licence) : unknown) + '</span>'
+            + '<span><strong>' + escapeHtml(t('network-mapper.iconlib.author')) + ':</strong> ' + author + '</span>'
+            + (lib.source ? '<span><strong>' + escapeHtml(t('network-mapper.iconlib.source')) + ':</strong> ' + escapeHtml(lib.source) + '</span>' : '')
+            + '</div></div><div class="nm-lib-actions">' + action + '</div></div>'
+            + '<input type="search" class="nm-shape-search nm-lib-icon-search" id="libIconSearch" placeholder="' + escapeAttr(t('network-mapper.iconlib.search_icons')) + '" value="' + escapeAttr(libIconSearch) + '">'
+            + '<div class="nm-lib-grid">' + shown.map(i =>
+                '<div class="nm-lib-icon" title="' + escapeAttr(i.title + (i.tags ? ' - ' + i.tags : '')) + '"><img src="' + escapeAttr(i.src) + '" alt="" loading="lazy" referrerpolicy="no-referrer"><span>' + escapeHtml(i.title) + '</span></div>').join('') + '</div>'
+            + (!libShowAll && icons.length > LIMIT ? '<div class="nm-lib-more"><button type="button" class="nm-btn secondary" id="libShowAll">' + escapeHtml(t('network-mapper.iconlib.show_all', { count: icons.length })) + '</button></div>' : '');
+        const imp = document.getElementById('libImport'); if (imp) imp.addEventListener('click', () => importLibrary(lib.slug));
+        const rem = document.getElementById('libRemove'); if (rem) rem.addEventListener('click', () => removeLibrary(imported));
+        const all = document.getElementById('libShowAll'); if (all) all.addEventListener('click', () => { libShowAll = true; renderLibraryPreview(); });
+        const srch = document.getElementById('libIconSearch');
+        if (srch) srch.addEventListener('input', () => {
+            libIconSearch = srch.value;
+            const pos = srch.selectionStart;
+            renderLibraryPreview();
+            const again = document.getElementById('libIconSearch');
+            if (again) { again.focus(); again.setSelectionRange(pos, pos); }
+        });
+    }
+
+    async function libPost(body) {
+        const r = await fetch(ICON_API, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error || 'failed');
+        return d;
+    }
+
+    /** Imports a set in batches, showing progress; the palette gains the set when it is done. */
+    async function importLibrary(slug) {
+        if (libImporting) return;
+        const lib = libPreviews[slug];
+        libImporting = { slug, done: 0, total: lib ? lib.icons.length : 0 };
+        renderLibraryPreview();
+        let skipped = 0;
+        try {
+            const start = await libPost({ action: 'import_start', slug });
+            libImporting.total = start.total;
+            let offset = 0;
+            for (;;) {
+                const b = await libPost({ action: 'import_batch', id: start.id, offset });
+                skipped += b.skipped || 0;
+                offset = b.next;
+                libImporting.done = offset;
+                if (libSelected === slug) renderLibraryPreview();
+                if (b.done) break;
+            }
+            libImporting = null;
+            await loadIconPalette();
+            const added = iconLibs.find(l => l.slug === slug);
+            if (added) iconLibOpen[added.id] = true;
+            setPaletteTab('shapes');
+            renderLibraryList();
+            if (libSelected === slug) renderLibraryPreview();
+            if (window.showToast) showToast(t('network-mapper.iconlib.imported_toast', { count: added ? added.icon_count : 0, name: lib ? lib.title : slug })
+                + (skipped ? ' ' + t('network-mapper.iconlib.skipped', { count: skipped }) : ''), 'success');
+        } catch (e) {
+            libImporting = null;
+            if (libSelected === slug) renderLibraryPreview();
+            if (window.showToast) showToast(t('network-mapper.iconlib.error', { message: e.message }), 'error');
+        }
+    }
+
+    async function removeLibrary(lib) {
+        if (!lib) return;
+        if (!confirm(t('network-mapper.iconlib.remove_confirm', { name: lib.title }))) return;
+        try {
+            await libPost({ action: 'delete', id: lib.id });
+            await loadIconPalette();
+            renderLibraryList();
+            renderLibraryPreview();
+            if (window.showToast) showToast(t('network-mapper.iconlib.removed_toast', { name: lib.title }), 'success');
+        } catch (e) {
+            if (window.showToast) showToast(t('network-mapper.iconlib.error', { message: e.message }), 'error');
+        }
+    }
+    function onLibSearchInput(v) { libSearch = v || ''; renderLibraryList(); }
+    function setLibFilter(v) { libFilter = v; renderLibraryList(); }
 
     // ---- the Format panel (shapes) ----
     function closeShapePanel() {
@@ -2291,7 +2579,8 @@
         const dis = ed ? '' : ' disabled';
         const def = (window.NM_SHAPES || {})[s.shape_type] || {};
         document.getElementById('spIcon').innerHTML = window.nmShapePreview(s.shape_type, 26);
-        document.getElementById('spName').textContent = shapeName(s.shape_type);
+        document.getElementById('spName').textContent = (s.shape_type === 'icon' && iconsById[s.icon_id] && iconsById[s.icon_id].title)
+            ? iconsById[s.icon_id].title : shapeName(s.shape_type);
         const num = (id, label, v, min, max, step) =>
             '<label class="nm-fmt-num"><span>' + escapeHtml(label) + '</span><input type="number" id="' + id + '" value="' + v + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '"' + dis + '></label>';
         let html = '<div class="nm-fmt-section"><div class="nm-fmt-title">' + escapeHtml(t('network-mapper.shapes.arrange')) + '</div>'
@@ -3204,7 +3493,7 @@
                     shapes: shapes.map(sh => ({
                         shape_type: sh.shape_type, x: sh.x, y: sh.y, w: sh.w, h: sh.h,
                         rotation: sh.rotation || 0, text: sh.text || '', style: sh.style || null,
-                        layer: sh.layer || 'back', z: sh.z || 0
+                        layer: sh.layer || 'back', z: sh.z || 0, icon_id: sh.icon_id || null
                     })),
                     connectors: connectors.map(c => ({
                         from_node_id: c.from_node_id,
@@ -3882,6 +4171,10 @@
         // shapes (GH #433)
         setPaletteTab,
         onShapeSearchInput,
+        openLibraryBrowser,
+        closeLibraryBrowser,
+        onLibSearchInput,
+        setLibFilter,
         closeShapePanel: () => selectShape(null),
         // branding (header/footer overrides per diagram)
         openBrandingModal,

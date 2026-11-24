@@ -112,16 +112,28 @@ try {
     // table arrived simply has none - the diagram still opens.
     $shapes = [];
     try {
-        $sstmt = $conn->prepare(
-            "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z
-               FROM network_diagram_shapes
-              WHERE diagram_id = ?
-           ORDER BY z, id"
-        );
-        $sstmt->execute([$id]);
+        try {
+            $sstmt = $conn->prepare(
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id
+                   FROM network_diagram_shapes
+                  WHERE diagram_id = ?
+               ORDER BY z, id"
+            );
+            $sstmt->execute([$id]);
+        } catch (PDOException $e) {
+            // icon_id arrived after the shapes table - an install between the two still opens.
+            $sstmt = $conn->prepare(
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id
+                   FROM network_diagram_shapes
+                  WHERE diagram_id = ?
+               ORDER BY z, id"
+            );
+            $sstmt->execute([$id]);
+        }
         foreach ($sstmt->fetchAll(PDO::FETCH_ASSOC) as $s) {
             foreach (['id', 'x', 'y', 'w', 'h', 'rotation', 'z'] as $k) $s[$k] = (int)$s[$k];
             $s['style'] = $s['style'] !== null ? (json_decode($s['style'], true) ?: null) : null;
+            $s['icon_id'] = $s['icon_id'] !== null ? (int)$s['icon_id'] : null;
             $shapes[] = $s;
         }
     } catch (PDOException $e) {

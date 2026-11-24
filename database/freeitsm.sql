@@ -8859,11 +8859,56 @@ CREATE TABLE IF NOT EXISTS `network_diagram_shapes` (
     `style`          TEXT NULL,
     `layer`          VARCHAR(10) NOT NULL DEFAULT 'back',
     `z`              INT NOT NULL DEFAULT 0,
+    -- An icon from an imported icon library (shape_type 'icon'); NULL for drawn shapes, and
+    -- for an icon whose library was removed (the shape keeps its place, loses the picture).
+    `icon_id`        INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_shape_diag` (`diagram_id`),
+    KEY `ix_net_shape_icon` (`icon_id`),
     CONSTRAINT `fk_net_shape_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Icon libraries imported from icons.diagrams.net (draw.io's icon catalogue). The icons are
+-- COPIED here, so diagrams never depend on that site. licence / author / source come from the
+-- set's own library file and are shown wherever the set is. status: importing | ready.
+-- See includes/services/network_icons.php.
+CREATE TABLE IF NOT EXISTS `network_icon_libraries` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `slug`             VARCHAR(120) NOT NULL,
+    `title`            VARCHAR(255) NOT NULL,
+    `licence`          VARCHAR(255) NULL,
+    `author`           VARCHAR(255) NULL,
+    `author_url`       VARCHAR(500) NULL,
+    `source`           VARCHAR(500) NULL,
+    `icon_total`       INT NOT NULL DEFAULT 0,
+    `icon_count`       INT NOT NULL DEFAULT 0,
+    `status`           VARCHAR(20) NOT NULL DEFAULT 'importing',
+    `created_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_iconlib_slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One icon of an imported library: the picture itself (PNG / JPEG / GIF / WebP as sent; SVG
+-- only after NetworkIconService::cleanSvg), served by api/network-mapper/icon.php with a
+-- sandbox CSP. sort = its position in the set, unique per library so a retried batch is safe.
+CREATE TABLE IF NOT EXISTS `network_icon_library_icons` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `library_id`  INT NOT NULL,
+    `sort`        INT NOT NULL DEFAULT 0,
+    `title`       VARCHAR(255) NULL,
+    `tags`        VARCHAR(1000) NULL,
+    `mime`        VARCHAR(40) NOT NULL,
+    `data`        MEDIUMBLOB NOT NULL,
+    `w`           INT NOT NULL DEFAULT 64,
+    `h`           INT NOT NULL DEFAULT 64,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_icon_lib_sort` (`library_id`, `sort`),
+    CONSTRAINT `fk_net_icon_lib` FOREIGN KEY (`library_id`) REFERENCES `network_icon_libraries` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `network_diagram_shapes`
+    ADD CONSTRAINT `fk_net_shape_icon` FOREIGN KEY (`icon_id`) REFERENCES `network_icon_library_icons` (`id`) ON DELETE SET NULL;
 
 -- ---------------------------------------------------------------------------
 -- Search corpus. One row per SEARCHABLE UNIT, whatever it came from: a ticket

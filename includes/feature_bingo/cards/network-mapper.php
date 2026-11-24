@@ -86,6 +86,18 @@ return [
         'check'    => ['rows', 'network_diagram_shapes', 'is_demo = 0'],
     ],
     [
+        'id'       => 'network-mapper.icon_libraries',
+        'module'   => 'network-mapper',
+        'tier'     => 'extra',
+        'category' => 'look',
+        'title'    => 'Vendor icon libraries',
+        'what'     => 'Importing an icon set from the draw.io catalogue - IBM Carbon, Azure, Cisco, Kubernetes and about a thousand more - and using its icons on a diagram (GH #433).',
+        'why'      => 'A firewall looks like the vendor\'s own icon and a cloud service like the cloud\'s, so people recognise a diagram at a glance.',
+        'done'     => 'At least one icon set has been imported.',
+        'link'     => 'network-mapper/',
+        'check'    => ['rows', 'network_icon_libraries', "status = 'ready'"],
+    ],
+    [
         'id'       => 'network-mapper.versions',
         'module'   => 'network-mapper',
         'tier'     => 'extra',

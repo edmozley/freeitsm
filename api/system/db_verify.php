@@ -3780,6 +3780,14 @@ try {
             if ($tableExists('network_diagram_shapes')) {
                 // GH #433: shapes of a diagram that no longer exists (CASCADE semantics).
                 $conn->exec("DELETE s FROM network_diagram_shapes s LEFT JOIN network_diagrams d ON d.id = s.diagram_id WHERE d.id IS NULL");
+                if ($tableExists('network_icon_library_icons')) {
+                    // ...and an icon that is gone becomes no icon (SET NULL semantics).
+                    $conn->exec("UPDATE network_diagram_shapes s LEFT JOIN network_icon_library_icons i ON i.id = s.icon_id
+                                 SET s.icon_id = NULL WHERE s.icon_id IS NOT NULL AND i.id IS NULL");
+                }
+            }
+            if ($tableExists('network_icon_library_icons') && $tableExists('network_icon_libraries')) {
+                $conn->exec("DELETE i FROM network_icon_library_icons i LEFT JOIN network_icon_libraries l ON l.id = i.library_id WHERE l.id IS NULL");
             }
             if ($tableExists('network_diagram_connectors')) {
                 $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagrams d ON d.id = c.diagram_id WHERE d.id IS NULL");
@@ -3805,6 +3813,8 @@ try {
         ['network_diagram_connectors', 'fk_net_conn_from',   "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_from FOREIGN KEY (from_node_id) REFERENCES network_diagram_nodes (id) ON DELETE CASCADE"],
         ['network_diagram_connectors', 'fk_net_conn_to',     "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_to FOREIGN KEY (to_node_id) REFERENCES network_diagram_nodes (id) ON DELETE CASCADE"],
         ['network_diagram_shapes',     'fk_net_shape_diag',  "ALTER TABLE network_diagram_shapes ADD CONSTRAINT fk_net_shape_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_shapes',     'fk_net_shape_icon',  "ALTER TABLE network_diagram_shapes ADD CONSTRAINT fk_net_shape_icon FOREIGN KEY (icon_id) REFERENCES network_icon_library_icons (id) ON DELETE SET NULL"],
+        ['network_icon_library_icons', 'fk_net_icon_lib',    "ALTER TABLE network_icon_library_icons ADD CONSTRAINT fk_net_icon_lib FOREIGN KEY (library_id) REFERENCES network_icon_libraries (id) ON DELETE CASCADE"],
         ['network_diagram_connectors', 'fk_net_conn_rel',    "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_rel FOREIGN KEY (cmdb_relationship_id) REFERENCES cmdb_object_relationships (id) ON DELETE SET NULL"],
     ];
     foreach ($networkFks as [$tbl, $name, $sql]) {

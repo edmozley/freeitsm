@@ -252,8 +252,8 @@ class NetworkMapperService
             }
             // GH #433: and the freestanding shapes.
             $conn->prepare(
-                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z)
-                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
+                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id)
+                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
             )->execute([$newId, $parentId]);
             $conn->commit();
         } catch (Exception $e) {
@@ -466,9 +466,22 @@ class NetworkMapperService
     {
         $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id = ?")->execute([$diagramId]);
         $insert = $conn->prepare(
-            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
+        // icon_id must name an icon that exists - anything else saves as no icon.
+        $iconIds = array_values(array_unique(array_filter(array_map(fn($s) => is_array($s) ? (int)($s['icon_id'] ?? 0) : 0, $shapesIn))));
+        $knownIcons = [];
+        if ($iconIds) {
+            try {
+                $ph = implode(',', array_fill(0, count($iconIds), '?'));
+                $q = $conn->prepare("SELECT id FROM network_icon_library_icons WHERE id IN ($ph)");
+                $q->execute($iconIds);
+                $knownIcons = array_flip(array_map('intval', $q->fetchAll(PDO::FETCH_COLUMN)));
+            } catch (PDOException $e) {
+                $knownIcons = [];
+            }
+        }
         $int = function ($v, int $min, int $max, int $default) {
             if ($v === null || $v === '' || !is_numeric($v)) return $default;
             return max($min, min($max, (int)round((float)$v)));
@@ -498,6 +511,7 @@ class NetworkMapperService
                 self::sanitiseStyle($s['style'] ?? null),
                 $layer,
                 $int($s['z'] ?? 0, -100000, 100000, 0),
+                isset($knownIcons[(int)($s['icon_id'] ?? 0)]) ? (int)$s['icon_id'] : null,
             ]);
         }
     }

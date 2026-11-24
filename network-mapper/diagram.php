@@ -600,6 +600,78 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-seg button:disabled { cursor: default; }
         .nm-detail-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 2px 0 6px; }
 
+        /* ---- GH #433: icons from imported libraries, and the library browser ---- */
+        .nm-shape-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .nm-shape.is-missing { outline: 1px dashed #94a3b8; }
+        .nm-icon-tile img { max-width: 34px; max-height: 34px; pointer-events: none; }
+        .nm-iconlib-head { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .nm-iconlib-head .nm-detail-icon-btn { text-transform: none; letter-spacing: 0; }
+        .nm-iconlib-empty { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); padding: 4px 0 8px; }
+        .nm-iconlib-error { color: #b91c1c; }
+        .nm-iconlib-group { margin-bottom: 4px; }
+        .nm-iconlib-toggle {
+            display: flex; align-items: center; gap: 6px; width: 100%;
+            background: none; border: none; padding: 6px 2px; cursor: pointer;
+            font: inherit; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text, #111827); text-align: left;
+        }
+        .nm-iconlib-toggle:hover { color: #0e7490; }
+        .nm-iconlib-caret { width: 10px; color: var(--text-dim, #6b7280); }
+        .nm-iconlib-count { margin-left: auto; font-weight: 400; color: var(--text-dim, #6b7280); }
+
+        .nm-modal.nm-lib-modal { width: min(1180px, 95vw); height: 86vh; max-width: none; max-height: none; }
+        .nm-lib-modal .nm-modal-header { display: flex; align-items: center; gap: 10px; }
+        .nm-lib-sub { font-weight: 400; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); }
+        .nm-lib-close { margin-left: auto; background: none; border: none; font-size: 24px; line-height: 1; color: var(--text-dim, #6b7280); cursor: pointer; }
+        .nm-lib-body { flex: 1; min-height: 0; display: flex; }
+        .nm-lib-side { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border, #e5e7eb); display: flex; flex-direction: column; min-height: 0; }
+        .nm-lib-side .nm-shape-search { margin: 12px 12px 8px; }
+        .nm-lib-side .nm-seg { margin: 0 12px 8px; align-self: flex-start; }
+        .nm-lib-list { flex: 1; overflow-y: auto; padding: 0 6px 10px; }
+        .nm-lib-group {
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            color: var(--text-dim, #6b7280); padding: 10px 8px 4px;
+        }
+        .nm-lib-item {
+            display: flex; align-items: center; gap: 6px; width: 100%; text-align: left;
+            background: none; border: none; border-radius: 4px; padding: 6px 8px; cursor: pointer;
+            font: inherit; font-size: var(--font-size-sm, 12px); color: var(--text, #111827);
+        }
+        .nm-lib-item:hover { background: var(--surface-hover, #f9fafb); }
+        .nm-lib-item.active { background: var(--nm-accent-soft, #ecfeff); color: #0e7490; font-weight: 600; }
+        .nm-lib-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nm-lib-badge { color: #16a34a; font-weight: 700; }
+        .nm-lib-n { color: var(--text-dim, #6b7280); font-variant-numeric: tabular-nums; }
+        .nm-lib-main { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; padding: 16px 20px 0; }
+        .nm-lib-placeholder { margin: auto; color: var(--text-dim, #6b7280); font-size: var(--font-size-md, 13px); text-align: center; max-width: 360px; line-height: 1.5; }
+        .nm-lib-head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
+        .nm-lib-titles h3 { margin: 0 0 6px; font-size: var(--font-size-xl, 16px); color: var(--text, #111827); }
+        .nm-lib-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); }
+        .nm-lib-meta strong { color: var(--text-muted, #374151); font-weight: 600; }
+        .nm-lib-meta a { color: #0e7490; }
+        .nm-lib-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; flex-shrink: 0; max-width: 300px; }
+        .nm-lib-done { color: #16a34a; font-weight: 600; font-size: var(--font-size-md, 13px); }
+        .nm-lib-used { width: 100%; text-align: right; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); }
+        .nm-lib-progress { width: 260px; }
+        .nm-lib-bar { height: 8px; border-radius: 999px; background: var(--border, #e5e7eb); overflow: hidden; }
+        .nm-lib-bar span { display: block; height: 100%; background: var(--nm-accent, #06b6d4); transition: width 0.25s ease; }
+        .nm-lib-progress-text { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); margin-top: 4px; text-align: right; }
+        .nm-lib-icon-search { margin: 14px 0 10px; }
+        .nm-lib-grid {
+            flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+            gap: 6px; align-content: start; padding-bottom: 12px;
+        }
+        .nm-lib-icon {
+            display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px;
+            border: 1px solid var(--border-soft, #f3f4f6); border-radius: 6px; background: var(--surface, #fff);
+        }
+        .nm-lib-icon img { width: 44px; height: 44px; object-fit: contain; }
+        .nm-lib-icon span {
+            font-size: 10px; color: var(--text-dim, #6b7280); max-width: 100%;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .nm-lib-more { padding: 6px 0 14px; text-align: center; }
+        .nm-lib-foot { padding: 10px 20px; border-top: 1px solid var(--border, #e5e7eb); font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); line-height: 1.5; }
+
         /* ---- GH #433: palette tabs, the shape library, shapes on the canvas, the Format panel ---- */
         .nm-palette-tabs { padding: 0; gap: 0; }
         .nm-palette-tab {
@@ -1957,6 +2029,32 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         </div>
     </div>
 
+    <?php /* GH #433: icon libraries from icons.diagrams.net - browse, preview, import */ ?>
+    <div class="nm-modal-overlay" id="iconLibModal">
+        <div class="nm-modal nm-lib-modal" role="dialog" aria-labelledby="iconLibTitle">
+            <div class="nm-modal-header">
+                <span id="iconLibTitle"><?php echo htmlspecialchars(t('network-mapper.iconlib.title')); ?></span>
+                <span class="nm-lib-sub"><?php echo htmlspecialchars(t('network-mapper.iconlib.from')); ?></span>
+                <button type="button" class="nm-lib-close" onclick="NM.closeLibraryBrowser()" title="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
+            </div>
+            <div class="nm-lib-body">
+                <div class="nm-lib-side">
+                    <input type="search" class="nm-shape-search" id="libSearch" placeholder="<?php echo htmlspecialchars(t('network-mapper.iconlib.search_sets')); ?>" oninput="NM.onLibSearchInput(this.value)">
+                    <span class="nm-seg" id="libFilter">
+                        <button type="button" data-value="all" class="active" onclick="NM.setLibFilter('all')"><?php echo htmlspecialchars(t('network-mapper.iconlib.filter_all')); ?></button>
+                        <button type="button" data-value="vendor" onclick="NM.setLibFilter('vendor')"><?php echo htmlspecialchars(t('network-mapper.iconlib.filter_vendor')); ?></button>
+                        <button type="button" data-value="imported" onclick="NM.setLibFilter('imported')"><?php echo htmlspecialchars(t('network-mapper.iconlib.filter_imported')); ?></button>
+                    </span>
+                    <div class="nm-lib-list" id="libList"></div>
+                </div>
+                <div class="nm-lib-main" id="libMain">
+                    <div class="nm-lib-placeholder"><?php echo htmlspecialchars(t('network-mapper.iconlib.pick')); ?></div>
+                </div>
+            </div>
+            <div class="nm-lib-foot"><?php echo htmlspecialchars(t('network-mapper.iconlib.licence_note')); ?></div>
+        </div>
+    </div>
+
     <?php /* GH #433: change the current version's title and description */ ?>
     <div class="nm-modal-overlay" id="detailsModal">
         <div class="nm-modal">
@@ -1990,8 +2088,8 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
-    <script src="../assets/js/network-mapper-shapes.js?v=1"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=12"></script>
+    <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
+    <script src="../assets/js/network-mapper.js?v=13"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 
@@ -2004,6 +2102,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             if (e.key === 'Escape') {
                 NM.closeNewVersionModal();
                 NM.closeDetailsModal();
+                NM.closeLibraryBrowser();
                 NM.closeObjectPicker();
                 NM.closeRelatedModal();
                 NM.closeVersionsDropdown();
@@ -2019,6 +2118,9 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         });
         document.getElementById('detailsModal').addEventListener('click', function (e) {
             if (e.target === e.currentTarget) NM.closeDetailsModal();
+        });
+        document.getElementById('iconLibModal').addEventListener('click', function (e) {
+            if (e.target === e.currentTarget) NM.closeLibraryBrowser();
         });
         document.getElementById('dtTitle').addEventListener('keydown', function (e) {
             if (e.key === 'Enter') { e.preventDefault(); NM.saveDetails(); }

@@ -5971,7 +5971,34 @@ return [
         'style'          => 'TEXT NULL',
         'layer'          => "VARCHAR(10) NOT NULL DEFAULT 'back'",
         'z'              => 'INT NOT NULL DEFAULT 0',
+        'icon_id'        => 'INT NULL',            // an imported library icon (shape_type 'icon')
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+    ],
+
+    // GH #433: icon libraries imported from icons.diagrams.net (includes/services/network_icons.php)
+    'network_icon_libraries' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'slug'             => 'VARCHAR(120) NOT NULL',
+        'title'            => 'VARCHAR(255) NOT NULL',
+        'licence'          => 'VARCHAR(255) NULL',
+        'author'           => 'VARCHAR(255) NULL',
+        'author_url'       => 'VARCHAR(500) NULL',
+        'source'           => 'VARCHAR(500) NULL',
+        'icon_total'       => 'INT NOT NULL DEFAULT 0',
+        'icon_count'       => 'INT NOT NULL DEFAULT 0',
+        'status'           => "VARCHAR(20) NOT NULL DEFAULT 'importing'",
+        'created_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'network_icon_library_icons' => [
+        'id'          => 'INT NOT NULL AUTO_INCREMENT',
+        'library_id'  => 'INT NOT NULL',
+        'sort'        => 'INT NOT NULL DEFAULT 0',
+        'title'       => 'VARCHAR(255) NULL',
+        'tags'        => 'VARCHAR(1000) NULL',
+        'mime'        => 'VARCHAR(40) NOT NULL',
+        'data'        => 'MEDIUMBLOB NOT NULL',
+        'w'           => 'INT NOT NULL DEFAULT 64',
+        'h'           => 'INT NOT NULL DEFAULT 64',
     ],
 
     // Search corpus — one row per searchable unit (ticket subject, email body,
