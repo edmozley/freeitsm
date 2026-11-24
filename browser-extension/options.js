@@ -36,8 +36,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        if (!await requestServerAccess(serverUrl)) {
+            showStatus('Not saved: enter a full address such as https://helpdesk.example.com, and choose Allow when the browser asks for access to it.', 'error');
+            return;
+        }
+
         await chrome.storage.sync.set({ serverUrl, apiKey, pollInterval });
-        showStatus('Settings saved.', 'success');
+        showStatus('Settings saved.' + httpWarning(serverUrl), 'success');
     });
 
     // Test connection
@@ -47,6 +52,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!serverUrl || !apiKey) {
             showStatus('Enter both server URL and API key before testing.', 'error');
+            return;
+        }
+
+        if (!await requestServerAccess(serverUrl)) {
+            showStatus('Enter a full address such as https://helpdesk.example.com, and choose Allow when the browser asks for access to it.', 'error');
             return;
         }
 
@@ -92,6 +102,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
+/**
+ * Asks the browser for access to this one server only (for example https://helpdesk.example.com/*).
+ * TRAP: must be the FIRST await in a click handler - Chrome only shows the prompt during a user gesture.
+ * Store reviewers reject (or slow-review) an extension that asks for every website up front, so the
+ * manifest lists https/http as OPTIONAL and the user grants their own server here.
+ */
+async function requestServerAccess(serverUrl) {
+    let origin;
+    try {
+        const u = new URL(serverUrl);
+        if (u.protocol !== 'https:' && u.protocol !== 'http:') return false;
+        origin = u.origin + '/*';
+    } catch (e) {
+        return false;
+    }
+    try {
+        return await chrome.permissions.request({ origins: [origin] });
+    } catch (e) {
+        return false;
+    }
+}
+
+/** Warning shown with the save message when the server address is plain http. */
+function httpWarning(serverUrl) {
+    return serverUrl.toLowerCase().startsWith('http://')
+        ? ' Warning: this address is not https, so your API key travels unencrypted.'
+        : '';
+}
 
 /** Shows a success or error message under the settings form. */
 function showStatus(msg, type) {
