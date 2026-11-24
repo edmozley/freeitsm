@@ -643,12 +643,12 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-layer-row.is-hidden .nm-layer-name { color: var(--text-faint, #9ca3af); text-decoration: line-through; }
         .nm-layer-ico {
             background: none; border: none; padding: 3px; border-radius: 3px; cursor: pointer; line-height: 1;
-            color: var(--text-dim, #6b7280); display: inline-flex; align-items: center; font-size: 10px;
+            color: var(--text-dim, #6b7280); display: inline-flex; align-items: center; font-size: var(--font-size-xs, 11px);
         }
         .nm-layer-ico:hover:not(:disabled) { background: var(--border, #e5e7eb); color: var(--text, #111827); }
         .nm-layer-ico:disabled { opacity: 0.35; cursor: default; }
         .nm-layer-ico.on { color: #b45309; }
-        .nm-layer-del { font-size: 15px; }
+        .nm-layer-del { font-size: var(--font-size-lg, 14px); }
         .nm-layer-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-md, 13px); color: var(--text, #111827); }
         .nm-layer-count { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); min-width: 18px; text-align: right; }
         .nm-layers-add {
@@ -683,7 +683,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-modal.nm-lib-modal { width: min(1180px, 95vw); height: 86vh; max-width: none; max-height: none; }
         .nm-lib-modal .nm-modal-header { display: flex; align-items: center; gap: 10px; }
         .nm-lib-sub { font-weight: 400; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); }
-        .nm-lib-close { margin-left: auto; background: none; border: none; font-size: 24px; line-height: 1; color: var(--text-dim, #6b7280); cursor: pointer; }
+        .nm-lib-close { margin-left: auto; background: none; border: none; font-size: var(--font-size-4xl, 24px); line-height: 1; color: var(--text-dim, #6b7280); cursor: pointer; }
         .nm-lib-body { flex: 1; min-height: 0; display: flex; }
         .nm-lib-side { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border, #e5e7eb); display: flex; flex-direction: column; min-height: 0; }
         .nm-lib-side .nm-shape-search { margin: 12px 12px 8px; }
@@ -728,7 +728,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         }
         .nm-lib-icon img { width: 44px; height: 44px; object-fit: contain; }
         .nm-lib-icon span {
-            font-size: 10px; color: var(--text-dim, #6b7280); max-width: 100%;
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); max-width: 100%;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .nm-lib-more { padding: 6px 0 14px; text-align: center; }

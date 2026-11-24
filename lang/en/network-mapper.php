@@ -70,8 +70,8 @@ return [
         // Toolbar
         'autosave'         => 'Autosave',
         'autosave_title'   => 'Auto-save changes ~2s after the last edit',
-        'page_off'         => 'Page: Off',
-        'page_label'       => 'Page: {label} {orient}',
+        'page_off'         => 'Paper: Off',
+        'page_label'       => 'Paper: {label} {orient}',
         'page_btn_title'   => 'Show a paper-size outline on the canvas — useful before exporting to PNG/PDF',
         'zoom_out'         => 'Zoom out',
         'zoom_in'          => 'Zoom in',
@@ -257,7 +257,7 @@ return [
         'row_footer'       => 'Footer',
         'tokens_label'     => 'Tokens',
         'tokens_intro'     => ' resolved at render time:',
-        'tokens_note'      => 'Header/footer only renders when a page outline is set — use the <strong>Page</strong> dropdown to pick one.',
+        'tokens_note'      => 'Header/footer only renders when a page outline is set — use the <strong>Paper</strong> dropdown to pick one.',
         'reset'            => 'Reset',
         'reset_title'      => 'Clear all overrides — slots will inherit the org-wide defaults',
         'cancel'           => 'Cancel',
@@ -307,7 +307,7 @@ return [
         'export_failed_unknown' => 'unknown error',
         'nothing_to_fit'   => 'Nothing to fit — set a page size or place some nodes',
         'centre_no_nodes'  => 'Nothing to centre — place some nodes first',
-        'centre_no_page'   => 'Set a page size first (Page dropdown)',
+        'centre_no_page'   => 'Set a page size first (Paper dropdown)',
         'centre_too_large' => 'Diagram is too large to centre on this page size — try a larger paper or use Fit + zoom',
         'centre_already'   => 'Diagram is already centred',
         'centred'          => 'Diagram centred on page',
@@ -655,7 +655,7 @@ return [
         'nav_pages' => 'Pages and layers',
         'nav_related'      => 'Adding related objects',
         'nav_planned'      => 'Planned objects',
-        'nav_paper'        => 'Page size guide',
+        'nav_paper'        => 'Paper size guide',
         'nav_branding'     => 'Header & footer',
         'nav_versioning'   => 'Versioning',
         'nav_saving'       => 'Saving',
@@ -742,8 +742,8 @@ return [
         'planned_tip'      => '<strong>Workflow:</strong> mark CMDB objects as planned during design, draw them into the diagram alongside your real estate, then flip the planned flag off in CMDB when they go live — the diagram styling updates on its next load. No edits to the diagram needed.',
 
         // 7. Paper
-        'paper_title'      => 'Page size guide',
-        'paper_body'       => 'Use the <strong>Page</strong> dropdown in the editor toolbar to overlay a paper outline on the canvas (A4, A3, A2, Letter, or Tabloid — portrait or landscape). Anything inside the dashed cyan box will print or export cleanly; anything outside gets cropped or scrolled past. Useful as a layout guide before sharing or screenshotting the diagram. Default is <strong>Off</strong> — no overlay shown.',
+        'paper_title'      => 'Paper size guide',
+        'paper_body'       => 'Use the <strong>Paper</strong> dropdown in the editor toolbar to overlay a paper outline on the canvas (A4, A3, A2, Letter, or Tabloid — portrait or landscape). Anything inside the dashed cyan box will print or export cleanly; anything outside gets cropped or scrolled past. Useful as a layout guide before sharing or screenshotting the diagram. Default is <strong>Off</strong> — no overlay shown.',
         'paper_tip1'       => '<strong>Per-diagram setting:</strong> each diagram remembers its own paper size, so a service map can use A3 landscape while a small workflow diagram uses A4 portrait without any setup each time. The setting is also carried forward when you save as a new version — you don\'t need to re-pick.',
         'paper_tip2'       => '<strong>Why not just export at the right size?</strong> Picking it up front means you can compose the diagram inside the printable area as you go — no surprise crops after the fact. PNG / PDF export will use this outline as the bounds when added in a future release.',
 
@@ -754,7 +754,7 @@ return [
         'branding_step2'   => 'On any individual diagram, click <strong>Branding</strong> in the editor toolbar to override one or more slots for that diagram only. The modal\'s input placeholders show what each slot would inherit from the org default, so you can see what you\'re overriding.',
         'branding_step3'   => '<strong>Reset</strong> in the modal clears all overrides on this diagram and re-inherits the org-wide defaults.',
         'branding_tip1'    => '<strong>Available tokens:</strong> <code>{{logo}}</code> (the uploaded company logo), <code>{{title}}</code>, <code>{{author}}</code>, <code>{{version}}</code>, and <code>{{modified}}</code>. Mix tokens with plain text — e.g. <code>Author: {{author}}</code> renders as <em>Author: Ed Mozley</em>.',
-        'branding_tip2'    => '<strong>Page outline required:</strong> the header/footer only renders when a paper size is set via the <strong>Page</strong> dropdown — the outline gives the overlay its anchor points. Turn the page off and the branding hides too.',
+        'branding_tip2'    => '<strong>Page outline required:</strong> the header/footer only renders when a paper size is set via the <strong>Paper</strong> dropdown — the outline gives the overlay its anchor points. Turn the page off and the branding hides too.',
         'branding_tip3'    => '<strong>Empty vs inherit:</strong> a blank slot in the modal is an <em>explicit</em> blank (overrides the org default with nothing). To go back to inheriting, click Reset.',
 
         // 9. Versioning
