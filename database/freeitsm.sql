@@ -12003,7 +12003,7 @@ CREATE TABLE IF NOT EXISTS `consumable_field_values` (
     UNIQUE KEY `uq_consumable_field_value` (`item_id`, `field_id`, `seq`),
     KEY `ix_cfv_field_text` (`field_id`, `value_text`(64)),
     CONSTRAINT `fk_cfv_item` FOREIGN KEY (`item_id`) REFERENCES `consumable_items` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_cfv_field` FOREIGN KEY (`field_id`) REFERENCES `consumable_fields` (`id`)
+    CONSTRAINT `fk_consumable_fv_field` FOREIGN KEY (`field_id`) REFERENCES `consumable_fields` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------

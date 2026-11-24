@@ -63,6 +63,12 @@ jobs:
             exit 1
           fi
 
+      # 2b. Foreign-key names are per DATABASE in MySQL: one name on two tables
+      #     stops a fresh import (the Docker first-run script) dead - 5.8.0's
+      #     fk_cfv_field did exactly that.
+      - name: Foreign-key names are unique
+        run: php tests/constraint-names-unique.php
+
       # 3. The hand-maintained pair: freeitsm.sql vs the Verification schema.
       #    Both are sources of truth and can disagree in either direction, each
       #    breaking a different install.

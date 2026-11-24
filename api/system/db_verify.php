@@ -1292,7 +1292,7 @@ try {
         ['consumable_movements',    'fk_consumable_movements_delivery', 'consumable_deliveries','delivery_id', 'id', 'RESTRICT'],
         ['consumable_field_options','fk_consumable_field_options_field','consumable_fields',    'field_id',    'id', 'CASCADE'],
         ['consumable_field_values', 'fk_cfv_item',                      'consumable_items',     'item_id',     'id', 'CASCADE'],
-        ['consumable_field_values', 'fk_cfv_field',                     'consumable_fields',    'field_id',    'id', 'RESTRICT'],
+        ['consumable_field_values', 'fk_consumable_fv_field',           'consumable_fields',    'field_id',    'id', 'RESTRICT'],
         // GH #200 parts C and D: a connection or a review case goes with either asset.
         ['asset_connections',      'fk_asset_connections_asset',   'assets',            'asset_id',              'id', 'CASCADE'],
         ['asset_connections',      'fk_asset_connections_other',   'assets',            'connected_asset_id',    'id', 'CASCADE'],
