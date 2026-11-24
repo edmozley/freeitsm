@@ -188,10 +188,8 @@ $translationNamespaces = ['common', 'change-management'];
             font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
-        /* GH #435: a field's own name - its standard name beside it, and the pencil that opens the dialog */
+        /* GH #435: a field's own name - its standard name beside it (the edit button is the shared .action-btn) */
         .field-row-std { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
-        .field-rename-btn { background: none; border: 1px solid transparent; border-radius: 4px; padding: 3px 5px; cursor: pointer; color: var(--text-muted, #666); line-height: 0; }
-        .field-rename-btn:hover { border-color: var(--border, #ddd); color: var(--text, #333); }
         .unplaced-fields {
             margin-top: 20px;
             border: 1px dashed var(--warning-border, #e0a800);
@@ -1481,8 +1479,8 @@ $translationNamespaces = ['common', 'change-management'];
                 <div class="field-row" data-field-key="${field.key}" draggable="true">
                     <span class="drag-handle" title="${window.t('change-management.settings.drag_reorder')}">⋮⋮</span>
                     <span class="field-row-label">${escapeHtml(name)}${field.custom_label ? ` <span class="field-row-std">${escapeHtml(window.t('change-management.settings.label_standard', { name: field.standard }))}</span>` : ''}</span>
-                    ${canRename ? `<button type="button" class="field-rename-btn" title="${escapeAttr(window.t('change-management.settings.label_rename'))}" aria-label="${escapeAttr(window.t('change-management.settings.label_rename'))}" onclick="openFieldLabelModal('${field.key}')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                    ${canRename ? `<button type="button" class="action-btn field-rename-btn" title="${escapeAttr(window.t('change-management.settings.label_rename'))}" aria-label="${escapeAttr(window.t('change-management.settings.label_rename'))}" onclick="openFieldLabelModal('${field.key}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>` : ''}
                     ${isUnplaced ? '' : `
                         <label class="toggle-switch" title="${window.t('change-management.settings.toggle_field')}">
