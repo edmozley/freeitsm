@@ -8804,6 +8804,11 @@ CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
     `y`              INT NOT NULL DEFAULT 0,
     `size`           VARCHAR(20) NOT NULL DEFAULT 'medium',
     `icon_override`  VARCHAR(100) NULL,
+    -- GH #433: a node's own colour (#rrggbb; NULL = the normal look) and its box size in
+    -- canvas pixels (NULL = automatic: as wide as the icon, label clamped to two lines).
+    `colour_override` VARCHAR(20) NULL,
+    `w`              INT NULL,
+    `h`              INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_node_diag` (`diagram_id`),

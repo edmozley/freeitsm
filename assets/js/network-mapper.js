@@ -473,6 +473,34 @@
     // =========================================================
     function snap(v) { return Math.round(v / GRID) * GRID; }
 
+    // GH #433: a node's own colour and box size.
+    const NODE_COLOURS = ['#dc2626', '#ea580c', '#d97706', '#16a34a', '#0d9488', '#2563eb', '#7c3aed', '#475569'];
+
+    /** True when the node has its own box size (w/h set), rather than the automatic one. */
+    function hasBoxSize(n) { return !!(n && (n.w || n.h)); }
+
+    /**
+     * A node's outer box in canvas px: its own size, or the automatic one (icon plus padding, with the
+     * label hanging about 40px below). Used to frame fit, centre and export.
+     */
+    function nodeExtent(n) {
+        const sz = NODE_SIZES[n.size] || NODE_SIZES.medium;
+        return { w: n.w || (sz + NODE_PADDING * 2), h: n.h || (sz + NODE_PADDING * 2 + 40) };
+    }
+
+    /** '#rrggbb' as 'rgba(r, g, b, a)' - the soft tint behind a coloured node. */
+    function hexToRgba(hex, a) {
+        const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '');
+        if (!m) return 'transparent';
+        return 'rgba(' + parseInt(m[1], 16) + ', ' + parseInt(m[2], 16) + ', ' + parseInt(m[3], 16) + ', ' + a + ')';
+    }
+
+    /** Left edge of the icon inside its node element - centred when the box has its own width. */
+    function iconOffsetX(n) {
+        const sz = NODE_SIZES[n.size] || NODE_SIZES.medium;
+        return hasBoxSize(n) ? (nodeExtent(n).w - sz) / 2 : NODE_PADDING;
+    }
+
     // Translate a mouse/drag event's client coordinates into model (1×, pre-zoom)
     // coordinates inside the canvas. elCanvas itself is NOT transformed (it
     // provides the scroll viewport + dot-grid background); elCanvasInner is
@@ -701,21 +729,36 @@
         el.style.top  = n.y + 'px';
         el.style.width = sizePx + 'px';
         el.dataset.key = nodeKey(n);
+        if (hasBoxSize(n)) {
+            // GH #433: its own box - the label gets the full width and is no longer cut to two lines.
+            el.classList.add('has-size');
+            el.style.boxSizing = 'border-box';
+            el.style.width = nodeExtent(n).w + 'px';
+            if (n.h) el.style.minHeight = n.h + 'px';
+        }
+        if (n.colour_override) {
+            // GH #433: custom properties, not inline border/background, so the selected ring still wins.
+            el.classList.add('has-colour');
+            el.style.setProperty('--nmc', n.colour_override);
+            el.style.setProperty('--nmc-bg', hexToRgba(n.colour_override, 0.12));
+        }
 
         // Edge-handle positions: anchored to the icon's bounding box (which is
         // sizePx square, offset by NODE_PADDING inside the node element). The
         // label can extend wider/lower than the icon — anchoring to the icon
         // keeps the handles in predictable spots regardless of label length.
         const pad = NODE_PADDING;
-        const cx  = pad + sizePx / 2;
+        const ix  = iconOffsetX(n);          // GH #433: the icon is centred in a box of its own width
+        const cx  = ix + sizePx / 2;
         const cy  = pad + sizePx / 2;
-        const x1  = pad + sizePx;
+        const x1  = ix + sizePx;
         const y1  = pad + sizePx;
         const handleHtml = (diagram && diagram.is_current) ? (
             '<div class="nm-edge-handle" data-side="top"    style="left:' + cx + 'px; top:'  + pad + 'px;"></div>' +
             '<div class="nm-edge-handle" data-side="right"  style="left:' + x1 + 'px; top:'  + cy  + 'px;"></div>' +
             '<div class="nm-edge-handle" data-side="bottom" style="left:' + cx + 'px; top:'  + y1  + 'px;"></div>' +
-            '<div class="nm-edge-handle" data-side="left"   style="left:' + pad + 'px; top:' + cy  + 'px;"></div>'
+            '<div class="nm-edge-handle" data-side="left"   style="left:' + ix + 'px; top:' + cy  + 'px;"></div>' +
+            '<div class="nm-resize-handle" title="' + escapeAttr(t('network-mapper.detail.box_hint')) + '"></div>'
         ) : '';
 
         el.innerHTML =
@@ -733,7 +776,68 @@
         el.querySelectorAll('.nm-edge-handle').forEach(h => {
             h.addEventListener('mousedown', e => startConnectDrag(e, n, h.dataset.side));
         });
+        const rh = el.querySelector('.nm-resize-handle');
+        if (rh) rh.addEventListener('mousedown', e => startNodeResize(e, n));
         return el;
+    }
+
+    /** Swaps one node's element for a freshly built one (after a colour, size or icon size change). */
+    function rerenderNode(n) {
+        const el = elCanvasInner.querySelector('.nm-node[data-key="' + cssEscape(nodeKey(n)) + '"]');
+        if (el) el.replaceWith(buildNodeEl(n));
+    }
+
+    // ---- GH #433: resize a node's box by its bottom-right corner ----
+    let nodeResize = null;
+
+    /** Starts dragging the selected node's corner handle. */
+    function startNodeResize(e, n) {
+        if (e.button !== 0 || !diagram || !diagram.is_current) return;
+        e.stopPropagation();
+        e.preventDefault();
+        const el = e.currentTarget.closest('.nm-node');
+        const sz = NODE_SIZES[n.size] || NODE_SIZES.medium;
+        nodeResize = {
+            key: nodeKey(n),
+            start: canvasModelCoords(e),
+            w: el.offsetWidth,
+            h: el.offsetHeight,
+            minW: sz + NODE_PADDING * 2,
+            minH: sz + NODE_PADDING * 2 + 20,
+            moved: false
+        };
+        document.addEventListener('mousemove', onNodeResizeMove);
+        document.addEventListener('mouseup', onNodeResizeUp);
+    }
+
+    /** Sizes the box to the grid-snapped cursor, never smaller than its icon. */
+    function onNodeResizeMove(e) {
+        if (!nodeResize) return;
+        const n = findNodeByKey(nodeResize.key);
+        if (!n) return;
+        const c = canvasModelCoords(e);
+        const w = Math.min(2000, Math.max(nodeResize.minW, snap(nodeResize.w + c.x - nodeResize.start.x)));
+        const h = Math.min(2000, Math.max(nodeResize.minH, snap(nodeResize.h + c.y - nodeResize.start.y)));
+        if (w === n.w && h === n.h) return;
+        n.w = w;
+        n.h = h;
+        nodeResize.moved = true;
+        rerenderNode(n);
+        renderConnectors();
+    }
+
+    /** Ends a corner drag, marks the diagram dirty and refreshes the side panel's size line. */
+    function onNodeResizeUp() {
+        document.removeEventListener('mousemove', onNodeResizeMove);
+        document.removeEventListener('mouseup', onNodeResizeUp);
+        if (!nodeResize) return;
+        const moved = nodeResize.moved;
+        const n = findNodeByKey(nodeResize.key);
+        nodeResize = null;
+        if (moved) {
+            markDirty();
+            if (n) renderNodeStyleControls(n);
+        }
     }
 
     /**
@@ -766,12 +870,13 @@
         // regardless of label content.
         const sizePx = NODE_SIZES[n.size] || NODE_SIZES.medium;
         const pad = NODE_PADDING;
+        const ix = iconOffsetX(n);   // GH #433: centred when the box has its own width
         return {
-            x: n.x + pad,
+            x: n.x + ix,
             y: n.y + pad,
             w: sizePx,
             h: sizePx,
-            cx: n.x + pad + sizePx / 2,
+            cx: n.x + ix + sizePx / 2,
             cy: n.y + pad + sizePx / 2
         };
     }
@@ -1279,6 +1384,91 @@
         // it's still the latest before rendering.
         if (window.NM_CMDB) loadNodeProperties(n.cmdb_object_id);
         else if (elNdPropertiesSection) elNdPropertiesSection.style.display = 'none';
+        renderNodeStyleControls(n);
+    }
+
+    /**
+     * GH #433: the side panel's Colour, Icon size and Box size rows for one node. Disabled on a
+     * read-only version.
+     */
+    function renderNodeStyleControls(n) {
+        const editable = !!(diagram && diagram.is_current);
+        const colours = document.getElementById('ndColours');
+        if (colours) {
+            const cur = (n.colour_override || '').toLowerCase();
+            let html = NODE_COLOURS.map(c =>
+                '<button type="button" class="nm-swatch' + (c === cur ? ' active' : '') + '" data-colour="' + c + '"'
+                + ' style="background:' + c + ';" title="' + c + '"' + (editable ? '' : ' disabled') + '></button>').join('');
+            const custom = cur && NODE_COLOURS.indexOf(cur) === -1;
+            html += '<label class="nm-swatch-custom' + (custom ? ' active' : '') + '" title="' + escapeAttr(t('network-mapper.detail.colour_custom_title')) + '">'
+                + '<input type="color" value="' + (cur || '#2563eb') + '"' + (editable ? '' : ' disabled') + '></label>';
+            if (editable && cur) {
+                html += '<button type="button" class="nm-detail-icon-btn nm-detail-icon-reset nm-colour-reset" title="'
+                    + escapeAttr(t('network-mapper.detail.colour_reset_title')) + '">' + escapeHtml(t('network-mapper.detail.icon_reset')) + '</button>';
+            }
+            colours.innerHTML = html;
+            colours.querySelectorAll('.nm-swatch').forEach(b => b.addEventListener('click', () => setNodeColour(n, b.dataset.colour)));
+            const input = colours.querySelector('input[type="color"]');
+            if (input) input.addEventListener('change', () => setNodeColour(n, input.value));
+            const reset = colours.querySelector('.nm-colour-reset');
+            if (reset) reset.addEventListener('click', () => setNodeColour(n, null));
+        }
+        const sizes = document.getElementById('ndIconSize');
+        if (sizes) {
+            const curSize = n.size || 'medium';
+            sizes.innerHTML = ['small', 'medium', 'large'].map(s =>
+                '<button type="button" data-size="' + s + '" class="' + (s === curSize ? 'active' : '') + '"' + (editable ? '' : ' disabled') + '>'
+                + escapeHtml(t('network-mapper.detail.size_' + s)) + '</button>').join('');
+            sizes.querySelectorAll('button').forEach(b => b.addEventListener('click', () => setNodeIconSize(n, b.dataset.size)));
+        }
+        const box = document.getElementById('ndBoxSize');
+        if (box) {
+            const ext = nodeExtent(n);
+            box.textContent = hasBoxSize(n)
+                ? t('network-mapper.detail.box_value', { w: ext.w, h: ext.h })
+                : t('network-mapper.detail.box_auto');
+        }
+        const boxReset = document.getElementById('ndBoxReset');
+        if (boxReset) boxReset.style.display = (editable && hasBoxSize(n)) ? '' : 'none';
+        const boxHint = document.getElementById('ndBoxHint');
+        if (boxHint) boxHint.style.display = editable ? '' : 'none';
+    }
+
+    /** Sets (or with null clears) the selected node's colour. */
+    function setNodeColour(n, hex) {
+        if (!diagram || !diagram.is_current) return;
+        const v = hex ? String(hex).toLowerCase() : null;
+        if ((n.colour_override || null) === v) return;
+        n.colour_override = v;
+        rerenderNode(n);
+        markDirty();
+        renderNodeStyleControls(n);
+    }
+
+    /** Changes the selected node's icon size (small / medium / large). */
+    function setNodeIconSize(n, size) {
+        if (!diagram || !diagram.is_current || !NODE_SIZES[size] || (n.size || 'medium') === size) return;
+        n.size = size;
+        // An own box must still fit the bigger icon.
+        const ext = NODE_SIZES[size] + NODE_PADDING * 2;
+        if (n.w && n.w < ext) n.w = snap(ext + GRID / 2);
+        if (n.h && n.h < ext + 20) n.h = snap(ext + 20 + GRID / 2);
+        rerenderNode(n);
+        renderConnectors();
+        markDirty();
+        renderNodeStyleControls(n);
+    }
+
+    /** Puts the selected node's box back to the automatic size. */
+    function resetBoxSize() {
+        const n = selectedNodeKey ? findNodeByKey(selectedNodeKey) : null;
+        if (!n || !diagram || !diagram.is_current || !hasBoxSize(n)) return;
+        n.w = null;
+        n.h = null;
+        rerenderNode(n);
+        renderConnectors();
+        markDirty();
+        renderNodeStyleControls(n);
     }
 
     // ---- CMDB properties (lazy-loaded per selection) ----
@@ -1597,8 +1787,9 @@
         // the count so a big pull-in doesn't crowd. Angles start at 12 o'clock
         // and walk clockwise; existing nodes get nudged onto the grid if they
         // collide with another node.
-        const srcCx = src.x + NODE_PADDING + (NODE_SIZES[src.size] || NODE_SIZES.medium) / 2;
-        const srcCy = src.y + NODE_PADDING + (NODE_SIZES[src.size] || NODE_SIZES.medium) / 2;
+        const srcBox = nodeIconBBox(src);
+        const srcCx = srcBox.cx;
+        const srcCy = srcBox.cy;
         const iconPx = NODE_SIZES.medium;
         const baseRadius = 180;
         const radius = Math.max(baseRadius, baseRadius + (newPlacements.length - 6) * 12);
@@ -2395,7 +2586,10 @@
                         cmdb_object_id: n.cmdb_object_id,
                         x: n.x, y: n.y,
                         size: n.size || 'medium',
-                        icon_override: n.icon_override || null
+                        icon_override: n.icon_override || null,
+                        colour_override: n.colour_override || null,   // GH #433
+                        w: n.w || null,
+                        h: n.h || null
                     })),
                     connectors: connectors.map(c => ({
                         from_node_id: c.from_node_id,
@@ -2672,12 +2866,12 @@
             if (dims) { contentW = dims.w; contentH = dims.h; }
         }
         if ((!contentW || !contentH) && nodes.length) {
-            // Bounding box of placed nodes (approximate — uses medium icon size).
-            const sz = NODE_SIZES.medium;
+            // Bounding box of placed nodes, each by its own box (GH #433).
             let maxX = 0, maxY = 0;
             nodes.forEach(n => {
-                if (n.x + sz > maxX) maxX = n.x + sz;
-                if (n.y + sz > maxY) maxY = n.y + sz;
+                const ext = nodeExtent(n);
+                if (n.x + ext.w > maxX) maxX = n.x + ext.w;
+                if (n.y + ext.h > maxY) maxY = n.y + ext.h;
             });
             contentW = maxX;
             contentH = maxY;
@@ -2788,13 +2982,13 @@
         // Bounding box including the label that hangs ~40px below the icon
         // (mirrors the approximation in computeExportRect so centring and
         // exporting agree on what "the diagram" extends to).
-        const sz = NODE_SIZES.medium;
         let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
         nodes.forEach(n => {
+            const ext = nodeExtent(n);   // GH #433: each node's own box, label included
             if (n.x < minX) minX = n.x;
             if (n.y < minY) minY = n.y;
-            if (n.x + sz > maxX) maxX = n.x + sz;
-            if (n.y + sz + 40 > maxY) maxY = n.y + sz + 40;
+            if (n.x + ext.w > maxX) maxX = n.x + ext.w;
+            if (n.y + ext.h > maxY) maxY = n.y + ext.h;
         });
         const bboxW = maxX - minX;
         const bboxH = maxY - minY;
@@ -2857,13 +3051,13 @@
         // Bounding box of nodes — approximate using medium icon size, +40px
         // for the label below the icon so it isn't clipped. Pad each side
         // by 40px so the export doesn't feel cramped at the edges.
-        const sz = NODE_SIZES.medium;
         let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
         nodes.forEach(n => {
+            const ext = nodeExtent(n);   // GH #433: each node's own box, label included
             if (n.x < minX) minX = n.x;
             if (n.y < minY) minY = n.y;
-            if (n.x + sz > maxX) maxX = n.x + sz;
-            if (n.y + sz + 40 > maxY) maxY = n.y + sz + 40;
+            if (n.x + ext.w > maxX) maxX = n.x + ext.w;
+            if (n.y + ext.h > maxY) maxY = n.y + ext.h;
         });
         const PAD = 40;
         const x = Math.max(0, minX - PAD);
@@ -3040,6 +3234,8 @@
         closeIconPicker,
         onIconSearchInput,
         resetIconOverride,
+        // node box size (GH #433)
+        resetBoxSize,
         // branding (header/footer overrides per diagram)
         openBrandingModal,
         closeBrandingModal,

@@ -536,6 +536,69 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             stroke: #06b6d4;
             stroke-width: 2.5;
         }
+        /* GH #433: a node's own colour (border, icon, soft tint) and box size */
+        .nm-node.has-colour { border-color: var(--nmc); background: var(--nmc-bg); }
+        .nm-node.has-colour:hover { border-color: var(--nmc); }
+        .nm-node.has-colour .nm-node-icon { color: var(--nmc); }
+        .nm-node.has-colour.selected { border-color: #06b6d4; }
+        .nm-node.has-size .nm-node-label {
+            max-width: 100%;
+            display: block;
+            -webkit-line-clamp: unset;
+            line-clamp: unset;
+            overflow: visible;
+        }
+        .nm-resize-handle {
+            position: absolute;
+            right: -6px;
+            bottom: -6px;
+            width: 11px;
+            height: 11px;
+            background: var(--surface, #fff);
+            border: 1.5px solid #06b6d4;
+            border-radius: 2px;
+            cursor: nwse-resize;
+            display: none;
+            z-index: 4;
+        }
+        .nm-node.selected .nm-resize-handle { display: block; }
+        .nm-editor.is-presenting .nm-resize-handle,
+        .nm-canvas-inner.is-exporting .nm-resize-handle { display: none !important; }
+        .nm-swatches { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; justify-content: flex-end; }
+        .nm-swatch {
+            width: 18px;
+            height: 18px;
+            padding: 0;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+            cursor: pointer;
+        }
+        .nm-swatch.active { border-color: var(--text, #111827); }
+        .nm-swatch:disabled { cursor: default; opacity: 0.6; }
+        .nm-swatch-custom {
+            display: inline-flex;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        .nm-swatch-custom.active { border-color: var(--text, #111827); }
+        .nm-swatch-custom input { width: 24px; height: 20px; padding: 0; border: none; background: none; cursor: pointer; }
+        .nm-seg { display: inline-flex; border: 1px solid var(--border, #e5e7eb); border-radius: 4px; overflow: hidden; }
+        .nm-seg button {
+            background: var(--surface, #fff);
+            border: none;
+            padding: 3px 9px;
+            font-size: var(--font-size-xs, 11px);
+            font-family: inherit;
+            color: var(--text-dim, #6b7280);
+            cursor: pointer;
+        }
+        .nm-seg button + button { border-left: 1px solid var(--border, #e5e7eb); }
+        .nm-seg button.active { color: #0e7490; font-weight: 600; background: var(--nm-accent-soft, #ecfeff); }
+        .nm-seg button:disabled { cursor: default; }
+        .nm-detail-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 2px 0 6px; }
+
         .nm-connector-line.dashed {
             stroke-dasharray: 6 4;
         }
@@ -1574,6 +1637,23 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                                 <button class="nm-detail-icon-btn nm-detail-icon-reset" id="ndIconResetBtn" onclick="NM.resetIconOverride()" title="<?php echo htmlspecialchars(t('network-mapper.detail.icon_reset_title')); ?>" style="display:none;"><?php echo htmlspecialchars(t('network-mapper.detail.icon_reset')); ?></button>
                             </span>
                         </div>
+                        <?php /* GH #433: the node's own colour, icon size and box size */ ?>
+                        <div class="nm-detail-field">
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.colour')); ?></span>
+                            <span class="nm-detail-value nm-swatches" id="ndColours"></span>
+                        </div>
+                        <div class="nm-detail-field">
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.icon_size')); ?></span>
+                            <span class="nm-detail-value"><span class="nm-seg" id="ndIconSize"></span></span>
+                        </div>
+                        <div class="nm-detail-field">
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.box')); ?></span>
+                            <span class="nm-detail-value nm-detail-icon-row">
+                                <span id="ndBoxSize"></span>
+                                <button class="nm-detail-icon-btn nm-detail-icon-reset" id="ndBoxReset" onclick="NM.resetBoxSize()" title="<?php echo htmlspecialchars(t('network-mapper.detail.box_reset_title')); ?>" style="display:none;"><?php echo htmlspecialchars(t('network-mapper.detail.icon_reset')); ?></button>
+                            </span>
+                        </div>
+                        <div class="nm-detail-hint" id="ndBoxHint"><?php echo htmlspecialchars(t('network-mapper.detail.box_hint')); ?></div>
                     </div>
                     <div class="nm-detail-section" id="ndPropertiesSection" style="display:none;">
                         <div class="nm-detail-section-header"><?php echo htmlspecialchars(t('network-mapper.detail.properties')); ?> <span class="nm-detail-section-sub"><?php echo htmlspecialchars(t('network-mapper.detail.properties_from')); ?></span></div>
@@ -1749,7 +1829,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
-    <script src="../assets/js/network-mapper.js?v=9"></script>
+    <script src="../assets/js/network-mapper.js?v=10"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

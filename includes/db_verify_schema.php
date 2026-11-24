@@ -5939,6 +5939,9 @@ return [
         'y'              => 'INT NOT NULL DEFAULT 0',
         'size'           => "VARCHAR(20) NOT NULL DEFAULT 'medium'",
         'icon_override'  => 'VARCHAR(100) NULL',
+        'colour_override' => 'VARCHAR(20) NULL',   // GH #433: #rrggbb, NULL = normal look
+        'w'              => 'INT NULL',            // GH #433: box size in canvas px, NULL = automatic
+        'h'              => 'INT NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 

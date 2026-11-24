@@ -221,10 +221,12 @@ class NetworkMapperService
             $nodes = $conn->prepare("SELECT * FROM network_diagram_nodes WHERE diagram_id = ? ORDER BY id");
             $nodes->execute([$parentId]);
             $insertNode = $conn->prepare(
-                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override) VALUES (?, ?, ?, ?, ?, ?)"
+                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             foreach ($nodes->fetchAll(PDO::FETCH_ASSOC) as $n) {
-                $insertNode->execute([$newId, (int)$n['cmdb_object_id'], (int)$n['x'], (int)$n['y'], $n['size'], $n['icon_override']]);
+                // GH #433: colour and box size travel into the new version too.
+                $insertNode->execute([$newId, (int)$n['cmdb_object_id'], (int)$n['x'], (int)$n['y'], $n['size'], $n['icon_override'],
+                                      $n['colour_override'] ?? null, $n['w'] ?? null, $n['h'] ?? null]);
                 $nodeMap[(int)$n['id']] = (int)$conn->lastInsertId();
             }
             $conns = $conn->prepare("SELECT * FROM network_diagram_connectors WHERE diagram_id = ? ORDER BY id");
@@ -360,7 +362,7 @@ class NetworkMapperService
      * Full contents replace (delete + reinsert; ref-based connector wiring, strict validation).
      *
      * @param int $diagramId  the diagram whose nodes and connectors are replaced
-     * @param array $nodesIn  [{cmdb_object_id, x?, y?, size?, icon_override?, ref?}] - nodes with no x/y are placed automatically
+     * @param array $nodesIn  [{cmdb_object_id, x?, y?, size?, icon_override?, colour_override?, w?, h?, ref?}] - nodes with no x/y are placed automatically
      * @param array $connectorsIn  [{from_ref | from_object_id, to_ref | to_object_id, cmdb_relationship_id?, label?, line_style?}]
      */
     private static function replaceContents(PDO $conn, ActorContext $ctx, int $diagramId, array $nodesIn, array $connectorsIn): void
@@ -372,13 +374,13 @@ class NetworkMapperService
         $refMap = [];
         $objectMap = [];
         $insertNode = $conn->prepare(
-            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override) VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         foreach (array_values($nodesIn) as $i => $n) {
             if (!is_array($n)) {
                 throw new ServiceError('validation', 'invalid_field', "nodes[{$i}] must be an object.");
             }
-            [$objectId, $x, $y, $size, $icon, $ref] = self::validateNodeInput($conn, $ctx, $n, $i);
+            [$objectId, $x, $y, $size, $icon, $ref, $colour, $w, $h] = self::validateNodeInput($conn, $ctx, $n, $i);
             if ($x === null || $y === null) {
                 if ($place === null) {
                     $place = self::autoPlacer($conn, $diagramId);
@@ -387,7 +389,7 @@ class NetworkMapperService
                 $x = $x ?? $ax;
                 $y = $y ?? $ay;
             }
-            $insertNode->execute([$diagramId, $objectId, $x, $y, $size, $icon]);
+            $insertNode->execute([$diagramId, $objectId, $x, $y, $size, $icon, $colour, $w, $h]);
             $newId = (int)$conn->lastInsertId();
             if ($ref !== null) {
                 $refMap[$ref] = $newId;
@@ -438,7 +440,7 @@ class NetworkMapperService
     }
 
     /**
-     * Validate one node input row. Returns [objectId, x|null, y|null, size, icon, ref].
+     * Validate one node input row. Returns [objectId, x|null, y|null, size, icon, ref, colour|null, w|null, h|null].
      *
      * @param array $n  one node from the request
      * @param int $index  its position in the nodes list, for error messages
@@ -457,6 +459,22 @@ class NetworkMapperService
         }
         $hasX = array_key_exists('x', $n) && $n['x'] !== null && $n['x'] !== '';
         $hasY = array_key_exists('y', $n) && $n['y'] !== null && $n['y'] !== '';
+        // GH #433: a node's own colour and box size - all optional, NULL = the normal look.
+        $colour = null;
+        if (isset($n['colour_override']) && trim((string)$n['colour_override']) !== '') {
+            $colour = strtolower(trim((string)$n['colour_override']));
+            if (!preg_match('/^#[0-9a-f]{6}$/', $colour)) {
+                throw new ServiceError('validation', 'invalid_field', "nodes[{$index}]: 'colour_override' must be a colour like #2563eb.");
+            }
+        }
+        $dim = function (string $k) use ($n, $index): ?int {
+            if (!isset($n[$k]) || $n[$k] === '') return null;
+            $v = (int)$n[$k];
+            if ($v < 20 || $v > 2000) {
+                throw new ServiceError('validation', 'invalid_field', "nodes[{$index}]: '{$k}' must be between 20 and 2000.");
+            }
+            return $v;
+        };
         return [
             $objectId,
             $hasX ? (int)$n['x'] : null,
@@ -464,6 +482,9 @@ class NetworkMapperService
             $size,
             $icon,
             isset($n['ref']) ? (string)$n['ref'] : null,
+            $colour,
+            $dim('w'),
+            $dim('h'),
         ];
     }
 

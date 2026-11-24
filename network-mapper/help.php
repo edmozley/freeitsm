@@ -188,6 +188,7 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note"><?php echo t('network-mapper.help.placing_tip1'); ?></p>
                     <p class="help-note"><?php echo t('network-mapper.help.placing_tip2'); ?></p>
                     <p class="help-note"><?php echo t('network-mapper.help.placing_tip_class_icon'); ?></p>
+                    <p class="help-note"><?php echo t('network-mapper.help.placing_tip_style'); ?></p>
                 </div>
 
                 <!-- 4. Connectors -->

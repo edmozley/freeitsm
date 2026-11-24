@@ -150,6 +150,19 @@ return [
         'icon_change_title'=> 'Pick a different icon for this node',
         'icon_reset'       => 'Reset',
         'icon_reset_title' => 'Use the class default icon',
+        // GH #433: the node's own colour, icon size and box size
+        'colour'           => 'Colour',
+        'colour_custom_title' => 'Pick any colour',
+        'colour_reset_title'  => 'Back to the normal colour',
+        'icon_size'        => 'Icon size',
+        'size_small'       => 'Small',
+        'size_medium'      => 'Medium',
+        'size_large'       => 'Large',
+        'box'              => 'Box size',
+        'box_auto'         => 'Automatic',
+        'box_value'        => '{w} × {h}',
+        'box_reset_title'  => 'Back to the automatic size',
+        'box_hint'         => 'Drag the corner of the selected box to resize it, so a long name fits.',
         'properties'       => 'Properties',
         'properties_from'  => 'from CMDB',
         'properties_loading' => 'Loading properties…',
@@ -470,6 +483,7 @@ return [
         'placing_tip1'     => '<strong>Already on the canvas?</strong> Objects you\'ve already placed are filtered out of the picker so you can\'t accidentally place the same object twice on one diagram.',
         'placing_tip2'     => '<strong>Per-node icon override:</strong> by default every node uses its CMDB class\'s icon. If you want to distinguish two objects of the same class visually (e.g. "Production MS SQL" vs "Reporting Oracle", both Database Server), select the node, open the detail panel, and click <strong>Change</strong> next to the Icon row — pick from ~65 icons grouped into 12 categories. Reset clears the override and goes back to the class default.',
         'placing_tip_class_icon' => '<strong>Default icon per class:</strong> set it once in <strong>CMDB → Settings → Classes</strong> - edit a class and pick an <strong>Icon</strong> - and every node of that class uses it.',
+        'placing_tip_style' => '<strong>Colour and size:</strong> select a node and use <strong>Colour</strong>, <strong>Icon size</strong> and <strong>Box size</strong> in the side panel. Drag the small square at the corner of the selected box to make it bigger, so a long name fits on the diagram instead of being cut short.',
 
         // 4. Connectors
         'connectors_title' => 'Drawing connectors',

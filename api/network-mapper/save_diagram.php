@@ -49,6 +49,9 @@ try {
                 'y'             => $n['y'] ?? null,
                 'size'          => $n['size'] ?? null,
                 'icon_override' => $n['icon_override'] ?? null,
+                'colour_override' => $n['colour_override'] ?? null,   // GH #433
+                'w'             => $n['w'] ?? null,
+                'h'             => $n['h'] ?? null,
                 'ref'           => (string)$ref,
             ];
         }

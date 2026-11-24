@@ -8,7 +8,7 @@
  *   diagram   { id, parent_diagram_id, title, description, version_label,
  *               author_id, author_name, created_at, updated_at, is_current }
  *   nodes     [{ id, cmdb_object_id, name, class_id, class_name, class_icon,
- *                is_planned, x, y, size, icon_override }]
+ *                is_planned, x, y, size, icon_override, colour_override, w, h }]
  *   connectors[{ id, from_node_id, to_node_id, cmdb_relationship_id,
  *                label, line_style }]
  */
@@ -69,7 +69,7 @@ try {
     // Closing it properly means giving diagrams their own company — that's the
     // first thing Network Mapper's own multi-tenancy slice should do.
     $nstmt = $conn->prepare(
-        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override,
+        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h,
                 o.name, o.is_planned,
                 c.id AS class_id, c.name AS class_name, i.icon_key AS class_icon
            FROM network_diagram_nodes n
@@ -87,6 +87,8 @@ try {
         $n['class_id'] = (int)$n['class_id'];
         $n['x'] = (int)$n['x'];
         $n['y'] = (int)$n['y'];
+        $n['w'] = $n['w'] !== null ? (int)$n['w'] : null;
+        $n['h'] = $n['h'] !== null ? (int)$n['h'] : null;
         $n['is_planned'] = (int)$n['is_planned'] === 1;
     }
 

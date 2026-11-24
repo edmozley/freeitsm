@@ -62,6 +62,18 @@ return [
         'check'    => ['rows', 'network_diagram_nodes', 'icon_override IS NOT NULL AND is_demo = 0'],
     ],
     [
+        'id'       => 'network-mapper.node_colours_sizes',
+        'module'   => 'network-mapper',
+        'tier'     => 'extra',
+        'category' => 'look',
+        'title'    => 'Coloured and resized nodes',
+        'what'     => 'Giving a node its own colour, or dragging its corner so the box is bigger and a long name fits (GH #433).',
+        'why'      => 'Colour groups what belongs together - production in red, a site in blue - and a bigger box stops long names being cut short.',
+        'done'     => 'At least one node has its own colour or box size (demo data not counted).',
+        'link'     => 'network-mapper/',
+        'check'    => ['rows', 'network_diagram_nodes', '(colour_override IS NOT NULL OR w IS NOT NULL OR h IS NOT NULL) AND is_demo = 0'],
+    ],
+    [
         'id'       => 'network-mapper.versions',
         'module'   => 'network-mapper',
         'tier'     => 'extra',
