@@ -69,7 +69,7 @@ try {
     // Closing it properly means giving diagrams their own company — that's the
     // first thing Network Mapper's own multi-tenancy slice should do.
     $nstmt = $conn->prepare(
-        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h, n.style,
+        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h, n.style, n.page_key, n.layer_key,
                 o.name, o.is_planned,
                 c.id AS class_id, c.name AS class_name, i.icon_key AS class_icon
            FROM network_diagram_nodes n
@@ -90,6 +90,8 @@ try {
         $n['w'] = $n['w'] !== null ? (int)$n['w'] : null;
         $n['h'] = $n['h'] !== null ? (int)$n['h'] : null;
         $n['style'] = $n['style'] !== null ? (json_decode($n['style'], true) ?: null) : null;   // GH #433
+        $n['page_key'] = (int)$n['page_key'];
+        $n['layer_key'] = (int)$n['layer_key'];
         $n['is_planned'] = (int)$n['is_planned'] === 1;
     }
 
@@ -114,7 +116,7 @@ try {
     try {
         try {
             $sstmt = $conn->prepare(
-                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key
                    FROM network_diagram_shapes
                   WHERE diagram_id = ?
                ORDER BY z, id"
@@ -123,7 +125,7 @@ try {
         } catch (PDOException $e) {
             // icon_id arrived after the shapes table - an install between the two still opens.
             $sstmt = $conn->prepare(
-                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id, 0 AS page_key, 0 AS layer_key
                    FROM network_diagram_shapes
                   WHERE diagram_id = ?
                ORDER BY z, id"
@@ -131,7 +133,7 @@ try {
             $sstmt->execute([$id]);
         }
         foreach ($sstmt->fetchAll(PDO::FETCH_ASSOC) as $s) {
-            foreach (['id', 'x', 'y', 'w', 'h', 'rotation', 'z'] as $k) $s[$k] = (int)$s[$k];
+            foreach (['id', 'x', 'y', 'w', 'h', 'rotation', 'z', 'page_key', 'layer_key'] as $k) $s[$k] = (int)$s[$k];
             $s['style'] = $s['style'] !== null ? (json_decode($s['style'], true) ?: null) : null;
             $s['icon_id'] = $s['icon_id'] !== null ? (int)$s['icon_id'] : null;
             $shapes[] = $s;
@@ -140,7 +142,25 @@ try {
         $shapes = [];
     }
 
-    echo json_encode(['success' => true, 'diagram' => $d, 'nodes' => $nodes, 'connectors' => $conns, 'shapes' => $shapes]);
+    // GH #433: pages (tabs) and layers. None yet = one page with one layer, made by the editor.
+    $pages = []; $layers = [];
+    try {
+        $ps = $conn->prepare("SELECT page_key, name, sort FROM network_diagram_pages WHERE diagram_id = ? ORDER BY sort, page_key");
+        $ps->execute([$id]);
+        foreach ($ps->fetchAll(PDO::FETCH_ASSOC) as $p) {
+            $pages[] = ['page_key' => (int)$p['page_key'], 'name' => $p['name'], 'sort' => (int)$p['sort']];
+        }
+        $ls = $conn->prepare("SELECT page_key, layer_key, name, sort, visible, locked FROM network_diagram_layers WHERE diagram_id = ? ORDER BY page_key, sort, layer_key");
+        $ls->execute([$id]);
+        foreach ($ls->fetchAll(PDO::FETCH_ASSOC) as $l) {
+            $layers[] = ['page_key' => (int)$l['page_key'], 'layer_key' => (int)$l['layer_key'], 'name' => $l['name'],
+                         'sort' => (int)$l['sort'], 'visible' => (int)$l['visible'] === 1, 'locked' => (int)$l['locked'] === 1];
+        }
+    } catch (PDOException $e) {
+        $pages = []; $layers = [];
+    }
+
+    echo json_encode(['success' => true, 'diagram' => $d, 'nodes' => $nodes, 'connectors' => $conns, 'shapes' => $shapes, 'pages' => $pages, 'layers' => $layers]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

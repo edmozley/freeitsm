@@ -8813,6 +8813,11 @@ CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
     -- rounded corners, font) - only the keys that differ from the normal look.
     -- NetworkMapperService::sanitiseStyle() whitelists every key. NULL = normal.
     `style`          TEXT NULL,
+    -- Pages and layers: which page (network_diagram_pages.page_key) and which layer on it
+    -- (network_diagram_layers.layer_key) the node is on. 0 / 0 = the first page and its
+    -- first layer, which every diagram has even before it has any page rows.
+    `page_key`       INT NOT NULL DEFAULT 0,
+    `layer_key`      INT NOT NULL DEFAULT 0,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_node_diag` (`diagram_id`),
@@ -8862,11 +8867,42 @@ CREATE TABLE IF NOT EXISTS `network_diagram_shapes` (
     -- An icon from an imported icon library (shape_type 'icon'); NULL for drawn shapes, and
     -- for an icon whose library was removed (the shape keeps its place, loses the picture).
     `icon_id`        INT NULL,
+    `page_key`       INT NOT NULL DEFAULT 0,   -- as network_diagram_nodes.page_key
+    `layer_key`      INT NOT NULL DEFAULT 0,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_shape_diag` (`diagram_id`),
     KEY `ix_net_shape_icon` (`icon_id`),
     CONSTRAINT `fk_net_shape_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Pages and layers: a diagram has tabs (pages); each page has layers that can be hidden or
+-- locked. Items carry page_key / layer_key - small numbers stable across saves and versions
+-- (rows are replaced on every save, ids are not stable). A diagram with no rows here is one
+-- page with one layer, key 0 / 0. sort orders tabs left to right and layers bottom to top.
+CREATE TABLE IF NOT EXISTS `network_diagram_pages` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`  INT NOT NULL,
+    `page_key`    INT NOT NULL DEFAULT 0,
+    `name`        VARCHAR(100) NOT NULL,
+    `sort`        INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_page` (`diagram_id`, `page_key`),
+    CONSTRAINT `fk_net_page_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `network_diagram_layers` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`  INT NOT NULL,
+    `page_key`    INT NOT NULL DEFAULT 0,
+    `layer_key`   INT NOT NULL DEFAULT 0,
+    `name`        VARCHAR(100) NOT NULL,
+    `sort`        INT NOT NULL DEFAULT 0,
+    `visible`     TINYINT(1) NOT NULL DEFAULT 1,
+    `locked`      TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_layer` (`diagram_id`, `page_key`, `layer_key`),
+    CONSTRAINT `fk_net_layer_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Icon libraries imported from icons.diagrams.net (draw.io's icon catalogue). The icons are

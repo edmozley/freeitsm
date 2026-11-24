@@ -600,6 +600,68 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-seg button:disabled { cursor: default; }
         .nm-detail-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 2px 0 6px; }
 
+        /* ---- GH #433: pages (tab bar under the canvas) and layers ---- */
+        .nm-canvas-col { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+        .nm-page-tabs {
+            display: flex; align-items: stretch; gap: 2px; flex-shrink: 0; overflow-x: auto;
+            padding: 0 8px; background: var(--surface-2, #fafbfc); border-top: 1px solid var(--border, #e5e7eb);
+            scrollbar-width: thin;
+        }
+        .nm-page-tab, .nm-page-add {
+            background: transparent; border: none; border-top: 2px solid transparent;
+            padding: 6px 14px; font: inherit; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280);
+            cursor: pointer; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+        }
+        .nm-page-tab:hover, .nm-page-add:hover { color: var(--text, #111827); background: var(--surface-hover, #f3f4f6); }
+        .nm-page-tab.active { color: var(--text, #111827); font-weight: 600; background: var(--surface, #fff); border-top-color: var(--nm-accent, #06b6d4); }
+        .nm-page-add { font-size: var(--font-size-lg, 15px); padding: 4px 12px; }
+        .nm-page-rename, .nm-layer-rename {
+            font: inherit; font-size: var(--font-size-sm, 12px); padding: 3px 6px; margin: 3px 0;
+            border: 1px solid var(--nm-accent, #06b6d4); border-radius: 3px; background: var(--surface, #fff); color: var(--text, #111827); width: 150px;
+        }
+        .nm-page-menu {
+            position: fixed; z-index: 1100; display: flex; flex-direction: column; min-width: 150px;
+            background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 4px 0;
+        }
+        .nm-page-menu button {
+            background: none; border: none; text-align: left; padding: 7px 14px; font: inherit;
+            font-size: var(--font-size-sm, 12px); color: var(--text, #111827); cursor: pointer;
+        }
+        .nm-page-menu button:hover:not(:disabled) { background: var(--surface-hover, #f3f4f6); }
+        .nm-page-menu button:disabled { color: var(--text-faint, #9ca3af); cursor: default; }
+        .nm-editor.is-presenting .nm-page-tabs { display: none; }
+
+        .nm-layers-dropdown { width: 320px; padding: 6px 0; right: 0; left: auto; }
+        .nm-layers-head {
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            color: var(--text-dim, #6b7280); padding: 6px 12px 8px;
+        }
+        .nm-layer-row { display: flex; align-items: center; gap: 4px; padding: 4px 8px 4px 6px; cursor: pointer; border-left: 3px solid transparent; }
+        .nm-layer-row:hover { background: var(--surface-hover, #f9fafb); }
+        .nm-layer-row.active { background: var(--nm-accent-soft, #ecfeff); border-left-color: var(--nm-accent, #06b6d4); }
+        .nm-layer-row.is-hidden .nm-layer-name { color: var(--text-faint, #9ca3af); text-decoration: line-through; }
+        .nm-layer-ico {
+            background: none; border: none; padding: 3px; border-radius: 3px; cursor: pointer; line-height: 1;
+            color: var(--text-dim, #6b7280); display: inline-flex; align-items: center; font-size: 10px;
+        }
+        .nm-layer-ico:hover:not(:disabled) { background: var(--border, #e5e7eb); color: var(--text, #111827); }
+        .nm-layer-ico:disabled { opacity: 0.35; cursor: default; }
+        .nm-layer-ico.on { color: #b45309; }
+        .nm-layer-del { font-size: 15px; }
+        .nm-layer-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-md, 13px); color: var(--text, #111827); }
+        .nm-layer-count { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); min-width: 18px; text-align: right; }
+        .nm-layers-add {
+            display: block; width: calc(100% - 16px); margin: 6px 8px 2px; padding: 6px; text-align: left;
+            background: none; border: 1px dashed var(--border, #e5e7eb); border-radius: 4px; cursor: pointer;
+            font: inherit; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280);
+        }
+        .nm-layers-add:hover { color: var(--text, #111827); border-color: var(--nm-accent, #06b6d4); }
+        .nm-layers-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 6px 12px 4px; line-height: 1.4; }
+        .nm-layers-count { display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 5px; border-radius: 999px; background: var(--border, #e5e7eb); font-size: var(--font-size-xs, 11px); }
+        /* A locked layer's items can be seen, not picked up */
+        .nm-node.is-locked, .nm-shape.is-locked { pointer-events: none; }
+
         /* ---- GH #433: icons from imported libraries, and the library browser ---- */
         .nm-shape-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         .nm-shape.is-missing { outline: 1px dashed #94a3b8; }
@@ -1748,6 +1810,12 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                     </button>
                     <div class="nm-versions-dropdown" id="pageDropdown" style="display:none;"></div>
                 </div>
+                <div class="nm-versions-wrap">   <?php /* GH #433: layers of the current page */ ?>
+                    <button class="nm-btn secondary" id="layersBtn" onclick="NM.toggleLayersPanel(event)" title="<?php echo htmlspecialchars(t('network-mapper.layers.button_title')); ?>">
+                        <?php echo htmlspecialchars(t('network-mapper.layers.button')); ?><span class="nm-layers-count" id="layersBtnCount">1</span>
+                    </button>
+                    <div class="nm-versions-dropdown nm-layers-dropdown" id="layersDropdown" style="display:none;"></div>
+                </div>
                 <div class="nm-zoom-group" role="group" aria-label="Zoom">
                     <button class="nm-btn secondary nm-zoom-btn" id="zoomOutBtn" onclick="NM.zoomOut()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_out')); ?>">&minus;</button>
                     <button class="nm-btn secondary nm-zoom-label" id="zoomLabel" onclick="NM.zoomReset()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_reset_title')); ?>">100%</button>
@@ -1806,6 +1874,8 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                     <div class="nm-shape-palette-body" id="shapePaletteBody"></div>
                 </div>
             </aside>
+            <?php /* GH #433: the canvas and, under it, the page tabs */ ?>
+            <div class="nm-canvas-col">
             <div class="nm-canvas" id="canvas">
                 <!-- Invisible spacer that drives the scrollable area when zoomed:
                      CSS `transform` doesn't affect layout, so without this the
@@ -1823,6 +1893,8 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                         <p><?php echo htmlspecialchars(t('network-mapper.editor.canvas_empty_body')); ?></p>
                     </div>
                 </div>
+            </div>
+            <div class="nm-page-tabs" id="pageTabs" role="tablist" aria-label="<?php echo htmlspecialchars(t('network-mapper.pages.bar_label')); ?>"></div>
             </div>
             <!-- Floating Exit pill in Present mode (hidden until .nm-editor.is-presenting) -->
             <button class="nm-present-exit" id="presentExitBtn" onclick="NM.exitPresent()" title="<?php echo htmlspecialchars(t('network-mapper.editor.present_exit_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.present_exit')); ?></button>
@@ -1872,6 +1944,10 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                             </span>
                         </div>
                         <div class="nm-detail-hint" id="ndBoxHint"><?php echo htmlspecialchars(t('network-mapper.detail.box_hint')); ?></div>
+                        <div class="nm-detail-field">   <?php /* GH #433 */ ?>
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.layers.field')); ?></span>
+                            <span class="nm-detail-value" id="ndLayer"></span>
+                        </div>
                     </div>
                     <div class="nm-detail-section" id="ndStyle"></div>   <?php /* GH #433: filled by renderNodeStyleEditor() */ ?>
                     <div class="nm-detail-section" id="ndPropertiesSection" style="display:none;">
@@ -2089,7 +2165,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=13"></script>
+    <script src="../assets/js/network-mapper.js?v=14"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

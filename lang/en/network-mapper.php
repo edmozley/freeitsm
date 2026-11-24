@@ -417,6 +417,42 @@ return [
         'name_icon' => 'Icon',
     ],
 
+    // GH #433: pages - the tabs under the canvas
+    'pages' => [
+        'default_name'   => 'Page {n}',
+        'copy_name'      => '{name} (copy)',
+        'bar_label'      => 'Pages',
+        'tab_title'      => 'Double-click to rename; right-click for more',
+        'add'            => 'Add page',
+        'rename'         => 'Rename',
+        'duplicate'      => 'Duplicate',
+        'move_left'      => 'Move left',
+        'move_right'     => 'Move right',
+        'delete'         => 'Delete page',
+        'delete_confirm' => 'Delete the page "{name}" and everything on it?',
+    ],
+
+    // GH #433: layers of a page (the Layers button)
+    'layers' => [
+        'button'         => 'Layers',
+        'button_title'   => 'Layers on this page - show, hide, lock and order them',
+        'title'          => 'Layers on this page',
+        'default_name'   => 'Layer {n}',
+        'add'            => 'Add layer',
+        'hint'           => 'New items go on the highlighted layer. A hidden layer is left out of exports; a locked one cannot be moved or changed.',
+        'show'           => 'Show',
+        'hide'           => 'Hide',
+        'lock'           => 'Lock',
+        'unlock'         => 'Unlock',
+        'up'             => 'Move up',
+        'down'           => 'Move down',
+        'delete'         => 'Delete layer',
+        'name_title'     => 'Double-click to rename',
+        'delete_confirm' => 'Delete the layer "{name}"? What is on it moves to "{to}".',
+        'field'          => 'Layer',
+        'placement'      => 'Placement',
+    ],
+
     // GH #433: icon libraries from icons.diagrams.net (Shapes tab + the Libraries browser)
     'iconlib' => [
         'button'          => 'Libraries',
@@ -616,6 +652,7 @@ return [
         'nav_placing'      => 'Placing nodes',
         'nav_connectors'   => 'Drawing connectors',
         'nav_shapes'       => 'Shapes and styling',
+        'nav_pages' => 'Pages and layers',
         'nav_related'      => 'Adding related objects',
         'nav_planned'      => 'Planned objects',
         'nav_paper'        => 'Page size guide',
@@ -676,6 +713,13 @@ return [
         'shapes_tip_nodes' => '<strong>Style a CMDB node too:</strong> select it and use the <strong>Style</strong> section in its side panel - the same fill, border, shadow, corner and font controls. <strong>Reset</strong> puts it back to the normal look.',
         'shapes_tip_icons' => '<strong>Icon libraries:</strong> on the <strong>Shapes</strong> tab, <strong>Libraries</strong> opens the draw.io icon catalogue - about a thousand sets, from IBM Carbon and Azure to Cisco and Kubernetes. Pick a set to see every icon in it with its licence and author, then <strong>Import</strong> copies the icons into FreeITSM. They appear on the Shapes tab to drag onto any diagram, with a label underneath when you double-click and type.',
         'shapes_tip_lines' => 'Connectors join CMDB nodes; they do not attach to shapes yet.',
+        'pages_title' => 'Pages and layers',
+        'pages_body' => 'One diagram can have several pages - an overview, then a page per site or per rack - and each page has layers you can show, hide or lock, the way draw.io does.',
+        'pages_step1' => '<strong>Pages:</strong> the tabs under the diagram. <strong>+</strong> adds a page; double-click a tab to rename it; right-click a tab to duplicate, move or delete it. Page Up and Page Down move between pages, in Present mode too.',
+        'pages_step2' => '<strong>Layers:</strong> the <strong>Layers</strong> button lists the layers of the page you are on. Click a layer to make it the one new nodes and shapes go on; the eye shows or hides it, the padlock locks it so nothing on it can be moved or changed.',
+        'pages_step3' => '<strong>Order:</strong> the arrows move a layer up or down - shapes on a higher layer are drawn over those on a lower one. Double-click a name to rename it; deleting a layer moves what was on it to the layer below.',
+        'pages_step4' => '<strong>Move something to another layer:</strong> select it and pick the <strong>Layer</strong> in its side panel.',
+        'pages_tip' => 'Export and Present show the page you are on, without its hidden layers. Each page has its own CMDB objects, so the same server can appear on the overview and on its site page.',
 
         // 5. Related
         'related_title'    => 'Adding related objects',

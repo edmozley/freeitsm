@@ -5943,6 +5943,8 @@ return [
         'w'              => 'INT NULL',            // GH #433: box size in canvas px, NULL = automatic
         'h'              => 'INT NULL',
         'style'          => 'TEXT NULL',           // GH #433: the node's own look, JSON (sanitiseStyle)
+        'page_key'       => 'INT NOT NULL DEFAULT 0',   // GH #433: page (network_diagram_pages.page_key)
+        'layer_key'      => 'INT NOT NULL DEFAULT 0',   // ...and layer on it
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
@@ -5972,7 +5974,28 @@ return [
         'layer'          => "VARCHAR(10) NOT NULL DEFAULT 'back'",
         'z'              => 'INT NOT NULL DEFAULT 0',
         'icon_id'        => 'INT NULL',            // an imported library icon (shape_type 'icon')
+        'page_key'       => 'INT NOT NULL DEFAULT 0',
+        'layer_key'      => 'INT NOT NULL DEFAULT 0',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+    ],
+
+    // GH #433: pages (tabs) and their layers - see database/freeitsm.sql
+    'network_diagram_pages' => [
+        'id'          => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'  => 'INT NOT NULL',
+        'page_key'    => 'INT NOT NULL DEFAULT 0',
+        'name'        => 'VARCHAR(100) NOT NULL',
+        'sort'        => 'INT NOT NULL DEFAULT 0',
+    ],
+    'network_diagram_layers' => [
+        'id'          => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'  => 'INT NOT NULL',
+        'page_key'    => 'INT NOT NULL DEFAULT 0',
+        'layer_key'   => 'INT NOT NULL DEFAULT 0',
+        'name'        => 'VARCHAR(100) NOT NULL',
+        'sort'        => 'INT NOT NULL DEFAULT 0',
+        'visible'     => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'locked'      => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 
     // GH #433: icon libraries imported from icons.diagrams.net (includes/services/network_icons.php)

@@ -98,6 +98,18 @@ return [
         'check'    => ['rows', 'network_icon_libraries', "status = 'ready'"],
     ],
     [
+        'id'       => 'network-mapper.pages',
+        'module'   => 'network-mapper',
+        'tier'     => 'extra',
+        'category' => 'look',
+        'title'    => 'Diagrams with several pages',
+        'what'     => 'Tabs under a diagram for more than one page - an overview, then a page per site - each with its own layers to show, hide or lock (GH #433).',
+        'why'      => 'One diagram tells the whole story at the right level of detail, instead of one crowded picture or a folder of loose ones.',
+        'done'     => 'At least one diagram has a second page.',
+        'link'     => 'network-mapper/',
+        'check'    => ['rows', 'network_diagram_pages', 'page_key > 0'],
+    ],
+    [
         'id'       => 'network-mapper.versions',
         'module'   => 'network-mapper',
         'tier'     => 'extra',

@@ -542,6 +542,8 @@ return [
     ['network_diagram_connectors', 'ix_net_conn_to', 'key', '(`to_node_id`)'],
     ['network_diagram_shapes', 'ix_net_shape_diag', 'key', '(`diagram_id`)'],
     ['network_diagram_shapes', 'ix_net_shape_icon', 'key', '(`icon_id`)'],
+    ['network_diagram_pages', 'uq_net_page', 'unique', '(`diagram_id`,`page_key`)'],
+    ['network_diagram_layers', 'uq_net_layer', 'unique', '(`diagram_id`,`page_key`,`layer_key`)'],
     ['network_icon_libraries', 'uq_net_iconlib_slug', 'unique', '(`slug`)'],
     ['network_icon_library_icons', 'uq_net_icon_lib_sort', 'unique', '(`library_id`,`sort`)'],
     ['search_documents', 'uq_search_docs_source', 'unique', '(`source_type`,`source_id`)'],

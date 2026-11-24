@@ -71,6 +71,11 @@
     let shapeResize = null;      // { key, dir, start, x, y, w, h, moved }
     let shapeEditKey = null;     // the shape whose text is being typed
     let paletteTab = 'cmdb';
+    // GH #433: pages (tabs) and layers
+    let pages = [];              // [{page_key, name, sort}]
+    let layers = [];             // [{page_key, layer_key, name, sort, visible, locked}]
+    let currentPage = 0;
+    const activeLayers = {};     // page_key -> the layer new items go on
     let elShapePanel = null, elShapePalette = null;
 
     let dirty = false;
@@ -217,6 +222,8 @@
                     closePageDropdown();
                 }
             }
+            const lDd = document.getElementById('layersDropdown'), lBtn = document.getElementById('layersBtn');   // GH #433
+            if (lDd && lDd.style.display !== 'none' && !(lBtn && lBtn.contains(e.target)) && !lDd.contains(e.target)) closeLayersPanel();
         });
 
         ensureSvgLayer();
@@ -308,6 +315,11 @@
             }
             const tag = (document.activeElement && document.activeElement.tagName) || '';
             if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            if ((e.key === 'PageDown' || e.key === 'PageUp') && pages.length > 1) {   // GH #433: next / previous page
+                const i = pages.findIndex(p => p.page_key === currentPage) + (e.key === 'PageDown' ? 1 : -1);
+                if (i >= 0 && i < pages.length) { e.preventDefault(); switchPage(pages[i].page_key); }
+                return;
+            }
             // GH #433: typing in a shape - its own keys, never a delete of the shape
             if (document.activeElement && document.activeElement.isContentEditable) return;
             // Don't fire if a modal is open (search inputs inside the picker etc.)
@@ -381,10 +393,15 @@
             nodes = data.nodes || [];
             connectors = data.connectors || [];
             shapes = data.shapes || [];   // GH #433
+            pages = data.pages || [];
+            layers = data.layers || [];
+            ensurePagesLayers();
             renderHeader();
             applyReadOnlyState();
             renderNodes();
             renderShapes();
+            renderPageTabs();
+            renderLayersPanel();
             updatePageButtonLabel();
             renderPageOutline();
             renderBrandHeaderFooter();
@@ -630,7 +647,7 @@
     function renderPickerResults() {
         // Filter out objects already on the canvas — placing the same object
         // twice would be confusing and save_diagram would persist both.
-        const onCanvas = new Set(nodes.map(n => n.cmdb_object_id));
+        const onCanvas = new Set(pageNodes().map(n => n.cmdb_object_id));   // GH #433: on this page
         const available = pickerResults.filter(r => !onCanvas.has(r.id));
 
         if (!available.length) {
@@ -673,7 +690,7 @@
      * object, Escape closes.
      */
     function onPickerKeyDown(e) {
-        const onCanvas = new Set(nodes.map(n => n.cmdb_object_id));
+        const onCanvas = new Set(pageNodes().map(n => n.cmdb_object_id));   // GH #433: on this page
         const available = pickerResults.filter(r => !onCanvas.has(r.id));
         if (e.key === 'ArrowDown') {
             e.preventDefault();
@@ -712,6 +729,7 @@
             size: 'medium',
             icon_override: null
         };
+        placeOnPage(node);   // GH #433
         nodes.push(node);
         closeObjectPicker();
         renderNodes();
@@ -743,14 +761,15 @@
         // not elCanvas itself.
         Array.from(elCanvasInner.querySelectorAll('.nm-node')).forEach(el => el.remove());
 
-        if (!nodes.length) {
+        const shown = visibleNodes();   // GH #433: the current page, visible layers
+        if (!shown.length) {
             updateCanvasEmpty();   // GH #433: shapes count too
             renderConnectors();
             return;
         }
         if (elCanvasEmpty) elCanvasEmpty.style.display = 'none';
 
-        nodes.forEach(n => {
+        shown.forEach(n => {
             const el = buildNodeEl(n);
             elCanvasInner.appendChild(el);
             syncIconY(el, n);
@@ -775,6 +794,7 @@
         el.style.top  = n.y + 'px';
         el.style.width = sizePx + 'px';
         el.dataset.key = nodeKey(n);
+        if (itemLocked(n)) el.classList.add('is-locked');   // GH #433: on a locked layer
         if (hasBoxSize(n)) {
             // GH #433: its own box - the label gets the full width and is no longer cut to two lines.
             el.classList.add('has-size');
@@ -1102,6 +1122,7 @@
             const from = findNodeByRef(c.from_node_id);
             const to   = findNodeByRef(c.to_node_id);
             if (!from || !to) return; // node was deleted but connector lingered — skip silently
+            if (!itemVisible(from) || !itemVisible(to)) return;   // GH #433: another page, or a hidden layer
 
             const fromBox = nodeIconBBox(from);
             const toBox   = nodeIconBBox(to);
@@ -1407,6 +1428,7 @@
         // how connectors anchor and feels more precise when dropping near a
         // node edge.
         return nodes.find(n => {
+            if (!itemVisible(n) || itemLocked(n)) return false;   // GH #433
             const b = nodeIconBBox(n);
             return x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h;
         }) || null;
@@ -1509,6 +1531,8 @@
         if (boxReset) boxReset.style.display = (editable && hasBoxSize(n)) ? '' : 'none';
         const boxHint = document.getElementById('ndBoxHint');
         if (boxHint) boxHint.style.display = editable ? '' : 'none';
+        const lay = document.getElementById('ndLayer');   // GH #433
+        if (lay) { lay.innerHTML = layerSelectHtml(n, 'ndLayerSel'); bindLayerSelect('ndLayerSel', n); }
     }
 
     /** Sets (or with null clears) the selected node's colour. */
@@ -1773,7 +1797,7 @@
             { kind: 'incoming', label: escapeHtml(t('network-mapper.related.group_incoming')), rows: [] },
             { kind: 'property', label: escapeHtml(t('network-mapper.related.group_property')), rows: [] }
         ];
-        const onCanvas = new Set(nodes.map(n => n.cmdb_object_id));
+        const onCanvas = new Set(pageNodes().map(n => n.cmdb_object_id));   // GH #433: on this page
         relatedRows.forEach((r, idx) => {
             const g = groups.find(x => x.kind === r.kind);
             if (g) g.rows.push({ row: r, idx: idx, onCanvas: onCanvas.has(r.object_id) });
@@ -1851,7 +1875,7 @@
         // be ticked twice via two different relationship paths — place it
         // once, draw a connector per path).
         const existingByCmdb = new Map();
-        nodes.forEach(n => existingByCmdb.set(n.cmdb_object_id, n));
+        pageNodes().forEach(n => existingByCmdb.set(n.cmdb_object_id, n));   // GH #433: this page
         const newPlacements = [];
         const seenNew = new Set();
         picks.forEach(p => {
@@ -1893,6 +1917,7 @@
                 size: 'medium',
                 icon_override: null
             };
+            placeOnPage(node);   // GH #433
             nodes.push(node);
             existingByCmdb.set(p.object_id, node);
         });
@@ -1982,7 +2007,9 @@
         elCanvasInner.querySelectorAll('.nm-shape').forEach(el => el.remove());
         shapes.sort((a, b) => (a.z || 0) - (b.z || 0));
         const first = elCanvasInner.querySelector('.nm-node');
-        shapes.forEach(s => elCanvasInner.insertBefore(buildShapeEl(s), first || null));
+        // GH #433: this page's visible layers, a higher layer's shapes over a lower one's
+        visibleShapes().sort((a, b) => (layerRank(a) - layerRank(b)) || ((a.z || 0) - (b.z || 0)))
+            .forEach(s => elCanvasInner.insertBefore(buildShapeEl(s), first || null));
         updateCanvasEmpty();
     }
 
@@ -1994,7 +2021,7 @@
 
     /** Shows the "empty diagram" hint only when there are neither nodes nor shapes. */
     function updateCanvasEmpty() {
-        if (elCanvasEmpty) elCanvasEmpty.style.display = (nodes.length || shapes.length) ? 'none' : '';
+        if (elCanvasEmpty) elCanvasEmpty.style.display = (visibleNodes().length || visibleShapes().length) ? 'none' : '';
     }
 
     /** Builds one shape: its SVG, its text, and - when selected on the current version - 8 resize handles. */
@@ -2004,6 +2031,7 @@
         const el = document.createElement('div');
         el.className = 'nm-shape' + (s.layer === 'front' ? ' is-front' : '') + (key === selectedShapeKey ? ' selected' : '');
         el.dataset.key = key;
+        if (itemLocked(s)) el.classList.add('is-locked');   // GH #433
         el.style.left = s.x + 'px';
         el.style.top = s.y + 'px';
         el.style.width = s.w + 'px';
@@ -2191,6 +2219,7 @@
             style: window.nmShapeStyle(type, {}),   // the full look, so later library changes never move it
             layer: 'back', z: maxZ + 1
         };
+        placeOnPage(s);   // GH #433
         shapes.push(s);
         renderShapes();
         selectShape(shapeKey(s));
@@ -2591,7 +2620,8 @@
             + num('spH', t('network-mapper.shapes.height'), s.h, 10, 5000)
             + num('spR', t('network-mapper.shapes.rotation'), s.rotation || 0, -360, 360, 5)
             + '</div>'
-            + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.shapes.layer')) + '</span>'
+            + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.layers.field')) + '</span>' + layerSelectHtml(s, 'spLayer') + '</div>'
+            + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.layers.placement')) + '</span>'
             + seg([['layer_back', t('network-mapper.shapes.layer_back')], ['layer_front', t('network-mapper.shapes.layer_front')]], s.layer === 'front' ? 'layer_front' : 'layer_back', 'arrange', !ed) + '</div>'
             + '<div class="nm-fmt-btns">'
             + '<button type="button" class="nm-detail-icon-btn" data-arrange="front"' + dis + '>' + escapeHtml(t('network-mapper.shapes.to_front')) + '</button>'
@@ -2616,6 +2646,7 @@
         body.querySelectorAll('[data-seg="arrange"] button').forEach(b => b.addEventListener('click', () => arrangeShape(b.dataset.value)));
         body.querySelectorAll('[data-arrange]').forEach(b => b.addEventListener('click', () => arrangeShape(b.dataset.arrange)));
         const dup = document.getElementById('spDup'); if (dup) dup.addEventListener('click', duplicateSelectedShape);
+        bindLayerSelect('spLayer', s);
         const del = document.getElementById('spDel'); if (del) del.addEventListener('click', deleteSelectedShape);
         renderStyleEditor(document.getElementById('spStyle'), window.nmShapeStyle(s.shape_type, s.style), {
             rounded: !!def.rounded, valign: true, editable: ed,
@@ -2775,6 +2806,403 @@
             },
             onRebuild: () => renderNodeStyleEditor(n),
             onReset: () => { n.style = null; rerenderNode(n); renderConnectors(); markDirty(); renderNodeStyleEditor(n); }
+        });
+    }
+
+    // =========================================================
+    //  Pages (tabs) and layers (GH #433)
+    //  Every node and shape carries page_key + layer_key. Only the current
+    //  page's items on visible layers are drawn; a locked layer's items can't
+    //  be picked up. Layers also order shapes: a higher layer's shapes draw
+    //  over a lower one's (each still Behind nodes or In front).
+    // =========================================================
+    function itemPage(it) { return (it && it.page_key) || 0; }
+    function itemLayer(it) { return (it && it.layer_key) || 0; }
+    function pageLayers(pk) {
+        return layers.filter(l => l.page_key === pk).sort((a, b) => (a.sort - b.sort) || (a.layer_key - b.layer_key));
+    }
+    function findLayer(pk, lk) { return layers.find(l => l.page_key === pk && l.layer_key === lk) || null; }
+    function layerOfItem(it) { return findLayer(itemPage(it), itemLayer(it)); }
+    /** On the current page and on a visible layer. */
+    function itemVisible(it) {
+        if (itemPage(it) !== currentPage) return false;
+        const l = layerOfItem(it);
+        return !l || l.visible !== false;
+    }
+    function itemLocked(it) { const l = layerOfItem(it); return !!(l && l.locked); }
+    function layerRank(it) {
+        const list = pageLayers(itemPage(it));
+        const i = list.findIndex(l => l.layer_key === itemLayer(it));
+        return i < 0 ? 0 : i;
+    }
+    function visibleNodes() { return nodes.filter(itemVisible); }
+    function visibleShapes() { return shapes.filter(itemVisible); }
+    function pageNodes() { return nodes.filter(n => itemPage(n) === currentPage); }
+    function activeLayerKey() {
+        const k = activeLayers[currentPage];
+        const l = k != null ? findLayer(currentPage, k) : null;
+        // A new item never lands on a locked or hidden layer - it would vanish or be stuck.
+        if (l && !l.locked && l.visible !== false) return l.layer_key;
+        const list = pageLayers(currentPage).filter(x => !x.locked && x.visible !== false);
+        return list.length ? list[list.length - 1].layer_key : 0;
+    }
+    /** Stamps a new item with the current page and the active layer. */
+    function placeOnPage(it) { it.page_key = currentPage; it.layer_key = activeLayerKey(); return it; }
+
+    /** Makes sure there is at least one page, every page has a layer, and the current page exists. */
+    function ensurePagesLayers() {
+        if (!pages.length) pages = [{ page_key: 0, name: t('network-mapper.pages.default_name', { n: 1 }), sort: 0 }];
+        // Items on a page that has no row (an API caller, an older save) still get a tab.
+        nodes.concat(shapes).forEach(it => {
+            if (!pages.some(p => p.page_key === itemPage(it))) {
+                pages.push({ page_key: itemPage(it), name: t('network-mapper.pages.default_name', { n: pages.length + 1 }), sort: pages.length });
+            }
+        });
+        pages.sort((a, b) => (a.sort - b.sort) || (a.page_key - b.page_key));
+        pages.forEach(p => {
+            if (!pageLayers(p.page_key).length) {
+                layers.push({ page_key: p.page_key, layer_key: 0, name: t('network-mapper.layers.default_name', { n: 1 }), sort: 0, visible: true, locked: false });
+            }
+        });
+        // An item on a layer that is gone goes on the page's bottom layer.
+        nodes.concat(shapes).forEach(it => {
+            if (!layerOfItem(it)) it.layer_key = pageLayers(itemPage(it))[0].layer_key;
+        });
+        if (!pages.some(p => p.page_key === currentPage)) currentPage = pages[0].page_key;
+    }
+
+    /** Clears every selection - used before switching page. */
+    function clearSelection() {
+        selectNode(null);
+        selectConnector(null);
+        selectShape(null);
+    }
+
+    function switchPage(pk) {
+        if (pk === currentPage || !pages.some(p => p.page_key === pk)) return;
+        clearSelection();
+        currentPage = pk;
+        renderNodes();
+        renderShapes();
+        renderPageTabs();
+        renderLayersPanel();
+    }
+
+    // ---- the tab bar ----
+    function renderPageTabs() {
+        const bar = document.getElementById('pageTabs');
+        if (!bar) return;
+        const ed = canEdit();
+        bar.innerHTML = pages.map(p =>
+            '<button type="button" class="nm-page-tab' + (p.page_key === currentPage ? ' active' : '') + '" data-page="' + p.page_key + '"'
+            + ' title="' + escapeAttr(ed ? t('network-mapper.pages.tab_title') : p.name) + '">' + escapeHtml(p.name) + '</button>').join('')
+            + (ed ? '<button type="button" class="nm-page-add" title="' + escapeAttr(t('network-mapper.pages.add')) + '">+</button>' : '');
+        bar.querySelectorAll('.nm-page-tab').forEach(b => {
+            const pk = +b.dataset.page;
+            b.addEventListener('click', () => switchPage(pk));
+            if (ed) {
+                b.addEventListener('dblclick', () => renamePageInline(b, pk));
+                b.addEventListener('contextmenu', e => { e.preventDefault(); openPageMenu(e, pk); });
+            }
+        });
+        const add = bar.querySelector('.nm-page-add');
+        if (add) add.addEventListener('click', addPage);
+    }
+
+    function renamePageInline(btn, pk) {
+        const p = pages.find(x => x.page_key === pk);
+        if (!p || !canEdit()) return;
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'nm-page-rename';
+        inp.value = p.name;
+        inp.maxLength = 100;
+        btn.replaceWith(inp);
+        inp.focus();
+        inp.select();
+        let done = false;
+        const finish = keep => {
+            if (done) return;
+            done = true;
+            const v = inp.value.trim();
+            if (keep && v && v !== p.name) { p.name = v; markDirty(); }
+            renderPageTabs();
+        };
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+            if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+            e.stopPropagation();
+        });
+        inp.addEventListener('blur', () => finish(true));
+    }
+
+    function closePageMenu() { document.querySelectorAll('.nm-page-menu').forEach(m => m.remove()); }
+    function openPageMenu(e, pk) {
+        closePageMenu();
+        const m = document.createElement('div');
+        m.className = 'nm-page-menu';
+        const idx = pages.findIndex(p => p.page_key === pk);
+        const items = [
+            ['rename', t('network-mapper.pages.rename'), true],
+            ['duplicate', t('network-mapper.pages.duplicate'), true],
+            ['left', t('network-mapper.pages.move_left'), idx > 0],
+            ['right', t('network-mapper.pages.move_right'), idx < pages.length - 1],
+            ['delete', t('network-mapper.pages.delete'), pages.length > 1]
+        ];
+        m.innerHTML = items.map(([k, l, on]) => '<button type="button" data-act="' + k + '"' + (on ? '' : ' disabled') + '>' + escapeHtml(l) + '</button>').join('');
+        document.body.appendChild(m);
+        const r = m.getBoundingClientRect();
+        m.style.left = Math.min(e.clientX, window.innerWidth - r.width - 8) + 'px';
+        m.style.top = Math.max(8, e.clientY - r.height - 4) + 'px';
+        m.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+            closePageMenu();
+            const act = b.dataset.act;
+            if (act === 'rename') { const tab = document.querySelector('.nm-page-tab[data-page="' + pk + '"]'); if (tab) renamePageInline(tab, pk); }
+            if (act === 'duplicate') duplicatePage(pk);
+            if (act === 'left' || act === 'right') movePage(pk, act === 'left' ? -1 : 1);
+            if (act === 'delete') deletePage(pk);
+        }));
+        setTimeout(() => document.addEventListener('mousedown', function off(ev) {
+            if (!m.contains(ev.target)) { closePageMenu(); document.removeEventListener('mousedown', off); }
+        }), 0);
+    }
+
+    function nextPageKey() { return pages.reduce((m, p) => Math.max(m, p.page_key), -1) + 1; }
+
+    function addPage() {
+        if (!canEdit()) return;
+        const pk = nextPageKey();
+        pages.push({ page_key: pk, name: t('network-mapper.pages.default_name', { n: pages.length + 1 }), sort: pages.reduce((m, p) => Math.max(m, p.sort), 0) + 1 });
+        layers.push({ page_key: pk, layer_key: 0, name: t('network-mapper.layers.default_name', { n: 1 }), sort: 0, visible: true, locked: false });
+        markDirty();
+        clearSelection();
+        currentPage = pk;
+        renderNodes();
+        renderShapes();
+        renderPageTabs();
+        renderLayersPanel();
+    }
+
+    function movePage(pk, dir) {
+        const i = pages.findIndex(p => p.page_key === pk), j = i + dir;
+        if (i < 0 || j < 0 || j >= pages.length) return;
+        const tmp = pages[i]; pages[i] = pages[j]; pages[j] = tmp;
+        pages.forEach((p, k) => { p.sort = k; });
+        markDirty();
+        renderPageTabs();
+    }
+
+    function deletePage(pk) {
+        if (!canEdit() || pages.length < 2) return;
+        const p = pages.find(x => x.page_key === pk);
+        const has = nodes.some(n => itemPage(n) === pk) || shapes.some(s => itemPage(s) === pk);
+        if (has && !confirm(t('network-mapper.pages.delete_confirm', { name: p ? p.name : '' }))) return;
+        const gone = new Set(nodes.filter(n => itemPage(n) === pk).map(n => nodeRef(n)));
+        connectors = connectors.filter(c => !gone.has(c.from_node_id) && !gone.has(c.to_node_id));
+        nodes = nodes.filter(n => itemPage(n) !== pk);
+        shapes = shapes.filter(s => itemPage(s) !== pk);
+        layers = layers.filter(l => l.page_key !== pk);
+        pages = pages.filter(x => x.page_key !== pk);
+        pages.forEach((x, k) => { x.sort = k; });
+        clearSelection();
+        if (currentPage === pk) currentPage = pages[0].page_key;
+        markDirty();
+        renderNodes();
+        renderShapes();
+        renderPageTabs();
+        renderLayersPanel();
+    }
+
+    /** Copies a page - its layers, nodes, shapes and the connectors between its nodes - into a new tab. */
+    function duplicatePage(pk) {
+        if (!canEdit()) return;
+        const src = pages.find(x => x.page_key === pk);
+        if (!src) return;
+        const nk = nextPageKey();
+        const at = pages.indexOf(src) + 1;
+        pages.splice(at, 0, { page_key: nk, name: t('network-mapper.pages.copy_name', { name: src.name }), sort: 0 });
+        pages.forEach((x, k) => { x.sort = k; });
+        pageLayers(pk).forEach(l => layers.push(Object.assign({}, l, { page_key: nk })));
+        const refMap = new Map();
+        nodes.filter(n => itemPage(n) === pk).forEach(n => {
+            const copy = Object.assign({}, n, { id: null, tempId: nextTempId--, page_key: nk,
+                style: n.style ? JSON.parse(JSON.stringify(n.style)) : null });
+            refMap.set(nodeRef(n), copy.tempId);
+            nodes.push(copy);
+        });
+        connectors.filter(c => refMap.has(c.from_node_id) && refMap.has(c.to_node_id)).forEach(c => {
+            connectors.push(Object.assign({}, c, { id: null, _tempKey: nextTempId--, from_node_id: refMap.get(c.from_node_id), to_node_id: refMap.get(c.to_node_id) }));
+        });
+        shapes.filter(s => itemPage(s) === pk).forEach(s => {
+            shapes.push(Object.assign({}, s, { id: null, tempId: nextTempShapeId--, page_key: nk,
+                style: s.style ? JSON.parse(JSON.stringify(s.style)) : null }));
+        });
+        markDirty();
+        clearSelection();
+        currentPage = nk;
+        renderNodes();
+        renderShapes();
+        renderPageTabs();
+        renderLayersPanel();
+    }
+
+    // ---- the Layers panel (toolbar dropdown) ----
+    function toggleLayersPanel(e) {
+        if (e) e.stopPropagation();
+        const dd = document.getElementById('layersDropdown');
+        if (!dd) return;
+        const open = dd.style.display === 'none';
+        dd.style.display = open ? '' : 'none';
+        if (open) renderLayersPanel();
+    }
+    function closeLayersPanel() { const dd = document.getElementById('layersDropdown'); if (dd) dd.style.display = 'none'; }
+
+    function renderLayersPanel() {
+        const lab = document.getElementById('layersBtnCount');
+        if (lab) lab.textContent = String(pageLayers(currentPage).length);
+        const dd = document.getElementById('layersDropdown');
+        if (!dd || dd.style.display === 'none') return;
+        const ed = canEdit();
+        const list = pageLayers(currentPage).slice().reverse();   // top layer first, as draw.io lists them
+        const active = activeLayerKey();
+        const count = l => nodes.filter(n => itemPage(n) === currentPage && itemLayer(n) === l.layer_key).length
+                         + shapes.filter(s => itemPage(s) === currentPage && itemLayer(s) === l.layer_key).length;
+        const eye = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        const eyeOff = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22"/></svg>';
+        const lock = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+        const unlock = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>';
+        dd.innerHTML = '<div class="nm-layers-head">' + escapeHtml(t('network-mapper.layers.title')) + '</div>'
+            + list.map((l, i) => '<div class="nm-layer-row' + (l.layer_key === active ? ' active' : '') + (l.visible === false ? ' is-hidden' : '') + '" data-layer="' + l.layer_key + '">'
+                + '<button type="button" class="nm-layer-ico" data-act="eye" title="' + escapeAttr(t(l.visible === false ? 'network-mapper.layers.show' : 'network-mapper.layers.hide')) + '">' + (l.visible === false ? eyeOff : eye) + '</button>'
+                + '<button type="button" class="nm-layer-ico' + (l.locked ? ' on' : '') + '" data-act="lock" title="' + escapeAttr(t(l.locked ? 'network-mapper.layers.unlock' : 'network-mapper.layers.lock')) + '"' + (ed ? '' : ' disabled') + '>' + (l.locked ? lock : unlock) + '</button>'
+                + '<span class="nm-layer-name" title="' + escapeAttr(ed ? t('network-mapper.layers.name_title') : '') + '">' + escapeHtml(l.name) + '</span>'
+                + '<span class="nm-layer-count">' + count(l) + '</span>'
+                + (ed ? '<button type="button" class="nm-layer-ico" data-act="up" title="' + escapeAttr(t('network-mapper.layers.up')) + '"' + (i === 0 ? ' disabled' : '') + '>&#9650;</button>'
+                      + '<button type="button" class="nm-layer-ico" data-act="down" title="' + escapeAttr(t('network-mapper.layers.down')) + '"' + (i === list.length - 1 ? ' disabled' : '') + '>&#9660;</button>'
+                      + '<button type="button" class="nm-layer-ico nm-layer-del" data-act="del" title="' + escapeAttr(t('network-mapper.layers.delete')) + '"' + (list.length < 2 ? ' disabled' : '') + '>&times;</button>' : '')
+                + '</div>').join('')
+            + (ed ? '<button type="button" class="nm-layers-add">+ ' + escapeHtml(t('network-mapper.layers.add')) + '</button>' : '')
+            + '<div class="nm-layers-hint">' + escapeHtml(t('network-mapper.layers.hint')) + '</div>';
+        dd.querySelectorAll('.nm-layer-row').forEach(row => {
+            const lk = +row.dataset.layer;
+            const l = findLayer(currentPage, lk);
+            row.addEventListener('click', e => {
+                const b = e.target.closest('[data-act]');
+                if (b) {
+                    e.stopPropagation();
+                    layerAction(l, b.dataset.act);
+                    return;
+                }
+                if (!l.locked) { activeLayers[currentPage] = lk; renderLayersPanel(); }
+            });
+            if (ed) row.querySelector('.nm-layer-name').addEventListener('dblclick', e => { e.stopPropagation(); renameLayerInline(row, l); });
+        });
+        const add = dd.querySelector('.nm-layers-add');
+        if (add) add.addEventListener('click', e => { e.stopPropagation(); addLayer(); });
+    }
+
+    function layerAction(l, act) {
+        if (!l) return;
+        const ed = canEdit();
+        if (act === 'eye') {
+            l.visible = l.visible === false;
+            if (l.visible === false) clearSelection();
+            if (ed) markDirty();   // a read-only version can still hide a layer to look - it just isn't saved
+        } else if (!ed) {
+            return;
+        } else if (act === 'lock') {
+            l.locked = !l.locked;
+            if (l.locked) clearSelection();
+            markDirty();
+        } else if (act === 'up' || act === 'down') {
+            const list = pageLayers(currentPage);
+            const i = list.indexOf(l), j = i + (act === 'up' ? 1 : -1);
+            if (j < 0 || j >= list.length) return;
+            const tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+            list.forEach((x, k) => { x.sort = k; });
+            markDirty();
+        } else if (act === 'del') {
+            deleteLayer(l);
+            return;
+        }
+        renderNodes();
+        renderShapes();
+        renderLayersPanel();
+    }
+
+    function addLayer() {
+        if (!canEdit()) return;
+        const list = pageLayers(currentPage);
+        const lk = list.reduce((m, l) => Math.max(m, l.layer_key), -1) + 1;
+        layers.push({ page_key: currentPage, layer_key: lk, name: t('network-mapper.layers.default_name', { n: list.length + 1 }), sort: list.length, visible: true, locked: false });
+        activeLayers[currentPage] = lk;
+        markDirty();
+        renderLayersPanel();
+    }
+
+    /** Deletes a layer; what was on it moves to the layer below it (or above, for the bottom one). */
+    function deleteLayer(l) {
+        const list = pageLayers(currentPage);
+        if (list.length < 2) return;
+        const i = list.indexOf(l);
+        const to = list[i > 0 ? i - 1 : 1];
+        const n = nodes.filter(x => itemPage(x) === currentPage && itemLayer(x) === l.layer_key).length
+                + shapes.filter(x => itemPage(x) === currentPage && itemLayer(x) === l.layer_key).length;
+        if (n && !confirm(t('network-mapper.layers.delete_confirm', { name: l.name, to: to.name }))) return;
+        nodes.concat(shapes).forEach(it => { if (itemPage(it) === currentPage && itemLayer(it) === l.layer_key) it.layer_key = to.layer_key; });
+        layers = layers.filter(x => x !== l);
+        pageLayers(currentPage).forEach((x, k) => { x.sort = k; });
+        if (activeLayers[currentPage] === l.layer_key) delete activeLayers[currentPage];
+        markDirty();
+        renderNodes();
+        renderShapes();
+        renderLayersPanel();
+    }
+
+    function renameLayerInline(row, l) {
+        const span = row.querySelector('.nm-layer-name');
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'nm-layer-rename';
+        inp.value = l.name;
+        inp.maxLength = 100;
+        span.replaceWith(inp);
+        inp.focus();
+        inp.select();
+        let done = false;
+        const finish = keep => {
+            if (done) return;
+            done = true;
+            const v = inp.value.trim();
+            if (keep && v && v !== l.name) { l.name = v; markDirty(); }
+            renderLayersPanel();
+        };
+        inp.addEventListener('click', e => e.stopPropagation());
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+            if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+            e.stopPropagation();
+        });
+        inp.addEventListener('blur', () => finish(true));
+    }
+
+    /** A Layer row (select) for the node or shape panels: moves the item to another layer of its page. */
+    function layerSelectHtml(it, id) {
+        const ed = canEdit();
+        return '<select class="nm-fmt-select" id="' + id + '"' + (ed ? '' : ' disabled') + '>'
+            + pageLayers(itemPage(it)).slice().reverse().map(l => '<option value="' + l.layer_key + '"' + (l.layer_key === itemLayer(it) ? ' selected' : '')
+                + (l.locked ? ' disabled' : '') + '>' + escapeHtml(l.name) + '</option>').join('') + '</select>';
+    }
+    function bindLayerSelect(id, it, after) {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.addEventListener('change', () => {
+            it.layer_key = +sel.value;
+            markDirty();
+            renderNodes();
+            renderShapes();
+            renderLayersPanel();
+            if (after) after();
         });
     }
 
@@ -3487,13 +3915,17 @@
                         colour_override: n.colour_override || null,   // GH #433
                         w: n.w || null,
                         h: n.h || null,
-                        style: n.style || null                        // GH #433
+                        style: n.style || null,                       // GH #433
+                        page_key: itemPage(n), layer_key: itemLayer(n)
                     })),
+                    pages: pages.map(p => ({ page_key: p.page_key, name: p.name, sort: p.sort })),
+                    layers: layers.map(l => ({ page_key: l.page_key, layer_key: l.layer_key, name: l.name, sort: l.sort, visible: l.visible !== false, locked: !!l.locked })),
                     // GH #433: the freestanding shapes, in z order
                     shapes: shapes.map(sh => ({
                         shape_type: sh.shape_type, x: sh.x, y: sh.y, w: sh.w, h: sh.h,
                         rotation: sh.rotation || 0, text: sh.text || '', style: sh.style || null,
-                        layer: sh.layer || 'back', z: sh.z || 0, icon_id: sh.icon_id || null
+                        layer: sh.layer || 'back', z: sh.z || 0, icon_id: sh.icon_id || null,
+                        page_key: itemPage(sh), layer_key: itemLayer(sh)
                     })),
                     connectors: connectors.map(c => ({
                         from_node_id: c.from_node_id,
@@ -3524,6 +3956,9 @@
                 nodes = data2.nodes || [];
                 connectors = data2.connectors || [];
                 shapes = data2.shapes || [];
+                pages = data2.pages || [];
+                layers = data2.layers || [];
+                ensurePagesLayers();
                 selectedShapeKey = selShapeIdx >= 0 && shapes[selShapeIdx] ? shapeKey(shapes[selShapeIdx]) : null;
                 // Connector selection used a transient _tempKey for newly-drawn
                 // connectors; after reload everything has a real id so any
@@ -3536,12 +3971,14 @@
                 selectedNodeKey = null;
                 renderNodes();
                 renderShapes();
+                renderPageTabs();
+                renderLayersPanel();
                 if (selectedShapeKey == null) closeShapePanel();
                 updatePageButtonLabel();
                 renderPageOutline();
                 renderBrandHeaderFooter();
                 if (selectedCmdbId) {
-                    const reselect = nodes.find(n => n.cmdb_object_id === selectedCmdbId);
+                    const reselect = pageNodes().find(n => n.cmdb_object_id === selectedCmdbId);
                     if (reselect) selectNode(nodeKey(reselect));
                 }
             }
@@ -3776,15 +4213,15 @@
             const dims = pageDimensionsPx(diagram.paper_size, diagram.paper_orientation);
             if (dims) { contentW = dims.w; contentH = dims.h; }
         }
-        if ((!contentW || !contentH) && (nodes.length || shapes.length)) {
-            // Bounding box of placed nodes, each by its own box (GH #433).
+        if ((!contentW || !contentH) && (visibleNodes().length || visibleShapes().length)) {
+            // Bounding box of placed nodes, each by its own box (GH #433) - this page, visible layers.
             let maxX = 0, maxY = 0;
-            nodes.forEach(n => {
+            visibleNodes().forEach(n => {
                 const ext = nodeExtent(n);
                 if (n.x + ext.w > maxX) maxX = n.x + ext.w;
                 if (n.y + ext.h > maxY) maxY = n.y + ext.h;
             });
-            shapes.forEach(sh => {   // GH #433
+            visibleShapes().forEach(sh => {   // GH #433
                 if (sh.x + sh.w > maxX) maxX = sh.x + sh.w;
                 if (sh.y + sh.h > maxY) maxY = sh.y + sh.h;
             });
@@ -3883,7 +4320,7 @@
     // =========================================================
     function centreOnPage() {
         if (!diagram || !diagram.is_current) return;
-        if (!nodes.length && !shapes.length) {
+        if (!visibleNodes().length && !visibleShapes().length) {
             if (window.showToast) showToast(t('network-mapper.toast.centre_no_nodes'), 'info');
             return;
         }
@@ -3898,14 +4335,14 @@
         // (mirrors the approximation in computeExportRect so centring and
         // exporting agree on what "the diagram" extends to).
         let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
-        nodes.forEach(n => {
+        visibleNodes().forEach(n => {
             const ext = nodeExtent(n);   // GH #433: each node's own box, label included
             if (n.x < minX) minX = n.x;
             if (n.y < minY) minY = n.y;
             if (n.x + ext.w > maxX) maxX = n.x + ext.w;
             if (n.y + ext.h > maxY) maxY = n.y + ext.h;
         });
-        shapes.forEach(sh => {   // GH #433: shapes are part of the diagram too
+        visibleShapes().forEach(sh => {   // GH #433: shapes are part of the diagram too
             if (sh.x < minX) minX = sh.x;
             if (sh.y < minY) minY = sh.y;
             if (sh.x + sh.w > maxX) maxX = sh.x + sh.w;
@@ -3930,11 +4367,11 @@
             return;
         }
 
-        nodes.forEach(n => {
+        nodes.filter(n => itemPage(n) === currentPage).forEach(n => {   // GH #433: this page
             n.x = Math.max(0, n.x + deltaX);
             n.y = Math.max(0, n.y + deltaY);
         });
-        shapes.forEach(sh => { sh.x += deltaX; sh.y += deltaY; });   // GH #433
+        shapes.filter(sh => itemPage(sh) === currentPage).forEach(sh => { sh.x += deltaX; sh.y += deltaY; });
         renderNodes();   // re-renders nodes + calls renderConnectors() inside
         renderShapes();
         markDirty();
@@ -3970,19 +4407,19 @@
             const dims = pageDimensionsPx(diagram.paper_size, diagram.paper_orientation);
             if (dims) return { x: 0, y: 0, width: dims.w, height: dims.h };
         }
-        if (!nodes.length && !shapes.length) return null;
+        if (!visibleNodes().length && !visibleShapes().length) return null;
         // Bounding box of nodes — approximate using medium icon size, +40px
         // for the label below the icon so it isn't clipped. Pad each side
         // by 40px so the export doesn't feel cramped at the edges.
         let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
-        nodes.forEach(n => {
+        visibleNodes().forEach(n => {
             const ext = nodeExtent(n);   // GH #433: each node's own box, label included
             if (n.x < minX) minX = n.x;
             if (n.y < minY) minY = n.y;
             if (n.x + ext.w > maxX) maxX = n.x + ext.w;
             if (n.y + ext.h > maxY) maxY = n.y + ext.h;
         });
-        shapes.forEach(sh => {   // GH #433: shapes are part of the diagram too
+        visibleShapes().forEach(sh => {   // GH #433: shapes are part of the diagram too
             if (sh.x < minX) minX = sh.x;
             if (sh.y < minY) minY = sh.y;
             if (sh.x + sh.w > maxX) maxX = sh.x + sh.w;
@@ -4172,6 +4609,7 @@
         setPaletteTab,
         onShapeSearchInput,
         openLibraryBrowser,
+        toggleLayersPanel,
         closeLibraryBrowser,
         onLibSearchInput,
         setLibFilter,

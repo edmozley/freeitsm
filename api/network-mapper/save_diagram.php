@@ -53,6 +53,8 @@ try {
                 'w'             => $n['w'] ?? null,
                 'h'             => $n['h'] ?? null,
                 'style'         => $n['style'] ?? null,               // GH #433
+                'page_key'      => $n['page_key'] ?? 0,
+                'layer_key'     => $n['layer_key'] ?? 0,
                 'ref'           => (string)$ref,
             ];
         }
@@ -75,6 +77,11 @@ try {
     // GH #433: freestanding shapes, passed through as they are (the service validates).
     if (array_key_exists('shapes', $data) && is_array($data['shapes'])) {
         $in['shapes'] = $data['shapes'];
+    }
+    // GH #433: pages (tabs) and their layers.
+    if (array_key_exists('pages', $data) && is_array($data['pages'])) {
+        $in['pages'] = $data['pages'];
+        $in['layers'] = is_array($data['layers'] ?? null) ? $data['layers'] : [];
     }
 
     $savedId = NetworkMapperService::saveDiagram($conn, ActorContext::fromSession($conn), $id, $in);

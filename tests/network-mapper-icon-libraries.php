@@ -101,7 +101,7 @@ try {
     check('no unexpected error', false, $e->getMessage());
 } finally {
     foreach (array_reverse($made) as $id) {
-        foreach (['network_diagram_connectors', 'network_diagram_shapes', 'network_diagram_nodes'] as $tbl) {
+        foreach (['network_diagram_connectors', 'network_diagram_shapes', 'network_diagram_nodes', 'network_diagram_layers', 'network_diagram_pages'] as $tbl) {
             $conn->prepare("DELETE FROM $tbl WHERE diagram_id = ?")->execute([$id]);
         }
         $conn->prepare("DELETE FROM network_diagrams WHERE id = ?")->execute([$id]);
