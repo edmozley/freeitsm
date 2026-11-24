@@ -245,7 +245,7 @@ class NetworkIconService
 
     // ------------------------------------------------------------------ the install's libraries
 
-    /** Imported libraries (newest first) with how many diagram shapes use each. */
+    /** Imported libraries (by title) with how many diagram shapes use each. */
     public static function libraries(PDO $conn): array
     {
         $rows = $conn->query(
@@ -320,7 +320,9 @@ class NetworkIconService
         if ($data === '' || strlen($data) > self::MAX_UPLOAD_BYTES) {
             throw new ServiceError('validation', 'too_big', 'That picture is over 4 MB.');
         }
-        $safe = self::safeImage($data);
+        // TRAP: pass the upload limit - safeImage() defaults to the 512 KB library-icon cap, which
+        // turned away every picture between 512 KB and the 4 MB promised here as "not a picture".
+        $safe = self::safeImage($data, self::MAX_UPLOAD_BYTES);
         $size = @getimagesizefromstring($data);
         if (!$safe || $safe['mime'] === 'image/svg+xml' || !$size || $size[0] < 1 || $size[1] < 1) {
             throw new ServiceError('validation', 'not_image', 'Only PNG, JPEG, GIF or WebP pictures can be added.');
@@ -374,9 +376,9 @@ class NetworkIconService
      * Accepts PNG, JPEG, GIF, WebP (checked by their bytes) and SVG (cleaned). Returns
      * {mime, data} or null for anything else.
      */
-    public static function safeImage(?string $body): ?array
+    public static function safeImage(?string $body, int $maxBytes = self::MAX_ICON_BYTES): ?array
     {
-        if ($body === null || $body === '' || strlen($body) > self::MAX_ICON_BYTES) return null;
+        if ($body === null || $body === '' || strlen($body) > $maxBytes) return null;
         $head = substr($body, 0, 16);
         if (strncmp($head, "\x89PNG\r\n\x1a\n", 8) === 0) return ['mime' => 'image/png', 'data' => $body];
         if (strncmp($head, "\xFF\xD8\xFF", 3) === 0) return ['mime' => 'image/jpeg', 'data' => $body];

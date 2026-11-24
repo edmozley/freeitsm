@@ -4,7 +4,7 @@
  *
  * Two kinds of link:
  *   - a node or a shape links to ONE article (network_diagram_nodes/shapes.article_id) -
- *     clicked in Present, Ctrl+clicked in the editor;
+ *     clicked in Present, or opened from its book marker or right-click menu in the editor;
  *   - a diagram lists RELATED articles (network_diagram_articles), and the article lists
  *     the diagrams back ("Network diagrams" when reading it).
  *

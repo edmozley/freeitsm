@@ -8821,7 +8821,7 @@ CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
     -- A group: nodes and shapes on the same page with the same group_key move and select
     -- together (Group / Ungroup in the editor). NULL = not grouped.
     `group_key`      VARCHAR(40) NULL,
-    -- A Knowledge article the node links to (click in Present, Ctrl+click in the editor).
+    -- A Knowledge article the node links to (click in Present; the book marker or right-click menu in the editor).
     -- Who may read it is Knowledge's own rule - the diagram never shows a title past it.
     `article_id`     INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)

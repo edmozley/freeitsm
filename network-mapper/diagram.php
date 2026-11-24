@@ -2266,7 +2266,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/save-to-files.js?v=3"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=20"></script>
+    <script src="../assets/js/network-mapper.js?v=21"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

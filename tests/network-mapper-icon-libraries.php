@@ -129,6 +129,9 @@ try {
     check('HTML named .png is refused', $refused('<html><script>alert(1)</script></html>'));
     check('a PNG header with no real picture behind it is refused', $refused($png));
     check('over 4 MB is refused', $refused($dot . str_repeat("\0", 4 * 1024 * 1024)));
+    $big = NetworkIconService::addUpload($conn, $ctx, $dot . str_repeat("\0", 1024 * 1024), 'ZZ big.png');
+    $upIds[] = $big['id'];
+    check('POSITIVE CONTROL: a 1 MB picture goes in (not held to the 512 KB cap for library icons)', !empty($big['id']));
 
     $d3 = NetworkMapperService::createDiagram($conn, $ctx, ['title' => 'ZZ my images ' . bin2hex(random_bytes(3))]);
     NetworkMapperService::saveDiagram($conn, $ctx, $d3, ['shapes' => [

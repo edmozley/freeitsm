@@ -457,7 +457,6 @@ return [
         'link_article' => 'Link to article',
     ],
 
-    // GH #433: several items selected (the Selection panel)
     'kb' => [
         'field'                => 'Article',
         'link'                 => 'Link',
@@ -478,6 +477,7 @@ return [
         'related_hint'         => 'Each article lists this diagram back, under Network diagrams.',
     ],
 
+    // GH #433: several items selected (the Selection panel)
     'select' => [
         'title'        => '{count} items selected',
         'align'        => 'Align',

@@ -5519,8 +5519,8 @@
      */
     function exportMenu(e, kind) {
         const run = kind === 'pdf' ? exportPdf : exportPng;
-        if (!window.NM_FILES || !window.SaveToFiles) { run('download'); return; }
-        if (e) e.stopPropagation();
+        if (!e || !window.NM_FILES || !window.SaveToFiles) { run('download'); return; }   // no button to anchor a menu to: just download
+        e.stopPropagation();
         const r = e.currentTarget.getBoundingClientRect();
         showCtxMenu(r.left, r.bottom + 4, [
             { label: t('common.documents.download'), act: () => run('download') },

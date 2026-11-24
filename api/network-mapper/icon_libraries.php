@@ -64,7 +64,12 @@ try {
         // GH #433: an uploaded or pasted picture, into My images. Read from PHP's own temp file
         // and stored in the database - nothing is written to a served folder.
         $f = $_FILES['file'];
-        if (($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+        $err = $f['error'] ?? UPLOAD_ERR_NO_FILE;
+        if ($err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+            // PHP's upload_max_filesize (2 MB on a stock install) can be lower than the 4 MB allowed here
+            throw new ServiceError('validation', 'too_big', 'That picture is larger than this server accepts.');
+        }
+        if ($err !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
             throw new ServiceError('validation', 'not_image', 'The picture did not arrive.');
         }
         $bytes = (string)file_get_contents($f['tmp_name']);
