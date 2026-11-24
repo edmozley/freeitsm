@@ -708,7 +708,11 @@
         }
         if (elCanvasEmpty) elCanvasEmpty.style.display = 'none';
 
-        nodes.forEach(n => elCanvasInner.appendChild(buildNodeEl(n)));
+        nodes.forEach(n => {
+            const el = buildNodeEl(n);
+            elCanvasInner.appendChild(el);
+            syncIconY(el, n);
+        });
         renderConnectors();
     }
 
@@ -784,7 +788,28 @@
     /** Swaps one node's element for a freshly built one (after a colour, size or icon size change). */
     function rerenderNode(n) {
         const el = elCanvasInner.querySelector('.nm-node[data-key="' + cssEscape(nodeKey(n)) + '"]');
-        if (el) el.replaceWith(buildNodeEl(n));
+        if (!el) return;
+        const fresh = buildNodeEl(n);
+        el.replaceWith(fresh);
+        syncIconY(fresh, n);
+    }
+
+    /**
+     * GH #433: in a box with its own height the icon and name are centred vertically as one group, so
+     * where the icon sits depends on how far the name wraps - only the drawn element knows. Reads it
+     * once the node is in the page, keeps it on the node (n._iconY, never saved) for nodeIconBBox, and
+     * moves the four connection dots onto the icon.
+     */
+    function syncIconY(el, n) {
+        const icon = el ? el.querySelector('.nm-node-icon') : null;
+        const sz = NODE_SIZES[n.size] || NODE_SIZES.medium;
+        const iy = (n.h && icon) ? icon.offsetTop : NODE_PADDING;
+        n._iconY = iy;
+        if (!el || iy === NODE_PADDING) return;
+        el.querySelectorAll('.nm-edge-handle').forEach(h => {
+            const side = h.dataset.side;
+            h.style.top = (side === 'top' ? iy : side === 'bottom' ? iy + sz : iy + sz / 2) + 'px';
+        });
     }
 
     // ---- GH #433: resize a node's box by its bottom-right corner ----
@@ -871,13 +896,14 @@
         const sizePx = NODE_SIZES[n.size] || NODE_SIZES.medium;
         const pad = NODE_PADDING;
         const ix = iconOffsetX(n);   // GH #433: centred when the box has its own width
+        const iy = (n._iconY != null) ? n._iconY : pad;   // ...and its own height (syncIconY)
         return {
             x: n.x + ix,
-            y: n.y + pad,
+            y: n.y + iy,
             w: sizePx,
             h: sizePx,
             cx: n.x + ix + sizePx / 2,
-            cy: n.y + pad + sizePx / 2
+            cy: n.y + iy + sizePx / 2
         };
     }
 
