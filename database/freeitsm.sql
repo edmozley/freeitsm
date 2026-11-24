@@ -6092,6 +6092,11 @@ CREATE TABLE IF NOT EXISTS `software_licences` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `app_id`            INT NOT NULL,
     `licence_type`      VARCHAR(50) NOT NULL,
+    -- How long it lasts (Alisdair's ask): subscription | perpetual | perpetual_maintenance;
+    -- NULL = not said. licence_type is how it is COUNTED (Per User, Per Device, Site,
+    -- Concurrent, Other). Before 5.11.0 "Subscription" was a type: SoftwareService::
+    -- migrateLegacyTerms() moves it (and "Perpetual") here. A perpetual licence has no renewal.
+    `licence_term`      VARCHAR(25) NULL,
     `licence_key`       VARCHAR(500) NULL,
     `quantity`          INT NULL,
     `renewal_date`      DATE NULL,

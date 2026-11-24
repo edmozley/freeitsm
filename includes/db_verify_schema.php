@@ -4556,6 +4556,7 @@ return [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'app_id'            => 'INT NOT NULL',
         'licence_type'      => 'VARCHAR(50) NOT NULL',
+        'licence_term'      => 'VARCHAR(25) NULL',   // subscription | perpetual | perpetual_maintenance; NULL = not said (5.11.0)
         'licence_key'       => 'VARCHAR(500) NULL',
         'quantity'          => 'INT NULL',
         'renewal_date'      => 'DATE NULL',

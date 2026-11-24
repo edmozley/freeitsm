@@ -9790,6 +9790,18 @@ return array (
         array (
           'type' => 'string',
         ),
+        'licence_term' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' =>
+          array (
+            0 => 'subscription',
+            1 => 'perpetual',
+            2 => 'perpetual_maintenance',
+          ),
+          'description' => 'How long it lasts (5.11.0). licence_type is how it is counted. Null = not said.',
+        ),
         'quantity' => 
         array (
           'type' => 'integer',
@@ -9861,6 +9873,18 @@ return array (
         'licence_type' => 
         array (
           'type' => 'string',
+        ),
+        'licence_term' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' =>
+          array (
+            0 => 'subscription',
+            1 => 'perpetual',
+            2 => 'perpetual_maintenance',
+          ),
+          'description' => 'How long it lasts (5.11.0). licence_type is how it is counted. Null = not said.',
         ),
         'licence_key' => 
         array (

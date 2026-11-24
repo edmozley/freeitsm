@@ -279,6 +279,15 @@ $translationNamespaces = ['common', 'software'];
                         </div>
                     </div>
 
+                    <!-- How it is counted, and how long it lasts (5.11.0) -->
+                    <h4 id="licence-term"><?php echo htmlspecialchars(t('software.help.term_heading')); ?></h4>
+                    <p><?php echo t('software.help.term_body'); ?></p>
+                    <div class="help-list">
+                        <div><strong><?php echo htmlspecialchars(t('software.licences.term_subscription')); ?></strong> &mdash; <?php echo htmlspecialchars(t('software.help.term_subscription_t')); ?></div>
+                        <div><strong><?php echo htmlspecialchars(t('software.licences.term_perpetual')); ?></strong> &mdash; <?php echo htmlspecialchars(t('software.help.term_perpetual_t')); ?></div>
+                        <div><strong><?php echo htmlspecialchars(t('software.licences.term_perpetual_maintenance')); ?></strong> &mdash; <?php echo htmlspecialchars(t('software.help.term_maintenance_t')); ?></div>
+                    </div>
+
                     <div class="help-list">
                         <div><strong><?php echo htmlspecialchars(t('software.help.licences_field_compliant_b')); ?></strong> &mdash; <?php echo htmlspecialchars(t('software.help.licences_field_compliant_t')); ?></div>
                         <div><strong><?php echo htmlspecialchars(t('software.help.licences_field_approaching_b')); ?></strong> &mdash; <?php echo htmlspecialchars(t('software.help.licences_field_approaching_t')); ?></div>

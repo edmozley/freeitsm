@@ -111,7 +111,9 @@ function rpSoftwareLicences(PDO $conn, int $analystId, array $o, array $range, $
 {
     $where = ''; $params = [];
     if ($o['renewing']) { $where = 'WHERE l.renewal_date >= ? AND l.renewal_date <= ?'; $params = [$range['from_date'], $range['to_date']]; }
-    $s = $conn->prepare("SELECT a.display_name, l.licence_type, l.quantity, l.renewal_date, l.cost, l.currency, l.status
+    require_once __DIR__ . '/../services/software.php';
+    $termCol = SoftwareService::termReady($conn) ? 'l.licence_term' : 'NULL AS licence_term';
+    $s = $conn->prepare("SELECT a.display_name, l.licence_type, $termCol, l.quantity, l.renewal_date, l.cost, l.currency, l.status
                            FROM software_licences l
                            LEFT JOIN software_inventory_apps a ON a.id = l.app_id
                            $where
@@ -122,7 +124,7 @@ function rpSoftwareLicences(PDO $conn, int $analystId, array $o, array $range, $
     foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $rows[] = [
             'app'      => (string)$r['display_name'],
-            'type'     => (string)$r['licence_type'],
+            'type'     => rpSoftwareLicenceTypeText((string)$r['licence_type'], $r['licence_term']),
             'quantity' => $r['quantity'] !== null ? (string)(int)$r['quantity'] : '',
             'renewal'  => $r['renewal_date'] ? rpFmtDate(substr((string)$r['renewal_date'], 0, 10)) : '',
             'cost'     => $r['cost'] !== null ? Money::format($r['cost'], $r['currency'] ?: null) : '',   // GH #189
@@ -137,4 +139,21 @@ function rpSoftwareLicences(PDO $conn, int $analystId, array $o, array $range, $
         ['key' => 'cost',     'label' => t('reporting.packs.col.cost'),        'w' => 15, 'align' => 'right'],
         ['key' => 'status',   'label' => t('reporting.packs.col.status'),      'w' => 13],
     ]];
+}
+
+/**
+ * "Per device · Perpetual": how a licence is counted and how long it lasts, in the
+ * pack's language. A stored type the app does not offer (typed in through the API)
+ * is shown as it is.
+ *
+ * @param string $type  software_licences.licence_type
+ * @param ?string $term  software_licences.licence_term
+ */
+function rpSoftwareLicenceTypeText(string $type, ?string $term): string
+{
+    $types = ['Per User' => 'type_per_user', 'Per Device' => 'type_per_device', 'Site' => 'type_site', 'Concurrent' => 'type_concurrent', 'Other' => 'type_other'];
+    $parts = [];
+    if ($type !== '') $parts[] = isset($types[$type]) ? t('software.licences.' . $types[$type]) : $type;
+    if ($term) $parts[] = t('software.licences.term_' . $term);
+    return implode(' · ', $parts);
 }

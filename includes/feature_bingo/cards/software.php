@@ -86,6 +86,18 @@ return [
         'check'    => ['rows', 'software_licences', 'renewal_date IS NOT NULL AND is_demo = 0'],
     ],
     [
+        'id'       => 'software.licence_terms',
+        'module'   => 'software',
+        'tier'     => 'recommended',
+        'category' => 'governance',
+        'title'    => 'Licence terms',
+        'what'     => 'Each licence\'s Term - subscription, perpetual, or perpetual with maintenance such as Software Assurance - beside how it is counted (5.11.0).',
+        'why'      => 'A perpetual licence you own outright and a subscription that stops when the money does are different commitments: one needs a renewal reminder, the other never will, and maintenance that lapses does not take the licence with it.',
+        'done'     => 'At least one licence has a term (demo data not counted).',
+        'link'     => 'software/licences/',
+        'check'    => ['rows', 'software_licences', 'licence_term IS NOT NULL AND is_demo = 0'],
+    ],
+    [
         'id'       => 'software.notice_periods',
         'module'   => 'software',
         'tier'     => 'recommended',

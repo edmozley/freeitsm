@@ -247,6 +247,20 @@ $translationNamespaces = ['common', 'software'];
         .renewal-ok {
             color: #2e7d32;
         }
+        /* How long the licence lasts, beside how it is counted (5.11.0) */
+        .term-badge {
+            display: inline-block;
+            margin-left: 4px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: var(--font-size-sm, 12px);
+            border: 1px solid var(--border, #ddd);
+            color: var(--text-muted, #666);
+            background: var(--surface, #fff);
+        }
+        .type-unset { color: var(--text-faint, #999); font-style: italic; }
+        .no-renewal { color: var(--text-muted, #666); }
+        .field-hint { display: block; margin-top: 6px; color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); line-height: 1.5; }
 
         /* Modal overlay */
         .detail-overlay {
@@ -498,14 +512,16 @@ $translationNamespaces = ['common', 'software'];
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label"><?php echo htmlspecialchars(t('software.licences.field_type')); ?></label>
+                        <label class="form-label" for="licenceType"><?php echo htmlspecialchars(t('software.licences.field_counted')); ?></label>
+                        <?php /* How it is COUNTED. How long it lasts is the Term below - before 5.11.0
+                                 "Subscription" was in this list, which left nowhere to say
+                                 "per device AND perpetual". The values are stored as they are. */ ?>
                         <select class="form-input" id="licenceType">
                             <option value=""><?php echo htmlspecialchars(t('software.licences.select_type')); ?></option>
                             <option value="Per User"><?php echo htmlspecialchars(t('software.licences.type_per_user')); ?></option>
                             <option value="Per Device"><?php echo htmlspecialchars(t('software.licences.type_per_device')); ?></option>
                             <option value="Site"><?php echo htmlspecialchars(t('software.licences.type_site')); ?></option>
                             <option value="Concurrent"><?php echo htmlspecialchars(t('software.licences.type_concurrent')); ?></option>
-                            <option value="Subscription"><?php echo htmlspecialchars(t('software.licences.type_subscription')); ?></option>
                             <option value="Other"><?php echo htmlspecialchars(t('software.licences.type_other')); ?></option>
                         </select>
                     </div>
@@ -513,6 +529,17 @@ $translationNamespaces = ['common', 'software'];
                         <label class="form-label"><?php echo htmlspecialchars(t('software.licences.field_quantity')); ?></label>
                         <input type="number" class="form-input" id="licenceQuantity" min="0" placeholder="<?php echo htmlspecialchars(t('software.licences.quantity_placeholder')); ?>">
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="licenceTerm"><?php echo htmlspecialchars(t('software.licences.field_term')); ?></label>
+                    <select class="form-input" id="licenceTerm" onchange="applyTerm()">
+                        <option value=""><?php echo htmlspecialchars(t('software.licences.term_none')); ?></option>
+                        <option value="subscription"><?php echo htmlspecialchars(t('software.licences.term_subscription')); ?></option>
+                        <option value="perpetual"><?php echo htmlspecialchars(t('software.licences.term_perpetual')); ?></option>
+                        <option value="perpetual_maintenance"><?php echo htmlspecialchars(t('software.licences.term_perpetual_maintenance')); ?></option>
+                    </select>
+                    <small class="field-hint"><?php echo htmlspecialchars(t('software.licences.term_hint')); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -537,14 +564,14 @@ $translationNamespaces = ['common', 'software'];
                         <label class="form-label"><?php echo htmlspecialchars(t('software.licences.field_purchase_date')); ?></label>
                         <input type="date" class="form-input" id="licencePurchaseDate">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label"><?php echo htmlspecialchars(t('software.licences.field_renewal_date')); ?></label>
+                    <div class="form-group" id="licenceRenewalGroup">
+                        <label class="form-label" id="licenceRenewalLabel" for="licenceRenewalDate"><?php echo htmlspecialchars(t('software.licences.field_renewal_date')); ?></label>
                         <input type="date" class="form-input" id="licenceRenewalDate">
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group" id="licenceNoticeGroup">
                         <label class="form-label"><?php echo htmlspecialchars(t('software.licences.field_notice_days')); ?></label>
                         <input type="number" class="form-input" id="licenceNoticeDays" min="0" placeholder="<?php echo htmlspecialchars(t('software.licences.notice_placeholder')); ?>">
                     </div>
@@ -674,7 +701,7 @@ $translationNamespaces = ['common', 'software'];
                     filteredLicences = allLicences.filter(l =>
                         (l.app_name || '').toLowerCase().includes(search) ||
                         (l.app_publisher || '').toLowerCase().includes(search) ||
-                        (l.licence_type || '').toLowerCase().includes(search) ||
+                        licenceTypeText(l).toLowerCase().includes(search) ||
                         (l.licence_key || '').toLowerCase().includes(search) ||
                         (l.vendor_contact || '').toLowerCase().includes(search) ||
                         (l.notes || '').toLowerCase().includes(search)
@@ -737,13 +764,39 @@ $translationNamespaces = ['common', 'software'];
                         ${escapeHtml(l.app_name)}
                         ${l.app_publisher ? '<div class="publisher-text">' + escapeHtml(l.app_publisher) + '</div>' : ''}
                     </td>
-                    <td><span class="type-badge">${escapeHtml(l.licence_type)}</span></td>
+                    <td>${l.licence_type
+                            ? '<span class="type-badge">' + escapeHtml(countedLabel(l.licence_type)) + '</span>'
+                            : '<span class="type-unset">' + escapeHtml(window.t('software.licences.type_not_set')) + '</span>'}${l.licence_term
+                            ? '<span class="term-badge">' + escapeHtml(window.t('software.licences.term_' + l.licence_term)) + '</span>' : ''}</td>
                     <td>${l.quantity != null ? escapeHtml(String(l.quantity)) : '\u2014'}</td>
-                    <td class="${renewalClass}">${l.renewal_date ? formatDate(l.renewal_date) : '\u2014'}</td>
+                    <td class="${renewalClass}">${l.renewal_date ? formatDate(l.renewal_date)
+                        : (l.licence_term === 'perpetual' ? '<span class="no-renewal">' + escapeHtml(window.t('software.licences.no_renewal')) + '</span>' : '\u2014')}</td>
                     <td><span class="${statusClass}">${escapeHtml(l.status)}</span></td>
                     <td class="cost-text">${formatCost(l.cost, l.currency)}</td>
                 </tr>`;
             }).join('');
+        }
+
+        // How a licence is counted, in the analyst's language. Stored as the English
+        // words; a value typed in through the API that the form does not offer is shown as it is.
+        const COUNTED = { 'Per User': 'type_per_user', 'Per Device': 'type_per_device', 'Site': 'type_site',
+                          'Concurrent': 'type_concurrent', 'Other': 'type_other' };
+        function countedLabel(type) {
+            return COUNTED[type] ? window.t('software.licences.' + COUNTED[type]) : type;
+        }
+        /** "Per device · Perpetual" - for the search box and the CSV. */
+        function licenceTypeText(l) {
+            return [l.licence_type ? countedLabel(l.licence_type) : '',
+                    l.licence_term ? window.t('software.licences.term_' + l.licence_term) : ''].filter(Boolean).join(' · ');
+        }
+        /** A perpetual licence never renews: no renewal date, no notice period. With
+         *  maintenance (Software Assurance, say) the date is when the maintenance renews. */
+        function applyTerm() {
+            const term = document.getElementById('licenceTerm').value;
+            document.getElementById('licenceRenewalGroup').hidden = term === 'perpetual';
+            document.getElementById('licenceNoticeGroup').hidden = term === 'perpetual';
+            document.getElementById('licenceRenewalLabel').textContent = window.t(term === 'perpetual_maintenance'
+                ? 'software.licences.field_maintenance_date' : 'software.licences.field_renewal_date');
         }
 
         function getRenewalClass(renewalDate, noticeDays) {
@@ -777,6 +830,7 @@ $translationNamespaces = ['common', 'software'];
             document.getElementById('licenceId').value = '';
             document.getElementById('licenceAppId').value = '';
             document.getElementById('licenceType').value = '';
+            document.getElementById('licenceTerm').value = '';
             document.getElementById('licenceQuantity').value = '';
             document.getElementById('licenceKey').value = '';
             document.getElementById('licenceCost').value = '';
@@ -808,6 +862,7 @@ $translationNamespaces = ['common', 'software'];
                     document.getElementById('licenceId').value = licence.id;
                     document.getElementById('licenceAppId').value = licence.app_id;
                     document.getElementById('licenceType').value = licence.licence_type;
+                    document.getElementById('licenceTerm').value = licence.licence_term || '';
                     document.getElementById('licenceQuantity').value = licence.quantity != null ? licence.quantity : '';
                     document.getElementById('licenceKey').value = licence.licence_key || '';
                     document.getElementById('licenceCost').value = licence.cost != null ? licence.cost : '';
@@ -843,6 +898,7 @@ $translationNamespaces = ['common', 'software'];
                 }
             }
 
+            applyTerm();
             document.getElementById('licenceOverlay').classList.add('open');
         }
 
@@ -867,13 +923,15 @@ $translationNamespaces = ['common', 'software'];
                 id: document.getElementById('licenceId').value || null,
                 app_id: parseInt(appId),
                 licence_type: licenceType,
+                licence_term: document.getElementById('licenceTerm').value || null,
                 licence_key: document.getElementById('licenceKey').value,
                 quantity: document.getElementById('licenceQuantity').value,
                 cost: document.getElementById('licenceCost').value,
                 currency: document.getElementById('licenceCurrency').value,
                 purchase_date: document.getElementById('licencePurchaseDate').value,
-                renewal_date: document.getElementById('licenceRenewalDate').value,
-                notice_period_days: document.getElementById('licenceNoticeDays').value,
+                // Perpetual: the fields are hidden and nothing renews (the server clears them too).
+                renewal_date: document.getElementById('licenceTerm').value === 'perpetual' ? '' : document.getElementById('licenceRenewalDate').value,
+                notice_period_days: document.getElementById('licenceTerm').value === 'perpetual' ? '' : document.getElementById('licenceNoticeDays').value,
                 status: document.getElementById('licenceStatus').value,
                 portal_url: document.getElementById('licencePortalUrl').value,
                 vendor_contact: document.getElementById('licenceVendorContact').value,
@@ -930,6 +988,7 @@ $translationNamespaces = ['common', 'software'];
                 window.t('software.licences.csv_application'),
                 window.t('software.licences.csv_publisher'),
                 window.t('software.licences.csv_type'),
+                window.t('software.licences.field_term'),
                 window.t('software.licences.csv_quantity'),
                 window.t('software.licences.csv_key'),
                 window.t('software.licences.csv_renewal'),
@@ -948,7 +1007,8 @@ $translationNamespaces = ['common', 'software'];
                 rows.push([
                     csvCell(l.app_name || ''),
                     csvCell(l.app_publisher || ''),
-                    csvCell(l.licence_type || ''),
+                    csvCell(l.licence_type ? countedLabel(l.licence_type) : ''),
+                    csvCell(l.licence_term ? window.t('software.licences.term_' + l.licence_term) : ''),
                     csvCell(l.quantity != null ? String(l.quantity) : ''),
                     csvCell(l.licence_key || ''),
                     csvCell(l.renewal_date || ''),

@@ -12157,7 +12157,7 @@
                     "p": "\/software\/licences",
                     "perm": "software_licences.create",
                     "s": "Create a licence",
-                    "d": "app_id and licence_type are required (app validated). Currency defaults GBP, status defaults Active; dates YYYY-MM-DD; created_by is the analyst the key acts as.",
+                    "d": "app_id is required (app validated), and licence_type (how it is counted) or licence_term (how long it lasts), ideally both. A perpetual licence has no renewal: renewal_date and notice_period_days are cleared. Before 5.11.0 \"Subscription\" was a licence_type; sent that way it is still taken as licence_term subscription. Currency defaults GBP, status defaults Active; dates YYYY-MM-DD; created_by is the analyst the key acts as.",
                     "params": [
                         {
                             "name": "app_id",
@@ -12168,8 +12168,14 @@
                         {
                             "name": "licence_type",
                             "in": "body",
-                            "desc": "e.g. Per-seat subscription",
-                            "req": true
+                            "desc": "How it is counted. The app offers Per User, Per Device, Site, Concurrent, Other; other text is kept as sent. Required unless licence_term is sent",
+                            "req": false
+                        },
+                        {
+                            "name": "licence_term",
+                            "in": "body",
+                            "desc": "How long it lasts: subscription, perpetual (nothing renews) or perpetual_maintenance (owned, with maintenance such as Software Assurance renewing on renewal_date). null clears it",
+                            "req": false
                         },
                         {
                             "name": "quantity",
@@ -12204,7 +12210,8 @@
                     ],
                     "body": {
                         "app_id": 1,
-                        "licence_type": "Per-seat subscription",
+                        "licence_type": "Per User",
+                        "licence_term": "subscription",
                         "quantity": 50,
                         "renewal_date": "2027-03-31",
                         "cost": 2400,
@@ -12216,10 +12223,10 @@
                         "examples": [
                             {
                                 "title": "Minimum fields",
-                                "note": "app_id and licence_type are the only requirements — currency defaults GBP, status defaults Active.",
+                                "note": "app_id and how it is counted are enough — currency defaults GBP, status defaults Active.",
                                 "body": {
                                     "app_id": 1,
-                                    "licence_type": "Per-seat subscription"
+                                    "licence_type": "Per User"
                                 }
                             },
                             {
@@ -12227,7 +12234,8 @@
                                 "note": "A typical per-seat licence with a renewal date, cost and a custom notice period.",
                                 "body": {
                                     "app_id": 1,
-                                    "licence_type": "Per-seat subscription",
+                                    "licence_type": "Per User",
+                                    "licence_term": "subscription",
                                     "quantity": 50,
                                     "renewal_date": "2027-03-31",
                                     "cost": 2400,
@@ -12240,7 +12248,7 @@
                                 "note": "No `quantity` means unmetered — the API flags this so compliance reports show seats_available as null instead of a misleading number.",
                                 "body": {
                                     "app_id": 2,
-                                    "licence_type": "Site licence",
+                                    "licence_type": "Site",
                                     "renewal_date": "2027-01-15",
                                     "portal_url": "https:\/\/vendor.example.com\/portal",
                                     "vendor_contact": "accounts@vendor.example.com",
@@ -12262,7 +12270,7 @@
                             {
                                 "code": 422,
                                 "slug": "missing_field",
-                                "when": "`licence_type` is missing."
+                                "when": "Neither `licence_type` nor `licence_term` is sent."
                             }
                         ]
                     }
@@ -21539,10 +21547,10 @@
             "examples": [
                 {
                     "title": "Minimum fields",
-                    "note": "app_id and licence_type are the only requirements — currency defaults GBP, status defaults Active.",
+                    "note": "app_id and how it is counted are enough — currency defaults GBP, status defaults Active.",
                     "body": {
                         "app_id": 1,
-                        "licence_type": "Per-seat subscription"
+                        "licence_type": "Per User"
                     }
                 },
                 {
@@ -21550,7 +21558,8 @@
                     "note": "A typical per-seat licence with a renewal date, cost and a custom notice period.",
                     "body": {
                         "app_id": 1,
-                        "licence_type": "Per-seat subscription",
+                        "licence_type": "Per User",
+                        "licence_term": "subscription",
                         "quantity": 50,
                         "renewal_date": "2027-03-31",
                         "cost": 2400,
@@ -21563,7 +21572,7 @@
                     "note": "No `quantity` means unmetered — the API flags this so compliance reports show seats_available as null instead of a misleading number.",
                     "body": {
                         "app_id": 2,
-                        "licence_type": "Site licence",
+                        "licence_type": "Site",
                         "renewal_date": "2027-01-15",
                         "portal_url": "https:\/\/vendor.example.com\/portal",
                         "vendor_contact": "accounts@vendor.example.com",
@@ -21585,7 +21594,7 @@
                 {
                     "code": 422,
                     "slug": "missing_field",
-                    "when": "`licence_type` is missing."
+                    "when": "Neither `licence_type` nor `licence_term` is sent."
                 }
             ]
         },

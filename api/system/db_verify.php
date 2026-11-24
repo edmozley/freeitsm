@@ -620,6 +620,17 @@ try {
         ];
     }
 
+    // Licences: the old "Subscription" / "Perpetual" types become the term (Alisdair's
+    // ask, 5.11.0). Only rows with no term yet, so running it again changes nothing.
+    try {
+        require_once __DIR__ . '/../../includes/services/software.php';
+        $movedTerms = SoftwareService::migrateLegacyTerms($conn);
+        if ($movedTerms > 0) {
+            $results[] = ['table' => 'software_licences', 'status' => 'updated',
+                          'details' => ["Moved {$movedTerms} licence(s) typed Subscription or Perpetual to the new Term field - pick how each is counted"]];
+        }
+    } catch (Throwable $e) { error_log('db_verify licence terms: ' . $e->getMessage()); }
+
     // One-time SSO JIT split (discussion #155). Keeps every existing provider
     // behaving exactly as it did before the upgrade:
     //  - analyst JIT stays on wherever the old single switch was on

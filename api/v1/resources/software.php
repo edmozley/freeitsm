@@ -150,7 +150,7 @@ function apiSoftwareAppsGet(PDO $conn, array $apiKey, array $params, array $body
     $installs = apiSoftwareInstallCount($conn, $params[0]);
 
     $lStmt = $conn->prepare(
-        "SELECT id, licence_type, quantity, renewal_date, status FROM software_licences
+        "SELECT id, licence_type, " . (SoftwareService::termReady($conn) ? 'licence_term' : 'NULL AS licence_term') . ", quantity, renewal_date, status FROM software_licences
          WHERE app_id = ? ORDER BY renewal_date IS NULL, renewal_date"
     );
     $lStmt->execute([$params[0]]);
@@ -183,6 +183,7 @@ function apiSoftwareAppsGet(PDO $conn, array $apiKey, array $params, array $body
             return [
                 'id'           => (int)$l['id'],
                 'licence_type' => $l['licence_type'],
+                'licence_term' => $l['licence_term'],
                 'quantity'     => $l['quantity'] !== null ? (int)$l['quantity'] : null,
                 'renewal_date' => $l['renewal_date'],
                 'status'       => $l['status'],
@@ -263,6 +264,7 @@ function apiSerializeLicence(array $r): array {
         'id'           => (int)$r['id'],
         'app'          => ['id' => (int)$r['app_id'], 'name' => $r['app_name'], 'publisher' => $r['app_publisher']],
         'licence_type' => $r['licence_type'],
+        'licence_term' => $r['licence_term'] ?? null,   // subscription | perpetual | perpetual_maintenance | null (5.11.0)
         'licence_key'  => $r['licence_key'],
         'quantity'     => $r['quantity'] !== null ? (int)$r['quantity'] : null,
         'app_installs' => (int)($r['app_installs'] ?? 0),
