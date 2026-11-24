@@ -9951,6 +9951,11 @@
         margin-left: 0;
         min-width: 0;
     }
+    /* Versions / Save as new version / Save moved onto this row (GH #433) - on the
+       phone they wrap to a line of their own, flush with the details above. */
+    [data-mobile-module="network-mapper"] .nm-meta-actions {
+        margin-left: 0;
+    }
     [data-mobile-module="network-mapper"] .nm-readonly-banner {
         flex-wrap: wrap;
         gap: 4px 10px;

@@ -290,6 +290,9 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             flex-shrink: 0;
         }
         .nm-meta-row strong { color: var(--text-muted, #374151); font-weight: 500; }
+        /* Versions / Save as new version / Save live on the meta row, right of Updated */
+        .nm-meta-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 6px; }
+        .nm-meta-actions .nm-btn { padding: 5px 12px; }
 
         /* ---- Read-only banner ---- */
         .nm-readonly-banner {
@@ -1851,7 +1854,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <!-- Mobile layer LAST, after this page's own <style>, or every rule that
          targets the same selector at the same specificity loses on document
          order (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=202">
 </head>
 <body data-mobile-module="network-mapper" data-mobile-page="nm-diagram">
     <?php include 'includes/header.php'; ?>
@@ -1902,15 +1905,6 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                     <button class="nm-btn secondary nm-export-btn" id="exportPdfBtn" onclick="NM.exportMenu(event, 'pdf')" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_pdf_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_pdf')); ?></button>
                 </div>
                 <button class="nm-btn secondary" id="presentBtn" onclick="NM.enterPresent()" title="<?php echo htmlspecialchars(t('network-mapper.editor.present_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.present')); ?></button>
-                <div class="nm-versions-wrap">
-                    <button class="nm-btn secondary" id="versionsBtn" onclick="NM.toggleVersionsDropdown(event)" title="<?php echo htmlspecialchars(t('network-mapper.editor.versions_title')); ?>">
-                        <?php echo htmlspecialchars(t('network-mapper.editor.versions')); ?>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left: 4px; vertical-align: -1px;"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    <div class="nm-versions-dropdown" id="versionsDropdown" style="display:none;"></div>
-                </div>
-                <button class="nm-btn secondary" id="saveVersionBtn" onclick="NM.openNewVersionModal()" title="<?php echo htmlspecialchars(t('network-mapper.editor.save_version_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.save_version')); ?></button>
-                <button class="nm-btn" id="saveBtn" onclick="NM.save()" title="<?php echo htmlspecialchars(t('network-mapper.editor.save_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.save')); ?></button>
             </div>
         </div>
 
@@ -1925,6 +1919,18 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                 <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_created')); ?></strong> <span id="metaCreated">&mdash;</span></span>
                 <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_updated')); ?></strong> <span id="metaUpdated">&mdash;</span></span>
             </span>
+            <?php /* Save sits here, not in the toolbar, so the toolbar fits on one row (GH #433) */ ?>
+            <div class="nm-meta-actions">
+                <div class="nm-versions-wrap">
+                    <button class="nm-btn secondary" id="versionsBtn" onclick="NM.toggleVersionsDropdown(event)" title="<?php echo htmlspecialchars(t('network-mapper.editor.versions_title')); ?>">
+                        <?php echo htmlspecialchars(t('network-mapper.editor.versions')); ?>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left: 4px; vertical-align: -1px;"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="nm-versions-dropdown" id="versionsDropdown" style="display:none;"></div>
+                </div>
+                <button class="nm-btn secondary" id="saveVersionBtn" onclick="NM.openNewVersionModal()" title="<?php echo htmlspecialchars(t('network-mapper.editor.save_version_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.save_version')); ?></button>
+                <button class="nm-btn" id="saveBtn" onclick="NM.save()" title="<?php echo htmlspecialchars(t('network-mapper.editor.save_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.save')); ?></button>
+            </div>
         </div>
 
         <div class="nm-readonly-banner" id="readonlyBanner" style="display:none;">
