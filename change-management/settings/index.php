@@ -18,6 +18,12 @@ if (!isset($_SESSION['analyst_id'])) {
 
 require_once '../../includes/settings_manifest.php';
 requireModuleAccess('changes');
+require_once '../../includes/changes/field_labels.php';   // GH #435: fields' own names
+$cmFieldConn = connectToDatabase();
+/** A setting's field name: the field's own name when it has one (Settings -> Fields), else the standard one. */
+$cmName = function (string $key, string $standard) use ($cmFieldConn): string {
+    return changeFieldCustomLabels($cmFieldConn)[CHANGE_FIELD_ALIASES[$key] ?? $key] ?? $standard;
+};
 
 // RBAC Layer 2: only the tabs this analyst may see are rendered — a tab they lack is
 // never emitted, so there is nothing to un-hide. Administrators hold everything.
@@ -182,6 +188,10 @@ $translationNamespaces = ['common', 'change-management'];
             font-size: var(--font-size-lg, 14px);
             color: var(--text, #333);
         }
+        /* GH #435: a field's own name - its standard name beside it, and the pencil that opens the dialog */
+        .field-row-std { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
+        .field-rename-btn { background: none; border: 1px solid transparent; border-radius: 4px; padding: 3px 5px; cursor: pointer; color: var(--text-muted, #666); line-height: 0; }
+        .field-rename-btn:hover { border-color: var(--border, #ddd); color: var(--text, #333); }
         .unplaced-fields {
             margin-top: 20px;
             border: 1px dashed var(--warning-border, #e0a800);
@@ -319,6 +329,7 @@ $translationNamespaces = ['common', 'change-management'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
+    <?php echo changeFieldLabelsScript($cmFieldConn); ?>
 </head>
 <body data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
@@ -526,7 +537,7 @@ $translationNamespaces = ['common', 'change-management'];
                     <span class="ar-help"><?php echo htmlspecialchars(t('change-management.approval_settings.material_help')); ?></span>
                     <div class="ar-ticks ar-ticks-grid">
                         <?php require_once __DIR__ . '/../../includes/changes/approvals.php'; foreach (array_keys(CHANGE_MATERIAL_CHOICES) as $mk): ?>
-                        <label><input type="checkbox" name="arMaterial" value="<?php echo $mk; ?>"> <?php echo htmlspecialchars(t('change-management.approval_settings.field_' . $mk)); ?></label>
+                        <label><input type="checkbox" name="arMaterial" value="<?php echo $mk; ?>"> <?php echo htmlspecialchars($cmName($mk, t('change-management.approval_settings.field_' . $mk))); ?></label>
                         <?php endforeach; ?>
                     </div>
                 </fieldset>
@@ -699,6 +710,26 @@ $translationNamespaces = ['common', 'change-management'];
         </div>
     </div>
 
+    <!-- GH #435: a field's own name. Same markup as the lookup dialog above. -->
+    <div class="modal" id="fieldLabelModal">
+        <div class="modal-content">
+            <div class="modal-header"><?php echo htmlspecialchars(t('change-management.settings.label_rename')); ?></div>
+            <form id="fieldLabelForm">
+                <input type="hidden" id="fieldLabelKey">
+                <div class="form-group">
+                    <label for="fieldLabelName"><?php echo htmlspecialchars(t('change-management.settings.modal_name')); ?></label>
+                    <input type="text" id="fieldLabelName" maxlength="100">
+                    <span class="help" id="fieldLabelStandard"></span>
+                    <span class="help"><?php echo htmlspecialchars(t('change-management.settings.label_hint')); ?></span>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeFieldLabelModal()"><?php echo htmlspecialchars(t('change-management.settings.modal_cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('change-management.settings.modal_save')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Template editor (#180 §8). A .modal-content, so mobile.css LAYER 3 makes it a sheet. -->
     <div class="modal" id="templateModal">
         <div class="modal-content" style="max-width: 820px;">
@@ -709,16 +740,16 @@ $translationNamespaces = ['common', 'change-management'];
                 <div class="form-group"><label for="tplScopeUse"><?php echo htmlspecialchars(t('change-management.templates.scope_use')); ?></label><textarea id="tplScopeUse" rows="2"></textarea></div>
                 <div class="form-group"><label for="tplScopeNot"><?php echo htmlspecialchars(t('change-management.templates.scope_not')); ?></label><textarea id="tplScopeNot" rows="2"></textarea></div>
                 <div class="tpl-grid">
-                    <div class="form-group"><label for="tplType"><?php echo htmlspecialchars(t('change-management.approval_settings.field_change_type_id')); ?></label><select id="tplType"></select></div>
-                    <div class="form-group"><label for="tplPriority"><?php echo htmlspecialchars(t('change-management.approval_settings.field_priority_id')); ?></label><select id="tplPriority"></select></div>
-                    <div class="form-group"><label for="tplImpact"><?php echo htmlspecialchars(t('change-management.approval_settings.field_impact_id')); ?></label><select id="tplImpact"></select></div>
+                    <div class="form-group"><label for="tplType"><?php echo htmlspecialchars($cmName('change_type_id', t('change-management.approval_settings.field_change_type_id'))); ?></label><select id="tplType"></select></div>
+                    <div class="form-group"><label for="tplPriority"><?php echo htmlspecialchars($cmName('priority_id', t('change-management.approval_settings.field_priority_id'))); ?></label><select id="tplPriority"></select></div>
+                    <div class="form-group"><label for="tplImpact"><?php echo htmlspecialchars($cmName('impact_id', t('change-management.approval_settings.field_impact_id'))); ?></label><select id="tplImpact"></select></div>
                     <div class="form-group"><label for="tplRiskL"><?php echo htmlspecialchars(t('change-management.approval_settings.field_risk_likelihood')); ?></label><select id="tplRiskL"></select></div>
                     <div class="form-group"><label for="tplRiskI"><?php echo htmlspecialchars(t('change-management.approval_settings.field_risk_impact_score')); ?></label><select id="tplRiskI"></select></div>
                 </div>
                 <div class="cm-risk-older" id="tplRiskOlder" hidden><span id="tplRiskOlderText"></span>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="tplReassessRisk()"><?php echo htmlspecialchars(t('change-management.risk_policy.reassess')); ?></button></div>
                 <?php foreach (['description', 'reason_for_change', 'risk_evaluation', 'test_plan', 'rollback_plan'] as $lf): ?>
-                <div class="form-group"><label for="tpl_<?php echo $lf; ?>"><?php echo htmlspecialchars(t('change-management.revisions.field.' . $lf)); ?></label><textarea id="tpl_<?php echo $lf; ?>" rows="3"></textarea></div>
+                <div class="form-group"><label for="tpl_<?php echo $lf; ?>"><?php echo htmlspecialchars($cmName($lf, t('change-management.revisions.field.' . $lf))); ?></label><textarea id="tpl_<?php echo $lf; ?>" rows="3"></textarea></div>
                 <?php endforeach; ?>
                 <div class="form-group">
                     <label><?php echo htmlspecialchars(t('change-management.templates.open_fields')); ?></label>
@@ -1058,7 +1089,7 @@ $translationNamespaces = ['common', 'change-management'];
             });
             const open = t ? t.open_fields : ['description'];
             document.getElementById('tplOpen').innerHTML = TPL.fields.map(f =>
-                `<label><input type="checkbox" name="tplOpen" value="${f}" ${open.includes(f) ? 'checked' : ''}> ${escapeHtml(window.t('change-management.approval_settings.field_' + f) !== 'change-management.approval_settings.field_' + f ? window.t('change-management.approval_settings.field_' + f) : f)}</label>`).join('');
+                `<label><input type="checkbox" name="tplOpen" value="${f}" ${open.includes(f) ? 'checked' : ''}> ${escapeHtml(window.cmLabel(f, window.t('change-management.approval_settings.field_' + f) !== 'change-management.approval_settings.field_' + f ? window.t('change-management.approval_settings.field_' + f) : f))}</label>`).join('');
             const teams = t ? t.team_ids : [];
             document.getElementById('tplTeams').innerHTML = TPL.teams.map(tm =>
                 `<label><input type="checkbox" name="tplTeam" value="${tm.id}" ${teams.includes(parseInt(tm.id)) ? 'checked' : ''}> ${escapeHtml(tm.name)}</label>`).join('');
@@ -1443,10 +1474,16 @@ $translationNamespaces = ['common', 'change-management'];
         }
 
         function renderFieldRow(field, isUnplaced) {
+            // GH #435: the field's own name if it has one, with its standard name beside it; the pencil renames it.
+            const name = field.custom_label || field.standard || field.label;
+            const canRename = field.renamable && !isUnplaced;
             return `
                 <div class="field-row" data-field-key="${field.key}" draggable="true">
                     <span class="drag-handle" title="${window.t('change-management.settings.drag_reorder')}">⋮⋮</span>
-                    <span class="field-row-label">${escapeHtml(field.label)}</span>
+                    <span class="field-row-label">${escapeHtml(name)}${field.custom_label ? ` <span class="field-row-std">${escapeHtml(window.t('change-management.settings.label_standard', { name: field.standard }))}</span>` : ''}</span>
+                    ${canRename ? `<button type="button" class="field-rename-btn" title="${escapeAttr(window.t('change-management.settings.label_rename'))}" aria-label="${escapeAttr(window.t('change-management.settings.label_rename'))}" onclick="openFieldLabelModal('${field.key}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                    </button>` : ''}
                     ${isUnplaced ? '' : `
                         <label class="toggle-switch" title="${window.t('change-management.settings.toggle_field')}">
                             <input type="checkbox" ${field.is_visible ? 'checked' : ''}
@@ -1457,6 +1494,42 @@ $translationNamespaces = ['common', 'change-management'];
                 </div>
             `;
         }
+
+        /** GH #435: give a field its own name, in a dialog like the other settings edits. Blank = the standard name. */
+        function openFieldLabelModal(key) {
+            const field = layout.fields.find(f => f.key === key);
+            if (!field) return;
+            document.getElementById('fieldLabelKey').value = key;
+            const input = document.getElementById('fieldLabelName');
+            input.value = field.custom_label || '';
+            input.placeholder = field.standard || '';
+            document.getElementById('fieldLabelStandard').textContent = window.t('change-management.settings.label_standard', { name: field.standard || '' });
+            document.getElementById('fieldLabelModal').classList.add('active');
+            setTimeout(() => { input.focus(); input.select(); }, 50);
+        }
+        function closeFieldLabelModal() {
+            document.getElementById('fieldLabelModal').classList.remove('active');
+        }
+        document.getElementById('fieldLabelForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const key = document.getElementById('fieldLabelKey').value;
+            const field = layout.fields.find(f => f.key === key);
+            const value = document.getElementById('fieldLabelName').value.trim();
+            if (!field) return;
+            if (value === (field.custom_label || '')) { closeFieldLabelModal(); return; }
+            try {
+                const r = await fetch(API_BASE + 'save_field_label.php', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                                                           body: JSON.stringify({ key, label: value }) });
+                const d = await r.json();
+                if (!d.success) throw new Error(d.error || '');
+                field.custom_label = d.label;
+                closeFieldLabelModal();
+                renderFieldSettings();
+                showToast(window.t(d.label ? 'change-management.settings.label_saved' : 'change-management.settings.label_reset'), 'success');
+            } catch (err) {
+                showToast(err.message || window.t('change-management.settings.label_save_failed'), 'error');
+            }
+        });
 
         function escapeHtml(text) {
             const div = document.createElement('div');

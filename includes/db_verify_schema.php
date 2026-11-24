@@ -3223,6 +3223,7 @@ return [
         'section_id'        => 'INT NOT NULL',
         'display_order'     => 'INT NOT NULL DEFAULT 0',
         'is_visible'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'label'             => 'VARCHAR(100) NULL',   // GH #435: the field's own name; NULL = the standard one
     ],
 
     'changes' => [

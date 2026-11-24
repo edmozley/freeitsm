@@ -702,6 +702,16 @@ return [
         'delete_section'  => 'Delete section',
         'drag_reorder'    => 'Drag to reorder',
         'toggle_field'    => 'Show / hide this field on the change form',
+        // GH #435: a field's own name
+        'label_rename'          => 'Rename this field',
+        'label_hint'            => 'The name shown everywhere for this field, for everyone. Leave it blank to use the standard name. Only the name changes - the field still works as before.',
+        'label_standard'        => '(standard: {name})',
+        'label_saved'           => 'Field renamed',
+        'label_reset'           => 'Back to the standard name',
+        'label_save_failed'     => 'The name could not be saved',
+        'label_not_renamable'   => 'This field cannot be renamed',
+        'label_too_long'        => 'A field name can be up to 100 characters',
+        'label_place_first'     => 'Put this field in a section first, then rename it',
         'save_failed'     => 'Save failed: {message}',
         'unknown_error'   => 'unknown error',
 

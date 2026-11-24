@@ -27,6 +27,7 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/rbac.php';
 require_once __DIR__ . '/_field_catalogue.php';
+require_once __DIR__ . '/../../includes/changes/field_labels.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -198,6 +199,10 @@ try {
             'section_id'    => (int)$r['section_id'],
             'display_order' => (int)$r['display_order'],
             'is_visible'    => (bool)$r['is_visible'],
+            // GH #435: as get_field_layout.php gives them, so a reorder does not lose a field's own name on screen
+            'standard'      => isset(CHANGE_FIELD_STANDARD_NAMES[$key]) ? t(CHANGE_FIELD_STANDARD_NAMES[$key]) : FIELD_CATALOGUE[$key]['label'],
+            'custom_label'  => changeFieldCustomLabels($conn)[$key] ?? null,
+            'renamable'     => isset(CHANGE_FIELD_STANDARD_NAMES[$key]),
         ];
     }
 

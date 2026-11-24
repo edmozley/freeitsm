@@ -591,7 +591,9 @@ function renderChangeList() {
        a header row on a desktop, and on a phone a small label before each value. The values
        are coloured text with a dot, or plain text (Preferences: Change list labels). The
        colour classes are the same ones the detail view and table use. */
-    const colLabel = k => window.t('change-management.table.col_' + k);
+    // GH #435: a field's own name (Settings -> Fields) where the column is that field.
+    const COL_FIELD = { type: 'change_type', status: 'status', priority: 'priority', impact: 'impact', title: 'title', category: 'category' };
+    const colLabel = k => COL_FIELD[k] ? cmLabel(COL_FIELD[k], window.t('change-management.table.col_' + k)) : window.t('change-management.table.col_' + k);
     // A status's own colour from Settings (statuses are configurable; a custom one has no CSS class).
     const statusColourStyle = name => {
         const st = changeStatuses.find(x => x.name === name);
@@ -678,16 +680,16 @@ function renderChangeDetail() {
 
     // Build meta grid — only include visible fields
     let metaItems = '';
-    if (v('impact')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.impact')}</span><span class="detail-meta-value">${escapeHtml(c.impact)}</span></div>`;
-    if (v('category') && c.category) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.category')}</span><span class="detail-meta-value">${escapeHtml(c.category)}</span></div>`;
-    if (v('requester')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.requester')}</span><span class="detail-meta-value">${c.requester_name ? escapeHtml(c.requester_name) : window.t('change-management.detail.not_set')}</span></div>`;
-    if (v('assigned_to')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.assigned_to')}</span><span class="detail-meta-value">${c.assigned_to_name ? escapeHtml(c.assigned_to_name) : window.t('change-management.detail.not_set')}</span></div>`;
-    if (v('approver')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.approver')}</span><span class="detail-meta-value">${c.approver_name ? escapeHtml(c.approver_name) : window.t('change-management.detail.not_set')}</span></div>`;
+    if (v('impact')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('impact', window.t('change-management.detail.impact'))}</span><span class="detail-meta-value">${escapeHtml(c.impact)}</span></div>`;
+    if (v('category') && c.category) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('category', window.t('change-management.detail.category'))}</span><span class="detail-meta-value">${escapeHtml(c.category)}</span></div>`;
+    if (v('requester')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('requester', window.t('change-management.detail.requester'))}</span><span class="detail-meta-value">${c.requester_name ? escapeHtml(c.requester_name) : window.t('change-management.detail.not_set')}</span></div>`;
+    if (v('assigned_to')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('assigned_to', window.t('change-management.detail.assigned_to'))}</span><span class="detail-meta-value">${c.assigned_to_name ? escapeHtml(c.assigned_to_name) : window.t('change-management.detail.not_set')}</span></div>`;
+    if (v('approver')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('approver', window.t('change-management.detail.approver'))}</span><span class="detail-meta-value">${c.approver_name ? escapeHtml(c.approver_name) : window.t('change-management.detail.not_set')}</span></div>`;
     if (v('approver') && c.approval_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.approved')}</span><span class="detail-meta-value">${formatDateTime(c.approval_datetime)}</span></div>`;
-    if (v('work_start') && c.work_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_start')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.work_start_datetime)}</span></div>`;
-    if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.work_end_datetime)}</span></div>`;
-    if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_start')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_start_datetime)}</span></div>`;
-    if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_end_datetime)}</span></div>`;
+    if (v('work_start') && c.work_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('work_start', window.t('change-management.detail.work_start'))}</span><span class="detail-meta-value">${formatNaiveDateTime(c.work_start_datetime)}</span></div>`;
+    if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('work_end', window.t('change-management.detail.work_end'))}</span><span class="detail-meta-value">${formatNaiveDateTime(c.work_end_datetime)}</span></div>`;
+    if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('outage_start', window.t('change-management.detail.outage_start'))}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_start_datetime)}</span></div>`;
+    if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${cmLabel('outage_end', window.t('change-management.detail.outage_end'))}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_end_datetime)}</span></div>`;
     if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.risk_level')}</span><span class="detail-meta-value">${ChangeRisk.badge(c, true)}</span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.created')}</span><span class="detail-meta-value">${c.created_by_name ? window.t('change-management.detail.created_by', { datetime: formatDateTime(c.created_datetime), name: c.created_by_name }) : formatDateTime(c.created_datetime)}</span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.last_modified')}</span><span class="detail-meta-value">${formatDateTime(c.modified_datetime)}</span></div>`;
@@ -769,12 +771,12 @@ function renderChangeDetail() {
 
     // Detail sections — only include visible fields
     let sections = '';
-    if (v('description')) sections += renderDetailSection(window.t('change-management.detail.description'), c.description, 'description');
-    if (v('reason')) sections += renderDetailSection(window.t('change-management.detail.reason'), c.reason_for_change, 'reason_for_change');
-    if (v('risk')) sections += renderDetailSection(window.t('change-management.detail.risk_eval'), c.risk_evaluation, 'risk_evaluation');
-    if (v('testplan')) sections += renderDetailSection(window.t('change-management.detail.test_plan'), c.test_plan, 'test_plan');
-    if (v('rollback')) sections += renderDetailSection(window.t('change-management.detail.rollback_plan'), c.rollback_plan, 'rollback_plan');
-    if (v('pir')) sections += renderDetailSection(window.t('change-management.detail.pir'), c.post_implementation_review, 'post_implementation_review');
+    if (v('description')) sections += renderDetailSection(cmLabel('description', window.t('change-management.detail.description')), c.description, 'description');
+    if (v('reason')) sections += renderDetailSection(cmLabel('reason', window.t('change-management.detail.reason')), c.reason_for_change, 'reason_for_change');
+    if (v('risk')) sections += renderDetailSection(cmLabel('risk', window.t('change-management.detail.risk_eval')), c.risk_evaluation, 'risk_evaluation');
+    if (v('testplan')) sections += renderDetailSection(cmLabel('testplan', window.t('change-management.detail.test_plan')), c.test_plan, 'test_plan');
+    if (v('rollback')) sections += renderDetailSection(cmLabel('rollback', window.t('change-management.detail.rollback_plan')), c.rollback_plan, 'rollback_plan');
+    if (v('pir')) sections += renderDetailSection(cmLabel('pir', window.t('change-management.detail.pir')), c.post_implementation_review, 'post_implementation_review');
 
     if (sections) html += `<div class="detail-sections">${sections}</div>`;
 
@@ -1126,7 +1128,7 @@ function renderActivityTimeline(timeline, container) {
                 description = entry.action_type === 'comment_deleted'
                     ? escapeHtml(window.t('change-management.timeline.deleted_comment'))
                     : window.t('change-management.timeline.edited_text', {
-                        field: `<strong>${escapeHtml(field ? window.t('change-management.revisions.field.' + field) : (entry.field_name || ''))}</strong>`
+                        field: `<strong>${escapeHtml(field ? cmLabel(field, window.t('change-management.revisions.field.' + field)) : (entry.field_name || ''))}</strong>`
                     });
                 if (field && revId && currentChange) {
                     description += ` <button type="button" class="timeline-view-link" onclick="openRevisionViewer(${currentChange.id}, '${field}', ${revId})">${escapeHtml(window.t('change-management.revisions.view'))}</button>`;
@@ -2634,6 +2636,11 @@ function backToList() {
 
 // ============ Utility Functions ============
 
+// GH #435: change-management/index.php prints window.cmLabel (includes/changes/field_labels.php);
+// without it a field simply keeps its standard name.
+if (typeof window.cmLabel !== 'function') window.cmLabel = (key, standard) => standard;
+const cmLabel = (key, standard) => window.cmLabel(key, standard);
+
 // change_audit.field_name of a text edit is the field's English label
 // (ChangeRevisions::FIELDS in includes/changes/revisions.php); this maps it back to
 // the field key the viewer and the translations use.
@@ -2958,15 +2965,15 @@ function buildPdfContent() {
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 25%;"><strong>${window.t('change-management.pdf.status')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 25%;"><strong>${cmLabel('status', window.t('change-management.pdf.status'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(c.status)}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 25%;"><strong>${window.t('change-management.pdf.change_type')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 25%;"><strong>${cmLabel('change_type', window.t('change-management.pdf.change_type'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(c.change_type)}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.priority')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('priority', window.t('change-management.pdf.priority'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(c.priority)}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.impact')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('impact', window.t('change-management.pdf.impact'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(c.impact)}</td>
                 </tr>
                 ${c.risk_level ? `<tr>
@@ -2978,29 +2985,29 @@ function buildPdfContent() {
                     <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${formatDateTime(c.approval_datetime)}</td>
                 </tr>` : ''}
                 ${c.category ? `<tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.category')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('category', window.t('change-management.pdf.category'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${escapeHtml(c.category)}</td>
                 </tr>` : ''}
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.requester')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('requester', window.t('change-management.pdf.requester'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.requester_name ? escapeHtml(c.requester_name) : window.t('change-management.pdf.not_set')}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.assigned_to')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('assigned_to', window.t('change-management.pdf.assigned_to'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.assigned_to_name ? escapeHtml(c.assigned_to_name) : window.t('change-management.pdf.not_set')}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.approver')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('approver', window.t('change-management.pdf.approver'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${c.approver_name ? escapeHtml(c.approver_name) : window.t('change-management.pdf.not_set')}</td>
                 </tr>
                 ${c.work_start_datetime || c.work_end_datetime ? `<tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.work_start')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('work_start', window.t('change-management.pdf.work_start'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.work_start_datetime ? formatNaiveDateTime(c.work_start_datetime) : window.t('change-management.pdf.not_set')}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.work_end')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('work_end', window.t('change-management.pdf.work_end'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.work_end_datetime ? formatNaiveDateTime(c.work_end_datetime) : window.t('change-management.pdf.not_set')}</td>
                 </tr>` : ''}
                 ${c.outage_start_datetime || c.outage_end_datetime ? `<tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.outage_start')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('outage_start', window.t('change-management.pdf.outage_start'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_start_datetime ? formatNaiveDateTime(c.outage_start_datetime) : window.t('change-management.pdf.not_set')}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.outage_end')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${cmLabel('outage_end', window.t('change-management.pdf.outage_end'))}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_end_datetime ? formatNaiveDateTime(c.outage_end_datetime) : window.t('change-management.pdf.not_set')}</td>
                 </tr>` : ''}
             </table>
@@ -3008,12 +3015,12 @@ function buildPdfContent() {
 
     // Add detail sections
     const sections = [
-        { title: window.t('change-management.pdf.description'), content: c.description },
-        { title: window.t('change-management.pdf.reason'), content: c.reason_for_change },
-        { title: window.t('change-management.pdf.risk_eval'), content: c.risk_evaluation },
-        { title: window.t('change-management.pdf.test_plan'), content: c.test_plan },
-        { title: window.t('change-management.pdf.rollback_plan'), content: c.rollback_plan },
-        { title: window.t('change-management.pdf.pir'), content: c.post_implementation_review }
+        { title: cmLabel('description', window.t('change-management.pdf.description')), content: c.description },
+        { title: cmLabel('reason', window.t('change-management.pdf.reason')), content: c.reason_for_change },
+        { title: cmLabel('risk', window.t('change-management.pdf.risk_eval')), content: c.risk_evaluation },
+        { title: cmLabel('testplan', window.t('change-management.pdf.test_plan')), content: c.test_plan },
+        { title: cmLabel('rollback', window.t('change-management.pdf.rollback_plan')), content: c.rollback_plan },
+        { title: cmLabel('pir', window.t('change-management.pdf.pir')), content: c.post_implementation_review }
     ];
 
     sections.forEach(section => {

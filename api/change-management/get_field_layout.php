@@ -21,6 +21,7 @@ session_start(['read_and_close' => true]);
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/_field_catalogue.php';
+require_once __DIR__ . '/../../includes/changes/field_labels.php';
 
 header('Content-Type: application/json');
 
@@ -66,6 +67,10 @@ try {
             'section_id'    => (int)$r['section_id'],
             'display_order' => (int)$r['display_order'],
             'is_visible'    => (bool)$r['is_visible'],
+            // GH #435: the standard name in the reader's language, and the field's own name if it has one
+            'standard'      => isset(CHANGE_FIELD_STANDARD_NAMES[$key]) ? t(CHANGE_FIELD_STANDARD_NAMES[$key]) : FIELD_CATALOGUE[$key]['label'],
+            'custom_label'  => changeFieldCustomLabels($conn)[$key] ?? null,
+            'renamable'     => isset(CHANGE_FIELD_STANDARD_NAMES[$key]),
         ];
     }
 
@@ -80,6 +85,7 @@ try {
                 'key'   => $key,
                 'label' => $meta['label'],
                 'width' => $meta['width'],
+                'standard' => isset(CHANGE_FIELD_STANDARD_NAMES[$key]) ? t(CHANGE_FIELD_STANDARD_NAMES[$key]) : $meta['label'],
             ];
         }
     }

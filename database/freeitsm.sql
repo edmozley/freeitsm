@@ -4843,6 +4843,8 @@ CREATE TABLE IF NOT EXISTS `change_field_layout` (
     `section_id`     INT NOT NULL,
     `display_order`  INT NOT NULL DEFAULT 0,
     `is_visible`     TINYINT(1) NOT NULL DEFAULT 1,
+    -- GH #435: the field's own name, shown everywhere instead of the standard one; NULL = standard
+    `label`          VARCHAR(100) NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_cfl_field_key` (`field_key`),
     CONSTRAINT `fk_cfl_section` FOREIGN KEY (`section_id`) REFERENCES `change_field_sections` (`id`) ON DELETE CASCADE

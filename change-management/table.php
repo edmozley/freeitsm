@@ -62,7 +62,8 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="../assets/js/data-table.js?v=11"></script>
     <?php require_once '../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="../assets/js/change-risk.js?v=1"></script>
-    <script src="../assets/js/change-table.js?v=8"></script>
+    <?php require_once '../includes/changes/field_labels.php'; echo changeFieldLabelsScript(connectToDatabase()); /* GH #435: fields' own names */ ?>
+    <script src="../assets/js/change-table.js?v=9"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>
