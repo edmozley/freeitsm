@@ -3245,6 +3245,178 @@ return array (
             '$ref' => '#/components/schemas/CmdbImpactRelationshipRef',
           ),
         ),
+        'blast_radius' => 
+        array (
+          'type' => 'array',
+          'description' => 'Everything ultimately affected, not just what is attached directly: each object once, at its shortest hop count, with how it was reached and (GH #199) its grade.',
+          'items' => 
+          array (
+            '$ref' => '#/components/schemas/CmdbBlastRadiusEntry',
+          ),
+        ),
+        'blast_radius_truncated' => 
+        array (
+          'type' => 'boolean',
+          'description' => 'True when the walk stopped at its depth or size limit - the list is then incomplete and should be said to be.',
+        ),
+        'blast_radius_grades' => 
+        array (
+          '$ref' => '#/components/schemas/CmdbBlastRadiusGrades',
+        ),
+      ),
+    ),
+    'CmdbBlastRadiusEntry' => 
+    array (
+      'type' => 'object',
+      'description' => 'One object in a blast radius (GET /cmdb/objects/{id}/impact).',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'class_name' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'via_from' => 
+        array (
+          'type' => 'integer',
+          'description' => 'The object it was reached from.',
+        ),
+        'via_kind' => 
+        array (
+          'type' => 'string',
+          'description' => 'How: a child of via_from, a relationship, or an object_ref property.',
+          'enum' => 
+          array (
+            0 => 'child',
+            1 => 'relationship',
+            2 => 'property',
+          ),
+        ),
+        'via_label' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'The relationship verb or the property label; null for a child.',
+        ),
+        'via_rel_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'The relationship row, when via_kind is relationship.',
+        ),
+        'via_type_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'Its relationship type.',
+        ),
+        'via_name' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'The name of via_from.',
+        ),
+        'depth' => 
+        array (
+          'type' => 'integer',
+          'description' => 'Hops from the object asked about (1 = directly attached).',
+        ),
+        'grade' => 
+        array (
+          'type' => 'string',
+          'description' => 'GH #199: how badly it is hit. affected unless a relationship type models redundancy or failover.',
+          'enum' => 
+          array (
+            0 => 'affected',
+            1 => 'may_be_interrupted',
+            2 => 'redundancy_reduced',
+            3 => 'unknown',
+          ),
+        ),
+        'grade_via' => 
+        array (
+          'type' => 'object',
+          'allOf' => 
+          array (
+            0 => 
+            array (
+              '$ref' => '#/components/schemas/CmdbBlastRadiusGradeVia',
+            ),
+          ),
+          'nullable' => true,
+          'description' => 'The path that gave the grade; null when it is plainly affected.',
+        ),
+        'unknown_via' => 
+        array (
+          'type' => 'array',
+          'description' => 'Names of objects whose state the grade depends on but the model does not know.',
+          'items' => 
+          array (
+            'type' => 'string',
+          ),
+        ),
+      ),
+    ),
+    'CmdbBlastRadiusGradeVia' => 
+    array (
+      'type' => 'object',
+      'description' => 'The path that gave a blast radius entry its grade; null when it is plainly affected.',
+      'properties' => 
+      array (
+        'from' => 
+        array (
+          'type' => 'integer',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'label' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'kind' => 
+        array (
+          'type' => 'string',
+        ),
+      ),
+    ),
+    'CmdbBlastRadiusGrades' => 
+    array (
+      'type' => 'object',
+      'description' => 'GH #199: whether redundancy rules were used, how many entries got each grade, and what the model does not know.',
+      'properties' => 
+      array (
+        'used' => 
+        array (
+          'type' => 'boolean',
+          'description' => 'False = no relationship type models redundancy, so every entry is affected.',
+        ),
+        'counts' => 
+        array (
+          'type' => 'object',
+          'description' => 'Entries per grade: affected, may_be_interrupted, redundancy_reduced, unknown.',
+          'additionalProperties' => true,
+        ),
+        'limits' => 
+        array (
+          'type' => 'array',
+          'items' => 
+          array (
+            'description' => 'A string code, or an object {code, names}.',
+          ),
+          'description' => 'What the model does not know when rules were used: the strings quorum, storage, capacity, placement_rules, truncated, and {code: assumed_available, names: [...]} for members assumed to be running.',
+        ),
       ),
     ),
     'CmdbImpactDescendant' => 
