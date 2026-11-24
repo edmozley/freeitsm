@@ -5952,8 +5952,11 @@ return [
     'network_diagram_connectors' => [
         'id'                   => 'INT NOT NULL AUTO_INCREMENT',
         'diagram_id'           => 'INT NOT NULL',
-        'from_node_id'         => 'INT NOT NULL',
-        'to_node_id'           => 'INT NOT NULL',
+        'from_node_id'         => 'INT NULL',          // GH #433: NULL when that end is a shape
+        'to_node_id'           => 'INT NULL',
+        'from_shape_uid'       => 'VARCHAR(20) NULL',  // GH #433: network_diagram_shapes.uid
+        'to_shape_uid'         => 'VARCHAR(20) NULL',
+        'style'                => 'TEXT NULL',         // GH #433: colour, width, arrows, routing (JSON)
         'cmdb_relationship_id' => 'INT NULL',
         'label'                => 'VARCHAR(255) NULL',
         'line_style'           => "VARCHAR(20) NULL DEFAULT 'solid'",
@@ -5978,6 +5981,7 @@ return [
         'page_key'       => 'INT NOT NULL DEFAULT 0',
         'layer_key'      => 'INT NOT NULL DEFAULT 0',
         'group_key'      => 'VARCHAR(40) NULL',
+        'uid'            => 'VARCHAR(20) NULL',    // GH #433: what connectors point at
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 

@@ -351,6 +351,7 @@
                     if (e.key === 'ArrowUp') sh.y -= step;
                     if (e.key === 'ArrowDown') sh.y += step;
                     rerenderShape(sh);
+                    renderConnectors();
                     syncShapePanelGeometry();
                     markDirty();
                 }
@@ -1123,9 +1124,13 @@
     function selectConnector(key) {
         if (selectedConnectorKey === key) return;
         if (key != null && selectedShapeKey != null) selectShape(null);   // GH #433
+        if (key != null && multi.size) { multi = new Set(); applyMultiClasses(); }
+        const had = selectedConnectorKey != null;
         selectedConnectorKey = key;
         if (key != null) selectNode(null);
         renderConnectors();
+        if (key != null) renderConnectorPanel();          // GH #433: its Format panel
+        else if (had && selectedShapeKey == null && !multi.size) closeShapePanel();
     }
 
     /**
@@ -1138,14 +1143,16 @@
         Array.from(elSvgLayer.querySelectorAll('.nm-connector-group')).forEach(g => g.remove());
 
         connectors.forEach(c => {
-            const from = findNodeByRef(c.from_node_id);
-            const to   = findNodeByRef(c.to_node_id);
-            if (!from || !to) return; // node was deleted but connector lingered — skip silently
-            if (!itemVisible(from) || !itemVisible(to)) return;   // GH #433: another page, or a hidden layer
+            // GH #433: either end may be a node or a shape.
+            const from = endOf(c, 'from');
+            const to   = endOf(c, 'to');
+            if (!from || !to) return; // an end was deleted but the connector lingered - skip silently
+            if (!itemVisible(from.it) || !itemVisible(to.it)) return;   // another page, or a hidden layer
 
-            const fromBox = nodeIconBBox(from);
-            const toBox   = nodeIconBBox(to);
-            const pts = calcConnectorPoints(fromBox, toBox);
+            const pts = calcConnectorPoints(from.box, to.box);
+            const st = connStyle(c);
+            const d = connPath(pts, st.routing);
+            const mid = connMid(pts, st.routing);
 
             const g = document.createElementNS(SVG_NS, 'g');
             g.classList.add('nm-connector-group');
@@ -1155,7 +1162,7 @@
 
             // Wide invisible hit-area underneath for easier clicking
             const hit = document.createElementNS(SVG_NS, 'path');
-            hit.setAttribute('d', 'M' + pts.x1 + ',' + pts.y1 + ' L' + pts.x2 + ',' + pts.y2);
+            hit.setAttribute('d', d);
             hit.classList.add('nm-connector-hit');
             hit.addEventListener('mousedown', e => {
                 e.stopPropagation();
@@ -1168,16 +1175,24 @@
             g.appendChild(hit);
 
             const path = document.createElementNS(SVG_NS, 'path');
-            path.setAttribute('d', 'M' + pts.x1 + ',' + pts.y1 + ' L' + pts.x2 + ',' + pts.y2);
+            path.setAttribute('d', d);
             path.classList.add('nm-connector-line');
-            if (c.line_style === 'dashed') path.classList.add('dashed');
             if (isSel) path.classList.add('selected');
-            path.setAttribute('marker-end', isSel ? 'url(#nm-arrow-sel)' : 'url(#nm-arrow)');
+            else {
+                // Inline style, not attributes: the stylesheet's own stroke would beat an attribute,
+                // while the selected rule above still wins over nothing.
+                path.style.stroke = st.colour;
+                path.style.strokeWidth = String(st.width);
+            }
+            const dash = connDash(c.line_style, st.width);
+            if (dash) { path.style.strokeDasharray = dash; if (c.line_style === 'dotted') path.style.strokeLinecap = 'round'; }
+            const mc = isSel ? '#06b6d4' : st.colour;
+            if (st.arrowEnd !== 'none') path.setAttribute('marker-end', 'url(#' + ensureMarker(st.arrowEnd, mc, st.width) + ')');
+            if (st.arrowStart !== 'none') path.setAttribute('marker-start', 'url(#' + ensureMarker(st.arrowStart, mc, st.width) + ')');
             g.appendChild(path);
 
             if (c.label) {
-                const mx = (pts.x1 + pts.x2) / 2;
-                const my = (pts.y1 + pts.y2) / 2;
+                const mx = mid.x, my = mid.y;
                 const textLen = c.label.length * 6.5 + 14;
 
                 const bg = document.createElementNS(SVG_NS, 'rect');
@@ -1211,53 +1226,119 @@
 
             elSvgLayer.appendChild(g);
         });
-        renderConnectorStyleBar();
     }
 
-    /**
-     * GH #433: Solid / Dashed buttons under the selected connector's midpoint, on the current version
-     * only. Redrawn with the connectors, so clearing the selection (export, deselect) removes it.
-     */
-    function renderConnectorStyleBar() {
-        if (!elCanvasInner) return;
-        elCanvasInner.querySelectorAll('.nm-conn-style').forEach(el => el.remove());
-        if (selectedConnectorKey == null || !diagram || !diagram.is_current) return;
-        const c = findConnectorByKey(selectedConnectorKey);
-        if (!c) return;
-        const from = findNodeByRef(c.from_node_id);
-        const to   = findNodeByRef(c.to_node_id);
-        if (!from || !to) return;
-        const pts = calcConnectorPoints(nodeIconBBox(from), nodeIconBBox(to));
-        const mx = (pts.x1 + pts.x2) / 2;
-        const my = (pts.y1 + pts.y2) / 2;
+    // ---- GH #433: connector ends, look and routing ----
+    const CONN_DEFAULT = { colour: '#64748b', width: 2, arrowStart: 'none', arrowEnd: 'arrow', routing: 'straight' };
+    function connStyle(c) { return Object.assign({}, CONN_DEFAULT, c.style || {}); }
+    function shapeByUid(uid) { return uid ? (shapes.find(s => s.uid === uid) || null) : null; }
+    function shapeBox(s) { return { x: s.x, y: s.y, w: s.w, h: s.h, cx: s.x + s.w / 2, cy: s.y + s.h / 2 }; }
+    function newUid() { return 'u' + Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 8); }
+    function ensureShapeUid(s) { if (!s.uid) s.uid = newUid(); return s.uid; }
+    /** One end of a connector: {kind 'n' | 's', it, box} or null when it is gone. */
+    function endOf(c, side) {
+        const uid = c[side + '_shape_uid'];
+        if (uid) { const s = shapeByUid(uid); return s ? { kind: 's', it: s, box: shapeBox(s) } : null; }
+        const n = findNodeByRef(c[side + '_node_id']);
+        if (!n) return null;
+        // The icon for top / left / right, but the bottom of the whole node - a line arriving from
+        // below would otherwise end behind the name, arrowhead and all.
+        const ib = nodeIconBBox(n);
+        const bottom = Math.max(ib.y + ib.h, n.y + nodeExtent(n).h - 6);
+        return { kind: 'n', it: n, box: Object.assign({}, ib, { h: bottom - ib.y }) };
+    }
+    /** True when a connector has an end on this shape. */
+    function touchesShape(c, s) { return !!(s.uid && (c.from_shape_uid === s.uid || c.to_shape_uid === s.uid)); }
 
-        const bar = document.createElement('div');
-        bar.className = 'nm-conn-style';
-        bar.setAttribute('role', 'group');
-        bar.setAttribute('aria-label', t('network-mapper.connector.style'));
-        const current = c.line_style === 'dashed' ? 'dashed' : 'solid';
-        [['solid', '0'], ['dashed', '5 3']].forEach(([style, dash]) => {
-            const b = document.createElement('button');
-            b.type = 'button';
-            if (style === current) b.classList.add('active');
-            b.innerHTML = '<svg width="22" height="6" viewBox="0 0 22 6"><line x1="1" y1="3" x2="21" y2="3" stroke="currentColor" stroke-width="2"'
-                + (dash !== '0' ? ' stroke-dasharray="' + dash + '"' : '') + '/></svg>';
-            b.appendChild(document.createTextNode(t('network-mapper.connector.' + style)));
-            // The canvas clears the selection on mousedown - keep it while a style is picked.
-            b.addEventListener('mousedown', e => e.stopPropagation());
-            b.addEventListener('click', e => {
-                e.stopPropagation();
-                if ((c.line_style || 'solid') === style) return;
-                c.line_style = style;
-                renderConnectors();
-                markDirty();
-            });
-            bar.appendChild(b);
+    function connPath(p, routing) {
+        if (routing === 'elbow') {
+            if (p.axis === 'h') { const mx = (p.x1 + p.x2) / 2; return 'M' + p.x1 + ',' + p.y1 + ' H' + mx + ' V' + p.y2 + ' H' + p.x2; }
+            const my = (p.y1 + p.y2) / 2; return 'M' + p.x1 + ',' + p.y1 + ' V' + my + ' H' + p.x2 + ' V' + p.y2;
+        }
+        if (routing === 'curved') {
+            if (p.axis === 'h') { const k = (p.x2 - p.x1) / 2; return 'M' + p.x1 + ',' + p.y1 + ' C' + (p.x1 + k) + ',' + p.y1 + ' ' + (p.x2 - k) + ',' + p.y2 + ' ' + p.x2 + ',' + p.y2; }
+            const k = (p.y2 - p.y1) / 2; return 'M' + p.x1 + ',' + p.y1 + ' C' + p.x1 + ',' + (p.y1 + k) + ' ' + p.x2 + ',' + (p.y2 - k) + ' ' + p.x2 + ',' + p.y2;
+        }
+        return 'M' + p.x1 + ',' + p.y1 + ' L' + p.x2 + ',' + p.y2;
+    }
+    /** Where the label sits: the middle of the line, whichever way it runs. */
+    function connMid(p) { return { x: (p.x1 + p.x2) / 2, y: (p.y1 + p.y2) / 2 }; }
+    function connDash(lineStyle, w) {
+        if (lineStyle === 'dashed') return (w * 3 + 2) + ' ' + (w * 2 + 2);
+        if (lineStyle === 'dotted') return '0.1 ' + (w * 2 + 2);
+        return '';
+    }
+    /** An arrowhead marker for this type, colour and width, made once and kept in the SVG's <defs>. */
+    function ensureMarker(type, colour, width) {
+        const id = 'nm-mk-' + type + '-' + String(colour).replace('#', '') + '-' + String(width).replace('.', '_');
+        if (document.getElementById(id)) return id;
+        const defs = elSvgLayer.querySelector('defs');
+        const s = 4 + width * 3;                     // a heavier line gets a bigger head
+        const m = document.createElementNS(SVG_NS, 'marker');
+        m.setAttribute('id', id);
+        m.setAttribute('viewBox', '0 0 10 10');
+        m.setAttribute('markerUnits', 'userSpaceOnUse');
+        m.setAttribute('markerWidth', String(s));
+        m.setAttribute('markerHeight', String(s));
+        m.setAttribute('refY', '5');
+        m.setAttribute('orient', 'auto-start-reverse');
+        let inner;
+        if (type === 'open') { m.setAttribute('refX', '9'); inner = '<polyline points="1,1 9,5 1,9" fill="none" stroke="' + colour + '" stroke-width="1.6" stroke-linejoin="round"/>'; }
+        else if (type === 'diamond') { m.setAttribute('refX', '10'); inner = '<polygon points="0,5 5,1 10,5 5,9" fill="' + colour + '"/>'; }
+        else if (type === 'circle') { m.setAttribute('refX', '9'); inner = '<circle cx="5" cy="5" r="4" fill="' + colour + '"/>'; }
+        else { m.setAttribute('refX', '10'); inner = '<polygon points="0,1 10,5 0,9" fill="' + colour + '"/>'; }
+        m.innerHTML = inner;
+        defs.appendChild(m);
+        return id;
+    }
+
+    // ---- GH #433: the connector's Format panel ----
+    function renderConnectorPanel() {
+        const c = findConnectorByKey(selectedConnectorKey);
+        if (!c || !elShapePanel) return;
+        closeDetail();
+        elShapePanel.classList.add('open');
+        elShapePanel.setAttribute('aria-hidden', 'false');
+        const ed = canEdit();
+        const dis = ed ? '' : ' disabled';
+        const st = connStyle(c);
+        document.getElementById('spIcon').innerHTML = '<svg width="26" height="26" viewBox="0 0 26 26"><path d="M3 21 L21 5" stroke="currentColor" stroke-width="2"/><polygon points="16,4 23,3 22,10" fill="currentColor"/></svg>';
+        document.getElementById('spName').textContent = t('network-mapper.connector.panel_title');
+        const C = k => escapeHtml(t('network-mapper.connector.' + k));
+        const arrows = ['none', 'arrow', 'open', 'diamond', 'circle'];
+        const arrowSel = (id, v) => '<select class="nm-fmt-select" id="' + id + '"' + dis + '>' + arrows.map(a => '<option value="' + a + '"' + (a === v ? ' selected' : '') + '>' + C('arrow_' + a) + '</option>').join('') + '</select>';
+        const body = document.getElementById('spBody');
+        body.innerHTML = '<div class="nm-fmt-section"><div class="nm-fmt-title">' + C('line') + '</div>'
+            + '<div class="nm-fmt-row"><span>' + C('label') + '</span><input type="text" class="nm-fmt-n nm-conn-label" id="cpLabel" maxlength="255" value="' + escapeAttr(c.label || '') + '"' + dis + '></div>'
+            + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.connector.style')) + '</span>'
+            + seg([['solid', t('network-mapper.connector.solid')], ['dashed', t('network-mapper.connector.dashed')], ['dotted', t('network-mapper.style.dotted')]], c.line_style || 'solid', 'cpDash', !ed) + '</div>'
+            + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.style.colour')) + '</span><span class="nm-fmt-inline">'
+            + '<input type="color" class="nm-fmt-colour" id="cpColour" value="' + escapeAttr(st.colour) + '"' + dis + '>'
+            + '<label class="nm-fmt-num nm-fmt-num-inline"><span>' + escapeHtml(t('network-mapper.style.width')) + '</span><input type="number" id="cpWidth" value="' + st.width + '" min="0.5" max="12" step="0.5"' + dis + '></label></span></div>'
+            + '<div class="nm-fmt-row"><span>' + C('start') + '</span>' + arrowSel('cpStart', st.arrowStart) + '</div>'
+            + '<div class="nm-fmt-row"><span>' + C('end') + '</span>' + arrowSel('cpEnd', st.arrowEnd) + '</div>'
+            + '<div class="nm-fmt-row"><span>' + C('routing') + '</span>'
+            + seg([['straight', t('network-mapper.connector.straight')], ['elbow', t('network-mapper.connector.elbow')], ['curved', t('network-mapper.connector.curved')]], st.routing, 'cpRoute', !ed) + '</div>'
+            + '<div class="nm-fmt-btns">'
+            + '<button type="button" class="nm-detail-icon-btn" id="cpSwap"' + dis + '>' + C('swap') + '</button>'
+            + '<button type="button" class="nm-detail-icon-btn nm-detail-icon-reset" id="cpReset"' + dis + '>' + escapeHtml(t('network-mapper.detail.icon_reset')) + '</button>'
+            + '<button type="button" class="nm-detail-icon-btn nm-fmt-danger" id="cpDel"' + dis + '>' + escapeHtml(t('common.delete')) + '</button></div>'
+            + (ed ? '<div class="nm-detail-hint">' + C('hint') + '</div>' : '') + '</div>';
+        if (!ed) return;
+        const apply = patch => { c.style = Object.assign({}, c.style || {}, patch); renderConnectors(); markDirty(); };
+        document.getElementById('cpLabel').addEventListener('change', e => { const v = e.target.value.trim(); c.label = v || null; renderConnectors(); markDirty(); });
+        body.querySelectorAll('[data-seg="cpDash"] button').forEach(b => b.addEventListener('click', () => { c.line_style = b.dataset.value; renderConnectors(); markDirty(); renderConnectorPanel(); }));
+        body.querySelectorAll('[data-seg="cpRoute"] button').forEach(b => b.addEventListener('click', () => { apply({ routing: b.dataset.value }); renderConnectorPanel(); }));
+        document.getElementById('cpColour').addEventListener('input', e => apply({ colour: e.target.value }));
+        document.getElementById('cpWidth').addEventListener('change', e => { const v = parseFloat(e.target.value); if (v >= 0.5 && v <= 12) apply({ width: v }); });
+        document.getElementById('cpStart').addEventListener('change', e => apply({ arrowStart: e.target.value }));
+        document.getElementById('cpEnd').addEventListener('change', e => apply({ arrowEnd: e.target.value }));
+        document.getElementById('cpSwap').addEventListener('click', () => {
+            ['node_id', 'shape_uid'].forEach(k => { const t2 = c['from_' + k]; c['from_' + k] = c['to_' + k]; c['to_' + k] = t2; });
+            renderConnectors(); markDirty();
         });
-        bar.addEventListener('mousedown', e => e.stopPropagation());
-        bar.style.left = mx + 'px';             // centred on the midpoint by the CSS translate
-        bar.style.top  = (my + (c.label ? 16 : 10)) + 'px';
-        elCanvasInner.appendChild(bar);
+        document.getElementById('cpReset').addEventListener('click', () => { c.style = null; c.line_style = 'solid'; renderConnectors(); markDirty(); renderConnectorPanel(); });
+        document.getElementById('cpDel').addEventListener('click', () => { deleteSelectedConnector(); closeShapePanel(); });
     }
 
     /**
@@ -1288,7 +1369,7 @@
                 x2 = to.cx;   y2 = to.y + to.h;
             }
         }
-        return { x1: x1, y1: y1, x2: x2, y2: y2 };
+        return { x1: x1, y1: y1, x2: x2, y2: y2, axis: Math.abs(dx) > Math.abs(dy) ? 'h' : 'v' };   // GH #433: for elbow / curved
     }
 
     /** Removes the selected connector and marks the diagram dirty. */
@@ -1306,12 +1387,12 @@
     /** Shows an inline text box at the connector midpoint to edit its label - Enter or blur saves, Escape cancels. */
     function promptConnectorLabel(c) {
         if (!diagram || !diagram.is_current) return;
-        const from = findNodeByRef(c.from_node_id);
-        const to   = findNodeByRef(c.to_node_id);
+        const from = endOf(c, 'from');
+        const to   = endOf(c, 'to');
         if (!from || !to) return;
-        const pts = calcConnectorPoints(nodeIconBBox(from), nodeIconBBox(to));
-        const mx = (pts.x1 + pts.x2) / 2;
-        const my = (pts.y1 + pts.y2) / 2;
+        const mid = connMid(calcConnectorPoints(from.box, to.box));
+        const mx = mid.x;
+        const my = mid.y;
 
         // Inline input positioned at the connector midpoint — same pattern as
         // Process Mapper's editConnectorLabel. Feels in-place, doesn't yank
@@ -1361,12 +1442,14 @@
 
     // ---- Connect drag (edge handle → target node) ----
     /** Starts drawing a new connector from the given edge handle of a node. */
-    function startConnectDrag(e, fromNode, side) {
+    function startConnectDrag(e, fromNode, side) { startConnectFrom(e, { kind: 'n', it: fromNode }, side); }
+
+    /** GH #433: starts drawing a connector from one of a node's or a shape's four connection dots. */
+    function startConnectFrom(e, end, side) {
         if (!diagram || !diagram.is_current) return;
         e.stopPropagation();
         e.preventDefault();
-
-        const box = nodeIconBBox(fromNode);
+        const box = end.kind === 'n' ? nodeIconBBox(end.it) : shapeBox(end.it);
         let sx, sy;
         switch (side) {
             case 'top':    sx = box.cx;         sy = box.y; break;
@@ -1375,16 +1458,15 @@
             case 'right':
             default:       sx = box.x + box.w;  sy = box.cy; break;
         }
-        connectDrag = { fromRef: nodeRef(fromNode), startX: sx, startY: sy };
+        connectDrag = { from: end, startX: sx, startY: sy };
         document.addEventListener('mousemove', onConnectDragMove);
         document.addEventListener('mouseup',   onConnectDragUp);
     }
 
-    /** Draws the temporary line from the edge handle to the cursor while a connector is being dragged. */
+    /** Draws the temporary line from the dot to the cursor while a connector is being dragged. */
     function onConnectDragMove(e) {
         if (!connectDrag || !elSvgLayer) return;
         const cursor = canvasModelCoords(e);
-        const mx = cursor.x, my = cursor.y;
         let line = elSvgLayer.querySelector('.nm-temp-connector');
         if (!line) {
             line = document.createElementNS(SVG_NS, 'line');
@@ -1393,52 +1475,41 @@
         }
         line.setAttribute('x1', String(connectDrag.startX));
         line.setAttribute('y1', String(connectDrag.startY));
-        line.setAttribute('x2', String(mx));
-        line.setAttribute('y2', String(my));
+        line.setAttribute('x2', String(cursor.x));
+        line.setAttribute('y2', String(cursor.y));
     }
 
-    /**
-     * Ends a connector drag and adds the connector if it was dropped on a different node and no identical
-     * connector exists.
-     */
+    /** Ends a connector drag: dropped on a node or a shape (not itself), it makes a connector. */
     function onConnectDragUp(e) {
         document.removeEventListener('mousemove', onConnectDragMove);
         document.removeEventListener('mouseup',   onConnectDragUp);
         if (!connectDrag) return;
-        if (elSvgLayer) {
-            elSvgLayer.querySelectorAll('.nm-temp-connector').forEach(el => el.remove());
-        }
-        // Resolve drop target: look for the closest .nm-node element under the
-        // cursor. Using elementFromPoint with a temporary hide of the SVG layer
-        // would also work, but the bbox hit-test is cheaper and avoids reflow.
+        if (elSvgLayer) elSvgLayer.querySelectorAll('.nm-temp-connector').forEach(el => el.remove());
         const cursor = canvasModelCoords(e);
-        const target = findNodeAt(cursor.x, cursor.y);
-        const fromRef = connectDrag.fromRef;
+        const from = connectDrag.from;
         connectDrag = null;
-        if (!target) return;
-        const toRef = nodeRef(target);
-        if (toRef === fromRef) return; // self-loop not supported
-        // Idempotent: if an identical connector already exists in this direction,
-        // don't add a duplicate
-        if (connectors.some(c => c.from_node_id === fromRef && c.to_node_id === toRef)) return;
-        commitConnectorDrag(fromRef, toRef);
-    }
-
-    /** Adds a new unsaved free-form connector between two nodes, selects it and marks the diagram dirty. */
-    function commitConnectorDrag(fromRef, toRef) {
-        const c = {
-            id: null,
-            _tempKey: nextTempId--,           // JS-side selection key, never sent
-            from_node_id: fromRef,
-            to_node_id: toRef,
-            cmdb_relationship_id: null,        // free-form by default; part 2 populates this
-            label: null,
-            line_style: 'solid'
-        };
+        const node = findNodeAt(cursor.x, cursor.y);
+        const to = node ? { kind: 'n', it: node } : (findShapeAt(cursor.x, cursor.y, from.kind === 's' ? from.it : null));
+        if (!to || to.it === from.it) return;   // nowhere, or itself
+        const c = { id: null, _tempKey: nextTempId--, cmdb_relationship_id: null, label: null, line_style: 'solid', style: null,
+                    from_node_id: null, to_node_id: null, from_shape_uid: null, to_shape_uid: null };
+        if (from.kind === 'n') c.from_node_id = nodeRef(from.it); else c.from_shape_uid = ensureShapeUid(from.it);
+        if (to.kind === 'n') c.to_node_id = nodeRef(to.it); else c.to_shape_uid = ensureShapeUid(to.it);
+        // The same two ends the same way round already joined: nothing to add.
+        if (connectors.some(x => x.from_node_id === c.from_node_id && x.to_node_id === c.to_node_id
+                              && (x.from_shape_uid || null) === c.from_shape_uid && (x.to_shape_uid || null) === c.to_shape_uid)) return;
         connectors.push(c);
         renderConnectors();
         selectConnector(connectorKey(c));
         markDirty();
+    }
+
+    /** GH #433: the topmost visible, unlocked shape under a point (front layer first), or null. */
+    function findShapeAt(x, y, except) {
+        const hits = visibleShapes().filter(s => s !== except && !itemLocked(s) && x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h);
+        if (!hits.length) return null;
+        hits.sort((a, b) => ((b.layer === 'front') - (a.layer === 'front')) || (layerRank(b) - layerRank(a)) || ((b.z || 0) - (a.z || 0)));
+        return { kind: 's', it: hits[0] };
     }
 
     /** Returns the node whose icon box contains the given model coordinates, or null. */
@@ -2078,10 +2149,15 @@
         if (key === selectedShapeKey && canEdit() && !editing) {
             ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach(d => { html += '<div class="nm-shape-handle" data-dir="' + d + '"></div>'; });
         }
+        if (canEdit() && !editing && !itemLocked(s)) {
+            // GH #433: drag from a dot to another shape or a node to connect them
+            ['top', 'right', 'bottom', 'left'].forEach(side => { html += '<div class="nm-shape-port" data-side="' + side + '"></div>'; });
+        }
         el.innerHTML = html;
         el.addEventListener('mousedown', onShapeMouseDown);
         el.addEventListener('dblclick', e => { e.stopPropagation(); startShapeTextEdit(s); });
         el.querySelectorAll('.nm-shape-handle').forEach(h => h.addEventListener('mousedown', e => startShapeResize(e, s, h.dataset.dir)));
+        el.querySelectorAll('.nm-shape-port').forEach(p => p.addEventListener('mousedown', e => startConnectFrom(e, { kind: 's', it: s }, p.dataset.side)));
         if (editing) {
             const ed = el.querySelector('.nm-shape-text-inner');
             if (ed) {
@@ -2143,6 +2219,7 @@
         s.x = x; s.y = y; shapeDrag.moved = true;
         const el = elCanvasInner.querySelector('.nm-shape[data-key="' + cssEscape(shapeDrag.key) + '"]');
         if (el) { el.style.left = x + 'px'; el.style.top = y + 'px'; }
+        renderConnectors();   // GH #433: connectors on this shape follow it
     }
     function onShapeDragUp() {
         document.removeEventListener('mousemove', onShapeDragMove);
@@ -2177,6 +2254,7 @@
         Object.assign(s, { x, y, w, h });
         r.moved = true;
         rerenderShape(s);
+        renderConnectors();
     }
     function onShapeResizeUp() {
         document.removeEventListener('mousemove', onShapeResizeMove);
@@ -2240,7 +2318,7 @@
             x: Math.max(0, snapS(cx - w / 2)), y: Math.max(0, snapS(cy - h / 2)),
             w: w, h: h, rotation: 0, text: defaultShapeText(type),
             style: window.nmShapeStyle(type, {}),   // the full look, so later library changes never move it
-            layer: 'back', z: maxZ + 1
+            layer: 'back', z: maxZ + 1, uid: newUid()
         };
         placeOnPage(s);   // GH #433
         shapes.push(s);
@@ -2261,6 +2339,7 @@
         const s = findShapeByKey(selectedShapeKey);
         if (!s || !canEdit()) return;
         shapes = shapes.filter(x => x !== s);
+        connectors = connectors.filter(c => !touchesShape(c, s));   // GH #433
         selectedShapeKey = null;
         closeShapePanel();
         renderShapes();
@@ -2272,7 +2351,7 @@
         if (!s || !canEdit()) return;
         const maxZ = shapes.reduce((m, x) => Math.max(m, x.z || 0), 0);
         const copy = Object.assign({}, s, {
-            id: null, tempId: nextTempShapeId--, x: s.x + 20, y: s.y + 20, z: maxZ + 1,
+            id: null, tempId: nextTempShapeId--, x: s.x + 20, y: s.y + 20, z: maxZ + 1, uid: newUid(),
             style: s.style ? JSON.parse(JSON.stringify(s.style)) : null
         });
         shapes.push(copy);
@@ -2660,7 +2739,7 @@
             const inp = document.getElementById(id);
             if (inp) inp.addEventListener('change', () => { const v = parseFloat(inp.value); if (!isNaN(v)) apply(v); });
         };
-        const geo = (fn) => v => { fn(v); rerenderShape(s); markDirty(); };
+        const geo = (fn) => v => { fn(v); rerenderShape(s); renderConnectors(); markDirty(); };
         bindNum('spX', geo(v => { s.x = Math.round(v); }));
         bindNum('spY', geo(v => { s.y = Math.round(v); }));
         bindNum('spW', geo(v => { s.w = Math.max(10, Math.round(v)); }));
@@ -2887,6 +2966,9 @@
                 layers.push({ page_key: p.page_key, layer_key: 0, name: t('network-mapper.layers.default_name', { n: 1 }), sort: 0, visible: true, locked: false });
             }
         });
+        // GH #433: every shape has a uid for connectors; a connector whose end is gone is dropped.
+        shapes.forEach(ensureShapeUid);
+        connectors = connectors.filter(c => endOf(c, 'from') && endOf(c, 'to'));
         // An item on a layer that is gone goes on the page's bottom layer.
         nodes.concat(shapes).forEach(it => {
             if (!layerOfItem(it)) it.layer_key = pageLayers(itemPage(it))[0].layer_key;
@@ -3022,7 +3104,8 @@
         const has = nodes.some(n => itemPage(n) === pk) || shapes.some(s => itemPage(s) === pk);
         if (has && !confirm(t('network-mapper.pages.delete_confirm', { name: p ? p.name : '' }))) return;
         const gone = new Set(nodes.filter(n => itemPage(n) === pk).map(n => nodeRef(n)));
-        connectors = connectors.filter(c => !gone.has(c.from_node_id) && !gone.has(c.to_node_id));
+        connectors = connectors.filter(c => !gone.has(c.from_node_id) && !gone.has(c.to_node_id)
+            && !shapes.some(sh => itemPage(sh) === pk && touchesShape(c, sh)));
         nodes = nodes.filter(n => itemPage(n) !== pk);
         shapes = shapes.filter(s => itemPage(s) !== pk);
         layers = layers.filter(l => l.page_key !== pk);
@@ -3054,13 +3137,14 @@
             refMap.set(nodeRef(n), copy.tempId);
             nodes.push(copy);
         });
-        connectors.filter(c => refMap.has(c.from_node_id) && refMap.has(c.to_node_id)).forEach(c => {
-            connectors.push(Object.assign({}, c, { id: null, _tempKey: nextTempId--, from_node_id: refMap.get(c.from_node_id), to_node_id: refMap.get(c.to_node_id) }));
-        });
+        const uidMap = new Map();
         shapes.filter(s => itemPage(s) === pk).forEach(s => {
-            shapes.push(Object.assign({}, s, { id: null, tempId: nextTempShapeId--, page_key: nk,
-                style: s.style ? JSON.parse(JSON.stringify(s.style)) : null }));
+            const copy = Object.assign({}, s, { id: null, tempId: nextTempShapeId--, page_key: nk, uid: newUid(),
+                style: s.style ? JSON.parse(JSON.stringify(s.style)) : null });
+            if (s.uid) uidMap.set(s.uid, copy.uid);
+            shapes.push(copy);
         });
+        remapConnectors(connectors.slice(), refMap, uidMap);
         markDirty();
         clearSelection();
         currentPage = nk;
@@ -3418,6 +3502,20 @@
         setSelection(out);
     }
 
+    /** Copies the connectors whose both ends were copied, pointing them at the copies. */
+    function remapConnectors(list, refMap, uidMap) {
+        const mapEnd = (c, side, out) => {
+            const uid = c[side + '_shape_uid'];
+            if (uid) { if (!uidMap.has(uid)) return false; out[side + '_shape_uid'] = uidMap.get(uid); out[side + '_node_id'] = null; return true; }
+            if (!refMap.has(c[side + '_node_id'])) return false;
+            out[side + '_node_id'] = refMap.get(c[side + '_node_id']); out[side + '_shape_uid'] = null; return true;
+        };
+        list.forEach(c => {
+            const out = Object.assign(JSON.parse(JSON.stringify(c)), { id: null, _tempKey: nextTempId-- });
+            if (mapEnd(c, 'from', out) && mapEnd(c, 'to', out)) connectors.push(out);
+        });
+    }
+
     function selectAllOnPage() {
         setSelection(visibleNodes().filter(n => !itemLocked(n)).map(n => ({ kind: 'n', it: n }))
             .concat(visibleShapes().filter(s => !itemLocked(s)).map(s => ({ kind: 's', it: s }))));
@@ -3425,8 +3523,8 @@
 
     // ---- actions on the selection ----
     function rerenderAfterMulti() {
-        renderNodes();
         renderShapes();
+        renderNodes();   // ...which redraws the connectors with everything in place
         applyMultiClasses();
         markDirty();
     }
@@ -3480,6 +3578,8 @@
         if (!items.length || !canEdit()) return;
         const gone = new Set(items.filter(x => x.kind === 'n').map(x => nodeRef(x.it)));
         connectors = connectors.filter(c => !gone.has(c.from_node_id) && !gone.has(c.to_node_id));
+        const goneShapes = items.filter(x => x.kind === 's').map(x => x.it);
+        connectors = connectors.filter(c => !goneShapes.some(sh => touchesShape(c, sh)));
         nodes = nodes.filter(n => !items.some(x => x.it === n));
         shapes = shapes.filter(s => !items.some(x => x.it === s));
         multi = new Set();
@@ -3508,11 +3608,14 @@
         }
         if (!items.length) return false;
         const ns = items.filter(x => x.kind === 'n').map(x => x.it);
+        const ss = items.filter(x => x.kind === 's').map(x => x.it);
         const refs = new Set(ns.map(nodeRef));
+        const uids = new Set(ss.map(sh => sh.uid).filter(Boolean));
+        const inside = (c, side) => c[side + '_shape_uid'] ? uids.has(c[side + '_shape_uid']) : refs.has(c[side + '_node_id']);
         clipboard = {
             nodes: JSON.parse(JSON.stringify(ns)),
-            shapes: JSON.parse(JSON.stringify(items.filter(x => x.kind === 's').map(x => x.it))),
-            connectors: JSON.parse(JSON.stringify(connectors.filter(c => refs.has(c.from_node_id) && refs.has(c.to_node_id))))
+            shapes: JSON.parse(JSON.stringify(ss)),
+            connectors: JSON.parse(JSON.stringify(connectors.filter(c => inside(c, 'from') && inside(c, 'to'))))
         };
         if (window.showToast) showToast(t('network-mapper.select.copied', { count: items.length }), 'success');
         return true;
@@ -3541,18 +3644,16 @@
             here.add(n.cmdb_object_id);
             pasted.push({ kind: 'n', it: n });
         });
-        clipboard.connectors.forEach(c => {
-            if (refMap.has(c.from_node_id) && refMap.has(c.to_node_id)) {
-                connectors.push(Object.assign({}, c, { id: null, _tempKey: nextTempId--, from_node_id: refMap.get(c.from_node_id), to_node_id: refMap.get(c.to_node_id) }));
-            }
-        });
         const maxZ = shapes.reduce((m, s) => Math.max(m, s.z || 0), 0);
+        const uidMap = new Map();
         clipboard.shapes.forEach((src, i) => {
             const s = Object.assign(JSON.parse(JSON.stringify(src)), { id: null, tempId: nextTempShapeId--, page_key: currentPage, layer_key: lk,
-                x: src.x + off, y: src.y + off, z: maxZ + 1 + i, group_key: newGroup(src.group_key) });
+                x: src.x + off, y: src.y + off, z: maxZ + 1 + i, group_key: newGroup(src.group_key), uid: newUid() });
+            if (src.uid) uidMap.set(src.uid, s.uid);
             shapes.push(s);
             pasted.push({ kind: 's', it: s });
         });
+        remapConnectors(clipboard.connectors, refMap, uidMap);
         // Paste again and it moves along again.
         clipboard.nodes.forEach(n => { n.x += off; n.y += off; n.page_key = currentPage; });
         clipboard.shapes.forEach(s => { s.x += off; s.y += off; s.page_key = currentPage; });
@@ -4346,15 +4447,18 @@
                     shapes: shapes.map(sh => ({
                         shape_type: sh.shape_type, x: sh.x, y: sh.y, w: sh.w, h: sh.h,
                         rotation: sh.rotation || 0, text: sh.text || '', style: sh.style || null,
-                        layer: sh.layer || 'back', z: sh.z || 0, icon_id: sh.icon_id || null,
+                        layer: sh.layer || 'back', z: sh.z || 0, icon_id: sh.icon_id || null, uid: sh.uid || null,
                         page_key: itemPage(sh), layer_key: itemLayer(sh), group_key: sh.group_key || null
                     })),
                     connectors: connectors.map(c => ({
-                        from_node_id: c.from_node_id,
-                        to_node_id: c.to_node_id,
+                        from_node_id: c.from_shape_uid ? null : c.from_node_id,
+                        to_node_id: c.to_shape_uid ? null : c.to_node_id,
+                        from_shape_uid: c.from_shape_uid || null,   // GH #433: an end on a shape
+                        to_shape_uid: c.to_shape_uid || null,
                         cmdb_relationship_id: c.cmdb_relationship_id || null,
                         label: c.label || null,
-                        line_style: c.line_style || 'solid'
+                        line_style: c.line_style || 'solid',
+                        style: c.style || null
                     }))
                 })
             });

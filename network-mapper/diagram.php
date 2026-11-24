@@ -659,6 +659,19 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-layers-add:hover { color: var(--text, #111827); border-color: var(--nm-accent, #06b6d4); }
         .nm-layers-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 6px 12px 4px; line-height: 1.4; }
         .nm-layers-count { display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 5px; border-radius: 999px; background: var(--border, #e5e7eb); font-size: var(--font-size-xs, 11px); }
+        /* GH #433: connection dots on shapes - just outside each edge, clear of the resize squares */
+        .nm-shape-port {
+            position: absolute; width: 10px; height: 10px; border-radius: 50%;
+            background: var(--nm-accent, #06b6d4); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(6,182,212,0.4);
+            transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.12s; z-index: 3; cursor: crosshair;
+        }
+        .nm-shape-port[data-side="top"]    { left: 50%;  top: -14px; }
+        .nm-shape-port[data-side="right"]  { left: calc(100% + 14px); top: 50%; }
+        .nm-shape-port[data-side="bottom"] { left: 50%;  top: calc(100% + 14px); }
+        .nm-shape-port[data-side="left"]   { left: -14px; top: 50%; }
+        .nm-shape:hover .nm-shape-port, .nm-shape.selected .nm-shape-port { opacity: 1; }
+        .nm-editor.is-presenting .nm-shape-port, .nm-canvas-inner.is-exporting .nm-shape-port { display: none !important; }
+        .nm-conn-label { width: 160px; }
         /* GH #433: multi-selection, group outline, rubber band */
         .nm-node.in-multi, .nm-shape.in-multi { outline: 2px solid #06b6d4; outline-offset: 3px; }
         .nm-group-outline { position: absolute; border: 1.5px dashed #0891b2; border-radius: 6px; pointer-events: none; z-index: 7; }
@@ -2173,7 +2186,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=15"></script>
+    <script src="../assets/js/network-mapper.js?v=16"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

@@ -212,7 +212,8 @@ $translationNamespaces = ['common', 'network-mapper'];
                         <div class="help-step"><span class="help-step-num">2</span><div><?php echo t('network-mapper.help.connectors_step2'); ?></div></div>
                         <div class="help-step"><span class="help-step-num">3</span><div><?php echo t('network-mapper.help.connectors_step3'); ?></div></div>
                         <div class="help-step"><span class="help-step-num">4</span><div><?php echo t('network-mapper.help.connectors_style'); ?></div></div>
-                        <div class="help-step"><span class="help-step-num">5</span><div><?php echo t('network-mapper.help.connectors_step4', ['del' => '<span class="help-kbd">Delete</span>']); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">5</span><div><?php echo t('network-mapper.help.connectors_any'); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">6</span><div><?php echo t('network-mapper.help.connectors_step4', ['del' => '<span class="help-kbd">Delete</span>']); ?></div></div>
                     </div>
 
                     <p class="help-note"><?php echo t('network-mapper.help.connectors_tip'); ?></p>

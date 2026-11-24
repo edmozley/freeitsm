@@ -33,7 +33,7 @@ require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 class NetworkMapperService
 {
     const NODE_SIZES  = ['small' => 40, 'medium' => 56, 'large' => 80];
-    const LINE_STYLES = ['solid', 'dashed'];
+    const LINE_STYLES = ['solid', 'dashed', 'dotted'];
 
     // ======================================================================
     //  Diagrams
@@ -251,19 +251,24 @@ class NetworkMapperService
             $conns = $conn->prepare("SELECT * FROM network_diagram_connectors WHERE diagram_id = ? ORDER BY id");
             $conns->execute([$parentId]);
             $insertConn = $conn->prepare(
-                "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, cmdb_relationship_id, label, line_style) VALUES (?, ?, ?, ?, ?, ?)"
+                "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, from_shape_uid, to_shape_uid, cmdb_relationship_id, label, line_style, style)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             foreach ($conns->fetchAll(PDO::FETCH_ASSOC) as $k) {
+                // GH #433: either end may be a shape (uid, unchanged in the copy) instead of a node.
                 $insertConn->execute([
-                    $newId, $nodeMap[(int)$k['from_node_id']], $nodeMap[(int)$k['to_node_id']],
+                    $newId,
+                    $k['from_node_id'] !== null ? ($nodeMap[(int)$k['from_node_id']] ?? null) : null,
+                    $k['to_node_id'] !== null ? ($nodeMap[(int)$k['to_node_id']] ?? null) : null,
+                    $k['from_shape_uid'] ?? null, $k['to_shape_uid'] ?? null,
                     $k['cmdb_relationship_id'] !== null ? (int)$k['cmdb_relationship_id'] : null,
-                    $k['label'], $k['line_style'],
+                    $k['label'], $k['line_style'], $k['style'] ?? null,
                 ]);
             }
             // GH #433: and the freestanding shapes.
             $conn->prepare(
-                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key)
-                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
+                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid)
+                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
             )->execute([$newId, $parentId]);
             // ...and the pages and layers they sit on.
             $conn->prepare("INSERT INTO network_diagram_pages (diagram_id, page_key, name, sort) SELECT ?, page_key, name, sort FROM network_diagram_pages WHERE diagram_id = ?")
@@ -430,12 +435,18 @@ class NetworkMapperService
         }
 
         $insertConn = $conn->prepare(
-            "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, cmdb_relationship_id, label, line_style) VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, from_shape_uid, to_shape_uid, cmdb_relationship_id, label, line_style, style)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         foreach (array_values($connectorsIn) as $i => $k) {
             if (!is_array($k)) {
                 throw new ServiceError('validation', 'invalid_field', "connectors[{$i}] must be an object.");
             }
+            // GH #433: an end may be a shape, named by its uid.
+            $uidOf = function (string $prefix) use ($k): ?string {
+                $u = isset($k["{$prefix}_shape_uid"]) ? trim((string)$k["{$prefix}_shape_uid"]) : '';
+                return preg_match('/^[A-Za-z0-9_-]{1,20}$/', $u) ? $u : null;
+            };
             $resolve = function (string $prefix) use ($k, $refMap, $objectMap, $i): int {
                 if (isset($k["{$prefix}_ref"]) && $k["{$prefix}_ref"] !== '') {
                     $ref = (string)$k["{$prefix}_ref"];
@@ -457,16 +468,20 @@ class NetworkMapperService
                 }
                 throw new ServiceError('validation', 'missing_field', "connectors[{$i}]: needs '{$prefix}_ref' or '{$prefix}_object_id'.");
             };
-            $fromId = $resolve('from');
-            $toId   = $resolve('to');
-            if ($fromId === $toId) {
-                throw new ServiceError('validation', 'invalid_field', "connectors[{$i}]: cannot connect a node to itself.");
+            $fromUid = $uidOf('from');
+            $toUid   = $uidOf('to');
+            $fromId = $fromUid === null ? $resolve('from') : null;
+            $toId   = $toUid === null ? $resolve('to') : null;
+            if (($fromId !== null && $fromId === $toId) || ($fromUid !== null && $fromUid === $toUid)) {
+                throw new ServiceError('validation', 'invalid_field', "connectors[{$i}]: cannot connect something to itself.");
             }
-            $relId = self::resolveRelationshipId($conn, $k['cmdb_relationship_id'] ?? null, $fromId, $toId);
+            // A CMDB relationship only ever stands between two nodes.
+            $relId = ($fromId !== null && $toId !== null) ? self::resolveRelationshipId($conn, $k['cmdb_relationship_id'] ?? null, $fromId, $toId) : null;
             $insertConn->execute([
-                $diagramId, $fromId, $toId, $relId,
+                $diagramId, $fromId, $toId, $fromUid, $toUid, $relId,
                 ($v = trim((string)($k['label'] ?? ''))) !== '' ? substr($v, 0, 255) : null,
                 self::validateLineStyle(trim((string)($k['line_style'] ?? 'solid')) ?: 'solid'),
+                self::sanitiseConnectorStyle($k['style'] ?? null),
             ]);
         }
     }
@@ -483,8 +498,8 @@ class NetworkMapperService
     {
         $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id = ?")->execute([$diagramId]);
         $insert = $conn->prepare(
-            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         // icon_id must name an icon that exists - anything else saves as no icon.
         $iconIds = array_values(array_unique(array_filter(array_map(fn($s) => is_array($s) ? (int)($s['icon_id'] ?? 0) : 0, $shapesIn))));
@@ -532,8 +547,30 @@ class NetworkMapperService
                 self::keyOf($s['page_key'] ?? 0),
                 self::keyOf($s['layer_key'] ?? 0),
                 self::groupOf($s['group_key'] ?? null),
+                (is_string($s['uid'] ?? null) && preg_match('/^[A-Za-z0-9_-]{1,20}$/', $s['uid'])) ? $s['uid'] : null,
             ]);
         }
+    }
+
+    /**
+     * GH #433: a connector's look - colour (#rrggbb), width (0.5-12), arrowStart / arrowEnd (none,
+     * arrow, open, diamond, circle) and routing (straight, elbow, curved). Unknown keys and bad
+     * values are dropped. Returns JSON, or null when nothing is left.
+     *
+     * @param mixed $in  an array, a JSON string, or null
+     */
+    public static function sanitiseConnectorStyle($in): ?string
+    {
+        if (is_string($in)) $in = json_decode($in, true);
+        if (!is_array($in)) return null;
+        $out = [];
+        if (isset($in['colour']) && is_string($in['colour']) && preg_match('/^#[0-9a-fA-F]{6}$/', $in['colour'])) $out['colour'] = strtolower($in['colour']);
+        if (isset($in['width']) && is_numeric($in['width']) && (float)$in['width'] >= 0.5 && (float)$in['width'] <= 12) $out['width'] = round((float)$in['width'], 1);
+        foreach (['arrowStart', 'arrowEnd'] as $k) {
+            if (isset($in[$k]) && in_array($in[$k], ['none', 'arrow', 'open', 'diamond', 'circle'], true)) $out[$k] = $in[$k];
+        }
+        if (isset($in['routing']) && in_array($in['routing'], ['straight', 'elbow', 'curved'], true)) $out['routing'] = $in['routing'];
+        return $out ? json_encode($out) : null;
     }
 
     /** GH #433: a group key - letters, digits, _ and -, up to 40; anything else is no group. */

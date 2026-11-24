@@ -8832,11 +8832,18 @@ CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
 CREATE TABLE IF NOT EXISTS `network_diagram_connectors` (
     `id`                       INT NOT NULL AUTO_INCREMENT,
     `diagram_id`               INT NOT NULL,
-    `from_node_id`             INT NOT NULL,
-    `to_node_id`               INT NOT NULL,
+    -- GH #433: an end is a node (from_node_id / to_node_id) OR a shape (from_shape_uid /
+    -- to_shape_uid - network_diagram_shapes.uid, stable across saves where row ids are not).
+    `from_node_id`             INT NULL,
+    `to_node_id`               INT NULL,
+    `from_shape_uid`           VARCHAR(20) NULL,
+    `to_shape_uid`             VARCHAR(20) NULL,
     `cmdb_relationship_id`     INT NULL,
     `label`                    VARCHAR(255) NULL,
     `line_style`               VARCHAR(20) NULL DEFAULT 'solid',
+    -- The line's own look as JSON: colour, width, arrowStart, arrowEnd (none / arrow / open /
+    -- diamond / circle), routing (straight / elbow / curved). NULL = the normal grey arrow.
+    `style`                    TEXT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_conn_diag` (`diagram_id`),
@@ -8873,6 +8880,9 @@ CREATE TABLE IF NOT EXISTS `network_diagram_shapes` (
     `page_key`       INT NOT NULL DEFAULT 0,   -- as network_diagram_nodes.page_key
     `layer_key`      INT NOT NULL DEFAULT 0,
     `group_key`      VARCHAR(40) NULL,         -- as network_diagram_nodes.group_key
+    -- A stable id for connectors to point at (letters, digits, _ and -). Row ids change on
+    -- every save because shapes are replaced; this does not.
+    `uid`            VARCHAR(20) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_shape_diag` (`diagram_id`),

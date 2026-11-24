@@ -3809,6 +3809,23 @@ try {
                          SET d.created_by_analyst_id = NULL WHERE d.created_by_analyst_id IS NOT NULL AND a.id IS NULL");
         } catch (Exception $e) { /* shrug */ }
     }
+    // GH #433: a connector end can now be a shape, so its node columns may be NULL. Relaxing a
+    // NOT NULL cannot invalidate an existing row (every one has both nodes), and the foreign keys
+    // still hold - a NULL has nothing to check.
+    if ($tableExists('network_diagram_connectors')) {
+        try {
+            $cc = $conn->prepare("SELECT column_name, is_nullable FROM information_schema.columns
+                                   WHERE table_schema = ? AND table_name = 'network_diagram_connectors' AND column_name IN ('from_node_id', 'to_node_id')");
+            $cc->execute([$dbName]);
+            foreach ($cc->fetchAll(PDO::FETCH_NUM) as [$col, $nullable]) {
+                if (strtoupper($nullable) === 'NO') {
+                    $conn->exec("ALTER TABLE `network_diagram_connectors` MODIFY `$col` INT NULL");
+                    $results[] = ['table' => 'network_diagram_connectors', 'status' => 'updated', 'module' => 'network-mapper',
+                                  'details' => ["$col: NOT NULL -> NULL (a connector can end on a shape)"]];
+                }
+            }
+        } catch (Exception $e) { /* reported by the column check */ }
+    }
     $networkFks = [
         ['network_diagrams',           'fk_net_diag_parent', "ALTER TABLE network_diagrams ADD CONSTRAINT fk_net_diag_parent FOREIGN KEY (parent_diagram_id) REFERENCES network_diagrams (id) ON DELETE SET NULL"],
         ['network_diagrams',           'fk_net_diag_author', "ALTER TABLE network_diagrams ADD CONSTRAINT fk_net_diag_author FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],

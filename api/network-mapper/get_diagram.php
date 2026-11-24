@@ -96,7 +96,7 @@ try {
     }
 
     $cstmt = $conn->prepare(
-        "SELECT id, from_node_id, to_node_id, cmdb_relationship_id, label, line_style
+        "SELECT *
            FROM network_diagram_connectors
           WHERE diagram_id = ?
        ORDER BY id"
@@ -105,8 +105,13 @@ try {
     $conns = $cstmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($conns as &$c) {
         $c['id'] = (int)$c['id'];
-        $c['from_node_id'] = (int)$c['from_node_id'];
-        $c['to_node_id']   = (int)$c['to_node_id'];
+        // GH #433: an end on a shape has no node (NULL) but a shape uid.
+        $c['from_node_id'] = $c['from_node_id'] !== null ? (int)$c['from_node_id'] : null;
+        $c['to_node_id']   = $c['to_node_id'] !== null ? (int)$c['to_node_id'] : null;
+        $c['from_shape_uid'] = $c['from_shape_uid'] ?? null;
+        $c['to_shape_uid']   = $c['to_shape_uid'] ?? null;
+        $c['style'] = isset($c['style']) && $c['style'] !== null ? (json_decode($c['style'], true) ?: null) : null;
+        unset($c['diagram_id'], $c['is_demo']);
         $c['cmdb_relationship_id'] = $c['cmdb_relationship_id'] !== null ? (int)$c['cmdb_relationship_id'] : null;
     }
 
@@ -116,7 +121,7 @@ try {
     try {
         try {
             $sstmt = $conn->prepare(
-                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid
                    FROM network_diagram_shapes
                   WHERE diagram_id = ?
                ORDER BY z, id"
@@ -125,7 +130,7 @@ try {
         } catch (PDOException $e) {
             // icon_id arrived after the shapes table - an install between the two still opens.
             $sstmt = $conn->prepare(
-                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id, 0 AS page_key, 0 AS layer_key, NULL AS group_key
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id, 0 AS page_key, 0 AS layer_key, NULL AS group_key, NULL AS uid
                    FROM network_diagram_shapes
                   WHERE diagram_id = ?
                ORDER BY z, id"

@@ -71,6 +71,9 @@ try {
                 'cmdb_relationship_id' => $c['cmdb_relationship_id'] ?? null,
                 'label'                => $c['label'] ?? null,
                 'line_style'           => $c['line_style'] ?? null,
+                'from_shape_uid'       => $c['from_shape_uid'] ?? null,   // GH #433: an end on a shape
+                'to_shape_uid'         => $c['to_shape_uid'] ?? null,
+                'style'                => $c['style'] ?? null,
             ];
         }
     }
