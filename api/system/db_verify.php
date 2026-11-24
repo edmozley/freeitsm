@@ -3809,8 +3809,8 @@ try {
             }
             if ($tableExists('network_diagram_connectors')) {
                 $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagrams d ON d.id = c.diagram_id WHERE d.id IS NULL");
-                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.from_node_id WHERE n.id IS NULL");
-                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.to_node_id WHERE n.id IS NULL");
+                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.from_node_id WHERE c.from_node_id IS NOT NULL AND n.id IS NULL");   // TRAP: a shape end has a NULL node id - not an orphan
+                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.to_node_id WHERE c.to_node_id IS NOT NULL AND n.id IS NULL");
                 if ($tableExists('cmdb_object_relationships')) {
                     $conn->exec("UPDATE network_diagram_connectors c LEFT JOIN cmdb_object_relationships r ON r.id = c.cmdb_relationship_id
                                  SET c.cmdb_relationship_id = NULL WHERE c.cmdb_relationship_id IS NOT NULL AND r.id IS NULL");

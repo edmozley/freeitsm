@@ -73,6 +73,15 @@ try {
     check('a shape end has no node, and dotted is a line style', $r[1]['from_node_id'] === null && $r[1]['to_node_id'] === null && $r[1]['line_style'] === 'dotted');
     check('the style is kept, colour lower-cased, unknown keys dropped', json_decode($r[1]['style'], true) === ['colour' => '#dc2626', 'width' => 4, 'arrowStart' => 'diamond', 'arrowEnd' => 'open', 'routing' => 'elbow'], (string)$r[1]['style']);
     check('a CMDB relationship is never kept on a shape end', $r[2]['cmdb_relationship_id'] === null);
+
+    // DB Verify's orphan sweep, run as the SELECT it would delete: its own SQL, read from
+    // api/system/db_verify.php, must not count a shape end (NULL node id) as an orphan.
+    preg_match_all('~"(DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes[^"]+)"~', (string)file_get_contents(__DIR__ . '/../api/system/db_verify.php'), $m);
+    $wouldGo = 0;
+    foreach ($m[1] as $sql) {
+        $wouldGo += (int)$conn->query(preg_replace('~^DELETE c FROM~', 'SELECT COUNT(*) FROM', $sql) . " AND c.diagram_id = " . (int)$d)->fetchColumn();
+    }
+    check("DB Verify's orphan sweep leaves connectors that end on a shape alone", count($m[1]) === 2 && $wouldGo === 0, count($m[1]) . ' sweep queries, ' . $wouldGo . ' would be deleted');
     check('shapes keep their uid', $conn->query("SELECT GROUP_CONCAT(uid ORDER BY z) FROM network_diagram_shapes WHERE diagram_id = $d")->fetchColumn() === 'uZZa,uZZb');
 
     echo "Refusals, each with a positive control\n";
