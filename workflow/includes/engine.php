@@ -2048,6 +2048,7 @@ class WorkflowEngine
             // out on a single-company install or before Database Verification.
             $sql  = "SELECT * FROM workflows WHERE trigger_event = ? AND is_active = 1";
             $args = [$event];
+            $ordered = self::runOrderReady($conn);
             if (workflowTenancyActive($conn)) {
                 $eventTenant = workflowEventTenantId($conn, $payload);
                 if ($eventTenant === null) {
@@ -2057,11 +2058,31 @@ class WorkflowEngine
                     $args[] = $eventTenant;
                 }
             }
+            // Discussion #304: in the order set on Workflows -> Run order. 0 = not placed yet, so
+            // those run after the placed ones, oldest first - exactly today's order for an install
+            // that never sets one.
+            if ($ordered) $sql .= " ORDER BY (run_order = 0), run_order, id";
+            else          $sql .= " ORDER BY id";
             $stmt = $conn->prepare($sql);
             $stmt->execute($args);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stoppedBy = null;
             foreach ($rows as $wf) {
-                self::run($wf, $event, $payload, /*isManual*/ false);
+                if ($stoppedBy !== null) {
+                    // An earlier workflow ran with "Stop here" ticked: this one does not run, and its
+                    // run log says which one stopped it - so nobody wonders why it never fired.
+                    self::recordAbortedRun($wf, $event, $payload, false, false,
+                        'Not run: "' . $stoppedBy['name'] . '" ran first and stops the workflows after it for this event (Run order).',
+                        'skipped', 'stopped_by');
+                    continue;
+                }
+                $res = self::run($wf, $event, $payload, /*isManual*/ false);
+                // "Runs" = its conditions matched and its actions ran - even if one of them failed,
+                // because it still acted on the record. Skipped (conditions did not match) and
+                // aborted (loop protection, module off) did not run, so the next one gets its turn.
+                if ($ordered && !empty($wf['stop_after']) && in_array($res['status'] ?? '', ['success', 'failed'], true)) {
+                    $stoppedBy = $wf;
+                }
             }
         } catch (Exception $e) {
             // Engine failures must not propagate to host modules.
@@ -2172,11 +2193,12 @@ class WorkflowEngine
      * @param bool $dryRun  true when the refused run was a dry run
      * @param string $message  why loop protection refused it
      */
-    private static function recordAbortedRun(array $wf, string $event, array $payload, bool $isManual, bool $dryRun, string $message): array
+    private static function recordAbortedRun(array $wf, string $event, array $payload, bool $isManual, bool $dryRun, string $message,
+                                             string $status = 'aborted', string $kind = 'loop_protection'): array
     {
         $wfId = (int)$wf['id'];
-        error_log('[WorkflowEngine] aborted run for workflow ' . $wfId . ': ' . $message);
-        $stepLog = [['kind' => 'loop_protection', 'error' => $message]];
+        if ($status === 'aborted') error_log('[WorkflowEngine] aborted run for workflow ' . $wfId . ': ' . $message);
+        $stepLog = [['kind' => $kind, 'error' => $message]];
         try {
             $conn = connectToDatabase();
             $tCol = workflowTenancyReady($conn) ? ', tenant_id' : '';
@@ -2184,9 +2206,9 @@ class WorkflowEngine
             $stmt = $conn->prepare(
                 "INSERT INTO workflow_executions
                  (workflow_id, workflow_name, trigger_event, trigger_payload, status, is_dry_run, started_datetime, finished_datetime, step_log, error_message$tCol)
-                 VALUES (?, ?, ?, ?, 'aborted', ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), ?, ?$tVal)"
+                 VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), ?, ?$tVal)"
             );
-            $vals = [$wfId, $wf['name'] ?? null, $event, json_encode($payload), $dryRun ? 1 : 0, json_encode($stepLog), $message];
+            $vals = [$wfId, $wf['name'] ?? null, $event, json_encode($payload), $status, $dryRun ? 1 : 0, json_encode($stepLog), $message];
             if ($tCol) $vals[] = self::runTenantFor($conn, $wf, $payload);
             $stmt->execute($vals);
             $execId = (int)$conn->lastInsertId();
@@ -2194,8 +2216,8 @@ class WorkflowEngine
             // don't bump run_count — nothing actually executed.
             if (!$isManual) {
                 $conn->prepare(
-                    "UPDATE workflows SET last_run_datetime = UTC_TIMESTAMP(), last_run_status = 'aborted' WHERE id = ?"
-                )->execute([$wfId]);
+                    "UPDATE workflows SET last_run_datetime = UTC_TIMESTAMP(), last_run_status = ? WHERE id = ?"
+                )->execute([$status, $wfId]);
             }
         } catch (Exception $e) {
             error_log('[WorkflowEngine::recordAbortedRun] ' . $e->getMessage());
@@ -2204,10 +2226,20 @@ class WorkflowEngine
         return [
             'execution_id'  => $execId,
             'workflow_id'   => $wfId,
-            'status'        => 'aborted',
+            'status'        => $status,
             'step_log'      => $stepLog,
             'error_message' => $message,
         ];
+    }
+
+    /** Discussion #304: whether workflows.run_order / stop_after exist yet (Database Verification adds them). */
+    public static function runOrderReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready !== null) return $ready;
+        try { $conn->query("SELECT run_order, stop_after FROM workflows LIMIT 0"); $ready = true; }
+        catch (PDOException $e) { $ready = false; }
+        return $ready;
     }
 
     /**

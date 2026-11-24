@@ -12811,11 +12811,21 @@ return array (
           ),
           'nullable' => true,
         ),
-        'is_active' => 
+        'is_active' =>
         array (
           'type' => 'boolean',
         ),
-        'created_by' => 
+        'run_order' =>
+        array (
+          'type' => 'integer',
+          'description' => 'Its place in the run order on its trigger (Workflows -> Run order). 0 = not placed yet: runs after the placed ones, oldest first. Set the order in the app.',
+        ),
+        'stop_after' =>
+        array (
+          'type' => 'boolean',
+          'description' => 'When this workflow runs (its conditions match), the workflows after it on the same trigger do not run for that event; their run log says which one stopped them.',
+        ),
+        'created_by' =>
         array (
           'type' => 'object',
           'nullable' => true,
@@ -13410,11 +13420,21 @@ return array (
           ),
           'nullable' => true,
         ),
-        'is_active' => 
+        'is_active' =>
         array (
           'type' => 'boolean',
         ),
-        'created_by' => 
+        'run_order' =>
+        array (
+          'type' => 'integer',
+          'description' => 'Its place in the run order on its trigger (Workflows -> Run order). 0 = not placed yet: runs after the placed ones, oldest first. Set the order in the app.',
+        ),
+        'stop_after' =>
+        array (
+          'type' => 'boolean',
+          'description' => 'When this workflow runs (its conditions match), the workflows after it on the same trigger do not run for that event; their run log says which one stopped them.',
+        ),
+        'created_by' =>
         array (
           'type' => 'object',
           'nullable' => true,

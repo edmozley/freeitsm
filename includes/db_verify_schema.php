@@ -4194,6 +4194,8 @@ return [
         'run_count'         => 'INT NOT NULL DEFAULT 0',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
         'tenant_id'         => 'INT NULL',   // GH #209: NULL = shared (every company); set = that company only
+        'run_order'         => 'INT NOT NULL DEFAULT 0',      // discussion #304: order on its trigger; 0 = not placed (runs after, oldest first)
+        'stop_after'        => 'TINYINT(1) NOT NULL DEFAULT 0',   // discussion #304: when it runs, later workflows for the event do not
     ],
 
     'webhook_deliveries' => [

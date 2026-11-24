@@ -7956,6 +7956,11 @@ CREATE TABLE IF NOT EXISTS `workflows` (
     -- actions may only touch that company's records. CASCADE, never SET NULL: a
     -- deleted company's workflows must go with it, not become shared ones.
     `tenant_id`         INT NULL,
+    -- Discussion #304: the order workflows on one trigger run in (Workflows -> Run order).
+    -- 0 = not placed yet: runs after the placed ones, oldest first - today's order.
+    `run_order`         INT NOT NULL DEFAULT 0,
+    -- When this one runs (its conditions match), the workflows after it for that event do not.
+    `stop_after`        TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_workflows_trigger` (`trigger_event`),
     KEY `idx_workflows_active` (`is_active`),

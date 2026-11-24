@@ -14165,6 +14165,12 @@
                             "req": false
                         },
                         {
+                            "name": "stop_after",
+                            "in": "body",
+                            "desc": "Default false. When true and this workflow runs, the workflows after it on the same trigger do not run for that event. The order itself is set in the app (Workflows -> Run order).",
+                            "req": false
+                        },
+                        {
                             "name": "company_id",
                             "in": "body",
                             "desc": "The company it runs for, or null for shared (every company). Shared needs a key that reaches every company.",
@@ -14315,7 +14321,7 @@
                             "req": true
                         },
                         {
-                            "name": "name \/ description \/ trigger_event \/ conditions \/ actions \/ is_active \/ company_id",
+                            "name": "name \/ description \/ trigger_event \/ conditions \/ actions \/ is_active \/ stop_after \/ company_id",
                             "in": "body",
                             "desc": "What to change",
                             "req": false

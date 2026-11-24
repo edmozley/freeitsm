@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once __DIR__ . '/../../workflow/includes/engine.php';   // runOrderReady()
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -23,7 +24,8 @@ try {
     $ready = workflowTenancyReady($conn);
     [$tSql, $tArgs] = workflowListFilter($conn, $analystId, 'w.tenant_id');
     $stmt = $conn->prepare(
-        "SELECT w.id, w.name, w.description, w.trigger_event, w.is_active,
+        "SELECT w.id, w.name, w.description, w.trigger_event, w.is_active,"
+        . (WorkflowEngine::runOrderReady($conn) ? " w.run_order, w.stop_after," : " 0 AS run_order, 0 AS stop_after,") . "
                 w.last_run_datetime, w.last_run_status, w.run_count,
                 w.created_datetime, w.updated_datetime"
         . ($ready ? ", w.tenant_id, tn.name AS company_name" : ", NULL AS tenant_id, NULL AS company_name") . "

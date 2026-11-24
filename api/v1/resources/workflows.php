@@ -130,6 +130,10 @@ function apiSerializeWorkflow(array $r, bool $full): array {
         // GH #209. null = shared: runs for every company.
         'company'       => ($r['tenant_id'] ?? null) === null ? null : ['id' => (int)$r['tenant_id'], 'name' => $r['tenant_name'] ?? null],
         'is_active'     => (bool)$r['is_active'],
+        // Discussion #304. run_order: place on its trigger (0 = not placed: runs after the placed
+        // ones, oldest first). stop_after: when it runs, later workflows for the event do not.
+        'run_order'     => (int)($r['run_order'] ?? 0),
+        'stop_after'    => (bool)($r['stop_after'] ?? false),
         'created_by'    => $r['created_by'] === null ? null : ['id' => (int)$r['created_by'], 'name' => $r['created_by_name']],
         'created_at'    => apiIsoDate($r['created_datetime']),
         'updated_at'    => apiIsoDate($r['updated_datetime']),
@@ -388,7 +392,11 @@ function apiWorkflowsCreate(PDO $conn, array $apiKey, array $params, array $body
         isset($body['is_active']) ? (int)(bool)$body['is_active'] : 1,
         (int)$apiKey['analyst_id'],
     ], $tenancyOn ? [$tenant] : []));
-    apiRespond(apiSerializeWorkflow(apiLoadWorkflow($conn, (int)$conn->lastInsertId()), true), 201);
+    $newId = (int)$conn->lastInsertId();
+    if (!empty($body['stop_after']) && WorkflowEngine::runOrderReady($conn)) {   // discussion #304
+        $conn->prepare("UPDATE workflows SET stop_after = 1 WHERE id = ?")->execute([$newId]);
+    }
+    apiRespond(apiSerializeWorkflow(apiLoadWorkflow($conn, $newId), true), 201);
 }
 
 // PATCH /workflows/{id}
@@ -433,6 +441,12 @@ function apiWorkflowsUpdate(PDO $conn, array $apiKey, array $params, array $body
              is_active = ?, updated_datetime = UTC_TIMESTAMP()" . ($tenancyOn ? ', tenant_id = ?' : '') . "
          WHERE id = ?"
     )->execute(array_merge([$name, $description, $trigger, $conditionsJson, $actionsJson, $isActive], $tenancyOn ? [$tenant] : [], [$params[0]]));
+    if (WorkflowEngine::runOrderReady($conn)) {
+        // Discussion #304: stop_after as sent; a move to another trigger joins the end of its order.
+        $stop = array_key_exists('stop_after', $body) ? (int)(bool)$body['stop_after'] : (int)($current['stop_after'] ?? 0);
+        $conn->prepare("UPDATE workflows SET stop_after = ?, run_order = IF(? = 1, run_order, 0) WHERE id = ?")
+             ->execute([$stop, (int)($trigger === $current['trigger_event']), $params[0]]);
+    }
 
     apiRespond(apiSerializeWorkflow(apiLoadWorkflow($conn, $params[0]), true));
 }
