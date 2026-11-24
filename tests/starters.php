@@ -116,7 +116,17 @@ try {
         ok('...and in the list', $listed && $listed[0]['steps_done'] === 1 && $listed[0]['steps_total'] === 3, json_encode($listed));
     }
 
-    ok('a leaver must be someone in Users', refused(fn() => StartersService::createCase($conn, $ctx, ['kind' => 'leaver', 'person_name' => 'x', 'effective_date' => $date])) !== '');
+    // 5.11.0: a leaver (or mover) need not be in Users - someone who never had a record there.
+    $nameLeaver = StartersService::createCase($conn, $ctx, ['kind' => 'leaver', 'person_name' => "ZZ-JML Gone $tag", 'person_email' => "zzjml-gone-$tag@example.test", 'effective_date' => $date]);
+    $made['cases'][] = $nameLeaver;
+    $nl = StartersService::getCase($conn, $ctx, $nameLeaver);
+    ok('a leaver not in Users opens by name', $nl['person_name'] === "ZZ-JML Gone $tag" && $nl['user_id'] === null && $nl['person_email'] === "zzjml-gone-$tag@example.test", json_encode(array_intersect_key($nl, ['person_name' => 1, 'user_id' => 1, 'person_email' => 1])));
+    ok('...with no kit and no account to switch off', $nl['kit'] === [] && empty($nl['person']), json_encode(['kit' => $nl['kit'], 'person' => $nl['person'] ?? null]));
+    ok('...and its kit cannot be issued until it is linked', refused(fn() => StartersService::issueKit($conn, $ctx, $nameLeaver, 0)) !== '');
+    $nameMover = StartersService::createCase($conn, $ctx, ['kind' => 'mover', 'person_name' => "ZZ-JML Moving $tag", 'effective_date' => $date]);
+    $made['cases'][] = $nameMover;
+    ok('a mover not in Users opens by name too', StartersService::getCase($conn, $ctx, $nameMover)['user_id'] === null);
+    ok('a name is still required', refused(fn() => StartersService::createCase($conn, $ctx, ['kind' => 'leaver', 'person_name' => '  ', 'effective_date' => $date])) !== '');
     ok('a template of another kind is refused', refused(fn() => StartersService::createCase($conn, $ctx, ['kind' => 'mover', 'person_name' => 'x', 'user_id' => null, 'effective_date' => $date, 'template_id' => $tpl])) !== '');
     ok('a date is required', refused(fn() => StartersService::createCase($conn, $ctx, ['kind' => 'starter', 'person_name' => 'x', 'effective_date' => 'soon'])) !== '');
 

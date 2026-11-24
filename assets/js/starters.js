@@ -150,10 +150,11 @@
             kind = k;
             document.querySelectorAll('#jmlNewKinds .jml-kind-card').forEach(b => b.classList.toggle('selected', b.dataset.kind === k));
             $('jmlNewDateLabel').textContent = T('date_label.' + k);
-            // A mover or leaver is always somebody already in Users.
-            const seg = $('jmlNewWho');
-            seg.hidden = k !== 'starter';
-            setWho(k === 'starter' ? who : 'existing');
+            // A starter is usually not in Users yet; a mover or leaver usually is, but
+            // need not be (5.11.0) - the same two choices, the likelier one first.
+            $('jmlNewWhoNew').textContent = T(k === 'starter' ? 'new.person_new' : 'new.person_not_in_users');
+            $('jmlNewNotInUsersNote').hidden = k === 'starter';
+            setWho(k === 'starter' ? 'new' : 'existing');
             fillTemplates();
         }
         function setWho(w) {

@@ -80,6 +80,8 @@ return [
         'person'           => 'Who?',
         'person_new'       => 'Not in Users yet',
         'person_existing'  => 'Already in Users',
+        'person_not_in_users' => 'Not in Users',
+        'not_in_users_note' => 'Fine for someone who never had a record in Users. The case is its steps; there is no kit on record and no account to switch off. If they turn up in Users, link the case to them.',
         'person_search_ph' => 'Search by name or email',
         'person_none'      => 'Nobody matches.',
         'person_change'    => 'Change',
@@ -134,6 +136,7 @@ return [
 
         'person'          => 'Person',
         'person_unlinked' => 'Not in Users yet. Once they have been added, link the case to them, so their kit and their People page join up.',
+        'person_unlinked_other' => 'Not in Users. If they turn up there, link the case to them, so their kit and their People page join up.',
         'person_link'     => 'Link',
         'person_linked'   => 'Linked to {name}.',
         'person_left'     => 'Marked as left on {date}.',
@@ -144,6 +147,7 @@ return [
         'kit_none'        => 'They hold no kit.',
         'kit_no_access'   => 'You need access to Assets to see or change their kit.',
         'kit_needs_person'=> 'Link the case to the person first.',
+        'kit_needs_person_other' => 'Kit comes from Assets, which only knows people in Users. Link the case to them if they are added.',
         'kit_since'       => 'since {date}',
         'kit_issue'       => 'Issue',
         'kit_issue_ph'    => 'Find an asset by name, model or serial',
@@ -303,7 +307,7 @@ return [
         'cases' => [
             'nav' => 'Cases', 'title' => 'Opening a case', 'intro' => 'Who, what kind, and when.',
             'p1' => 'Choose **New**, then whether it is a starter, a mover or a leaver, the person, and the date: their first day, the day they move, or their last day.',
-            'p2' => 'A **starter** need not be in Users yet - give their name and, if you know it, their email. Once they have been added, **Link** the case to them on the case page. Movers and leavers are always someone already in Users.',
+            'p2' => 'A **starter** need not be in Users yet - give their name and, if you know it, their email. Once they have been added, **Link** the case to them on the case page. A mover or leaver is usually picked from Users, but need not be: choose **Not in Users** for someone who never had a record there. That case is just its steps - with no kit on record and no account to switch off - until it is linked.',
             'p3' => 'Choose a **template** and its steps are added as tasks straight away, each due on its own day. The case itself is a task too, due on the date, with every step as a subtask - so it is on the Tasks board like any other task.',
             'p4' => '**Done** closes the case; **Cancel** shelves it. Neither touches the tasks - a step still open is somebody\'s work, and closing it quietly would hide that. Only the case\'s owner, or somebody who manages Starters & leavers, can cancel or reopen it.',
         ],
