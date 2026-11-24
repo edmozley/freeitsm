@@ -384,6 +384,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'मसुदा',
+        'state_archived'       => 'संग्रहित',
         'field'                => 'लेख',
         'link'                 => 'लिंक करा',
         'open'                 => 'उघडा',

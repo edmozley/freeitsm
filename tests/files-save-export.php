@@ -73,6 +73,27 @@ try {
     check('a PDF renamed .png is refused - the bytes must match the name', $refused("%PDF-1.4\n", 'x.png'));
     check('a format that is not an export is refused, whatever it holds', $refused($png, 'x.html') && $refused($png, 'x.svg') && $refused($png, 'x.exe'));
     check('a binary renamed .csv is refused', $refused("MZ\0\0\x90\0", 'x.csv'));
+    check('...even when the binary part starts after the first 4 KB', $refused(str_repeat("a,b\n", 2000) . "MZ\0\0\x90\0", 'x.csv'));
+
+    // A zip with the given entries - a real one when the zip extension is there.
+    $zip = function (array $entries) use ($file): string {
+        $p = $file('');
+        if (class_exists('ZipArchive')) {
+            $z = new ZipArchive();
+            $z->open($p, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+            foreach ($entries as $n => $body) $z->addFromString($n, $body);
+            $z->close();
+            return (string)file_get_contents($p);
+        }
+        $out = '';
+        foreach ($entries as $n => $body) $out .= "PK\x03\x04" . str_repeat("\0", 22) . pack('v', strlen($n)) . "\0\0" . $n . $body;
+        return $out;
+    };
+    $xlsx = $zip(['[Content_Types].xml' => '<Types/>', 'xl/workbook.xml' => '<workbook/>', 'xl/worksheets/sheet1.xml' => '<worksheet/>']);
+    $r4 = FilesSave::saveExport($conn, $admin, $file($xlsx), 'zz-nodes.xlsx', $folder);
+    check('POSITIVE CONTROL: a workbook saves as .xlsx', !empty($r4['item_id']), json_encode($r4));
+    check('a Word file renamed .xlsx is refused - every zip starts PK', $refused($zip(['[Content_Types].xml' => '<Types/>', 'word/document.xml' => '<w/>']), 'x.xlsx'));
+    check('...and so is any other zip', $refused($zip(['readme.txt' => 'hello']), 'x.xlsx'));
     check('a folder that does not exist is refused', (function () use ($conn, $admin, $file, $png) {
         try { FilesSave::saveExport($conn, $admin, $file($png), 'x.png', 999999999); return false; } catch (ServiceError $e) { return true; }
     })());

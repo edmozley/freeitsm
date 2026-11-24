@@ -738,6 +738,12 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-kb-row > a > span, .nm-kb-row > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .nm-kb-empty { padding: 6px 12px; color: var(--text-faint, #9ca3af); font-size: var(--font-size-md, 13px); }
         .nm-picker-name svg { flex-shrink: 0; color: var(--nm-accent, #06b6d4); }
+        /* GH #433: "Draft" beside an unpublished article in the picker */
+        .nm-kb-state {
+            margin-left: 6px; padding: 0 6px; border-radius: 8px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-muted, #6b7280);
+            border: 1px solid var(--border, #e5e7eb); flex-shrink: 0;
+        }
         .nm-iconlib-empty { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); padding: 4px 0 8px; }
         .nm-iconlib-error { color: #b91c1c; }
         .nm-iconlib-group { margin-bottom: 4px; }
@@ -2267,7 +2273,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/save-to-files.js?v=3"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=22"></script>
+    <script src="../assets/js/network-mapper.js?v=23"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

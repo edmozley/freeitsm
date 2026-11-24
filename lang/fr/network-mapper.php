@@ -384,6 +384,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'Brouillon',
+        'state_archived'       => 'Archivé',
         'field'                => 'Article',
         'link'                 => 'Lier',
         'open'                 => 'Ouvrir',

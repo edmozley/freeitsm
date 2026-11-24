@@ -107,6 +107,31 @@ final class FilesSave
     ];
 
     /**
+     * Which of $needles appear anywhere in the file, read in 1 MB chunks (with an overlap, so a
+     * needle across a chunk boundary is still found). Returns the needles found.
+     *
+     * @param string $path  a local file
+     * @param array $needles  byte strings to look for
+     */
+    private static function fileHas(string $path, array $needles): array
+    {
+        $found = [];
+        $keep = max(array_map('strlen', $needles)) - 1;
+        $fh = fopen($path, 'rb');
+        if (!$fh) return [];
+        $tail = '';
+        while (!feof($fh) && count($found) < count($needles)) {
+            $chunk = $tail . (string)fread($fh, 1048576);
+            foreach ($needles as $n) {
+                if (!in_array($n, $found, true) && strpos($chunk, $n) !== false) $found[] = $n;
+            }
+            $tail = $keep > 0 ? substr($chunk, -$keep) : '';
+        }
+        fclose($fh);
+        return $found;
+    }
+
+    /**
      * Save to Files for something a page has just MADE in the browser - a diagram's PNG or
      * PDF, a report - rather than a file FreeITSM already holds. Only the export formats in
      * EXPORT_TYPES, and the bytes must be what the name says (so this cannot become a way to
@@ -127,7 +152,11 @@ final class FilesSave
         $head = (string)file_get_contents($localPath, false, null, 0, 4096);
         $magic = self::EXPORT_TYPES[$ext];
         if ($magic !== '' && strncmp($head, $magic, strlen($magic)) !== 0) throw $bad;
-        if ($ext === 'csv' && ($head === '' || strpos($head, "\0") !== false)) throw $bad;   // text, not a binary renamed .csv
+        // text, not a binary renamed .csv - the whole file, not just its first 4 KB
+        if ($ext === 'csv' && ($head === '' || self::fileHas($localPath, ["\0"]) !== [])) throw $bad;
+        // TRAP: "PK\x03\x04" starts EVERY zip - a .docx, a .jar or any archive. A workbook also names
+        // [Content_Types].xml and xl/workbook.xml in its entries (stored uncompressed in the zip's headers).
+        if ($ext === 'xlsx' && count(self::fileHas($localPath, ['[Content_Types].xml', 'xl/workbook.xml'])) !== 2) throw $bad;
         return filesStoreLocalFile($conn, $analystId, $folderId, $localPath, $name, $onConflict) + ['folder_id' => $folderId];
     }
 

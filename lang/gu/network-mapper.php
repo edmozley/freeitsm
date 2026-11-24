@@ -384,6 +384,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'ડ્રાફ્ટ',
+        'state_archived'       => 'આર્કાઇવ થયેલ',
         'field'                => 'લેખ',
         'link'                 => 'લિંક કરો',
         'open'                 => 'ખોલો',

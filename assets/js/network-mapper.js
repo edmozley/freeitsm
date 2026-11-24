@@ -79,6 +79,7 @@
     let elShapePanel = null, elShapePalette = null;
 
     let dirty = false;
+    let editSeq = 0;             // bumped by every markDirty() - lets save() see edits made while it ran
     let autosaveOn = false;
     let autosaveTimer = null;
     let saveInFlight = false;
@@ -433,6 +434,7 @@
             layers = data.layers || [];
             kbRelated = (data.articles && data.articles.related) || [];   // GH #433: Knowledge articles
             kbTitles = (data.articles && data.articles.titles && !Array.isArray(data.articles.titles)) ? data.articles.titles : {};
+            kbStates = (data.articles && data.articles.states && !Array.isArray(data.articles.states)) ? data.articles.states : {};
             canReadKb = !!data.can_read_knowledge;
             renderArticlesPanel();
             ensurePagesLayers();
@@ -2745,13 +2747,20 @@
     // to" - never its title. includes/services/network_articles.php has the rules.
     let kbRelated = [];      // article ids related to this diagram, in the order added
     let kbTitles = {};       // article id -> title, or null when linked but not readable by this analyst
+    let kbStates = {};       // article id -> 'draft' | 'archived' (absent = published)
     let canReadKb = false;   // has the Knowledge module - the picker needs it
     let kbPick = null;       // the picker's callback while it is open
     let kbTimer = null, kbSeq = 0;
     const KB_BOOK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg>';
 
     function kbTitle(id) { const v = kbTitles[id]; return typeof v === 'string' ? v : null; }
-    function kbLabel(id) { const v = kbTitle(id); return v !== null ? v : t('network-mapper.kb.no_access'); }
+    function kbLabel(id) { const v = kbTitle(id); return v !== null ? v + kbStateSuffix(id) : t('network-mapper.kb.no_access'); }
+    /** " (Draft)" / " (Archived)" after a title - the analyst can open both, so they are not "no access". */
+    function kbStateSuffix(id) {
+        const st = kbStates[id];
+        return st === 'draft' ? ' (' + t('network-mapper.kb.state_draft') + ')' : st === 'archived' ? ' (' + t('network-mapper.kb.state_archived') + ')' : '';
+    }
+    function kbRemember(a) { kbTitles[a.id] = a.title; if (a.state && a.state !== 'live') kbStates[a.id] = a.state; else delete kbStates[a.id]; }
 
     /** Opens a linked article in a new tab - or says it cannot, without naming it. */
     function openArticle(id) {
@@ -2778,7 +2787,7 @@
     /** Links (or with null unlinks) an article on a node or shape. Saved with the diagram. */
     function setItemArticle(it, a) {
         it.article_id = a ? a.id : null;
-        if (a) kbTitles[a.id] = a.title;
+        if (a) kbRemember(a);
         if (nodes.includes(it)) { rerenderNode(it); renderConnectors(); } else { rerenderShape(it); }
         markDirty();
         ['ndArticle', 'spArticle'].forEach(id => { const h = document.getElementById(id); if (h && h._kbItem === it) renderKbField(h, it); });
@@ -2838,7 +2847,7 @@
             if (!d.success) throw new Error(d.error || 'failed');
             const list = d.articles || [];
             box.innerHTML = list.length
-                ? list.map(a => '<div class="nm-picker-row" data-id="' + a.id + '"><span class="nm-picker-name">' + KB_BOOK + escapeHtml(a.title) + '</span></div>').join('')
+                ? list.map(a => '<div class="nm-picker-row" data-id="' + a.id + '"><span class="nm-picker-name">' + KB_BOOK + escapeHtml(a.title) + (a.state === 'draft' ? ' <span class="nm-kb-state">' + escapeHtml(t('network-mapper.kb.state_draft')) + '</span>' : '') + '</span></div>').join('')
                 : '<div class="nm-picker-empty">' + escapeHtml(t('network-mapper.kb.no_results')) + '</div>';
             box.querySelectorAll('.nm-picker-row').forEach(row => row.addEventListener('click', () => {
                 const a = list.find(x => x.id === +row.dataset.id);
@@ -2870,7 +2879,7 @@
         dd.innerHTML = '<div class="nm-layers-head">' + escapeHtml(t('network-mapper.kb.related_title')) + '</div>'
             + (kbRelated.length ? kbRelated.map(id => '<div class="nm-kb-row">'
                     + (kbTitle(id) !== null
-                        ? '<a href="../knowledge/?article=' + encodeURIComponent(id) + '" target="_blank" rel="noopener">' + KB_BOOK + '<span>' + escapeHtml(kbTitle(id)) + '</span></a>'
+                        ? '<a href="../knowledge/?article=' + encodeURIComponent(id) + '" target="_blank" rel="noopener">' + KB_BOOK + '<span>' + escapeHtml(kbLabel(id)) + '</span></a>'
                         : '<span class="is-hidden-article">' + KB_BOOK + '<span>' + escapeHtml(t('network-mapper.kb.no_access')) + '</span></span>')
                     + (ed ? '<button type="button" class="nm-layer-ico nm-layer-del" data-del="' + id + '" title="' + escapeAttr(t('network-mapper.kb.remove')) + '">&times;</button>' : '')
                     + '</div>').join('')
@@ -2882,7 +2891,7 @@
         const add = dd.querySelector('#kbRelAdd');
         if (add) add.addEventListener('click', e => {
             e.stopPropagation();
-            openArticlePicker(a => { kbTitles[a.id] = a.title; relatedPost('add', a.id); });
+            openArticlePicker(a => { kbRemember(a); relatedPost('add', a.id); });
         });
     }
     async function relatedPost(action, articleId) {
@@ -2893,6 +2902,7 @@
             if (!d.success) throw new Error(d.error || 'failed');
             kbRelated = d.related || [];
             kbTitles = Object.assign({}, kbTitles, d.titles || {});
+            kbStates = Object.assign({}, kbStates, (d.states && !Array.isArray(d.states)) ? d.states : {});
             const dd = document.getElementById('articlesDropdown');
             if (dd) dd.style.display = '';
             renderArticlesPanel();
@@ -4220,6 +4230,7 @@
     function markDirty() {
         if (!diagram || !diagram.is_current) return;
         dirty = true;
+        editSeq++;
         setStatus('unsaved');
         if (autosaveOn) scheduleAutosave();
     }
@@ -4885,6 +4896,12 @@
         saveInFlight = true;
         setStatus('saving');
         lastSavingShownAt = Date.now();
+        const seqAtStart = editSeq;
+        // TRAP: anything changed after this point is NOT in the request. The reload below would
+        // replace nodes / shapes / connectors with what the server has and quietly lose it, so
+        // if editSeq moves on we keep the editor's own state and save again (GH #433). Ids in a
+        // save are only keys that wire connectors to nodes, so re-sending them is safe.
+        const editedSince = () => editSeq !== seqAtStart;
 
         try {
             const resp = await fetch(API + 'save_diagram.php', {
@@ -4951,6 +4968,7 @@
             const data = await resp.json();
             if (!data.success) throw new Error(data.error || 'Save failed');
 
+            if (editedSince()) { saveAgainAfterEdits(); return; }
             dirty = false;
             // Reload from the server so temp ids resolve into real ids — vital
             // before any connector references those nodes. Preserve the current
@@ -4963,6 +4981,7 @@
             const selShapeIdx = selectedShapeKey != null ? shapes.indexOf(findShapeByKey(selectedShapeKey)) : -1;
             const resp2 = await fetch(API + 'get_diagram.php?id=' + diagramId, { credentials: 'same-origin' });
             const data2 = await resp2.json();
+            if (editedSince()) { saveAgainAfterEdits(); return; }
             if (data2.success) {
                 diagram = data2.diagram;
                 nodes = data2.nodes || [];
@@ -5009,6 +5028,14 @@
         } finally {
             saveInFlight = false;
         }
+    }
+
+    /** A save finished but the diagram changed while it ran: keep what is on screen, still unsaved, and save that too. */
+    function saveAgainAfterEdits() {
+        dirty = true;
+        setStatus('unsaved');
+        if (autosaveOn) scheduleAutosave();
+        else setTimeout(() => { if (dirty && !saveInFlight) save(true); }, 0);   // a manual save: finish the job it started
     }
 
     // =========================================================

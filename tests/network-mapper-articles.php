@@ -52,13 +52,16 @@ $ctxA = new ActorContext($admin, null, 'ui', 'en', 'ZZ admin');
 
 $made = []; $arts = [];
 try {
-    $mk = function (string $title, int $restricted) use ($conn, $admin) {
+    $mk = function (string $title, int $restricted, int $published = 1, int $archived = 0) use ($conn, $admin) {
         $conn->prepare("INSERT INTO knowledge_articles (title, body, author_id, is_published, is_archived, created_datetime, modified_datetime, tenant_id, audience, is_restricted, inherit_permissions)
-                        VALUES (?, '<p>ZZ</p>', ?, 1, 0, UTC_TIMESTAMP(), UTC_TIMESTAMP(), NULL, 'internal', ?, 0)")->execute([$title, $admin, $restricted]);
+                        VALUES (?, '<p>ZZ</p>', ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), NULL, 'internal', ?, 0)")->execute([$title, $admin, $published, $archived, $restricted]);
         return (int)$conn->lastInsertId();
     };
     $open = $mk('ZZ open article', 0);       $arts[] = $open;
     $secret = $mk('ZZ secret article', 1);   $arts[] = $secret;   // restricted, granted to nobody
+    $draft = $mk('ZZ draft article', 0, 0);       $arts[] = $draft;      // not published yet
+    $old = $mk('ZZ archived article', 0, 1, 1);   $arts[] = $old;        // archived
+    $secretDraft = $mk('ZZ secret draft', 1, 0);  $arts[] = $secretDraft;   // a draft, AND restricted
     if (function_exists('knowledgeAclResetCaches')) knowledgeAclResetCaches();
 
     echo "Who can read what\n";
@@ -67,6 +70,13 @@ try {
     check('...but not the restricted one', !isset($r[$secret]), json_encode($r));
     $found = array_column(NetworkArticleService::search($conn, $x, 'ZZ '), 'id');
     check('the picker offers the open article and not the restricted one', in_array($open, $found, true) && !in_array($secret, $found, true), json_encode($found));
+    $rows = NetworkArticleService::readableRows($conn, $x, [$draft, $old, $secretDraft]);
+    check('a draft and an archived article are readable, with their state - not "no access"', ($rows[$draft]['state'] ?? null) === 'draft'
+        && ($rows[$old]['state'] ?? null) === 'archived' && ($rows[$draft]['title'] ?? null) === 'ZZ draft article', json_encode($rows));
+    check('...while a restricted draft is still not readable - the lifecycle is lifted, not the permission', !isset($rows[$secretDraft]));
+    $byId = array_column(NetworkArticleService::search($conn, $x, 'ZZ '), 'state', 'id');
+    check('the picker offers the draft (marked draft) but not the archived article', ($byId[$draft] ?? null) === 'draft' && !isset($byId[$old])
+        && ($byId[$open] ?? null) === 'live', json_encode($byId));
 
     $d = NetworkMapperService::createDiagram($conn, $ctxA, ['title' => 'ZZ articles ' . bin2hex(random_bytes(3))]);
     $made[] = $d;
@@ -84,6 +94,16 @@ try {
         && array_key_exists((string)$secret, $f['titles']) && $f['titles'][(string)$secret] === null, json_encode($f));
     NetworkArticleService::removeRelated($conn, $d, $secret);
     check('...and may still take it off', NetworkArticleService::forDiagram($conn, $x, $d)['related'] === [$open]);
+    NetworkArticleService::addRelated($conn, $ctxX, $d, $draft);
+    $conn->prepare("INSERT INTO network_diagram_articles (diagram_id, article_id, created_by_analyst_id) VALUES (?, ?, ?)")->execute([$d, $old, $admin]);
+    $f = NetworkArticleService::forDiagram($conn, $x, $d);
+    $st = (array)$f['states'];
+    check('a linked draft and archived article show their titles and states', $f['titles'][(string)$draft] === 'ZZ draft article'
+        && $f['titles'][(string)$old] === 'ZZ archived article' && ($st[(string)$draft] ?? null) === 'draft' && ($st[(string)$old] ?? null) === 'archived'
+        && !isset($st[(string)$open]), json_encode($f));
+    check('...and the draft lists the diagram back on its own page', in_array($d, array_column(NetworkArticleService::diagramsForArticle($conn, $x, $draft), 'id'), true));
+    NetworkArticleService::removeRelated($conn, $d, $draft);
+    NetworkArticleService::removeRelated($conn, $d, $old);
 
     echo "\nLinks on shapes and nodes\n";
     $obj = (int)$conn->query("SELECT id FROM cmdb_objects ORDER BY id LIMIT 1")->fetchColumn();

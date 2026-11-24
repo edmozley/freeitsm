@@ -384,6 +384,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'Wersja robocza',
+        'state_archived'       => 'Zarchiwizowany',
         'field'                => 'Artykuł',
         'link'                 => 'Połącz',
         'open'                 => 'Otwórz',

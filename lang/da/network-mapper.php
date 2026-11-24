@@ -384,6 +384,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'Kladde',
+        'state_archived'       => 'Arkiveret',
         'field'                => 'Artikel',
         'link'                 => 'Tilknyt',
         'open'                 => 'Åbn',

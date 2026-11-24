@@ -384,6 +384,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'Черновик',
+        'state_archived'       => 'В архиве',
         'field'                => 'Статья',
         'link'                 => 'Связать',
         'open'                 => 'Открыть',

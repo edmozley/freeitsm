@@ -384,6 +384,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'Draf',
+        'state_archived'       => 'Diarkibkan',
         'field'                => 'Artikel',
         'link'                 => 'Paut',
         'open'                 => 'Buka',

@@ -14,7 +14,7 @@
  *                cmdb_relationship_id, label, line_style, style }]
  *   shapes    [{ id, uid, shape_type, x, y, w, h, rotation, text, style, layer, z,
  *                icon_id, page_key, layer_key, group_key, article_id }]
- *   pages, layers, articles {related, titles}, can_read_knowledge      (GH #433)
+ *   pages, layers, articles {related, titles, states}, can_read_knowledge      (GH #433)
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -173,7 +173,7 @@ try {
 
     // GH #433: Knowledge articles - the related list, and a title for each linked article that
     // this analyst may read (null = linked, but not one they can read: no title is sent).
-    $articles = ['related' => [], 'titles' => new stdClass()];
+    $articles = ['related' => [], 'titles' => new stdClass(), 'states' => new stdClass()];
     try {
         require_once '../../includes/services/network_articles.php';
         $articles = NetworkArticleService::forDiagram($conn, (int)$_SESSION['analyst_id'], $id);

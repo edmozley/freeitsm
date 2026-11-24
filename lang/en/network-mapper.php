@@ -458,6 +458,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'Draft',      // after a linked article's title - it is not published yet
+        'state_archived'       => 'Archived',   // after a linked article's title - it has been archived
         'field'                => 'Article',
         'link'                 => 'Link',
         'open'                 => 'Open',

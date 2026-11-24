@@ -384,6 +384,8 @@ return [
     ],
 
     'kb' => [
+        'state_draft'          => 'Utkast',
+        'state_archived'       => 'Arkivert',
         'field'                => 'Artikkel',
         'link'                 => 'Koble',
         'open'                 => 'Åpne',

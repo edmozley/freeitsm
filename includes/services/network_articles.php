@@ -15,6 +15,10 @@
  * see something is linked, and a save of theirs keeps a colleague's link rather than
  * quietly dropping it.
  *
+ * Drafts and archived articles: an analyst reads both in Knowledge (a draft carries a Draft
+ * badge, an archived one sits in the archive), so a link to one shows its title with its state
+ * - never "no access", which would be untrue. The picker offers drafts but not archived ones.
+ *
  * Saving: a link is kept if the person saving can read that article, OR the diagram already
  * linked it before this save. Nothing else gets in - so an id typed into a request cannot
  * pin an article you cannot read onto a diagram.
@@ -33,15 +37,39 @@ class NetworkArticleService
      */
     public static function readable(PDO $conn, int $analystId, array $ids): array
     {
+        return array_map(fn($r) => $r['title'], self::readableRows($conn, $analystId, $ids));
+    }
+
+    /**
+     * Like readable(), with each article's state: 'live', 'draft' or 'archived'.
+     *
+     * TRAP: knowledgeVisibilitySql() defaults to lifecycle 'live' (published, not archived) - the
+     * right default for a list of articles to READ, and the wrong one here: a diagram already
+     * linked to a draft or an archived article, and the analyst can open both in Knowledge, so
+     * 'live' made them look like "an article you don't have access to". Permission (company,
+     * audience, access list) still applies in full; only the lifecycle filter is lifted.
+     *
+     * @param int[] $ids  article ids (any order, duplicates fine)
+     * @return array<int,array{title:string,state:string}>
+     */
+    public static function readableRows(PDO $conn, int $analystId, array $ids): array
+    {
         $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($i) => $i > 0)));
         if (!$ids || $analystId <= 0 || !analystCanAccessModule($conn, $analystId, 'knowledge')) return [];
-        [$vis, $args] = knowledgeVisibilitySql($conn, KnowledgeViewer::forAnalyst($conn, $analystId), 'a');
+        [$vis, $args] = knowledgeVisibilitySql($conn, KnowledgeViewer::forAnalyst($conn, $analystId), 'a', ['lifecycle' => 'any']);
         $ph = implode(',', array_fill(0, count($ids), '?'));
-        $st = $conn->prepare("SELECT a.id, a.title FROM knowledge_articles a WHERE a.id IN ($ph)" . $vis);
+        $st = $conn->prepare("SELECT a.id, a.title, a.is_published, a.is_archived FROM knowledge_articles a WHERE a.id IN ($ph)" . $vis);
         $st->execute(array_merge($ids, $args));
         $out = [];
-        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[(int)$r['id']] = (string)$r['title'];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[(int)$r['id']] = ['title' => (string)$r['title'], 'state' => self::stateOf($r)];
         return $out;
+    }
+
+    /** 'archived', 'draft' or 'live' for an article row with is_published / is_archived. */
+    private static function stateOf(array $r): string
+    {
+        if ((int)($r['is_archived'] ?? 0) === 1) return 'archived';
+        return (int)($r['is_published'] ?? 1) === 1 ? 'live' : 'draft';
     }
 
     /**
@@ -86,11 +114,12 @@ class NetworkArticleService
     }
 
     /**
-     * What the editor needs: the related list, in the order added, and a title for every
-     * article the diagram links to (null = not readable by this analyst).
+     * What the editor needs: the related list, in the order added, a title for every
+     * article the diagram links to (null = not readable by this analyst), and the state of
+     * every readable one that is not live (draft / archived).
      *
      * @param int $diagramId  the diagram version
-     * @return array{related: int[], titles: array<string,?string>}
+     * @return array{related: int[], titles: array<string,?string>, states: array<string,string>}
      */
     public static function forDiagram(PDO $conn, int $analystId, int $diagramId): array
     {
@@ -103,10 +132,14 @@ class NetworkArticleService
             $related = [];
         }
         $all = self::idsOnDiagram($conn, $diagramId);
-        $can = self::readable($conn, $analystId, $all);
+        $can = self::readableRows($conn, $analystId, $all);
         $titles = [];
-        foreach ($all as $id) $titles[(string)$id] = $can[$id] ?? null;
-        return ['related' => $related, 'titles' => $titles];
+        $states = [];
+        foreach ($all as $id) {
+            $titles[(string)$id] = isset($can[$id]) ? $can[$id]['title'] : null;
+            if (isset($can[$id]) && $can[$id]['state'] !== 'live') $states[(string)$id] = $can[$id]['state'];
+        }
+        return ['related' => $related, 'titles' => $titles, 'states' => (object)$states];
     }
 
     /**
@@ -153,25 +186,26 @@ class NetworkArticleService
 
     /**
      * The picker: articles this analyst can read whose title matches - newest first when
-     * nothing is typed. Empty without the Knowledge module.
+     * nothing is typed. Drafts are offered (a runbook is often linked while it is being
+     * written), archived ones are not. Empty without the Knowledge module.
      *
      * @param string $q  what was typed
-     * @return array<int,array{id:int,title:string}>
+     * @return array<int,array{id:int,title:string,state:string}>
      */
     public static function search(PDO $conn, int $analystId, string $q): array
     {
         if ($analystId <= 0 || !analystCanAccessModule($conn, $analystId, 'knowledge')) return [];
-        [$vis, $args] = knowledgeVisibilitySql($conn, KnowledgeViewer::forAnalyst($conn, $analystId), 'a');
+        [$vis, $args] = knowledgeVisibilitySql($conn, KnowledgeViewer::forAnalyst($conn, $analystId), 'a', ['lifecycle' => 'unarchived']);
         $q = trim($q);
         $where = '';
         if ($q !== '') {
             $where = ' AND a.title LIKE ?';
             $args[] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q) . '%';
         }
-        $st = $conn->prepare("SELECT a.id, a.title FROM knowledge_articles a WHERE 1 = 1" . $vis . $where . "
+        $st = $conn->prepare("SELECT a.id, a.title, a.is_published, a.is_archived FROM knowledge_articles a WHERE 1 = 1" . $vis . $where . "
                                ORDER BY " . ($q !== '' ? 'a.title' : 'COALESCE(a.modified_datetime, a.created_datetime) DESC') . " LIMIT 40");
         $st->execute($args);
-        return array_map(fn($r) => ['id' => (int)$r['id'], 'title' => (string)$r['title']], $st->fetchAll(PDO::FETCH_ASSOC));
+        return array_map(fn($r) => ['id' => (int)$r['id'], 'title' => (string)$r['title'], 'state' => self::stateOf($r)], $st->fetchAll(PDO::FETCH_ASSOC));
     }
 
     /**
