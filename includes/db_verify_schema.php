@@ -5942,6 +5942,7 @@ return [
         'colour_override' => 'VARCHAR(20) NULL',   // GH #433: #rrggbb, NULL = normal look
         'w'              => 'INT NULL',            // GH #433: box size in canvas px, NULL = automatic
         'h'              => 'INT NULL',
+        'style'          => 'TEXT NULL',           // GH #433: the node's own look, JSON (sanitiseStyle)
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
@@ -5953,6 +5954,23 @@ return [
         'cmdb_relationship_id' => 'INT NULL',
         'label'                => 'VARCHAR(255) NULL',
         'line_style'           => "VARCHAR(20) NULL DEFAULT 'solid'",
+        'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+    ],
+
+    // GH #433: freestanding shapes (not CMDB objects) - see database/freeitsm.sql
+    'network_diagram_shapes' => [
+        'id'             => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'     => 'INT NOT NULL',
+        'shape_type'     => 'VARCHAR(40) NOT NULL',
+        'x'              => 'INT NOT NULL DEFAULT 0',
+        'y'              => 'INT NOT NULL DEFAULT 0',
+        'w'              => 'INT NOT NULL DEFAULT 120',
+        'h'              => 'INT NOT NULL DEFAULT 80',
+        'rotation'       => 'INT NOT NULL DEFAULT 0',
+        'text'           => 'TEXT NULL',
+        'style'          => 'TEXT NULL',
+        'layer'          => "VARCHAR(10) NOT NULL DEFAULT 'back'",
+        'z'              => 'INT NOT NULL DEFAULT 0',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 

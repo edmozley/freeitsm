@@ -63,6 +63,15 @@
     let nodes = [];              // current canvas nodes
     let connectors = [];         // current canvas connectors
     let nextTempId = -1;         // tempIds count down so they never collide with real auto-inc IDs
+    // GH #433: freestanding shapes and their editing state
+    let shapes = [];
+    let nextTempShapeId = -1;
+    let selectedShapeKey = null;
+    let shapeDrag = null;        // { key, offX, offY, moved }
+    let shapeResize = null;      // { key, dir, start, x, y, w, h, moved }
+    let shapeEditKey = null;     // the shape whose text is being typed
+    let paletteTab = 'cmdb';
+    let elShapePanel = null, elShapePalette = null;
 
     let dirty = false;
     let autosaveOn = false;
@@ -189,6 +198,9 @@
         elPageDropdown    = document.getElementById('pageDropdown');
         elPageBtnLabel    = document.getElementById('pageBtnLabel');
         elCentreBtn       = document.getElementById('centreBtn');
+        elShapePanel      = document.getElementById('shapeFormatPanel');   // GH #433
+        elShapePalette    = document.getElementById('shapePalette');
+        renderShapePalette();
 
         // Close toolbar dropdowns on outside click. Each dropdown checks for
         // its anchor button + its panel; click outside both → dismiss. Same
@@ -273,9 +285,10 @@
             const t = e.target;
             const isCanvasBg = t === elCanvas || t.classList.contains('nm-canvas-empty');
             const isSvgBg    = t === elSvgLayer;
-            if (isCanvasBg || isSvgBg) {
+            if (isCanvasBg || isSvgBg || t === elCanvasInner) {
                 selectNode(null);
                 selectConnector(null);
+                selectShape(null);   // GH #433
             }
         });
 
@@ -292,12 +305,33 @@
                 exitPresent();
                 return;
             }
-            if (e.key !== 'Delete' && e.key !== 'Backspace') return;
             const tag = (document.activeElement && document.activeElement.tagName) || '';
             if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            // GH #433: typing in a shape - its own keys, never a delete of the shape
+            if (document.activeElement && document.activeElement.isContentEditable) return;
             // Don't fire if a modal is open (search inputs inside the picker etc.)
             if (document.querySelector('.nm-modal-overlay.active')) return;
-            if (selectedConnectorKey != null) {
+            // GH #433: arrow keys nudge the selected shape (Shift = 10px)
+            if (selectedShapeKey != null && canEdit() && e.key.indexOf('Arrow') === 0) {
+                const sh = findShapeByKey(selectedShapeKey);
+                if (sh) {
+                    e.preventDefault();
+                    const step = e.shiftKey ? 10 : 1;
+                    if (e.key === 'ArrowLeft') sh.x -= step;
+                    if (e.key === 'ArrowRight') sh.x += step;
+                    if (e.key === 'ArrowUp') sh.y -= step;
+                    if (e.key === 'ArrowDown') sh.y += step;
+                    rerenderShape(sh);
+                    syncShapePanelGeometry();
+                    markDirty();
+                }
+                return;
+            }
+            if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+            if (selectedShapeKey != null) {
+                e.preventDefault();
+                deleteSelectedShape();
+            } else if (selectedConnectorKey != null) {
                 e.preventDefault();
                 deleteSelectedConnector();
             } else if (selectedNodeKey != null) {
@@ -345,9 +379,11 @@
             diagram = data.diagram;
             nodes = data.nodes || [];
             connectors = data.connectors || [];
+            shapes = data.shapes || [];   // GH #433
             renderHeader();
             applyReadOnlyState();
             renderNodes();
+            renderShapes();
             updatePageButtonLabel();
             renderPageOutline();
             renderBrandHeaderFooter();
@@ -524,6 +560,11 @@
         e.preventDefault();
         let payload = null;
         try { payload = JSON.parse(e.dataTransfer.getData('text/plain') || '{}'); } catch (_) { /* ignore */ }
+        if (payload && payload.kind === 'nm-shape') {   // GH #433: a shape from the Shapes tab
+            const at = canvasModelCoords(e);
+            addShapeAt(String(payload.shape_type || ''), at.x, at.y);
+            return;
+        }
         if (!payload || payload.kind !== 'nm-class') return;
         const cls = classById[payload.class_id];
         if (!cls) return;
@@ -702,7 +743,7 @@
         Array.from(elCanvasInner.querySelectorAll('.nm-node')).forEach(el => el.remove());
 
         if (!nodes.length) {
-            if (elCanvasEmpty) elCanvasEmpty.style.display = '';
+            updateCanvasEmpty();   // GH #433: shapes count too
             renderConnectors();
             return;
         }
@@ -746,6 +787,11 @@
             el.style.setProperty('--nmc', n.colour_override);
             el.style.setProperty('--nmc-bg', hexToRgba(n.colour_override, 0.12));
         }
+        if (n.style && window.nmNodeBoxCss) {
+            // GH #433: the node's own fill, border, shadow, corners and opacity (font goes on the label below)
+            el.classList.add('has-style');
+            el.style.cssText += window.nmNodeBoxCss(n.style);
+        }
 
         // Edge-handle positions: anchored to the icon's bounding box (which is
         // sizePx square, offset by NODE_PADDING inside the node element). The
@@ -769,7 +815,8 @@
             handleHtml +
             '<div class="nm-node-icon" style="height:' + sizePx + 'px;">' + iconSvg + '</div>' +
             (n.is_planned ? '<span class="nm-node-planned-pill">' + escapeHtml(t('network-mapper.detail.planned_pill')) + '</span>' : '') +
-            '<div class="nm-node-label" title="' + escapeAttr(n.name + ' (' + (n.class_name || '') + ')') + '">' +
+            '<div class="nm-node-label" title="' + escapeAttr(n.name + ' (' + (n.class_name || '') + ')') + '"'
+                + (n.style && window.nmTextCss ? ' style="' + escapeAttr(window.nmTextCss(n.style)) + '"' : '') + '>' +
                 escapeHtml(n.name) +
             '</div>';
 
@@ -913,6 +960,7 @@
      */
     function selectNode(key) {
         if (selectedNodeKey === key) return;
+        if (key != null && selectedShapeKey != null) selectShape(null);   // GH #433
         selectedNodeKey = key;
         if (key != null && selectedConnectorKey != null) {
             // node + connector selection are mutually exclusive; redraw to drop
@@ -1034,6 +1082,7 @@
     /** Selects a connector by key (null clears), deselecting any node, and redraws the connectors. */
     function selectConnector(key) {
         if (selectedConnectorKey === key) return;
+        if (key != null && selectedShapeKey != null) selectShape(null);   // GH #433
         selectedConnectorKey = key;
         if (key != null) selectNode(null);
         renderConnectors();
@@ -1411,6 +1460,7 @@
         if (window.NM_CMDB) loadNodeProperties(n.cmdb_object_id);
         else if (elNdPropertiesSection) elNdPropertiesSection.style.display = 'none';
         renderNodeStyleControls(n);
+        renderNodeStyleEditor(n);
     }
 
     /**
@@ -1908,6 +1958,538 @@
     }
 
     // =========================================================
+    //  Shapes (GH #433) - freestanding shapes beside the CMDB nodes
+    //  The library and the drawing live in network-mapper-shapes.js; this is
+    //  the editing: palette, drop, select, move, resize, type, arrange, and the
+    //  Format panel shared with the node detail panel's Style section.
+    // =========================================================
+    const SHAPE_GRID = 10;
+    function snapS(v) { return Math.round(v / SHAPE_GRID) * SHAPE_GRID; }
+
+    /** Stable key for a shape - its real id, or its temp id while unsaved. */
+    function shapeKey(s) { return s.id ? 's' + s.id : 't' + s.tempId; }
+    function findShapeByKey(key) { return key == null ? null : (shapes.find(s => shapeKey(s) === key) || null); }
+    function canEdit() { return !!(diagram && diagram.is_current); }
+    function shapeName(type) {
+        const v = t('network-mapper.shapes.name_' + type);
+        return (v && v !== 'network-mapper.shapes.name_' + type) ? v : type.replace(/_/g, ' ');
+    }
+
+    /** Draws every shape. Keeps the array sorted by z so the saved order and the drawn order agree. */
+    function renderShapes() {
+        if (!elCanvasInner) return;
+        elCanvasInner.querySelectorAll('.nm-shape').forEach(el => el.remove());
+        shapes.sort((a, b) => (a.z || 0) - (b.z || 0));
+        const first = elCanvasInner.querySelector('.nm-node');
+        shapes.forEach(s => elCanvasInner.insertBefore(buildShapeEl(s), first || null));
+        updateCanvasEmpty();
+    }
+
+    /** Swaps one shape's element for a freshly built one. */
+    function rerenderShape(s) {
+        const el = elCanvasInner.querySelector('.nm-shape[data-key="' + cssEscape(shapeKey(s)) + '"]');
+        if (el) el.replaceWith(buildShapeEl(s)); else renderShapes();
+    }
+
+    /** Shows the "empty diagram" hint only when there are neither nodes nor shapes. */
+    function updateCanvasEmpty() {
+        if (elCanvasEmpty) elCanvasEmpty.style.display = (nodes.length || shapes.length) ? 'none' : '';
+    }
+
+    /** Builds one shape: its SVG, its text, and - when selected on the current version - 8 resize handles. */
+    function buildShapeEl(s) {
+        const key = shapeKey(s);
+        const st = window.nmShapeStyle ? window.nmShapeStyle(s.shape_type, s.style) : {};
+        const el = document.createElement('div');
+        el.className = 'nm-shape' + (s.layer === 'front' ? ' is-front' : '') + (key === selectedShapeKey ? ' selected' : '');
+        el.dataset.key = key;
+        el.style.left = s.x + 'px';
+        el.style.top = s.y + 'px';
+        el.style.width = s.w + 'px';
+        el.style.height = s.h + 'px';
+        if (s.rotation) el.style.transform = 'rotate(' + s.rotation + 'deg)';
+        if (st.opacity != null && +st.opacity < 100) el.style.opacity = String(+st.opacity / 100);
+
+        let html = window.nmShapeSvg ? window.nmShapeSvg(s, 'nms-' + key) : '';
+        const tb = window.nmShapeTextBox ? window.nmShapeTextBox(s) : { x: 0, y: 0, w: s.w, h: s.h };
+        const editing = key === shapeEditKey;
+        if ((s.text || editing) && tb.w > 0 && tb.h > 0) {
+            const jc = st.valign === 'top' ? 'flex-start' : st.valign === 'bottom' ? 'flex-end' : 'center';
+            html += '<div class="nm-shape-text" style="left:' + tb.x + 'px;top:' + tb.y + 'px;width:' + tb.w + 'px;height:' + tb.h + 'px;justify-content:' + jc + ';">'
+                + '<div class="nm-shape-text-inner" style="' + escapeAttr(window.nmTextCss ? window.nmTextCss(st) : '') + '"'
+                + (editing ? ' contenteditable="true" spellcheck="true"' : '') + '>' + escapeHtml(s.text || '') + '</div></div>';
+        }
+        if (key === selectedShapeKey && canEdit() && !editing) {
+            ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach(d => { html += '<div class="nm-shape-handle" data-dir="' + d + '"></div>'; });
+        }
+        el.innerHTML = html;
+        el.addEventListener('mousedown', onShapeMouseDown);
+        el.addEventListener('dblclick', e => { e.stopPropagation(); startShapeTextEdit(s); });
+        el.querySelectorAll('.nm-shape-handle').forEach(h => h.addEventListener('mousedown', e => startShapeResize(e, s, h.dataset.dir)));
+        if (editing) {
+            const ed = el.querySelector('.nm-shape-text-inner');
+            if (ed) {
+                ed.addEventListener('mousedown', e => e.stopPropagation());
+                ed.addEventListener('blur', () => commitShapeTextEdit(s, ed));
+                ed.addEventListener('keydown', e => {
+                    if (e.key === 'Escape') { e.preventDefault(); shapeEditKey = null; rerenderShape(s); }
+                    e.stopPropagation();
+                });
+            }
+        }
+        return el;
+    }
+
+    /** Selects a shape (null clears) - clears any node or connector selection - and opens the Format panel. */
+    function selectShape(key) {
+        if (shapeEditKey && shapeEditKey !== key) {
+            const ed = elCanvasInner.querySelector('.nm-shape-text-inner[contenteditable="true"]');
+            if (ed) ed.blur();
+        }
+        const prev = selectedShapeKey;
+        selectedShapeKey = key;
+        if (key != null) {
+            if (selectedNodeKey != null) selectNode(null);
+            if (selectedConnectorKey != null) selectConnector(null);
+        }
+        const p = findShapeByKey(prev);
+        if (p) rerenderShape(p);
+        const s = findShapeByKey(key);
+        if (s && key !== prev) rerenderShape(s);
+        if (s) renderShapePanel(); else closeShapePanel();
+    }
+
+    /** Selects the shape and, on the current version, starts moving it. */
+    function onShapeMouseDown(e) {
+        if (e.button !== 0) return;
+        const key = e.currentTarget.dataset.key;
+        if (key === shapeEditKey) return;
+        e.stopPropagation();
+        const s = findShapeByKey(key);
+        if (!s) return;
+        if (selectedShapeKey !== key) selectShape(key);
+        if (!canEdit()) return;
+        const c = canvasModelCoords(e);
+        shapeDrag = { key, offX: c.x - s.x, offY: c.y - s.y, moved: false };
+        document.addEventListener('mousemove', onShapeDragMove);
+        document.addEventListener('mouseup', onShapeDragUp);
+        e.preventDefault();
+    }
+    function onShapeDragMove(e) {
+        if (!shapeDrag) return;
+        const s = findShapeByKey(shapeDrag.key);
+        if (!s) return;
+        const c = canvasModelCoords(e);
+        const x = snapS(c.x - shapeDrag.offX), y = snapS(c.y - shapeDrag.offY);
+        if (x === s.x && y === s.y) return;
+        s.x = x; s.y = y; shapeDrag.moved = true;
+        const el = elCanvasInner.querySelector('.nm-shape[data-key="' + cssEscape(shapeDrag.key) + '"]');
+        if (el) { el.style.left = x + 'px'; el.style.top = y + 'px'; }
+    }
+    function onShapeDragUp() {
+        document.removeEventListener('mousemove', onShapeDragMove);
+        document.removeEventListener('mouseup', onShapeDragUp);
+        if (!shapeDrag) return;
+        const moved = shapeDrag.moved;
+        shapeDrag = null;
+        if (moved) { markDirty(); syncShapePanelGeometry(); }
+    }
+
+    /** Starts dragging one of the 8 handles. */
+    function startShapeResize(e, s, dir) {
+        if (e.button !== 0 || !canEdit()) return;
+        e.stopPropagation();
+        e.preventDefault();
+        shapeResize = { key: shapeKey(s), dir, start: canvasModelCoords(e), x: s.x, y: s.y, w: s.w, h: s.h, moved: false };
+        document.addEventListener('mousemove', onShapeResizeMove);
+        document.addEventListener('mouseup', onShapeResizeUp);
+    }
+    function onShapeResizeMove(e) {
+        if (!shapeResize) return;
+        const s = findShapeByKey(shapeResize.key);
+        if (!s) return;
+        const r = shapeResize, c = canvasModelCoords(e);
+        const dx = c.x - r.start.x, dy = c.y - r.start.y, MIN = 10;
+        let x = r.x, y = r.y, w = r.w, h = r.h;
+        if (r.dir.indexOf('e') >= 0) w = Math.max(MIN, snapS(r.w + dx));
+        if (r.dir.indexOf('s') >= 0) h = Math.max(MIN, snapS(r.h + dy));
+        if (r.dir.indexOf('w') >= 0) { const nx = Math.min(snapS(r.x + dx), r.x + r.w - MIN); w = r.w + (r.x - nx); x = nx; }
+        if (r.dir.indexOf('n') >= 0) { const ny = Math.min(snapS(r.y + dy), r.y + r.h - MIN); h = r.h + (r.y - ny); y = ny; }
+        if (x === s.x && y === s.y && w === s.w && h === s.h) return;
+        Object.assign(s, { x, y, w, h });
+        r.moved = true;
+        rerenderShape(s);
+    }
+    function onShapeResizeUp() {
+        document.removeEventListener('mousemove', onShapeResizeMove);
+        document.removeEventListener('mouseup', onShapeResizeUp);
+        if (!shapeResize) return;
+        const moved = shapeResize.moved;
+        shapeResize = null;
+        if (moved) { markDirty(); syncShapePanelGeometry(); }
+    }
+
+    /** Double-click: type straight into the shape. Enter makes a new line; click away to finish; Esc cancels. */
+    function startShapeTextEdit(s) {
+        if (!canEdit()) return;
+        if (selectedShapeKey !== shapeKey(s)) selectShape(shapeKey(s));
+        shapeEditKey = shapeKey(s);
+        rerenderShape(s);
+        const ed = elCanvasInner.querySelector('.nm-shape[data-key="' + cssEscape(shapeEditKey) + '"] .nm-shape-text-inner');
+        if (!ed) { shapeEditKey = null; return; }
+        ed.focus();
+        const range = document.createRange();
+        range.selectNodeContents(ed);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+    function commitShapeTextEdit(s, ed) {
+        if (shapeEditKey !== shapeKey(s)) return;
+        const text = (ed.innerText || '').replace(/ /g, ' ').replace(/\n+$/, '');
+        shapeEditKey = null;
+        const changed = text !== (s.text || '');
+        s.text = text;
+        rerenderShape(s);
+        if (changed) markDirty();
+    }
+
+    /** The text a shape is dropped with - its name for zones, lanes and labels, empty otherwise. */
+    function defaultShapeText(type) {
+        const k = { text: 'default_text', heading: 'default_heading', zone: 'default_zone', frame: 'default_zone',
+                    swimlane: 'default_lane', pool_vertical: 'default_lane', label: 'default_label' }[type];
+        return k ? t('network-mapper.shapes.' + k) : '';
+    }
+
+    /** Adds a shape centred on (cx, cy) in model px, selects it and marks the diagram dirty. */
+    function addShapeAt(type, cx, cy) {
+        if (!canEdit() || !window.NM_SHAPES) return;
+        const def = window.NM_SHAPES[type];
+        if (!def) return;
+        const maxZ = shapes.reduce((m, s) => Math.max(m, s.z || 0), 0);
+        const s = {
+            id: null, tempId: nextTempShapeId--, shape_type: type,
+            x: Math.max(0, snapS(cx - def.w / 2)), y: Math.max(0, snapS(cy - def.h / 2)),
+            w: def.w, h: def.h, rotation: 0, text: defaultShapeText(type),
+            style: window.nmShapeStyle(type, {}),   // the full look, so later library changes never move it
+            layer: 'back', z: maxZ + 1
+        };
+        shapes.push(s);
+        renderShapes();
+        selectShape(shapeKey(s));
+        markDirty();
+    }
+
+    /** Adds a shape in the middle of what the canvas is showing (palette click). */
+    function addShapeInView(type) {
+        if (!elCanvas) return;
+        const cx = (elCanvas.scrollLeft + elCanvas.clientWidth / 2) / zoom;
+        const cy = (elCanvas.scrollTop + elCanvas.clientHeight / 2) / zoom;
+        addShapeAt(type, cx, cy);
+    }
+
+    function deleteSelectedShape() {
+        const s = findShapeByKey(selectedShapeKey);
+        if (!s || !canEdit()) return;
+        shapes = shapes.filter(x => x !== s);
+        selectedShapeKey = null;
+        closeShapePanel();
+        renderShapes();
+        markDirty();
+    }
+
+    function duplicateSelectedShape() {
+        const s = findShapeByKey(selectedShapeKey);
+        if (!s || !canEdit()) return;
+        const maxZ = shapes.reduce((m, x) => Math.max(m, x.z || 0), 0);
+        const copy = Object.assign({}, s, {
+            id: null, tempId: nextTempShapeId--, x: s.x + 20, y: s.y + 20, z: maxZ + 1,
+            style: s.style ? JSON.parse(JSON.stringify(s.style)) : null
+        });
+        shapes.push(copy);
+        renderShapes();
+        selectShape(shapeKey(copy));
+        markDirty();
+    }
+
+    /** To front / to back within the shape's layer, or move it to the other layer. */
+    function arrangeShape(how) {
+        const s = findShapeByKey(selectedShapeKey);
+        if (!s || !canEdit()) return;
+        if (how === 'front') s.z = shapes.reduce((m, x) => Math.max(m, x.z || 0), 0) + 1;
+        else if (how === 'back') s.z = shapes.reduce((m, x) => Math.min(m, x.z || 0), 0) - 1;
+        else if (how === 'layer_front') s.layer = 'front';
+        else if (how === 'layer_back') s.layer = 'back';
+        renderShapes();
+        renderShapePanel();
+        markDirty();
+    }
+
+    /** Applies a style change to the selected shape. */
+    function patchShapeStyle(patch) {
+        const s = findShapeByKey(selectedShapeKey);
+        if (!s || !canEdit()) return;
+        s.style = Object.assign({}, window.nmShapeStyle(s.shape_type, s.style), patch);
+        rerenderShape(s);
+        markDirty();
+    }
+
+    // ---- palette: CMDB classes | Shapes ----
+    let shapeFilter = '';
+    /** Switches the left palette between the CMDB classes and the shape library. */
+    function setPaletteTab(tab) {
+        paletteTab = tab === 'shapes' ? 'shapes' : 'cmdb';
+        document.querySelectorAll('.nm-palette-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === paletteTab));
+        if (elPaletteBody) elPaletteBody.style.display = paletteTab === 'cmdb' ? '' : 'none';
+        if (elShapePalette) elShapePalette.style.display = paletteTab === 'shapes' ? '' : 'none';
+        if (paletteTab === 'shapes') renderShapePalette();
+    }
+
+    /** Draws the shape library, grouped, filtered by the search box. */
+    function renderShapePalette() {
+        const body = document.getElementById('shapePaletteBody');
+        if (!body || !window.NM_SHAPES) return;
+        const q = shapeFilter.trim().toLowerCase();
+        let html = '';
+        (window.NM_SHAPE_CATS || []).forEach(cat => {
+            const keys = Object.keys(window.NM_SHAPES).filter(k => window.NM_SHAPES[k].cat === cat
+                && (!q || shapeName(k).toLowerCase().indexOf(q) >= 0 || k.indexOf(q) >= 0));
+            if (!keys.length) return;
+            html += '<div class="nm-shape-cat">' + escapeHtml(t('network-mapper.shapes.cat_' + cat)) + '</div><div class="nm-shape-grid">';
+            keys.forEach(k => {
+                html += '<div class="nm-shape-tile" draggable="true" data-shape="' + escapeAttr(k) + '" title="' + escapeAttr(shapeName(k) + ' - ' + t('network-mapper.shapes.tile_title')) + '">'
+                    + window.nmShapePreview(k, 34) + '</div>';
+            });
+            html += '</div>';
+        });
+        body.innerHTML = html || '<div class="nm-palette-empty">' + escapeHtml(t('network-mapper.shapes.no_match')) + '</div>';
+        body.querySelectorAll('.nm-shape-tile').forEach(tile => {
+            tile.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ kind: 'nm-shape', shape_type: tile.dataset.shape }));
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+            tile.addEventListener('click', () => addShapeInView(tile.dataset.shape));
+        });
+    }
+    function onShapeSearchInput(v) { shapeFilter = v || ''; renderShapePalette(); }
+
+    // ---- the Format panel (shapes) ----
+    function closeShapePanel() {
+        if (!elShapePanel) return;
+        elShapePanel.classList.remove('open');
+        elShapePanel.setAttribute('aria-hidden', 'true');
+    }
+
+    /** Fills the Format panel for the selected shape: arrange, then the shared style editor. */
+    function renderShapePanel() {
+        const s = findShapeByKey(selectedShapeKey);
+        if (!s || !elShapePanel) { closeShapePanel(); return; }
+        if (selectedNodeKey == null) closeDetail();
+        elShapePanel.classList.add('open');
+        elShapePanel.setAttribute('aria-hidden', 'false');
+        const ed = canEdit();
+        const dis = ed ? '' : ' disabled';
+        const def = (window.NM_SHAPES || {})[s.shape_type] || {};
+        document.getElementById('spIcon').innerHTML = window.nmShapePreview(s.shape_type, 26);
+        document.getElementById('spName').textContent = shapeName(s.shape_type);
+        const num = (id, label, v, min, max, step) =>
+            '<label class="nm-fmt-num"><span>' + escapeHtml(label) + '</span><input type="number" id="' + id + '" value="' + v + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '"' + dis + '></label>';
+        let html = '<div class="nm-fmt-section"><div class="nm-fmt-title">' + escapeHtml(t('network-mapper.shapes.arrange')) + '</div>'
+            + '<div class="nm-fmt-nums">'
+            + num('spX', t('network-mapper.shapes.x'), s.x, -10000, 20000)
+            + num('spY', t('network-mapper.shapes.y'), s.y, -10000, 20000)
+            + num('spW', t('network-mapper.shapes.width'), s.w, 10, 5000)
+            + num('spH', t('network-mapper.shapes.height'), s.h, 10, 5000)
+            + num('spR', t('network-mapper.shapes.rotation'), s.rotation || 0, -360, 360, 5)
+            + '</div>'
+            + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.shapes.layer')) + '</span>'
+            + seg([['layer_back', t('network-mapper.shapes.layer_back')], ['layer_front', t('network-mapper.shapes.layer_front')]], s.layer === 'front' ? 'layer_front' : 'layer_back', 'arrange', !ed) + '</div>'
+            + '<div class="nm-fmt-btns">'
+            + '<button type="button" class="nm-detail-icon-btn" data-arrange="front"' + dis + '>' + escapeHtml(t('network-mapper.shapes.to_front')) + '</button>'
+            + '<button type="button" class="nm-detail-icon-btn" data-arrange="back"' + dis + '>' + escapeHtml(t('network-mapper.shapes.to_back')) + '</button>'
+            + '<button type="button" class="nm-detail-icon-btn" id="spDup"' + dis + '>' + escapeHtml(t('network-mapper.shapes.duplicate')) + '</button>'
+            + '<button type="button" class="nm-detail-icon-btn nm-fmt-danger" id="spDel"' + dis + '>' + escapeHtml(t('common.delete')) + '</button>'
+            + '</div>'
+            + (ed ? '<div class="nm-detail-hint">' + escapeHtml(t('network-mapper.shapes.text_hint')) + '</div>' : '')
+            + '</div><div id="spStyle"></div>';
+        const body = document.getElementById('spBody');
+        body.innerHTML = html;
+        const bindNum = (id, apply) => {
+            const inp = document.getElementById(id);
+            if (inp) inp.addEventListener('change', () => { const v = parseFloat(inp.value); if (!isNaN(v)) apply(v); });
+        };
+        const geo = (fn) => v => { fn(v); rerenderShape(s); markDirty(); };
+        bindNum('spX', geo(v => { s.x = Math.round(v); }));
+        bindNum('spY', geo(v => { s.y = Math.round(v); }));
+        bindNum('spW', geo(v => { s.w = Math.max(10, Math.round(v)); }));
+        bindNum('spH', geo(v => { s.h = Math.max(10, Math.round(v)); }));
+        bindNum('spR', geo(v => { s.rotation = Math.max(-360, Math.min(360, Math.round(v))); }));
+        body.querySelectorAll('[data-seg="arrange"] button').forEach(b => b.addEventListener('click', () => arrangeShape(b.dataset.value)));
+        body.querySelectorAll('[data-arrange]').forEach(b => b.addEventListener('click', () => arrangeShape(b.dataset.arrange)));
+        const dup = document.getElementById('spDup'); if (dup) dup.addEventListener('click', duplicateSelectedShape);
+        const del = document.getElementById('spDel'); if (del) del.addEventListener('click', deleteSelectedShape);
+        renderStyleEditor(document.getElementById('spStyle'), window.nmShapeStyle(s.shape_type, s.style), {
+            rounded: !!def.rounded, valign: true, editable: ed,
+            onChange: patch => { patchShapeStyle(patch); },
+            onRebuild: () => renderShapePanel(),
+            onReset: () => { s.style = window.nmShapeStyle(s.shape_type, {}); rerenderShape(s); markDirty(); renderShapePanel(); }
+        });
+    }
+
+    /** Keeps the panel's X / Y / W / H in step after a drag on the canvas. */
+    function syncShapePanelGeometry() {
+        const s = findShapeByKey(selectedShapeKey);
+        if (!s) return;
+        [['spX', s.x], ['spY', s.y], ['spW', s.w], ['spH', s.h]].forEach(([id, v]) => {
+            const inp = document.getElementById(id);
+            if (inp && document.activeElement !== inp) inp.value = v;
+        });
+    }
+
+    /** A segmented control: [[value, label]...]. */
+    function seg(items, current, name, disabled) {
+        return '<span class="nm-seg" data-seg="' + name + '">' + items.map(([v, l]) =>
+            '<button type="button" data-value="' + escapeAttr(v) + '" class="' + (v === current ? 'active' : '') + '"' + (disabled ? ' disabled' : '') + '>' + escapeHtml(l) + '</button>').join('') + '</span>';
+    }
+
+    // Quick styles: one click sets fill, border and text colour together (draw.io's style palette).
+    const STYLE_PRESETS = [
+        { fill: 'solid', fillColour: '#ffffff', stroke: 'solid', strokeColour: '#64748b', fontColour: '#1f2937' },
+        { fill: 'solid', fillColour: '#dbeafe', stroke: 'solid', strokeColour: '#2563eb', fontColour: '#1e3a8a' },
+        { fill: 'solid', fillColour: '#dcfce7', stroke: 'solid', strokeColour: '#16a34a', fontColour: '#14532d' },
+        { fill: 'solid', fillColour: '#fef3c7', stroke: 'solid', strokeColour: '#d97706', fontColour: '#78350f' },
+        { fill: 'solid', fillColour: '#fee2e2', stroke: 'solid', strokeColour: '#dc2626', fontColour: '#7f1d1d' },
+        { fill: 'solid', fillColour: '#ede9fe', stroke: 'solid', strokeColour: '#7c3aed', fontColour: '#4c1d95' },
+        { fill: 'solid', fillColour: '#334155', stroke: 'solid', strokeColour: '#0f172a', fontColour: '#ffffff' },
+        { fill: 'gradient', fillColour: '#ffffff', fillColour2: '#bfdbfe', gradientDir: 'down', stroke: 'solid', strokeColour: '#2563eb', fontColour: '#1e3a8a', shadow: true },
+        { fill: 'gradient', fillColour: '#ecfccb', fillColour2: '#22c55e', gradientDir: 'down', stroke: 'solid', strokeColour: '#15803d', fontColour: '#14532d', shadow: true },
+        { fill: 'gradient', fillColour: '#fef9c3', fillColour2: '#f59e0b', gradientDir: 'diag', stroke: 'solid', strokeColour: '#b45309', fontColour: '#451a03', shadow: true }
+    ];
+
+    /**
+     * The style editor shared by the shape Format panel and the node panel's Style section.
+     * st is the style to show; opts.onChange(patch) applies a change (inputs keep their focus);
+     * opts.onRebuild() redraws the editor when a choice shows or hides controls.
+     */
+    function renderStyleEditor(box, st, opts) {
+        if (!box) return;
+        const ed = opts.editable;
+        const dis = ed ? '' : ' disabled';
+        const L = k => escapeHtml(t('network-mapper.style.' + k));
+        const colour = (key, val) => '<input type="color" class="nm-fmt-colour" data-key="' + key + '" value="' + escapeAttr(/^#[0-9a-f]{6}$/i.test(val || '') ? val : '#ffffff') + '"' + dis + '>';
+        const fill = st.fill || 'solid', stroke = st.stroke || 'solid';
+        let html = '<div class="nm-fmt-section"><div class="nm-fmt-title">' + L('title')
+            + (ed ? ' <button type="button" class="nm-detail-icon-btn nm-detail-icon-reset nm-fmt-reset" title="' + escapeAttr(t('network-mapper.style.reset_title')) + '">' + escapeHtml(t('network-mapper.detail.icon_reset')) + '</button>' : '') + '</div>';
+        html += '<div class="nm-fmt-presets">' + STYLE_PRESETS.map((p, i) => {
+            const bg = p.fill === 'gradient' ? 'linear-gradient(' + p.fillColour + ',' + p.fillColour2 + ')' : p.fillColour;
+            return '<button type="button" class="nm-fmt-preset" data-preset="' + i + '" style="background:' + bg + ';border-color:' + p.strokeColour + ';color:' + p.fontColour + ';"' + dis + '>Aa</button>';
+        }).join('') + '</div>';
+        // Fill
+        html += '<div class="nm-fmt-row"><span>' + L('fill') + '</span>' + seg([['none', t('network-mapper.style.none')], ['solid', t('network-mapper.style.solid')], ['gradient', t('network-mapper.style.gradient')]], fill, 'fill', !ed) + '</div>';
+        if (fill !== 'none') {
+            html += '<div class="nm-fmt-row nm-fmt-sub"><span>' + L('colour') + '</span><span class="nm-fmt-inline">' + colour('fillColour', st.fillColour)
+                + (fill === 'gradient' ? colour('fillColour2', st.fillColour2 || '#dbeafe')
+                    + '<select class="nm-fmt-select" data-key="gradientDir"' + dis + '>' + ['down', 'right', 'diag', 'radial'].map(d =>
+                        '<option value="' + d + '"' + ((st.gradientDir || 'down') === d ? ' selected' : '') + '>' + L('dir_' + d) + '</option>').join('') + '</select>' : '')
+                + '</span></div>';
+        }
+        // Border
+        html += '<div class="nm-fmt-row"><span>' + L('border') + '</span>' + seg([['none', t('network-mapper.style.none')], ['solid', t('network-mapper.style.solid')], ['dashed', t('network-mapper.style.dashed')], ['dotted', t('network-mapper.style.dotted')]], stroke, 'stroke', !ed) + '</div>';
+        if (stroke !== 'none') {
+            html += '<div class="nm-fmt-row nm-fmt-sub"><span>' + L('colour') + '</span><span class="nm-fmt-inline">' + colour('strokeColour', st.strokeColour || '#64748b')
+                + '<label class="nm-fmt-num nm-fmt-num-inline"><span>' + L('width') + '</span><input type="number" class="nm-fmt-n" data-key="strokeWidth" value="' + (st.strokeWidth != null ? st.strokeWidth : 1.5) + '" min="0.5" max="20" step="0.5"' + dis + '></label></span></div>';
+        }
+        // Opacity, shadow, rounded
+        const op = st.opacity != null ? st.opacity : 100;
+        html += '<div class="nm-fmt-row"><span>' + L('opacity') + '</span><span class="nm-fmt-inline"><input type="range" class="nm-fmt-range" data-key="opacity" min="10" max="100" step="5" value="' + op + '"' + dis + '><span class="nm-fmt-val" data-val="opacity">' + op + '%</span></span></div>';
+        html += '<div class="nm-fmt-row"><span>' + L('shadow') + '</span><input type="checkbox" class="nm-fmt-check" data-key="shadow"' + (st.shadow ? ' checked' : '') + dis + '></div>';
+        if (opts.rounded) {
+            const rd = st.rounded || 0;
+            html += '<div class="nm-fmt-row"><span>' + L('rounded') + '</span><span class="nm-fmt-inline"><input type="range" class="nm-fmt-range" data-key="rounded" min="0" max="60" step="1" value="' + rd + '"' + dis + '><span class="nm-fmt-val" data-val="rounded">' + rd + '</span></span></div>';
+        }
+        html += '</div>';
+        // Text
+        html += '<div class="nm-fmt-section"><div class="nm-fmt-title">' + L('text') + '</div>';
+        html += '<div class="nm-fmt-row"><span>' + L('font') + '</span><select class="nm-fmt-select" data-key="font"' + dis + '>' + (window.NM_FONTS || ['sans']).map(fk =>
+            '<option value="' + fk + '"' + ((st.font || 'sans') === fk ? ' selected' : '') + '>' + escapeHtml(fontLabel(fk)) + '</option>').join('') + '</select></div>';
+        html += '<div class="nm-fmt-row"><span>' + L('size') + '</span><span class="nm-fmt-inline"><input type="number" class="nm-fmt-n" data-key="fontSize" value="' + (st.fontSize || 13) + '" min="6" max="96" step="1"' + dis + '>'
+            + colour('fontColour', st.fontColour || '#1f2937') + '</span></div>';
+        html += '<div class="nm-fmt-row"><span>' + L('emphasis') + '</span><span class="nm-seg nm-fmt-toggles">'
+            + ['bold', 'italic', 'underline'].map(k => '<button type="button" data-toggle="' + k + '" class="nm-fmt-' + k + (st[k] ? ' active' : '') + '" title="' + L(k) + '"' + dis + '>' + ({ bold: 'B', italic: 'I', underline: 'U' })[k] + '</button>').join('') + '</span></div>';
+        html += '<div class="nm-fmt-row"><span>' + L('align') + '</span>' + seg([['left', t('network-mapper.style.left')], ['center', t('network-mapper.style.centre')], ['right', t('network-mapper.style.right')]], st.align || 'center', 'align', !ed) + '</div>';
+        if (opts.valign) {
+            html += '<div class="nm-fmt-row"><span>' + L('position') + '</span>' + seg([['top', t('network-mapper.style.top')], ['middle', t('network-mapper.style.middle')], ['bottom', t('network-mapper.style.bottom')]], st.valign || 'middle', 'valign', !ed) + '</div>';
+        }
+        html += '</div>';
+        box.innerHTML = html;
+        if (!ed) return;
+
+        const change = patch => opts.onChange(patch);
+        box.querySelectorAll('.nm-fmt-preset').forEach(b => b.addEventListener('click', () => {
+            change(Object.assign({ shadow: false }, STYLE_PRESETS[+b.dataset.preset]));
+            opts.onRebuild();
+        }));
+        box.querySelectorAll('[data-seg]').forEach(g => g.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+            const key = g.dataset.seg, v = b.dataset.value, patch = { [key]: v };
+            if (key === 'fill' && v !== 'none' && !st.fillColour) patch.fillColour = '#ffffff';
+            if (key === 'fill' && v === 'gradient' && !st.fillColour2) patch.fillColour2 = '#dbeafe';
+            if (key === 'stroke' && v !== 'none' && !st.strokeColour) patch.strokeColour = '#64748b';
+            if (key === 'stroke' && v !== 'none' && st.strokeWidth == null) patch.strokeWidth = 1.5;
+            change(patch);
+            opts.onRebuild();
+        })));
+        box.querySelectorAll('.nm-fmt-colour').forEach(inp => inp.addEventListener('input', () => change({ [inp.dataset.key]: inp.value })));
+        box.querySelectorAll('.nm-fmt-select').forEach(sel => sel.addEventListener('change', () => change({ [sel.dataset.key]: sel.value })));
+        box.querySelectorAll('.nm-fmt-n').forEach(inp => inp.addEventListener('change', () => {
+            const v = parseFloat(inp.value);
+            if (!isNaN(v)) change({ [inp.dataset.key]: v });
+        }));
+        box.querySelectorAll('.nm-fmt-range').forEach(inp => inp.addEventListener('input', () => {
+            const v = parseInt(inp.value, 10);
+            const lab = box.querySelector('[data-val="' + inp.dataset.key + '"]');
+            if (lab) lab.textContent = v + (inp.dataset.key === 'opacity' ? '%' : '');
+            change({ [inp.dataset.key]: v });
+        }));
+        box.querySelectorAll('.nm-fmt-check').forEach(inp => inp.addEventListener('change', () => change({ [inp.dataset.key]: inp.checked })));
+        box.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => {
+            const k = b.dataset.toggle, on = !b.classList.contains('active');
+            b.classList.toggle('active', on);
+            change({ [k]: on });
+        }));
+        const reset = box.querySelector('.nm-fmt-reset');
+        if (reset) reset.addEventListener('click', () => opts.onReset());
+    }
+
+    function fontLabel(k) {
+        const v = t('network-mapper.style.font_' + k);
+        if (v && v !== 'network-mapper.style.font_' + k) return v;
+        return ({ arial: 'Arial', verdana: 'Verdana', tahoma: 'Tahoma', trebuchet: 'Trebuchet MS', georgia: 'Georgia',
+                  times: 'Times New Roman', courier: 'Courier New', comic: 'Comic Sans' })[k] || k;
+    }
+
+    // ---- node Style section (same editor, applied to the node's box and label) ----
+    // What an unstyled node looks like, so the controls start from the truth.
+    const NODE_STYLE_SHOWN = { fill: 'solid', fillColour: '#ffffff', stroke: 'none', strokeColour: '#64748b', strokeWidth: 1.5,
+        opacity: 100, shadow: false, rounded: 8, font: 'sans', fontSize: 12, fontColour: '#1f2937', bold: false, italic: false, underline: false, align: 'center' };
+
+    function renderNodeStyleEditor(n) {
+        const box = document.getElementById('ndStyle');
+        if (!box) return;
+        renderStyleEditor(box, Object.assign({}, NODE_STYLE_SHOWN, n.style || {}), {
+            rounded: true, valign: false, editable: canEdit(),
+            onChange: patch => {
+                if (!canEdit()) return;
+                n.style = Object.assign({}, n.style || {}, patch);
+                rerenderNode(n);
+                renderConnectors();
+                markDirty();
+            },
+            onRebuild: () => renderNodeStyleEditor(n),
+            onReset: () => { n.style = null; rerenderNode(n); renderConnectors(); markDirty(); renderNodeStyleEditor(n); }
+        });
+    }
+
+    // =========================================================
     //  Autosave: dirty / debounce / status / preference
     // =========================================================
 
@@ -1930,7 +2512,7 @@
             // Don't save during an active node drag — save() reloads the diagram,
             // which would destroy the in-progress drag DOM and snap the node
             // back to its last-committed position. Reschedule and re-check.
-            if (nodeDrag) {
+            if (nodeDrag || nodeResize || shapeDrag || shapeResize || shapeEditKey) {   // GH #433
                 scheduleAutosave();
                 return;
             }
@@ -2615,7 +3197,14 @@
                         icon_override: n.icon_override || null,
                         colour_override: n.colour_override || null,   // GH #433
                         w: n.w || null,
-                        h: n.h || null
+                        h: n.h || null,
+                        style: n.style || null                        // GH #433
+                    })),
+                    // GH #433: the freestanding shapes, in z order
+                    shapes: shapes.map(sh => ({
+                        shape_type: sh.shape_type, x: sh.x, y: sh.y, w: sh.w, h: sh.h,
+                        rotation: sh.rotation || 0, text: sh.text || '', style: sh.style || null,
+                        layer: sh.layer || 'back', z: sh.z || 0
                     })),
                     connectors: connectors.map(c => ({
                         from_node_id: c.from_node_id,
@@ -2636,12 +3225,17 @@
             const selectedCmdbId = selectedNodeKey
                 ? (findNodeByKey(selectedNodeKey) || {}).cmdb_object_id
                 : null;
+            // GH #433: shapes have no natural id across the reload - keep the selection by position
+            // (the array is kept in z order and the server returns ORDER BY z, id).
+            const selShapeIdx = selectedShapeKey != null ? shapes.indexOf(findShapeByKey(selectedShapeKey)) : -1;
             const resp2 = await fetch(API + 'get_diagram.php?id=' + diagramId, { credentials: 'same-origin' });
             const data2 = await resp2.json();
             if (data2.success) {
                 diagram = data2.diagram;
                 nodes = data2.nodes || [];
                 connectors = data2.connectors || [];
+                shapes = data2.shapes || [];
+                selectedShapeKey = selShapeIdx >= 0 && shapes[selShapeIdx] ? shapeKey(shapes[selShapeIdx]) : null;
                 // Connector selection used a transient _tempKey for newly-drawn
                 // connectors; after reload everything has a real id so any
                 // existing selection key is stale by definition. Drop it.
@@ -2652,6 +3246,8 @@
                 // panel needs to refresh with the new instance.
                 selectedNodeKey = null;
                 renderNodes();
+                renderShapes();
+                if (selectedShapeKey == null) closeShapePanel();
                 updatePageButtonLabel();
                 renderPageOutline();
                 renderBrandHeaderFooter();
@@ -2891,13 +3487,17 @@
             const dims = pageDimensionsPx(diagram.paper_size, diagram.paper_orientation);
             if (dims) { contentW = dims.w; contentH = dims.h; }
         }
-        if ((!contentW || !contentH) && nodes.length) {
+        if ((!contentW || !contentH) && (nodes.length || shapes.length)) {
             // Bounding box of placed nodes, each by its own box (GH #433).
             let maxX = 0, maxY = 0;
             nodes.forEach(n => {
                 const ext = nodeExtent(n);
                 if (n.x + ext.w > maxX) maxX = n.x + ext.w;
                 if (n.y + ext.h > maxY) maxY = n.y + ext.h;
+            });
+            shapes.forEach(sh => {   // GH #433
+                if (sh.x + sh.w > maxX) maxX = sh.x + sh.w;
+                if (sh.y + sh.h > maxY) maxY = sh.y + sh.h;
             });
             contentW = maxX;
             contentH = maxY;
@@ -2994,7 +3594,7 @@
     // =========================================================
     function centreOnPage() {
         if (!diagram || !diagram.is_current) return;
-        if (!nodes.length) {
+        if (!nodes.length && !shapes.length) {
             if (window.showToast) showToast(t('network-mapper.toast.centre_no_nodes'), 'info');
             return;
         }
@@ -3015,6 +3615,12 @@
             if (n.y < minY) minY = n.y;
             if (n.x + ext.w > maxX) maxX = n.x + ext.w;
             if (n.y + ext.h > maxY) maxY = n.y + ext.h;
+        });
+        shapes.forEach(sh => {   // GH #433: shapes are part of the diagram too
+            if (sh.x < minX) minX = sh.x;
+            if (sh.y < minY) minY = sh.y;
+            if (sh.x + sh.w > maxX) maxX = sh.x + sh.w;
+            if (sh.y + sh.h > maxY) maxY = sh.y + sh.h;
         });
         const bboxW = maxX - minX;
         const bboxH = maxY - minY;
@@ -3039,7 +3645,9 @@
             n.x = Math.max(0, n.x + deltaX);
             n.y = Math.max(0, n.y + deltaY);
         });
+        shapes.forEach(sh => { sh.x += deltaX; sh.y += deltaY; });   // GH #433
         renderNodes();   // re-renders nodes + calls renderConnectors() inside
+        renderShapes();
         markDirty();
         if (window.showToast) showToast(t('network-mapper.toast.centred'), 'success');
     }
@@ -3073,7 +3681,7 @@
             const dims = pageDimensionsPx(diagram.paper_size, diagram.paper_orientation);
             if (dims) return { x: 0, y: 0, width: dims.w, height: dims.h };
         }
-        if (!nodes.length) return null;
+        if (!nodes.length && !shapes.length) return null;
         // Bounding box of nodes — approximate using medium icon size, +40px
         // for the label below the icon so it isn't clipped. Pad each side
         // by 40px so the export doesn't feel cramped at the edges.
@@ -3084,6 +3692,12 @@
             if (n.y < minY) minY = n.y;
             if (n.x + ext.w > maxX) maxX = n.x + ext.w;
             if (n.y + ext.h > maxY) maxY = n.y + ext.h;
+        });
+        shapes.forEach(sh => {   // GH #433: shapes are part of the diagram too
+            if (sh.x < minX) minX = sh.x;
+            if (sh.y < minY) minY = sh.y;
+            if (sh.x + sh.w > maxX) maxX = sh.x + sh.w;
+            if (sh.y + sh.h > maxY) maxY = sh.y + sh.h;
         });
         const PAD = 40;
         const x = Math.max(0, minX - PAD);
@@ -3114,7 +3728,9 @@
             scrollTop:  elCanvas ? elCanvas.scrollTop  : 0,
             selectedNode: selectedNodeKey,
             selectedConnector: selectedConnectorKey,
+            selectedShape: selectedShapeKey,   // GH #433
         };
+        if (selectedShapeKey != null) { selectedShapeKey = null; renderShapes(); }
 
         // Clear selection so the export doesn't include cyan rings/strokes
         selectedNodeKey = null;
@@ -3157,6 +3773,7 @@
                 elCanvas.scrollTop  = stashed.scrollTop;
             }
             if (stashed.selectedNode != null) selectNode(stashed.selectedNode);
+            if (stashed.selectedShape != null) { selectedShapeKey = stashed.selectedShape; renderShapes(); }
             if (stashed.selectedConnector != null) {
                 selectedConnectorKey = stashed.selectedConnector;
                 renderConnectors();
@@ -3262,6 +3879,10 @@
         resetIconOverride,
         // node box size (GH #433)
         resetBoxSize,
+        // shapes (GH #433)
+        setPaletteTab,
+        onShapeSearchInput,
+        closeShapePanel: () => selectShape(null),
         // branding (header/footer overrides per diagram)
         openBrandingModal,
         closeBrandingModal,

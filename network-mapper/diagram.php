@@ -600,6 +600,146 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-seg button:disabled { cursor: default; }
         .nm-detail-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 2px 0 6px; }
 
+        /* ---- GH #433: palette tabs, the shape library, shapes on the canvas, the Format panel ---- */
+        .nm-palette-tabs { padding: 0; gap: 0; }
+        .nm-palette-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 11px 8px 9px;
+            font: inherit;
+            font-size: var(--font-size-md, 13px);
+            font-weight: 600;
+            color: var(--text-dim, #6b7280);
+            cursor: pointer;
+        }
+        .nm-palette-tab:hover { color: var(--text, #111827); }
+        .nm-palette-tab.active { color: var(--text, #111827); border-bottom-color: var(--nm-accent, #06b6d4); }
+        .nm-shape-palette { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+        .nm-shape-search {
+            margin: 10px 10px 2px;
+            padding: 6px 8px;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 4px;
+            font: inherit;
+            font-size: var(--font-size-sm, 12px);
+            background: var(--surface, #fff);
+            color: var(--text, #111827);
+        }
+        .nm-shape-palette-body { flex: 1; overflow-y: auto; padding: 0 10px 10px; }
+        .nm-shape-cat {
+            font-size: var(--font-size-xs, 11px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-dim, #6b7280);
+            margin: 12px 0 6px;
+        }
+        .nm-shape-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .nm-shape-tile {
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            cursor: grab;
+        }
+        .nm-shape-tile:hover { border-color: var(--border, #e5e7eb); background: var(--surface-hover, #f9fafb); }
+        .nm-shape-tile svg { overflow: visible; }
+
+        .nm-shape { position: absolute; z-index: 0; cursor: move; transform-origin: 50% 50%; user-select: none; }
+        .nm-shape.is-front { z-index: 6; }
+        .nm-shape > .nm-shape-svg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+        .nm-shape-tile .nm-shape-svg { display: block; pointer-events: none; }
+        .nm-shape.selected { outline: 1.5px dashed #06b6d4; outline-offset: 4px; }
+        .nm-shape-text { position: absolute; display: flex; flex-direction: column; overflow: hidden; pointer-events: none; }
+        .nm-shape-text-inner { width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.25; outline: none; }
+        .nm-shape-text-inner[contenteditable="true"] { pointer-events: auto; cursor: text; min-height: 1.25em; background: rgba(255,255,255,0.55); }
+        .nm-shape-handle {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            background: #fff;
+            border: 1.5px solid #06b6d4;
+            border-radius: 2px;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+        .nm-shape-handle[data-dir="nw"] { left: 0;    top: 0;    cursor: nwse-resize; }
+        .nm-shape-handle[data-dir="n"]  { left: 50%;  top: 0;    cursor: ns-resize; }
+        .nm-shape-handle[data-dir="ne"] { left: 100%; top: 0;    cursor: nesw-resize; }
+        .nm-shape-handle[data-dir="e"]  { left: 100%; top: 50%;  cursor: ew-resize; }
+        .nm-shape-handle[data-dir="se"] { left: 100%; top: 100%; cursor: nwse-resize; }
+        .nm-shape-handle[data-dir="s"]  { left: 50%;  top: 100%; cursor: ns-resize; }
+        .nm-shape-handle[data-dir="sw"] { left: 0;    top: 100%; cursor: nesw-resize; }
+        .nm-shape-handle[data-dir="w"]  { left: 0;    top: 50%;  cursor: ew-resize; }
+        .nm-editor.is-presenting .nm-shape-handle,
+        .nm-canvas-inner.is-exporting .nm-shape-handle { display: none !important; }
+        .nm-editor.is-presenting .nm-shape.selected,
+        .nm-canvas-inner.is-exporting .nm-shape.selected { outline: none; }
+
+        /* A CMDB node with its own style: border and shadow through custom properties so the
+           selected ring below still wins; fill, corners and opacity are inline. */
+        .nm-node.has-style {
+            border-width: var(--nms-bw, 1.5px);
+            border-style: var(--nms-bs, solid);
+            border-color: var(--nms-bc, var(--nmc, transparent));
+            box-shadow: var(--nms-shadow, none);
+        }
+        .nm-node.is-planned.has-style { border-style: var(--nms-bs, dashed); border-color: var(--nms-bc, #fcd34d); }
+        .nm-node.has-style.selected {
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.18), 0 4px 12px rgba(6,182,212,0.18);
+        }
+
+        .nm-fmt-section { border-top: 1px solid var(--border-soft, #f3f4f6); padding: 10px 0 6px; }
+        .nm-fmt-section:first-child { border-top: 0; padding-top: 0; }
+        .nm-fmt-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--font-size-xs, 11px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-dim, #6b7280);
+            margin-bottom: 8px;
+        }
+        .nm-fmt-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; font-size: var(--font-size-md, 13px); }
+        .nm-fmt-row > span:first-child { color: var(--text-dim, #6b7280); }
+        .nm-fmt-sub { padding-left: 10px; }
+        .nm-fmt-inline { display: inline-flex; align-items: center; gap: 6px; }
+        .nm-fmt-colour { width: 30px; height: 24px; padding: 0; border: 1px solid var(--border, #e5e7eb); border-radius: 4px; background: none; cursor: pointer; }
+        .nm-fmt-select, .nm-fmt-n, .nm-fmt-num input {
+            font: inherit;
+            font-size: var(--font-size-sm, 12px);
+            padding: 3px 5px;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 4px;
+            background: var(--surface, #fff);
+            color: var(--text, #111827);
+            box-sizing: border-box;
+        }
+        .nm-fmt-select { max-width: 150px; }
+        .nm-fmt-n { width: 58px; }
+        .nm-fmt-range { width: 110px; }
+        .nm-fmt-val { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); min-width: 34px; text-align: right; }
+        .nm-fmt-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+        .nm-fmt-num { display: flex; flex-direction: column; gap: 2px; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); }
+        .nm-fmt-num input { width: 100%; }
+        .nm-fmt-num-inline { flex-direction: row; align-items: center; gap: 4px; }
+        .nm-fmt-num-inline input { width: 58px; }
+        .nm-fmt-btns { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+        .nm-fmt-danger { color: #b91c1c; border-color: #fecaca; }
+        .nm-fmt-presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px; }
+        .nm-fmt-preset { height: 26px; border: 1.5px solid; border-radius: 4px; font-weight: 600; font-size: var(--font-size-xs, 11px); cursor: pointer; padding: 0; }
+        .nm-fmt-toggles button { min-width: 28px; }
+        .nm-fmt-bold { font-weight: 700; }
+        .nm-fmt-italic { font-style: italic; }
+        .nm-fmt-underline { text-decoration: underline; }
+
         .nm-connector-line.dashed {
             stroke-dasharray: 6 4;
         }
@@ -1581,12 +1721,17 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
 
         <div class="nm-canvas-wrap">
             <aside class="nm-palette">
-                <div class="nm-palette-header">
-                    <span><?php echo htmlspecialchars(t('network-mapper.editor.palette_title')); ?></span>
-                    <span class="nm-palette-hint"><?php echo htmlspecialchars(t('network-mapper.editor.palette_hint')); ?></span>
+                <?php /* GH #433: two tabs - the CMDB classes, and the shape library */ ?>
+                <div class="nm-palette-header nm-palette-tabs" role="tablist">
+                    <button type="button" class="nm-palette-tab active" data-tab="cmdb" role="tab" onclick="NM.setPaletteTab('cmdb')" title="<?php echo htmlspecialchars(t('network-mapper.editor.palette_hint')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.palette_title')); ?></button>
+                    <button type="button" class="nm-palette-tab" data-tab="shapes" role="tab" onclick="NM.setPaletteTab('shapes')"><?php echo htmlspecialchars(t('network-mapper.shapes.tab')); ?></button>
                 </div>
                 <div class="nm-palette-body" id="paletteBody">
                     <div class="nm-palette-empty"><?php echo htmlspecialchars(t('network-mapper.editor.palette_loading')); ?></div>
+                </div>
+                <div class="nm-shape-palette" id="shapePalette" style="display:none;">
+                    <input type="search" class="nm-shape-search" placeholder="<?php echo htmlspecialchars(t('network-mapper.shapes.search_ph')); ?>" oninput="NM.onShapeSearchInput(this.value)">
+                    <div class="nm-shape-palette-body" id="shapePaletteBody"></div>
                 </div>
             </aside>
             <div class="nm-canvas" id="canvas">
@@ -1656,6 +1801,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                         </div>
                         <div class="nm-detail-hint" id="ndBoxHint"><?php echo htmlspecialchars(t('network-mapper.detail.box_hint')); ?></div>
                     </div>
+                    <div class="nm-detail-section" id="ndStyle"></div>   <?php /* GH #433: filled by renderNodeStyleEditor() */ ?>
                     <div class="nm-detail-section" id="ndPropertiesSection" style="display:none;">
                         <div class="nm-detail-section-header"><?php echo htmlspecialchars(t('network-mapper.detail.properties')); ?> <span class="nm-detail-section-sub"><?php echo htmlspecialchars(t('network-mapper.detail.properties_from')); ?></span></div>
                         <div id="ndProperties"></div>
@@ -1670,6 +1816,20 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                     <button class="nm-btn" id="ndAddRelatedBtn" onclick="NM.openRelatedModal()"><?php echo htmlspecialchars(t('network-mapper.detail.add_related')); ?></button>
                     <?php endif; ?>
                 </div>
+            </aside>
+            <?php /* GH #433: the Format panel for a selected shape (same frame as the node panel) */ ?>
+            <aside class="nm-detail-panel nm-format-panel" id="shapeFormatPanel" aria-hidden="true">
+                <div class="nm-detail-header">
+                    <div class="nm-detail-title-area">
+                        <div class="nm-detail-icon" id="spIcon"></div>
+                        <div class="nm-detail-title-text">
+                            <h3 id="spName"><?php echo htmlspecialchars(t('network-mapper.shapes.panel_title')); ?></h3>
+                            <div class="nm-detail-subtitle"><?php echo htmlspecialchars(t('network-mapper.shapes.panel_sub')); ?></div>
+                        </div>
+                    </div>
+                    <button class="nm-detail-close" onclick="NM.closeShapePanel()" title="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
+                </div>
+                <div class="nm-detail-body" id="spBody"></div>
             </aside>
         </div>
     </div>
@@ -1830,7 +1990,8 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
-    <script src="../assets/js/network-mapper.js?v=11"></script>
+    <script src="../assets/js/network-mapper-shapes.js?v=1"></script>   <!-- GH #433: shape library -->
+    <script src="../assets/js/network-mapper.js?v=12"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

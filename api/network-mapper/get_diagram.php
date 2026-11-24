@@ -69,7 +69,7 @@ try {
     // Closing it properly means giving diagrams their own company — that's the
     // first thing Network Mapper's own multi-tenancy slice should do.
     $nstmt = $conn->prepare(
-        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h,
+        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h, n.style,
                 o.name, o.is_planned,
                 c.id AS class_id, c.name AS class_name, i.icon_key AS class_icon
            FROM network_diagram_nodes n
@@ -89,6 +89,7 @@ try {
         $n['y'] = (int)$n['y'];
         $n['w'] = $n['w'] !== null ? (int)$n['w'] : null;
         $n['h'] = $n['h'] !== null ? (int)$n['h'] : null;
+        $n['style'] = $n['style'] !== null ? (json_decode($n['style'], true) ?: null) : null;   // GH #433
         $n['is_planned'] = (int)$n['is_planned'] === 1;
     }
 
@@ -107,7 +108,27 @@ try {
         $c['cmdb_relationship_id'] = $c['cmdb_relationship_id'] !== null ? (int)$c['cmdb_relationship_id'] : null;
     }
 
-    echo json_encode(['success' => true, 'diagram' => $d, 'nodes' => $nodes, 'connectors' => $conns]);
+    // GH #433: freestanding shapes. An install that has not run DB Verify since the
+    // table arrived simply has none - the diagram still opens.
+    $shapes = [];
+    try {
+        $sstmt = $conn->prepare(
+            "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z
+               FROM network_diagram_shapes
+              WHERE diagram_id = ?
+           ORDER BY z, id"
+        );
+        $sstmt->execute([$id]);
+        foreach ($sstmt->fetchAll(PDO::FETCH_ASSOC) as $s) {
+            foreach (['id', 'x', 'y', 'w', 'h', 'rotation', 'z'] as $k) $s[$k] = (int)$s[$k];
+            $s['style'] = $s['style'] !== null ? (json_decode($s['style'], true) ?: null) : null;
+            $shapes[] = $s;
+        }
+    } catch (PDOException $e) {
+        $shapes = [];
+    }
+
+    echo json_encode(['success' => true, 'diagram' => $d, 'nodes' => $nodes, 'connectors' => $conns, 'shapes' => $shapes]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

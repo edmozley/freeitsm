@@ -540,6 +540,7 @@ return [
     ['network_diagram_connectors', 'ix_net_conn_diag', 'key', '(`diagram_id`)'],
     ['network_diagram_connectors', 'ix_net_conn_from', 'key', '(`from_node_id`)'],
     ['network_diagram_connectors', 'ix_net_conn_to', 'key', '(`to_node_id`)'],
+    ['network_diagram_shapes', 'ix_net_shape_diag', 'key', '(`diagram_id`)'],
     ['search_documents', 'uq_search_docs_source', 'unique', '(`source_type`,`source_id`)'],
     ['search_documents', 'idx_search_docs_ticket', 'key', '(`ticket_id`)'],
     ['search_documents', 'idx_search_docs_tenant', 'key', '(`tenant_id`)'],

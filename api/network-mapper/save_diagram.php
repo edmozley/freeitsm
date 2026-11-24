@@ -52,6 +52,7 @@ try {
                 'colour_override' => $n['colour_override'] ?? null,   // GH #433
                 'w'             => $n['w'] ?? null,
                 'h'             => $n['h'] ?? null,
+                'style'         => $n['style'] ?? null,               // GH #433
                 'ref'           => (string)$ref,
             ];
         }
@@ -69,6 +70,11 @@ try {
                 'line_style'           => $c['line_style'] ?? null,
             ];
         }
+    }
+
+    // GH #433: freestanding shapes, passed through as they are (the service validates).
+    if (array_key_exists('shapes', $data) && is_array($data['shapes'])) {
+        $in['shapes'] = $data['shapes'];
     }
 
     $savedId = NetworkMapperService::saveDiagram($conn, ActorContext::fromSession($conn), $id, $in);

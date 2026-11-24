@@ -8809,6 +8809,10 @@ CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
     `colour_override` VARCHAR(20) NULL,
     `w`              INT NULL,
     `h`              INT NULL,
+    -- Shapes: the node's own look as JSON (fill, gradient, border, shadow, opacity,
+    -- rounded corners, font) - only the keys that differ from the normal look.
+    -- NetworkMapperService::sanitiseStyle() whitelists every key. NULL = normal.
+    `style`          TEXT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_node_diag` (`diagram_id`),
@@ -8834,6 +8838,31 @@ CREATE TABLE IF NOT EXISTS `network_diagram_connectors` (
     CONSTRAINT `fk_net_conn_from` FOREIGN KEY (`from_node_id`) REFERENCES `network_diagram_nodes` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_net_conn_to`   FOREIGN KEY (`to_node_id`)   REFERENCES `network_diagram_nodes` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_net_conn_rel`  FOREIGN KEY (`cmdb_relationship_id`) REFERENCES `cmdb_object_relationships` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Shapes: freestanding shapes on a diagram - rectangles, flowchart symbols, arrows,
+-- zones, text and notes - that are NOT bound to a CMDB object. shape_type is a key of
+-- the shape library in assets/js/network-mapper-shapes.js (an unknown key draws as a
+-- rectangle, so the library can grow without a schema change). style is the same JSON
+-- as network_diagram_nodes.style. layer: 'back' = behind connectors and nodes,
+-- 'front' = in front of them; z orders shapes within a layer.
+CREATE TABLE IF NOT EXISTS `network_diagram_shapes` (
+    `id`             INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`     INT NOT NULL,
+    `shape_type`     VARCHAR(40) NOT NULL,
+    `x`              INT NOT NULL DEFAULT 0,
+    `y`              INT NOT NULL DEFAULT 0,
+    `w`              INT NOT NULL DEFAULT 120,
+    `h`              INT NOT NULL DEFAULT 80,
+    `rotation`       INT NOT NULL DEFAULT 0,
+    `text`           TEXT NULL,
+    `style`          TEXT NULL,
+    `layer`          VARCHAR(10) NOT NULL DEFAULT 'back',
+    `z`              INT NOT NULL DEFAULT 0,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
+    PRIMARY KEY (`id`),
+    KEY `ix_net_shape_diag` (`diagram_id`),
+    CONSTRAINT `fk_net_shape_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------

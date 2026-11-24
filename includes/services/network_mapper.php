@@ -80,6 +80,9 @@ class NetworkMapperService
             if ((isset($in['nodes']) && is_array($in['nodes'])) || (isset($in['connectors']) && is_array($in['connectors']))) {
                 self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
             }
+            if (isset($in['shapes']) && is_array($in['shapes'])) {
+                self::replaceShapes($conn, $diagramId, $in['shapes']);   // GH #433
+            }
             $conn->commit();
         } catch (Exception $e) {
             if ($conn->inTransaction()) $conn->rollBack();
@@ -140,6 +143,11 @@ class NetworkMapperService
             if ((isset($in['nodes']) && is_array($in['nodes'])) || (isset($in['connectors']) && is_array($in['connectors']))) {
                 self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
             }
+            // GH #433: shapes are replaced only when the caller sends them, so an API
+            // caller that only knows about nodes and connectors never wipes them.
+            if (isset($in['shapes']) && is_array($in['shapes'])) {
+                self::replaceShapes($conn, $diagramId, $in['shapes']);
+            }
             $conn->commit();
         } catch (Exception $e) {
             if ($conn->inTransaction()) $conn->rollBack();
@@ -168,6 +176,7 @@ class NetworkMapperService
         try {
             $conn->prepare("DELETE FROM network_diagram_connectors WHERE diagram_id IN ($ph)")->execute($ids);
             $conn->prepare("DELETE FROM network_diagram_nodes WHERE diagram_id IN ($ph)")->execute($ids);
+            $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id IN ($ph)")->execute($ids);   // GH #433
             foreach (array_reverse($ids) as $id) {
                 $conn->prepare("DELETE FROM network_diagrams WHERE id = ?")->execute([$id]);
             }
@@ -221,12 +230,12 @@ class NetworkMapperService
             $nodes = $conn->prepare("SELECT * FROM network_diagram_nodes WHERE diagram_id = ? ORDER BY id");
             $nodes->execute([$parentId]);
             $insertNode = $conn->prepare(
-                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             foreach ($nodes->fetchAll(PDO::FETCH_ASSOC) as $n) {
-                // GH #433: colour and box size travel into the new version too.
+                // GH #433: colour, box size and style travel into the new version too.
                 $insertNode->execute([$newId, (int)$n['cmdb_object_id'], (int)$n['x'], (int)$n['y'], $n['size'], $n['icon_override'],
-                                      $n['colour_override'] ?? null, $n['w'] ?? null, $n['h'] ?? null]);
+                                      $n['colour_override'] ?? null, $n['w'] ?? null, $n['h'] ?? null, $n['style'] ?? null]);
                 $nodeMap[(int)$n['id']] = (int)$conn->lastInsertId();
             }
             $conns = $conn->prepare("SELECT * FROM network_diagram_connectors WHERE diagram_id = ? ORDER BY id");
@@ -241,6 +250,11 @@ class NetworkMapperService
                     $k['label'], $k['line_style'],
                 ]);
             }
+            // GH #433: and the freestanding shapes.
+            $conn->prepare(
+                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z)
+                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
+            )->execute([$newId, $parentId]);
             $conn->commit();
         } catch (Exception $e) {
             if ($conn->inTransaction()) $conn->rollBack();
@@ -374,13 +388,14 @@ class NetworkMapperService
         $refMap = [];
         $objectMap = [];
         $insertNode = $conn->prepare(
-            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         foreach (array_values($nodesIn) as $i => $n) {
             if (!is_array($n)) {
                 throw new ServiceError('validation', 'invalid_field', "nodes[{$i}] must be an object.");
             }
             [$objectId, $x, $y, $size, $icon, $ref, $colour, $w, $h] = self::validateNodeInput($conn, $ctx, $n, $i);
+            $style = self::sanitiseStyle($n['style'] ?? null);   // GH #433
             if ($x === null || $y === null) {
                 if ($place === null) {
                     $place = self::autoPlacer($conn, $diagramId);
@@ -389,7 +404,7 @@ class NetworkMapperService
                 $x = $x ?? $ax;
                 $y = $y ?? $ay;
             }
-            $insertNode->execute([$diagramId, $objectId, $x, $y, $size, $icon, $colour, $w, $h]);
+            $insertNode->execute([$diagramId, $objectId, $x, $y, $size, $icon, $colour, $w, $h, $style]);
             $newId = (int)$conn->lastInsertId();
             if ($ref !== null) {
                 $refMap[$ref] = $newId;
@@ -437,6 +452,97 @@ class NetworkMapperService
                 self::validateLineStyle(trim((string)($k['line_style'] ?? 'solid')) ?: 'solid'),
             ]);
         }
+    }
+
+    /**
+     * GH #433: replaces a diagram's freestanding shapes. Each shape: shape_type (a key of the
+     * shape library - lower-case letters, digits and _; an unknown key draws as a rectangle),
+     * x, y, w, h, rotation, text, style (see sanitiseStyle), layer back|front, z.
+     *
+     * @param int $diagramId  the diagram whose shapes are replaced
+     * @param array $shapesIn  the new list (untrusted)
+     */
+    private static function replaceShapes(PDO $conn, int $diagramId, array $shapesIn): void
+    {
+        $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id = ?")->execute([$diagramId]);
+        $insert = $conn->prepare(
+            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        $int = function ($v, int $min, int $max, int $default) {
+            if ($v === null || $v === '' || !is_numeric($v)) return $default;
+            return max($min, min($max, (int)round((float)$v)));
+        };
+        if (count($shapesIn) > 2000) {
+            throw new ServiceError('validation', 'invalid_field', 'A diagram can have at most 2000 shapes.');
+        }
+        foreach (array_values($shapesIn) as $i => $s) {
+            if (!is_array($s)) {
+                throw new ServiceError('validation', 'invalid_field', "shapes[{$i}] must be an object.");
+            }
+            $type = strtolower(trim((string)($s['shape_type'] ?? '')));
+            if (!preg_match('/^[a-z0-9_]{1,40}$/', $type)) {
+                throw new ServiceError('validation', 'invalid_field', "shapes[{$i}]: 'shape_type' is missing or not a shape key.");
+            }
+            $text = isset($s['text']) ? (string)$s['text'] : '';
+            $text = mb_substr(str_replace("\r\n", "\n", $text), 0, 4000);
+            $layer = (($s['layer'] ?? 'back') === 'front') ? 'front' : 'back';
+            $insert->execute([
+                $diagramId, $type,
+                $int($s['x'] ?? 0, -10000, 20000, 0),
+                $int($s['y'] ?? 0, -10000, 20000, 0),
+                $int($s['w'] ?? 120, 10, 5000, 120),
+                $int($s['h'] ?? 80, 10, 5000, 80),
+                $int($s['rotation'] ?? 0, -360, 360, 0),
+                trim($text) !== '' ? $text : null,
+                self::sanitiseStyle($s['style'] ?? null),
+                $layer,
+                $int($s['z'] ?? 0, -100000, 100000, 0),
+            ]);
+        }
+    }
+
+    /**
+     * GH #433: the style JSON a node or shape may carry, reduced to known keys with sane values.
+     * Anything unknown or out of range is dropped rather than refused, so an old or hand-written
+     * style never blocks a save. Returns the JSON string, or null when nothing is left.
+     *
+     * @param mixed $in  an array, a JSON string, or null
+     */
+    public static function sanitiseStyle($in): ?string
+    {
+        if (is_string($in)) {
+            $in = json_decode($in, true);
+        }
+        if (!is_array($in)) return null;
+        $enums = [
+            'fill'        => ['none', 'solid', 'gradient'],
+            'gradientDir' => ['down', 'right', 'diag', 'radial'],
+            'stroke'      => ['none', 'solid', 'dashed', 'dotted'],
+            'font'        => ['sans', 'serif', 'mono', 'arial', 'verdana', 'tahoma', 'trebuchet', 'georgia', 'times', 'courier', 'comic'],
+            'align'       => ['left', 'center', 'right'],
+            'valign'      => ['top', 'middle', 'bottom'],
+        ];
+        $colours = ['fillColour', 'fillColour2', 'strokeColour', 'fontColour'];
+        $numbers = ['strokeWidth' => [0, 20], 'opacity' => [0, 100], 'rounded' => [0, 500], 'fontSize' => [6, 96]];
+        $bools = ['shadow', 'bold', 'italic', 'underline'];
+        $out = [];
+        foreach ($enums as $k => $allowed) {
+            if (isset($in[$k]) && in_array($in[$k], $allowed, true)) $out[$k] = $in[$k];
+        }
+        foreach ($colours as $k) {
+            if (isset($in[$k]) && is_string($in[$k]) && preg_match('/^#[0-9a-fA-F]{6}$/', $in[$k])) $out[$k] = strtolower($in[$k]);
+        }
+        foreach ($numbers as $k => [$min, $max]) {
+            if (isset($in[$k]) && is_numeric($in[$k])) {
+                $v = (float)$in[$k];
+                if ($v >= $min && $v <= $max) $out[$k] = $k === 'strokeWidth' ? round($v, 1) : (int)round($v);
+            }
+        }
+        foreach ($bools as $k) {
+            if (isset($in[$k]) && is_bool($in[$k])) $out[$k] = $in[$k];
+        }
+        return $out ? json_encode($out) : null;
     }
 
     /**

@@ -86,6 +86,7 @@ try {
     foreach (array_reverse($made) as $id) {
         $conn->prepare("DELETE FROM network_diagram_connectors WHERE diagram_id = ?")->execute([$id]);
         $conn->prepare("DELETE FROM network_diagram_nodes WHERE diagram_id = ?")->execute([$id]);
+        $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id = ?")->execute([$id]);
         $conn->prepare("DELETE FROM network_diagrams WHERE id = ?")->execute([$id]);
     }
     $left = $made ? (int)$conn->query("SELECT COUNT(*) FROM network_diagrams WHERE id IN (" . implode(',', $made) . ")")->fetchColumn() : 0;

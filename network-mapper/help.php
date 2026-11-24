@@ -72,26 +72,29 @@ $translationNamespaces = ['common', 'network-mapper'];
             <a href="#connectors" class="help-nav-link" data-section="connectors">
                 <span class="help-nav-num">4</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_connectors')); ?>
             </a>
+            <a href="#shapes" class="help-nav-link" data-section="shapes">
+                <span class="help-nav-num">5</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_shapes')); ?>
+            </a>
             <a href="#related" class="help-nav-link" data-section="related">
-                <span class="help-nav-num">5</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_related')); ?>
+                <span class="help-nav-num">6</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_related')); ?>
             </a>
             <a href="#planned" class="help-nav-link" data-section="planned">
-                <span class="help-nav-num">6</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_planned')); ?>
+                <span class="help-nav-num">7</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_planned')); ?>
             </a>
             <a href="#paper" class="help-nav-link" data-section="paper">
-                <span class="help-nav-num">7</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_paper')); ?>
+                <span class="help-nav-num">8</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_paper')); ?>
             </a>
             <a href="#branding" class="help-nav-link" data-section="branding">
-                <span class="help-nav-num">8</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_branding')); ?>
+                <span class="help-nav-num">9</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_branding')); ?>
             </a>
             <a href="#versioning" class="help-nav-link" data-section="versioning">
-                <span class="help-nav-num">9</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_versioning')); ?>
+                <span class="help-nav-num">10</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_versioning')); ?>
             </a>
             <a href="#saving" class="help-nav-link" data-section="saving">
-                <span class="help-nav-num">10</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_saving')); ?>
+                <span class="help-nav-num">11</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_saving')); ?>
             </a>
             <a href="#tips" class="help-nav-link" data-section="tips">
-                <span class="help-nav-num">11</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_tips')); ?>
+                <span class="help-nav-num">12</span> <?php echo htmlspecialchars(t('network-mapper.help.nav_tips')); ?>
             </a>
         </div>
 
@@ -212,10 +215,32 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note"><?php echo t('network-mapper.help.connectors_tip'); ?></p>
                 </div>
 
-                <!-- 5. Add related objects -->
-                <div class="help-section" id="related">
+                <!-- 5. Shapes and styling (GH #433) -->
+                <div class="help-section" id="shapes">
                     <div class="help-section-header">
                         <span class="help-section-num">5</span>
+                        <div>
+                            <h3><?php echo htmlspecialchars(t('network-mapper.help.shapes_title')); ?></h3>
+                            <p><?php echo htmlspecialchars(t('network-mapper.help.shapes_body')); ?></p>
+                        </div>
+                    </div>
+
+                    <div class="help-steps">
+                        <div class="help-step"><span class="help-step-num">1</span><div><?php echo t('network-mapper.help.shapes_step1'); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">2</span><div><?php echo t('network-mapper.help.shapes_step2'); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">3</span><div><?php echo t('network-mapper.help.shapes_step3'); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">4</span><div><?php echo t('network-mapper.help.shapes_step4'); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">5</span><div><?php echo t('network-mapper.help.shapes_step5'); ?></div></div>
+                    </div>
+
+                    <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_nodes'); ?></p>
+                    <p class="help-note"><?php echo htmlspecialchars(t('network-mapper.help.shapes_tip_lines')); ?></p>
+                </div>
+
+                <!-- 6. Add related objects -->
+                <div class="help-section" id="related">
+                    <div class="help-section-header">
+                        <span class="help-section-num">6</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('network-mapper.help.related_title')); ?></h3>
                             <p><?php echo t('network-mapper.help.related_body'); ?></p>
@@ -245,10 +270,10 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note"><?php echo t('network-mapper.help.related_tip2'); ?></p>
                 </div>
 
-                <!-- 6. Planned objects -->
+                <!-- 7. Planned objects -->
                 <div class="help-section" id="planned">
                     <div class="help-section-header">
-                        <span class="help-section-num">6</span>
+                        <span class="help-section-num">7</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('network-mapper.help.planned_title')); ?></h3>
                             <p><?php echo htmlspecialchars(t('network-mapper.help.planned_body_before')); ?><span class="help-pill info"><?php echo htmlspecialchars(t('network-mapper.help.planned_pill')); ?></span><?php echo htmlspecialchars(t('network-mapper.help.planned_body_after')); ?></p>
@@ -257,10 +282,10 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note"><?php echo t('network-mapper.help.planned_tip'); ?></p>
                 </div>
 
-                <!-- 7. Page size guide -->
+                <!-- 8. Page size guide -->
                 <div class="help-section" id="paper">
                     <div class="help-section-header">
-                        <span class="help-section-num">7</span>
+                        <span class="help-section-num">8</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('network-mapper.help.paper_title')); ?></h3>
                             <p><?php echo t('network-mapper.help.paper_body'); ?></p>
@@ -270,10 +295,10 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note"><?php echo t('network-mapper.help.paper_tip2'); ?></p>
                 </div>
 
-                <!-- 8. Header &amp; footer -->
+                <!-- 9. Header &amp; footer -->
                 <div class="help-section" id="branding">
                     <div class="help-section-header">
-                        <span class="help-section-num">8</span>
+                        <span class="help-section-num">9</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('network-mapper.help.branding_title')); ?></h3>
                             <p><?php echo htmlspecialchars(t('network-mapper.help.branding_body')); ?></p>
@@ -289,10 +314,10 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note"><?php echo t('network-mapper.help.branding_tip3'); ?></p>
                 </div>
 
-                <!-- 9. Versioning -->
+                <!-- 10. Versioning -->
                 <div class="help-section" id="versioning">
                     <div class="help-section-header">
-                        <span class="help-section-num">9</span>
+                        <span class="help-section-num">10</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('network-mapper.help.versioning_title')); ?></h3>
                             <p><?php echo htmlspecialchars(t('network-mapper.help.versioning_body_before')); ?><span class="help-pill ok"><?php echo htmlspecialchars(t('network-mapper.help.versioning_pill_current')); ?></span><?php echo htmlspecialchars(t('network-mapper.help.versioning_body_mid')); ?><span class="help-pill"><?php echo htmlspecialchars(t('network-mapper.help.versioning_pill_readonly')); ?></span><?php echo htmlspecialchars(t('network-mapper.help.versioning_body_after')); ?></p>
@@ -307,10 +332,10 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note warn"><?php echo t('network-mapper.help.versioning_warn'); ?></p>
                 </div>
 
-                <!-- 10. Saving -->
+                <!-- 11. Saving -->
                 <div class="help-section" id="saving">
                     <div class="help-section-header">
-                        <span class="help-section-num">10</span>
+                        <span class="help-section-num">11</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('network-mapper.help.saving_title')); ?></h3>
                             <p><?php echo t('network-mapper.help.saving_body', ['ctrl' => '<span class="help-kbd">Ctrl</span>', 's' => '<span class="help-kbd">S</span>']); ?></p>
@@ -320,10 +345,10 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note warn"><?php echo t('network-mapper.help.saving_warn'); ?></p>
                 </div>
 
-                <!-- 11. Quick tips -->
+                <!-- 12. Quick tips -->
                 <div class="help-section" id="tips">
                     <div class="help-section-header">
-                        <span class="help-section-num">11</span>
+                        <span class="help-section-num">12</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('network-mapper.help.tips_title')); ?></h3>
                         </div>

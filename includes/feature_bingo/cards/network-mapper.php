@@ -74,6 +74,18 @@ return [
         'check'    => ['rows', 'network_diagram_nodes', '(colour_override IS NOT NULL OR w IS NOT NULL OR h IS NOT NULL) AND is_demo = 0'],
     ],
     [
+        'id'       => 'network-mapper.shapes',
+        'module'   => 'network-mapper',
+        'tier'     => 'extra',
+        'category' => 'look',
+        'title'    => 'Shapes, zones and notes',
+        'what'     => 'Freestanding shapes beside the CMDB nodes - zones for a site or a VLAN, flowchart symbols, arrows, text and sticky notes - styled with fills, gradients, borders, shadows and fonts (GH #433).',
+        'why'      => 'A diagram that groups and explains, not just a set of boxes: draw the site boundary, label the DMZ, leave a note for the next person.',
+        'done'     => 'At least one diagram has a shape on it (demo data not counted).',
+        'link'     => 'network-mapper/',
+        'check'    => ['rows', 'network_diagram_shapes', 'is_demo = 0'],
+    ],
+    [
         'id'       => 'network-mapper.versions',
         'module'   => 'network-mapper',
         'tier'     => 'extra',
