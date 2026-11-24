@@ -283,6 +283,12 @@
             e.dataTransfer.dropEffect = 'copy';
         });
         elCanvas.addEventListener('drop', onCanvasDrop);
+        elCanvas.addEventListener('contextmenu', onCanvasContextMenu);   // GH #433: right-click menus
+        document.addEventListener('paste', onPaste);                     // GH #433: pictures from the clipboard
+        elCanvas.addEventListener('mousemove', e => { lastCanvasPoint = canvasModelCoords(e); });
+        elCanvas.addEventListener('mouseleave', () => { lastCanvasPoint = null; });
+        document.addEventListener('mousedown', e => { if (!(e.target.closest && e.target.closest('.nm-ctx-menu'))) closeCtxMenu(); }, true);
+        window.addEventListener('blur', closeCtxMenu);
 
         // Click on empty canvas / SVG-layer empty space clears selection
         elCanvas.addEventListener('mousedown', e => {
@@ -328,10 +334,20 @@
             if (document.querySelector('.nm-modal-overlay.active')) return;
             // GH #433: the multi-selection, grouping, copy / paste
             const mod = e.ctrlKey || e.metaKey;
+            if (e.key === 'Escape' && document.querySelector('.nm-ctx-menu')) { closeCtxMenu(); return; }
             if (e.key === 'Escape' && (multi.size || selectedShapeKey != null)) { clearSelection(); return; }
+            if (mod && (e.key === 'x' || e.key === 'X') && canEdit()) {   // cut
+                if (copySelection()) {
+                    e.preventDefault();
+                    if (multi.size) deleteSelection();
+                    else if (selectedShapeKey != null) deleteSelectedShape();
+                    else if (selectedNodeKey != null) deleteSelectedNode();
+                }
+                return;
+            }
             if (mod && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); selectAllOnPage(); return; }
             if (mod && (e.key === 'c' || e.key === 'C') && !(window.getSelection() && String(window.getSelection()))) { if (copySelection()) e.preventDefault(); return; }
-            if (mod && (e.key === 'v' || e.key === 'V')) { if (pasteClipboard()) e.preventDefault(); return; }
+            if (mod && (e.key === 'v' || e.key === 'V')) return;   // handled by the paste event: it may be a picture
             if (mod && (e.key === 'g' || e.key === 'G')) { e.preventDefault(); if (e.shiftKey) ungroupSelection(); else groupSelection(); return; }
             if (multi.size && canEdit() && e.key.indexOf('Arrow') === 0) {
                 e.preventDefault();
@@ -2308,7 +2324,8 @@
             const ic = iconsById[(extra || {}).icon_id];
             if (!ic) return;
             iconId = ic.id;
-            const k = 64 / Math.max(ic.w || 64, ic.h || 64);
+            const maxSide = (extra && extra.maxSide) || 64;   // a picture of your own may be bigger than an icon
+            const k = Math.min(1, maxSide / Math.max(ic.w || 64, ic.h || 64));
             w = Math.max(16, Math.round((ic.w || 64) * k));
             h = Math.max(16, Math.round((ic.h || 64) * k));
         }
@@ -2466,7 +2483,9 @@
     /** The Icon libraries part of the Shapes tab: a Libraries button, then each imported set. */
     function iconPaletteHtml(q) {
         let html = '<div class="nm-shape-cat nm-iconlib-head"><span>' + escapeHtml(t('network-mapper.iconlib.section')) + '</span>'
-            + '<button type="button" class="nm-detail-icon-btn" id="openIconLibs">' + escapeHtml(t('network-mapper.iconlib.button')) + '</button></div>';
+            + '<span class="nm-iconlib-btns">'
+            + (canEdit() ? '<button type="button" class="nm-detail-icon-btn" id="uploadImages" title="' + escapeAttr(t('network-mapper.iconlib.upload_title')) + '">' + escapeHtml(t('network-mapper.iconlib.upload')) + '</button>' : '')
+            + '<button type="button" class="nm-detail-icon-btn" id="openIconLibs">' + escapeHtml(t('network-mapper.iconlib.button')) + '</button></span></div>';
         if (!iconLibs.length) {
             return html + '<div class="nm-iconlib-empty">' + escapeHtml(t('network-mapper.iconlib.none_yet')) + '</div>';
         }
@@ -2475,14 +2494,17 @@
             const hits = q ? all.filter(i => (i.title || '').toLowerCase().indexOf(q) >= 0 || (i.tags || '').toLowerCase().indexOf(q) >= 0) : all;
             if (q && !hits.length) return;
             const open = q ? true : !!iconLibOpen[lib.id];
+            const mine = lib.slug === MY_IMAGES;
             html += '<div class="nm-iconlib-group' + (open ? ' open' : '') + '">'
                 + '<button type="button" class="nm-iconlib-toggle" data-lib="' + lib.id + '" title="' + escapeAttr((lib.licence ? t('network-mapper.iconlib.licence') + ': ' + lib.licence : '') + (lib.author ? ' - ' + lib.author : '')) + '">'
-                + '<span class="nm-iconlib-caret">' + (open ? '&#9662;' : '&#9656;') + '</span>' + escapeHtml(lib.title)
+                + '<span class="nm-iconlib-caret">' + (open ? '&#9662;' : '&#9656;') + '</span>' + escapeHtml(mine ? t('network-mapper.iconlib.my_images') : lib.title)
                 + '<span class="nm-iconlib-count">' + (q ? hits.length + ' / ' : '') + all.length + '</span></button>';
             if (open) {
                 html += '<div class="nm-shape-grid">' + hits.slice(0, 300).map(i =>
                     '<div class="nm-shape-tile nm-icon-tile" draggable="true" data-icon="' + i.id + '" title="' + escapeAttr((i.title || '') + ' - ' + t('network-mapper.shapes.tile_title')) + '">'
-                    + '<img src="' + iconUrl(i.id) + '" alt="" loading="lazy" draggable="false"></div>').join('') + '</div>';
+                    + '<img src="' + iconUrl(i.id) + '" alt="" loading="lazy" draggable="false">'
+                    + (mine && canEdit() ? '<button type="button" class="nm-icon-del" data-del="' + i.id + '" title="' + escapeAttr(t('network-mapper.iconlib.delete_image')) + '">&times;</button>' : '')
+                    + '</div>').join('') + '</div>';
                 if (hits.length > 300) html += '<div class="nm-iconlib-empty">' + escapeHtml(t('network-mapper.iconlib.more_hint', { count: hits.length - 300 })) + '</div>';
             }
             html += '</div>';
@@ -2494,6 +2516,19 @@
     function bindIconPalette(body) {
         const btn = body.querySelector('#openIconLibs');
         if (btn) btn.addEventListener('click', openLibraryBrowser);
+        const up = body.querySelector('#uploadImages');
+        if (up) up.addEventListener('click', () => {
+            const inp = document.createElement('input');
+            inp.type = 'file';
+            inp.accept = 'image/png,image/jpeg,image/gif,image/webp';
+            inp.multiple = true;
+            inp.addEventListener('change', () => uploadImages(Array.from(inp.files || [])));
+            inp.click();
+        });
+        body.querySelectorAll('.nm-icon-del').forEach(b => b.addEventListener('click', e => {
+            e.stopPropagation();
+            deleteMyImage(+b.dataset.del);
+        }));
         body.querySelectorAll('.nm-iconlib-toggle').forEach(b => b.addEventListener('click', () => {
             const id = b.dataset.lib;
             iconLibOpen[id] = !iconLibOpen[id];
@@ -2504,7 +2539,7 @@
                 e.dataTransfer.setData('text/plain', JSON.stringify({ kind: 'nm-shape', shape_type: 'icon', icon_id: +tile.dataset.icon }));
                 e.dataTransfer.effectAllowed = 'copy';
             });
-            tile.addEventListener('click', () => addShapeInView('icon', { icon_id: +tile.dataset.icon }));
+            tile.addEventListener('click', e => { if (!e.target.closest('.nm-icon-del')) addShapeInView('icon', { icon_id: +tile.dataset.icon }); });
         });
     }
 
@@ -2544,7 +2579,7 @@
         document.querySelectorAll('#libFilter button').forEach(b => b.classList.toggle('active', b.dataset.value === libFilter));
         let sets = (libCatalogue || []).slice();
         // Imported sets that the catalogue does not list (offline, renamed) still appear.
-        iconLibs.forEach(l => { if (!sets.some(s => s.slug === l.slug)) sets.push({ slug: l.slug, title: l.title, count: l.icon_count, group: '' }); });
+        iconLibs.forEach(l => { if (l.slug !== MY_IMAGES && !sets.some(s => s.slug === l.slug)) sets.push({ slug: l.slug, title: l.title, count: l.icon_count, group: '' }); });
         const q = libSearch.trim().toLowerCase();
         if (q) sets = sets.filter(s => s.title.toLowerCase().indexOf(q) >= 0 || s.slug.toLowerCase().indexOf(q) >= 0 || (s.group || '').toLowerCase().indexOf(q) >= 0);
         if (libFilter === 'vendor') sets = sets.filter(s => s.group);
@@ -2690,6 +2725,75 @@
         }
     }
     function onLibSearchInput(v) { libSearch = v || ''; renderLibraryList(); }
+
+    // ---- GH #433: My images - pictures uploaded from the computer or pasted with Ctrl+V ----
+    const MY_IMAGES = 'my-images';
+    let lastCanvasPoint = null;   // where the mouse last was on the canvas, for pasting a picture there
+
+    /** Uploads pictures to My images and, on the current version, puts each on the diagram. */
+    async function uploadImages(files, at) {
+        const ok = files.filter(f => /^image\/(png|jpeg|gif|webp)$/.test(f.type));
+        if (!ok.length) {
+            if (files.length && window.showToast) showToast(t('network-mapper.iconlib.not_image'), 'error');
+            return;
+        }
+        let placed = 0;
+        for (let i = 0; i < ok.length; i++) {
+            const fd = new FormData();
+            fd.append('action', 'upload');
+            fd.append('file', ok[i], ok[i].name || 'pasted.png');
+            try {
+                const r = await fetch(ICON_API, { method: 'POST', credentials: 'same-origin', body: fd });
+                const d = await r.json();
+                if (!d.success) throw new Error(d.error || 'upload failed');
+                const ic = d.icon;
+                iconsById[ic.id] = ic;
+                (iconsByLib[ic.library_id] = iconsByLib[ic.library_id] || []).push(ic);
+                if (!iconLibs.some(l => l.id === ic.library_id)) iconLibs.push({ id: ic.library_id, slug: MY_IMAGES, title: 'My images', status: 'ready', icon_count: 1 });
+                iconLibOpen[ic.library_id] = true;
+                if (canEdit()) {
+                    const p = at || viewCentre();
+                    addShapeAt('icon', p.x + i * 30, p.y + i * 30, { icon_id: ic.id, maxSide: 240 });
+                    placed++;
+                }
+            } catch (e) {
+                if (window.showToast) showToast(t('network-mapper.iconlib.error', { message: e.message }), 'error');
+            }
+        }
+        setPaletteTab('shapes');
+        renderShapePalette();
+        if (placed && window.showToast) showToast(t('network-mapper.iconlib.added', { count: placed }), 'success');
+    }
+    function viewCentre() {
+        return { x: (elCanvas.scrollLeft + elCanvas.clientWidth / 2) / zoom, y: (elCanvas.scrollTop + elCanvas.clientHeight / 2) / zoom };
+    }
+    async function deleteMyImage(id) {
+        if (!confirm(t('network-mapper.iconlib.delete_image_confirm'))) return;
+        try {
+            await libPost({ action: 'delete_image', id: id });
+            shapes.forEach(s => { if (s.icon_id === id) s.icon_id = null; });
+            await loadIconPalette();
+            renderShapes();
+        } catch (e) {
+            if (window.showToast) showToast(t('network-mapper.iconlib.error', { message: e.message }), 'error');
+        }
+    }
+    /**
+     * Ctrl+V: a picture on the clipboard (a screenshot, a copied image) goes into My images and
+     * onto the diagram where the mouse is; otherwise what was copied in the diagram is pasted.
+     */
+    function onPaste(e) {
+        const a = document.activeElement;
+        if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;
+        if (document.querySelector('.nm-modal-overlay.active')) return;
+        const files = Array.from((e.clipboardData && e.clipboardData.files) || []).filter(f => /^image\//.test(f.type));
+        if (files.length && canEdit()) {
+            e.preventDefault();
+            uploadImages(files, lastCanvasPoint);
+            return;
+        }
+        if (pasteClipboard()) e.preventDefault();
+    }
     function setLibFilter(v) { libFilter = v; renderLibraryList(); }
 
     // ---- the Format panel (shapes) ----
@@ -3624,21 +3728,29 @@
      * Pastes onto the current page and active layer, 20px along when it lands on the page it came
      * from. A CMDB object is on a page once, so one that is already here is left out.
      */
-    function pasteClipboard() {
+    function pasteClipboard(at) {
         if (!clipboard || !canEdit()) return false;
         const lk = activeLayerKey();
         const here = new Set(pageNodes().map(n => n.cmdb_object_id));
         const groupMap = {};
         const newGroup = g => g ? (groupMap[g] = groupMap[g] || ('g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6))) : null;
         const fromThisPage = clipboard.nodes.concat(clipboard.shapes).some(x => itemPage(x) === currentPage);
-        const off = fromThisPage ? 20 : 0;
+        let off = fromThisPage ? 20 : 0, offY = off;
+        if (at && at.x != null) {
+            // "Paste here": the copied items' top-left corner lands on the spot that was right-clicked.
+            const all = clipboard.nodes.concat(clipboard.shapes);
+            if (all.length) {
+                off = snapS(at.x - Math.min.apply(null, all.map(x => x.x)));
+                offY = snapS(at.y - Math.min.apply(null, all.map(x => x.y)));
+            }
+        }
         const refMap = new Map();
         const pasted = [];
         let skipped = 0;
         clipboard.nodes.forEach(src => {
             if (here.has(src.cmdb_object_id)) { skipped++; return; }
             const n = Object.assign(JSON.parse(JSON.stringify(src)), { id: null, tempId: nextTempId--, page_key: currentPage, layer_key: lk,
-                x: src.x + off, y: src.y + off, group_key: newGroup(src.group_key) });
+                x: Math.max(0, src.x + off), y: Math.max(0, src.y + offY), group_key: newGroup(src.group_key) });
             refMap.set(nodeRef(src), n.tempId);
             nodes.push(n);
             here.add(n.cmdb_object_id);
@@ -3648,15 +3760,15 @@
         const uidMap = new Map();
         clipboard.shapes.forEach((src, i) => {
             const s = Object.assign(JSON.parse(JSON.stringify(src)), { id: null, tempId: nextTempShapeId--, page_key: currentPage, layer_key: lk,
-                x: src.x + off, y: src.y + off, z: maxZ + 1 + i, group_key: newGroup(src.group_key), uid: newUid() });
+                x: src.x + off, y: src.y + offY, z: maxZ + 1 + i, group_key: newGroup(src.group_key), uid: newUid() });
             if (src.uid) uidMap.set(src.uid, s.uid);
             shapes.push(s);
             pasted.push({ kind: 's', it: s });
         });
         remapConnectors(clipboard.connectors, refMap, uidMap);
         // Paste again and it moves along again.
-        clipboard.nodes.forEach(n => { n.x += off; n.y += off; n.page_key = currentPage; });
-        clipboard.shapes.forEach(s => { s.x += off; s.y += off; s.page_key = currentPage; });
+        clipboard.nodes.forEach(n => { n.x += off; n.y += offY; n.page_key = currentPage; });
+        clipboard.shapes.forEach(s => { s.x += off; s.y += offY; s.page_key = currentPage; });
         renderNodes();
         renderShapes();
         setSelection(pasted);
@@ -3727,6 +3839,191 @@
                 renderNodes(); renderShapes(); applyMultiClasses(); markDirty(); renderMultiPanel();
             }
         });
+    }
+
+    // =========================================================
+    //  Right-click menus (GH #433)
+    //  One menu, built from what was right-clicked: a shape, a node, a
+    //  connector, the selection, or empty canvas. A read-only version only
+    //  offers what changes nothing.
+    // =========================================================
+    let styleClipboard = null;   // { style } from Copy style
+
+    function closeCtxMenu() { document.querySelectorAll('.nm-ctx-menu').forEach(m => m.remove()); }
+
+    /**
+     * Shows a menu at (x, y) in the window. items: {label, act(), disabled, sub: [...], hint} or 'sep'.
+     * A sub-menu opens to the side on hover (or on click, for touch).
+     */
+    function showCtxMenu(x, y, items, parentEl) {
+        if (!parentEl) closeCtxMenu();
+        const m = document.createElement('div');
+        m.className = 'nm-ctx-menu';
+        m.setAttribute('role', 'menu');
+        items.forEach(it => {
+            if (it === 'sep') { const hr = document.createElement('div'); hr.className = 'nm-ctx-sep'; m.appendChild(hr); return; }
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.setAttribute('role', 'menuitem');
+            b.className = 'nm-ctx-item' + (it.sub ? ' has-sub' : '');
+            b.disabled = !!it.disabled;
+            b.innerHTML = '<span>' + escapeHtml(it.label) + '</span>' + (it.hint ? '<span class="nm-ctx-hint">' + escapeHtml(it.hint) + '</span>' : '') + (it.sub ? '<span class="nm-ctx-arrow">&#9656;</span>' : '');
+            if (it.sub) {
+                const open = () => {
+                    document.querySelectorAll('.nm-ctx-menu.sub').forEach(s => s.remove());
+                    m.querySelectorAll('.nm-ctx-item.open').forEach(o => o.classList.remove('open'));
+                    b.classList.add('open');
+                    const r = b.getBoundingClientRect();
+                    const sm = showCtxMenu(r.right - 2, r.top - 4, it.sub, m);
+                    sm.classList.add('sub');
+                    sm.dataset.parent = String(items.indexOf(it));
+                };
+                b.addEventListener('mouseenter', () => { if (!b.disabled) open(); });
+                b.addEventListener('click', e => { e.stopPropagation(); if (!b.disabled) open(); });
+            } else {
+                if (!parentEl) b.addEventListener('mouseenter', () => {
+                    document.querySelectorAll('.nm-ctx-menu.sub').forEach(s => s.remove());
+                    m.querySelectorAll('.nm-ctx-item.open').forEach(o => o.classList.remove('open'));
+                });
+                b.addEventListener('click', () => { closeCtxMenu(); if (it.act) it.act(); });
+            }
+            m.appendChild(b);
+        });
+        document.body.appendChild(m);
+        // Keep it on screen.
+        const r = m.getBoundingClientRect();
+        let left = x, top = y;
+        if (left + r.width > window.innerWidth - 6) left = parentEl ? (parentEl.getBoundingClientRect().left - r.width + 2) : (window.innerWidth - r.width - 6);
+        if (top + r.height > window.innerHeight - 6) top = Math.max(6, window.innerHeight - r.height - 6);
+        m.style.left = left + 'px';
+        m.style.top = top + 'px';
+        return m;
+    }
+
+    /** The item (if any) a contextmenu / mouse event is over. */
+    function ctxTarget(e) {
+        const t = e.target;
+        const sEl = t.closest && t.closest('.nm-shape');
+        if (sEl) { const s = findShapeByKey(sEl.dataset.key); if (s) return { kind: 's', it: s }; }
+        const nEl = t.closest && t.closest('.nm-node');
+        if (nEl) { const n = findNodeByKey(nEl.dataset.key); if (n) return { kind: 'n', it: n }; }
+        const g = t.closest && t.closest('.nm-connector-group');
+        if (g) { const c = findConnectorByKey(g.dataset.connKey); if (c) return { kind: 'c', it: c }; }
+        return null;
+    }
+
+    function onCanvasContextMenu(e) {
+        if (isPresenting()) return;
+        e.preventDefault();
+        const ed = canEdit();
+        const tg = ctxTarget(e);
+        const at = canvasModelCoords(e);
+        const M = k => t('network-mapper.menu.' + k);
+        const layerSub = apply => pageLayers(currentPage).slice().reverse().map(l => ({ label: l.name, disabled: !ed || l.locked, act: () => apply(l.layer_key) }));
+        let items;
+
+        if (tg && tg.kind !== 'c') {
+            const key = tg.kind === 'n' ? mkN(tg.it) : mkS(tg.it);
+            if (!multi.has(key)) {
+                // Right-click selects what is under it - its whole group, as a left click would.
+                const g = groupOf(tg.kind, tg.it);
+                if (g.length > 1) setSelection(g); else setSelection([tg]);
+            }
+        } else if (tg && tg.kind === 'c') {
+            selectConnector(connectorKey(tg.it));
+        }
+
+        if (multi.size > 1) {
+            const sel = multiItems();
+            const grouped = sel.some(x => x.it.group_key);
+            items = [
+                { label: M('cut'), hint: 'Ctrl+X', disabled: !ed, act: () => { copySelection(); deleteSelection(); } },
+                { label: M('copy'), hint: 'Ctrl+C', act: copySelection },
+                { label: M('delete'), hint: 'Del', disabled: !ed, act: deleteSelection },
+                'sep',
+                { label: t('network-mapper.select.group'), hint: 'Ctrl+G', disabled: !ed, act: groupSelection },
+                { label: t('network-mapper.select.ungroup'), hint: 'Ctrl+Shift+G', disabled: !ed || !grouped, act: ungroupSelection },
+                { label: t('network-mapper.select.align'), disabled: !ed, sub: ['left', 'centre', 'right', 'top', 'middle', 'bottom'].map(a => ({ label: t('network-mapper.select.align_' + a), act: () => alignSelection(a) })) },
+                { label: t('network-mapper.select.distribute'), disabled: !ed || sel.length < 3, sub: [
+                    { label: t('network-mapper.select.dist_h'), act: () => distributeSelection('h') },
+                    { label: t('network-mapper.select.dist_v'), act: () => distributeSelection('v') }] },
+                { label: M('move_to_layer'), disabled: !ed, sub: layerSub(moveSelectionToLayer) },
+                'sep',
+                { label: M('paste_style'), disabled: !ed || !styleClipboard, act: () => pasteStyleTo(sel) }
+            ];
+        } else if (tg && tg.kind === 's') {
+            const s = tg.it;
+            items = [
+                { label: M('edit_text'), disabled: !ed, act: () => startShapeTextEdit(s) },
+                'sep',
+                { label: M('cut'), hint: 'Ctrl+X', disabled: !ed, act: () => { copySelection(); deleteSelectedShape(); } },
+                { label: M('copy'), hint: 'Ctrl+C', act: copySelection },
+                { label: M('paste'), hint: 'Ctrl+V', disabled: !ed || !clipboard, act: () => pasteClipboard(at) },
+                { label: t('network-mapper.shapes.duplicate'), disabled: !ed, act: duplicateSelectedShape },
+                { label: M('delete'), hint: 'Del', disabled: !ed, act: deleteSelectedShape },
+                'sep',
+                { label: M('bring_front'), disabled: !ed, act: () => arrangeShape('front') },
+                { label: M('send_back'), disabled: !ed, act: () => arrangeShape('back') },
+                { label: s.layer === 'front' ? t('network-mapper.shapes.layer_back') : t('network-mapper.shapes.layer_front'), disabled: !ed,
+                  act: () => arrangeShape(s.layer === 'front' ? 'layer_back' : 'layer_front') },
+                { label: M('move_to_layer'), disabled: !ed, sub: layerSub(lk => { s.layer_key = lk; markDirty(); renderShapes(); renderLayersPanel(); }) },
+                'sep',
+                { label: M('copy_style'), act: () => { styleClipboard = { style: window.nmShapeStyle(s.shape_type, s.style) }; } },
+                { label: M('paste_style'), disabled: !ed || !styleClipboard, act: () => pasteStyleTo([tg]) },
+                { label: M('reset_style'), disabled: !ed, act: () => { s.style = window.nmShapeStyle(s.shape_type, {}); rerenderShape(s); markDirty(); renderShapePanel(); } }
+            ];
+        } else if (tg && tg.kind === 'n') {
+            const n = tg.it;
+            items = [
+                { label: M('open_cmdb'), disabled: !window.NM_CMDB, act: () => window.open('../cmdb/object.php?id=' + n.cmdb_object_id, '_blank') },
+                { label: t('network-mapper.detail.add_related'), disabled: !ed || !window.NM_CMDB, act: openRelatedModal },
+                { label: M('change_icon'), disabled: !ed, act: openIconPicker },
+                'sep',
+                { label: M('cut'), hint: 'Ctrl+X', disabled: !ed, act: () => { copySelection(); deleteSelectedNode(); } },
+                { label: M('copy'), hint: 'Ctrl+C', act: copySelection },
+                { label: M('delete'), hint: 'Del', disabled: !ed, act: deleteSelectedNode },
+                'sep',
+                { label: M('move_to_layer'), disabled: !ed, sub: layerSub(lk => { n.layer_key = lk; markDirty(); renderNodes(); renderLayersPanel(); }) },
+                { label: M('copy_style'), act: () => { styleClipboard = { style: Object.assign({}, n.style || {}) }; } },
+                { label: M('paste_style'), disabled: !ed || !styleClipboard, act: () => pasteStyleTo([tg]) },
+                { label: M('reset_style'), disabled: !ed, act: () => { n.style = null; rerenderNode(n); renderConnectors(); markDirty(); renderNodeStyleEditor(n); } }
+            ];
+        } else if (tg && tg.kind === 'c') {
+            const c = tg.it;
+            const route = r => () => { c.style = Object.assign({}, c.style || {}, { routing: r }); renderConnectors(); markDirty(); renderConnectorPanel(); };
+            items = [
+                { label: M('edit_label'), disabled: !ed, act: () => promptConnectorLabel(c) },
+                { label: t('network-mapper.connector.swap'), disabled: !ed, act: () => {
+                    ['node_id', 'shape_uid'].forEach(k => { const x = c['from_' + k]; c['from_' + k] = c['to_' + k]; c['to_' + k] = x; });
+                    renderConnectors(); markDirty(); } },
+                { label: t('network-mapper.connector.routing'), disabled: !ed, sub: ['straight', 'elbow', 'curved'].map(r => ({ label: t('network-mapper.connector.' + r), act: route(r) })) },
+                'sep',
+                { label: M('delete'), hint: 'Del', disabled: !ed, act: () => { deleteSelectedConnector(); closeShapePanel(); } }
+            ];
+        } else {
+            clearSelection();
+            items = [
+                { label: M('paste_here'), hint: 'Ctrl+V', disabled: !ed || !clipboard, act: () => pasteClipboard(at) },
+                { label: M('select_all'), hint: 'Ctrl+A', act: selectAllOnPage },
+                'sep',
+                { label: M('fit'), act: () => zoomFit() },
+                { label: M('centre'), disabled: !ed, act: centreOnPage }
+            ];
+        }
+        showCtxMenu(e.clientX, e.clientY, items);
+    }
+
+    /** Applies the copied style to shapes and nodes (each keeps what does not apply to it). */
+    function pasteStyleTo(list) {
+        if (!styleClipboard || !canEdit()) return;
+        list.forEach(x => {
+            if (x.kind === 's') x.it.style = Object.assign({}, window.nmShapeStyle(x.it.shape_type, x.it.style), styleClipboard.style);
+            else if (x.kind === 'n') x.it.style = Object.assign({}, x.it.style || {}, styleClipboard.style);
+        });
+        renderShapes();
+        renderNodes();
+        applyMultiClasses();
+        markDirty();
     }
 
     // =========================================================

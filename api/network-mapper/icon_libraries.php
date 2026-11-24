@@ -10,6 +10,8 @@
  *   POST {action:'import_start', slug}            -> {id, total}
  *   POST {action:'import_batch', id, offset}      -> {next, total, imported, skipped, done}
  *   POST {action:'delete', id}
+ *   POST multipart: action=upload, file=<picture>   -> {icon}   (My images: PNG / JPEG / GIF / WebP, 4 MB)
+ *   POST {action:'delete_image', id}                 (one picture out of My images)
  *
  * Changes are POST only. Any analyst with Network Mapper access may import or remove a set -
  * an imported set is shared by the whole install.
@@ -30,7 +32,8 @@ requireModuleAccessJson('network-mapper');
 
 try {
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-    $data = $method === 'POST' ? (json_decode(file_get_contents('php://input'), true) ?: []) : $_GET;
+    $isUpload = $method === 'POST' && isset($_FILES['file']);
+    $data = $isUpload ? $_POST : ($method === 'POST' ? (json_decode(file_get_contents('php://input'), true) ?: []) : $_GET);
     $action = (string)($data['action'] ?? '');
 
     if ($method === 'GET' && $action === 'catalogue') {
@@ -57,7 +60,19 @@ try {
     }
     @set_time_limit(180);
     $ctx = ActorContext::fromSession($conn);
-    if ($action === 'import_start') {
+    if ($isUpload && $action === 'upload') {
+        // GH #433: an uploaded or pasted picture, into My images. Read from PHP's own temp file
+        // and stored in the database - nothing is written to a served folder.
+        $f = $_FILES['file'];
+        if (($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+            throw new ServiceError('validation', 'not_image', 'The picture did not arrive.');
+        }
+        $bytes = (string)file_get_contents($f['tmp_name']);
+        echo json_encode(['success' => true, 'icon' => NetworkIconService::addUpload($conn, $ctx, $bytes, (string)($f['name'] ?? 'picture'))]);
+    } elseif ($action === 'delete_image') {
+        NetworkIconService::deleteUpload($conn, (int)($data['id'] ?? 0));
+        echo json_encode(['success' => true]);
+    } elseif ($action === 'import_start') {
         echo json_encode(['success' => true] + NetworkIconService::importStart($conn, $ctx, (string)($data['slug'] ?? '')));
     } elseif ($action === 'import_batch') {
         echo json_encode(['success' => true] + NetworkIconService::importBatch($conn, (int)($data['id'] ?? 0), (int)($data['offset'] ?? 0)));

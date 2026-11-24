@@ -239,7 +239,9 @@ $translationNamespaces = ['common', 'network-mapper'];
 
                     <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_nodes'); ?></p>
                     <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_icons'); ?></p>
+                    <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_images'); ?></p>
                     <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_select'); ?></p>
+                    <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_menu'); ?></p>
                     <p class="help-note"><?php echo htmlspecialchars(t('network-mapper.help.shapes_tip_lines')); ?></p>
                 </div>
 

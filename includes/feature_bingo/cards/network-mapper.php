@@ -98,6 +98,18 @@ return [
         'check'    => ['rows', 'network_icon_libraries', "status = 'ready'"],
     ],
     [
+        'id'       => 'network-mapper.my_images',
+        'module'   => 'network-mapper',
+        'tier'     => 'extra',
+        'category' => 'look',
+        'title'    => 'Your own pictures on a diagram',
+        'what'     => 'Uploading a picture, or pasting a screenshot with Ctrl+V, into My images and placing it on a diagram (GH #433).',
+        'why'      => 'A photo of the rack, a floor plan or a supplier logo sits right next to the CMDB boxes it explains.',
+        'done'     => 'At least one picture is in My images.',
+        'link'     => 'network-mapper/',
+        'check'    => ['rows', 'network_icon_libraries', "slug = 'my-images' AND icon_count > 0"],
+    ],
+    [
         'id'       => 'network-mapper.pages',
         'module'   => 'network-mapper',
         'tier'     => 'extra',

@@ -433,6 +433,28 @@ return [
         'name_icon' => 'Icon',
     ],
 
+    // GH #433: right-click menus
+    'menu' => [
+        'cut'           => 'Cut',
+        'copy'          => 'Copy',
+        'paste'         => 'Paste',
+        'paste_here'    => 'Paste here',
+        'delete'        => 'Delete',
+        'edit_text'     => 'Edit text',
+        'edit_label'    => 'Edit label',
+        'bring_front'   => 'Bring to front',
+        'send_back'     => 'Send to back',
+        'move_to_layer' => 'Move to layer',
+        'copy_style'    => 'Copy style',
+        'paste_style'   => 'Paste style',
+        'reset_style'   => 'Reset style',
+        'select_all'    => 'Select all',
+        'fit'           => 'Zoom to fit',
+        'centre'        => 'Centre on the page',
+        'open_cmdb'     => 'Open in CMDB',
+        'change_icon'   => 'Change icon',
+    ],
+
     // GH #433: several items selected (the Selection panel)
     'select' => [
         'title'        => '{count} items selected',
@@ -524,6 +546,13 @@ return [
         'skipped'         => '{count} could not be copied and were left out.',
         'removed_toast'   => '{name} removed.',
         'licence_note'    => 'Icon sets come from icons.diagrams.net, the draw.io icon catalogue run by JGraph. Each set has its own licence and author, shown above - check them before you use the icons. Importing copies the icons into FreeITSM, so your diagrams never depend on that site.',
+        'upload' => 'Upload',
+        'upload_title' => 'Add pictures from your computer to My images',
+        'my_images' => 'My images',
+        'added' => '{count} picture(s) added to My images and placed on the diagram.',
+        'not_image' => 'Only PNG, JPEG, GIF or WebP pictures can be added.',
+        'delete_image' => 'Remove from My images',
+        'delete_image_confirm' => 'Remove this picture from My images? Diagrams that use it keep the shape, but the picture disappears.',
     ],
 
     // GH #433: the style editor - shapes, and the Style section of a node
@@ -750,7 +779,9 @@ return [
         'shapes_step5' => '<strong>Arrange:</strong> <strong>Behind nodes</strong> keeps a zone underneath everything; <strong>In front</strong> puts a shape over the nodes. <strong>Front</strong> and <strong>Back</strong> reorder shapes within the same layer, and <strong>Duplicate</strong> makes a copy.',
         'shapes_tip_nodes' => '<strong>Style a CMDB node too:</strong> select it and use the <strong>Style</strong> section in its side panel - the same fill, border, shadow, corner and font controls. <strong>Reset</strong> puts it back to the normal look.',
         'shapes_tip_icons' => '<strong>Icon libraries:</strong> on the <strong>Shapes</strong> tab, <strong>Libraries</strong> opens the draw.io icon catalogue - about a thousand sets, from IBM Carbon and Azure to Cisco and Kubernetes. Pick a set to see every icon in it with its licence and author, then <strong>Import</strong> copies the icons into FreeITSM. They appear on the Shapes tab to drag onto any diagram, with a label underneath when you double-click and type.',
+        'shapes_tip_images' => '<strong>Your own pictures:</strong> <strong>Upload</strong> on the Shapes tab adds PNG, JPEG, GIF or WebP pictures from your computer (up to 4 MB each) to <strong>My images</strong> - or copy a picture or a screenshot and press Ctrl+V on the diagram to drop it where the mouse is. Either way it stays in My images to use again.',
         'shapes_tip_select' => '<strong>Several at once:</strong> Shift+click, drag a box on empty space, or press Ctrl+A to select several items, then move, align, distribute, style, copy (Ctrl+C, then Ctrl+V on any page) or delete them together. <strong>Group</strong> (Ctrl+G) keeps them together; Alt+click picks one item out of a group.',
+        'shapes_tip_menu' => '<strong>Right-click</strong> anything - a shape, a node, a line, a selection or empty space - for what you can do with it: cut, copy and paste (Paste here drops it where you clicked), arrange, move to a layer, and <strong>Copy style</strong> / <strong>Paste style</strong> to give one thing the look of another.',
         'shapes_tip_lines' => 'Connectors join CMDB nodes; they do not attach to shapes yet.',
         'pages_title' => 'Pages and layers',
         'pages_body' => 'One diagram can have several pages - an overview, then a page per site or per rack - and each page has layers you can show, hide or lock, the way draw.io does.',

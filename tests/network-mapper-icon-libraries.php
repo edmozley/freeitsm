@@ -113,5 +113,48 @@ try {
     check('cleaned up', (int)$conn->query("SELECT COUNT(*) FROM network_icon_libraries WHERE slug = " . $conn->quote($slug))->fetchColumn() === 0);
 }
 
+echo "\nMy images (uploads and pastes)\n";
+$hadMine = (bool)$conn->query("SELECT COUNT(*) FROM network_icon_libraries WHERE slug = 'my-images'")->fetchColumn();
+$upIds = []; $d3 = 0;
+try {
+    $dot = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+    $ic = NetworkIconService::addUpload($conn, $ctx, $dot, 'ZZ server rack.png');
+    $upIds[] = $ic['id'];
+    check('a PNG goes into My images with its size and a readable title', $ic['w'] === 1 && $ic['h'] === 1 && $ic['title'] === 'ZZ server rack'
+        && $conn->query("SELECT slug FROM network_icon_libraries WHERE id = " . (int)$ic['library_id'])->fetchColumn() === 'my-images', json_encode($ic));
+    $refused = function (string $bytes) use ($conn, $ctx) {
+        try { NetworkIconService::addUpload($conn, $ctx, $bytes, 'x.png'); return false; } catch (ServiceError $e) { return true; }
+    };
+    check('an SVG is refused, even a clean one', $refused($plain));
+    check('HTML named .png is refused', $refused('<html><script>alert(1)</script></html>'));
+    check('a PNG header with no real picture behind it is refused', $refused($png));
+    check('over 4 MB is refused', $refused($dot . str_repeat("\0", 4 * 1024 * 1024)));
+
+    $d3 = NetworkMapperService::createDiagram($conn, $ctx, ['title' => 'ZZ my images ' . bin2hex(random_bytes(3))]);
+    NetworkMapperService::saveDiagram($conn, $ctx, $d3, ['shapes' => [
+        ['shape_type' => 'icon', 'x' => 10, 'y' => 10, 'w' => 200, 'h' => 200, 'icon_id' => $ic['id'], 'z' => 1],
+    ]]);
+    check('a diagram can use the picture', (int)$conn->query("SELECT icon_id FROM network_diagram_shapes WHERE diagram_id = $d3")->fetchColumn() === $ic['id']);
+    $other = (int)$conn->query("SELECT i.id FROM network_icon_library_icons i JOIN network_icon_libraries l ON l.id = i.library_id WHERE l.slug <> 'my-images' LIMIT 1")->fetchColumn();
+    if ($other) {
+        check('deleteUpload will not touch an icon from an imported set', (function () use ($conn, $other) {
+            try { NetworkIconService::deleteUpload($conn, $other); return false; } catch (ServiceError $e) { return true; }
+        })());
+    }
+    NetworkIconService::deleteUpload($conn, $ic['id']);
+    $upIds = [];
+    check('removing the picture keeps the shape, with no picture', $conn->query("SELECT icon_id FROM network_diagram_shapes WHERE diagram_id = $d3")->fetchColumn() === null);
+} catch (Throwable $e) {
+    check('no unexpected error (My images)', false, $e->getMessage());
+} finally {
+    foreach ($upIds as $id) $conn->prepare("DELETE FROM network_icon_library_icons WHERE id = ?")->execute([$id]);
+    if ($d3) {
+        $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id = ?")->execute([$d3]);
+        foreach (['network_diagram_layers', 'network_diagram_pages'] as $tbl) $conn->prepare("DELETE FROM $tbl WHERE diagram_id = ?")->execute([$d3]);
+        $conn->prepare("DELETE FROM network_diagrams WHERE id = ?")->execute([$d3]);
+    }
+    if (!$hadMine) $conn->exec("DELETE FROM network_icon_libraries WHERE slug = 'my-images' AND icon_count = 0");
+}
+
 echo "\n$pass passed, $fail failed\n";
 exit($fail ? 1 : 0);

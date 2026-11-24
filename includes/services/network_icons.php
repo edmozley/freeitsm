@@ -27,6 +27,9 @@ require_once __DIR__ . '/../ssl.php';
 class NetworkIconService
 {
     public const SITE = 'https://icons.diagrams.net';
+    /** The library uploaded and pasted pictures go into (not on icons.diagrams.net). */
+    public const MY_IMAGES = 'my-images';
+    private const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
     private const MAX_LIBRARY_BYTES = 30 * 1024 * 1024;
     private const MAX_ICON_BYTES = 512 * 1024;
     private const CATALOGUE_TTL = 86400;
@@ -299,6 +302,70 @@ class NetworkIconService
         $st->execute([$iconId]);
         $r = $st->fetch(PDO::FETCH_ASSOC);
         return $r ?: null;
+    }
+
+    // ------------------------------------------------------------------ My images (uploads and pastes)
+
+    /**
+     * Adds a picture someone uploaded or pasted to the install's "My images" library (made on
+     * first use) and returns the new icon {id, library_id, title, tags, w, h}. PNG, JPEG, GIF and
+     * WebP only, checked by their bytes - never SVG, which can carry script (the upload rules in
+     * includes/uploads.php leave it out for the same reason). Up to 4 MB.
+     *
+     * @param string $data  the file's bytes
+     * @param string $name  the original file name - only its readable part is kept, as the title
+     */
+    public static function addUpload(PDO $conn, ActorContext $ctx, string $data, string $name): array
+    {
+        if ($data === '' || strlen($data) > self::MAX_UPLOAD_BYTES) {
+            throw new ServiceError('validation', 'too_big', 'That picture is over 4 MB.');
+        }
+        $safe = self::safeImage($data);
+        $size = @getimagesizefromstring($data);
+        if (!$safe || $safe['mime'] === 'image/svg+xml' || !$size || $size[0] < 1 || $size[1] < 1) {
+            throw new ServiceError('validation', 'not_image', 'Only PNG, JPEG, GIF or WebP pictures can be added.');
+        }
+        $lib = $conn->prepare("SELECT id FROM network_icon_libraries WHERE slug = ?");
+        $lib->execute([self::MY_IMAGES]);
+        $libId = (int)$lib->fetchColumn();
+        if (!$libId) {
+            $conn->prepare("INSERT INTO network_icon_libraries (slug, title, licence, author, source, icon_total, icon_count, status, created_datetime)
+                            VALUES (?, 'My images', NULL, NULL, 'Uploaded in FreeITSM', 0, 0, 'ready', UTC_TIMESTAMP())")->execute([self::MY_IMAGES]);
+            $libId = (int)$conn->lastInsertId();
+        }
+        $title = trim(preg_replace('/[^\p{L}\p{N} _.-]+/u', ' ', pathinfo($name, PATHINFO_FILENAME)));
+        $title = mb_substr($title !== '' ? $title : 'Picture', 0, 255);
+        $sort = (int)$conn->query("SELECT COALESCE(MAX(sort), -1) + 1 FROM network_icon_library_icons WHERE library_id = " . $libId)->fetchColumn();
+        $ins = $conn->prepare("INSERT INTO network_icon_library_icons (library_id, sort, title, tags, mime, data, w, h) VALUES (?, ?, ?, '', ?, ?, ?, ?)");
+        $ins->bindValue(1, $libId, PDO::PARAM_INT);
+        $ins->bindValue(2, $sort, PDO::PARAM_INT);
+        $ins->bindValue(3, $title);
+        $ins->bindValue(4, $safe['mime']);
+        $ins->bindValue(5, $safe['data'], PDO::PARAM_LOB);
+        $ins->bindValue(6, (int)$size[0], PDO::PARAM_INT);
+        $ins->bindValue(7, (int)$size[1], PDO::PARAM_INT);
+        $ins->execute();
+        $id = (int)$conn->lastInsertId();
+        $conn->prepare("UPDATE network_icon_libraries SET icon_count = icon_count + 1, icon_total = icon_total + 1 WHERE id = ?")->execute([$libId]);
+        return ['id' => $id, 'library_id' => $libId, 'title' => $title, 'tags' => '', 'w' => (int)$size[0], 'h' => (int)$size[1]];
+    }
+
+    /**
+     * Removes one picture from "My images" (not from an imported set). Shapes that showed it keep
+     * their place and size but lose the picture (the foreign key sets icon_id to NULL).
+     *
+     * @param int $iconId  the picture
+     */
+    public static function deleteUpload(PDO $conn, int $iconId): void
+    {
+        $st = $conn->prepare("SELECT i.library_id FROM network_icon_library_icons i JOIN network_icon_libraries l ON l.id = i.library_id
+                               WHERE i.id = ? AND l.slug = ?");
+        $st->execute([$iconId, self::MY_IMAGES]);
+        $libId = (int)$st->fetchColumn();
+        if (!$libId) throw new ServiceError('not_found', 'not_found', 'Picture not found in My images.');
+        $conn->prepare("UPDATE network_diagram_shapes SET icon_id = NULL WHERE icon_id = ?")->execute([$iconId]);
+        $conn->prepare("DELETE FROM network_icon_library_icons WHERE id = ?")->execute([$iconId]);
+        $conn->prepare("UPDATE network_icon_libraries SET icon_count = GREATEST(icon_count - 1, 0) WHERE id = ?")->execute([$libId]);
     }
 
     // ------------------------------------------------------------------ safety

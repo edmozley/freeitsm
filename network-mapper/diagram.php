@@ -659,6 +659,22 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-layers-add:hover { color: var(--text, #111827); border-color: var(--nm-accent, #06b6d4); }
         .nm-layers-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 6px 12px 4px; line-height: 1.4; }
         .nm-layers-count { display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 5px; border-radius: 999px; background: var(--border, #e5e7eb); font-size: var(--font-size-xs, 11px); }
+        /* GH #433: right-click menus */
+        .nm-ctx-menu {
+            position: fixed; z-index: 1200; min-width: 210px; padding: 4px 0;
+            background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 6px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+        }
+        .nm-ctx-item {
+            display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: none; text-align: left;
+            padding: 6px 12px; font: inherit; font-size: var(--font-size-sm, 12px); color: var(--text, #111827); cursor: pointer;
+        }
+        .nm-ctx-item > span:first-child { flex: 1; }
+        .nm-ctx-item:hover:not(:disabled), .nm-ctx-item.open { background: var(--nm-accent-soft, #ecfeff); }
+        .nm-ctx-item:disabled { color: var(--text-faint, #9ca3af); cursor: default; }
+        .nm-ctx-hint { color: var(--text-faint, #9ca3af); font-size: var(--font-size-xs, 11px); }
+        .nm-ctx-arrow { color: var(--text-dim, #6b7280); }
+        .nm-ctx-sep { height: 1px; margin: 4px 0; background: var(--border-soft, #f3f4f6); }
         /* GH #433: connection dots on shapes - just outside each edge, clear of the resize squares */
         .nm-shape-port {
             position: absolute; width: 10px; height: 10px; border-radius: 50%;
@@ -689,6 +705,14 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-icon-tile img { max-width: 34px; max-height: 34px; pointer-events: none; }
         .nm-iconlib-head { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
         .nm-iconlib-head .nm-detail-icon-btn { text-transform: none; letter-spacing: 0; }
+        .nm-iconlib-btns { display: inline-flex; gap: 4px; }
+        .nm-icon-tile { position: relative; }
+        .nm-icon-del {
+            position: absolute; top: 1px; right: 1px; width: 16px; height: 16px; padding: 0; border: none; border-radius: 50%;
+            background: var(--surface, #fff); color: #b91c1c; font-size: var(--font-size-sm, 12px); line-height: 1; cursor: pointer;
+            box-shadow: 0 0 0 1px var(--border, #e5e7eb); display: none;
+        }
+        .nm-icon-tile:hover .nm-icon-del { display: block; }
         .nm-iconlib-empty { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); padding: 4px 0 8px; }
         .nm-iconlib-error { color: #b91c1c; }
         .nm-iconlib-group { margin-bottom: 4px; }
@@ -2186,7 +2210,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=16"></script>
+    <script src="../assets/js/network-mapper.js?v=18"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 
