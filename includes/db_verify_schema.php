@@ -5946,6 +5946,7 @@ return [
         'page_key'       => 'INT NOT NULL DEFAULT 0',   // GH #433: page (network_diagram_pages.page_key)
         'layer_key'      => 'INT NOT NULL DEFAULT 0',   // ...and layer on it
         'group_key'      => 'VARCHAR(40) NULL',         // GH #433: Group / Ungroup
+        'article_id'     => 'INT NULL',                 // GH #433: a linked Knowledge article
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
@@ -5982,7 +5983,17 @@ return [
         'layer_key'      => 'INT NOT NULL DEFAULT 0',
         'group_key'      => 'VARCHAR(40) NULL',
         'uid'            => 'VARCHAR(20) NULL',    // GH #433: what connectors point at
+        'article_id'     => 'INT NULL',            // GH #433: a linked Knowledge article
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+    ],
+
+    // GH #433: Knowledge articles related to a diagram (includes/services/network_articles.php)
+    'network_diagram_articles' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'            => 'INT NOT NULL',
+        'article_id'            => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     // GH #433: pages (tabs) and their layers - see database/freeitsm.sql

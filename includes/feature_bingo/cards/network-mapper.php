@@ -110,6 +110,18 @@ return [
         'check'    => ['rows', 'network_icon_libraries', "slug = 'my-images' AND icon_count > 0"],
     ],
     [
+        'id'       => 'network-mapper.articles',
+        'module'   => 'network-mapper',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Diagrams that link to Knowledge',
+        'what'     => 'Linking a box on a diagram, or the whole diagram, to a Knowledge article - the runbook for that switch, the how-to for that service (GH #433).',
+        'why'      => 'The picture and the instructions find each other: click the box to read how to fix it, and the article shows which diagrams it belongs to.',
+        'done'     => 'At least one diagram links to an article.',
+        'link'     => 'network-mapper/',
+        'check'    => ['rows', 'network_diagram_articles', 'article_id > 0'],
+    ],
+    [
         'id'       => 'network-mapper.pages',
         'module'   => 'network-mapper',
         'tier'     => 'extra',

@@ -542,6 +542,13 @@ Omdat die twee lyste teenoorgestelde dinge beteken, sal die {people} wat nou gel
         'press_run' => 'Druk “Soek na gapings”.',
         'none_to_read' => 'Geen geslote kaartjies in die laaste {days} dae om te lees nie.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Netwerkdiagramme',
+        'related' => 'Verwant aan die diagram',
+        'item'    => 'Gekoppel vanaf \'n item daarop',
+    ],
+
     'help' => [
         'guide' => 'Gids',
         'topics_title' => 'In diepte',

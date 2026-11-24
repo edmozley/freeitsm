@@ -713,6 +713,27 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             box-shadow: 0 0 0 1px var(--border, #e5e7eb); display: none;
         }
         .nm-icon-tile:hover .nm-icon-del { display: block; }
+        /* GH #433: Knowledge articles */
+        .nm-kb-mark {
+            position: absolute; top: -9px; right: -9px; z-index: 3; width: 20px; height: 20px; padding: 0;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer;
+            border: 1px solid var(--nm-accent, #06b6d4); background: var(--surface, #fff); color: var(--nm-accent, #06b6d4);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+        }
+        .nm-kb-mark:hover { background: var(--nm-accent, #06b6d4); color: #fff; }
+        .nm-kb-mark.is-hidden-article { border-color: var(--border, #e5e7eb); color: var(--text-faint, #9ca3af); }
+        .nm-canvas-inner.is-exporting .nm-kb-mark { display: none; }
+        .nm-editor.is-presenting .has-article { cursor: pointer; }
+        .nm-kb-field { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; }
+        .nm-kb-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .is-hidden-article { font-style: italic; color: var(--text-faint, #9ca3af); }
+        .nm-kb-none { color: var(--text-faint, #9ca3af); }
+        .nm-kb-row { display: flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: var(--font-size-md, 13px); }
+        .nm-kb-row > a, .nm-kb-row > span { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; color: var(--text, #1f2937); text-decoration: none; }
+        .nm-kb-row > a:hover { color: var(--nm-accent, #06b6d4); }
+        .nm-kb-row > a > span, .nm-kb-row > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nm-kb-empty { padding: 6px 12px; color: var(--text-faint, #9ca3af); font-size: var(--font-size-md, 13px); }
+        .nm-picker-name svg { flex-shrink: 0; color: var(--nm-accent, #06b6d4); }
         .nm-iconlib-empty { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); padding: 4px 0 8px; }
         .nm-iconlib-error { color: #b91c1c; }
         .nm-iconlib-group { margin-bottom: 4px; }
@@ -1861,6 +1882,12 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                     </button>
                     <div class="nm-versions-dropdown nm-layers-dropdown" id="layersDropdown" style="display:none;"></div>
                 </div>
+                <div class="nm-versions-wrap">   <?php /* GH #433: Knowledge articles related to the diagram */ ?>
+                    <button class="nm-btn secondary" id="articlesBtn" onclick="NM.toggleArticlesPanel(event)" title="<?php echo htmlspecialchars(t('network-mapper.kb.related_button_title')); ?>">
+                        <?php echo htmlspecialchars(t('network-mapper.kb.related_button')); ?><span class="nm-layers-count" id="articlesBtnCount">0</span>
+                    </button>
+                    <div class="nm-versions-dropdown nm-layers-dropdown" id="articlesDropdown" style="display:none;"></div>
+                </div>
                 <div class="nm-zoom-group" role="group" aria-label="Zoom">
                     <button class="nm-btn secondary nm-zoom-btn" id="zoomOutBtn" onclick="NM.zoomOut()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_out')); ?>">&minus;</button>
                     <button class="nm-btn secondary nm-zoom-label" id="zoomLabel" onclick="NM.zoomReset()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_reset_title')); ?>">100%</button>
@@ -1993,6 +2020,10 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                             <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.layers.field')); ?></span>
                             <span class="nm-detail-value" id="ndLayer"></span>
                         </div>
+                        <div class="nm-detail-field">   <?php /* GH #433: a linked Knowledge article */ ?>
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.kb.field')); ?></span>
+                            <span class="nm-detail-value nm-kb-field" id="ndArticle"></span>
+                        </div>
                     </div>
                     <div class="nm-detail-section" id="ndStyle"></div>   <?php /* GH #433: filled by renderNodeStyleEditor() */ ?>
                     <div class="nm-detail-section" id="ndPropertiesSection" style="display:none;">
@@ -2041,6 +2072,22 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             </div>
             <div class="nm-modal-actions">
                 <button class="nm-btn secondary" onclick="NM.closeObjectPicker()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GH #433: link a node or shape (or the diagram) to a Knowledge article -->
+    <div class="nm-modal-overlay" id="articlePickerModal">
+        <div class="nm-modal">
+            <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.kb.picker_title')); ?></div>
+            <div class="nm-modal-body">
+                <div class="nm-picker-search-wrap">
+                    <input type="text" class="nm-picker-search" id="articleSearch" placeholder="<?php echo htmlspecialchars(t('network-mapper.kb.search_ph')); ?>" oninput="NM.onArticleSearchInput(this.value)" onkeydown="if (event.key === 'Escape') NM.closeArticlePicker()">
+                </div>
+                <div class="nm-picker-results" id="articleResults"></div>
+            </div>
+            <div class="nm-modal-actions">
+                <button class="nm-btn secondary" onclick="NM.closeArticlePicker()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
             </div>
         </div>
     </div>
@@ -2210,7 +2257,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=18"></script>
+    <script src="../assets/js/network-mapper.js?v=19"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

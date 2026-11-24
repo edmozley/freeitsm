@@ -69,7 +69,7 @@ try {
     // Closing it properly means giving diagrams their own company — that's the
     // first thing Network Mapper's own multi-tenancy slice should do.
     $nstmt = $conn->prepare(
-        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h, n.style, n.page_key, n.layer_key, n.group_key,
+        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h, n.style, n.page_key, n.layer_key, n.group_key, n.article_id,
                 o.name, o.is_planned,
                 c.id AS class_id, c.name AS class_name, i.icon_key AS class_icon
            FROM network_diagram_nodes n
@@ -93,6 +93,7 @@ try {
         $n['page_key'] = (int)$n['page_key'];
         $n['layer_key'] = (int)$n['layer_key'];
         $n['is_planned'] = (int)$n['is_planned'] === 1;
+        $n['article_id'] = $n['article_id'] !== null ? (int)$n['article_id'] : null;   // GH #433
     }
 
     $cstmt = $conn->prepare(
@@ -121,7 +122,7 @@ try {
     try {
         try {
             $sstmt = $conn->prepare(
-                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid, article_id
                    FROM network_diagram_shapes
                   WHERE diagram_id = ?
                ORDER BY z, id"
@@ -130,7 +131,7 @@ try {
         } catch (PDOException $e) {
             // icon_id arrived after the shapes table - an install between the two still opens.
             $sstmt = $conn->prepare(
-                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id, 0 AS page_key, 0 AS layer_key, NULL AS group_key, NULL AS uid
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id, 0 AS page_key, 0 AS layer_key, NULL AS group_key, NULL AS uid, NULL AS article_id
                    FROM network_diagram_shapes
                   WHERE diagram_id = ?
                ORDER BY z, id"
@@ -141,6 +142,7 @@ try {
             foreach (['id', 'x', 'y', 'w', 'h', 'rotation', 'z', 'page_key', 'layer_key'] as $k) $s[$k] = (int)$s[$k];
             $s['style'] = $s['style'] !== null ? (json_decode($s['style'], true) ?: null) : null;
             $s['icon_id'] = $s['icon_id'] !== null ? (int)$s['icon_id'] : null;
+            $s['article_id'] = $s['article_id'] !== null ? (int)$s['article_id'] : null;
             $shapes[] = $s;
         }
     } catch (PDOException $e) {
@@ -165,7 +167,19 @@ try {
         $pages = []; $layers = [];
     }
 
-    echo json_encode(['success' => true, 'diagram' => $d, 'nodes' => $nodes, 'connectors' => $conns, 'shapes' => $shapes, 'pages' => $pages, 'layers' => $layers]);
+    // GH #433: Knowledge articles - the related list, and a title for each linked article that
+    // this analyst may read (null = linked, but not one they can read: no title is sent).
+    $articles = ['related' => [], 'titles' => new stdClass()];
+    try {
+        require_once '../../includes/services/network_articles.php';
+        $articles = NetworkArticleService::forDiagram($conn, (int)$_SESSION['analyst_id'], $id);
+        if (!$articles['titles']) $articles['titles'] = new stdClass();
+    } catch (Exception $e) {
+        // Knowledge not set up on this install - the diagram still opens
+    }
+
+    echo json_encode(['success' => true, 'diagram' => $d, 'nodes' => $nodes, 'connectors' => $conns, 'shapes' => $shapes, 'pages' => $pages, 'layers' => $layers,
+                      'articles' => $articles, 'can_read_knowledge' => analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'knowledge')]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

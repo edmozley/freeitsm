@@ -8821,12 +8821,17 @@ CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
     -- A group: nodes and shapes on the same page with the same group_key move and select
     -- together (Group / Ungroup in the editor). NULL = not grouped.
     `group_key`      VARCHAR(40) NULL,
+    -- A Knowledge article the node links to (click in Present, Ctrl+click in the editor).
+    -- Who may read it is Knowledge's own rule - the diagram never shows a title past it.
+    `article_id`     INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_node_diag` (`diagram_id`),
     KEY `ix_net_node_cmdb` (`cmdb_object_id`),
+    KEY `ix_net_node_article` (`article_id`),
     CONSTRAINT `fk_net_node_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_net_node_cmdb` FOREIGN KEY (`cmdb_object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE
+    CONSTRAINT `fk_net_node_cmdb` FOREIGN KEY (`cmdb_object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_node_article` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `network_diagram_connectors` (
@@ -8883,11 +8888,31 @@ CREATE TABLE IF NOT EXISTS `network_diagram_shapes` (
     -- A stable id for connectors to point at (letters, digits, _ and -). Row ids change on
     -- every save because shapes are replaced; this does not.
     `uid`            VARCHAR(20) NULL,
+    `article_id`     INT NULL,                 -- as network_diagram_nodes.article_id
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_shape_diag` (`diagram_id`),
     KEY `ix_net_shape_icon` (`icon_id`),
-    CONSTRAINT `fk_net_shape_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE
+    KEY `ix_net_shape_article` (`article_id`),
+    CONSTRAINT `fk_net_shape_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_shape_article` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- GH #433: Knowledge articles related to a diagram as a whole ("Articles" in the editor), and
+-- listed back on the article as "Network diagrams". One row per diagram VERSION - a new
+-- version copies them. Titles are only ever shown through Knowledge's own read rule.
+CREATE TABLE IF NOT EXISTS `network_diagram_articles` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`            INT NOT NULL,
+    `article_id`            INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_diag_article` (`diagram_id`, `article_id`),
+    KEY `ix_net_diag_article` (`article_id`),
+    CONSTRAINT `fk_net_da_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_da_article` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_da_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Pages and layers: a diagram has tabs (pages); each page has layers that can be hidden or

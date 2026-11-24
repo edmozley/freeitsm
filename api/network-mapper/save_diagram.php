@@ -56,6 +56,7 @@ try {
                 'page_key'      => $n['page_key'] ?? 0,
                 'layer_key'     => $n['layer_key'] ?? 0,
                 'group_key'     => $n['group_key'] ?? null,
+                'article_id'    => $n['article_id'] ?? null,   // GH #433: a linked Knowledge article
                 'ref'           => (string)$ref,
             ];
         }

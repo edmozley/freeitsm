@@ -2460,6 +2460,7 @@ function renderArticleDetail() {
         <div id="kbDocuments" style="margin-top:24px;"></div>
         <div id="kbDomains" style="margin-top:16px;"></div>
         <div id="kbProjects" style="margin-top:16px;"></div>
+        <div id="kbDiagrams" style="margin-top:16px;"></div>
     `;
 
     // Apply syntax highlighting to any code blocks
@@ -2502,6 +2503,36 @@ function renderArticleDetail() {
     // Projects (3.2.0) this article is part of - listed when reading, linked in the editor.
     if (window.KB_SHOW_PROJECTS && window.ProjectLinks) {
         ProjectLinks.mount(document.getElementById('kbProjects'), { kind: 'article', id: currentArticle.id, base: window.KB_BASE, editable: false, hideEmpty: true });
+    }
+    // GH #433: the network diagrams that use this article - linked from the diagram's side.
+    if (window.KB_SHOW_DIAGRAMS) kbMountDiagrams(document.getElementById('kbDiagrams'), currentArticle.id);
+}
+
+/**
+ * GH #433: "Network diagrams" under an article - the current diagrams that list it as related
+ * or have a node or shape linked to it. Nothing at all when there are none. The server answers
+ * only for someone with the Network Mapper module who may read the article.
+ */
+async function kbMountDiagrams(host, articleId) {
+    if (!host) return;
+    host.innerHTML = '';
+    host.hidden = true;
+    try {
+        const r = await fetch('../api/network-mapper/articles.php?article_id=' + encodeURIComponent(articleId), { credentials: 'same-origin' });
+        const d = await r.json();
+        const rows = (d && d.success && d.diagrams) || [];
+        if (!rows.length || !currentArticle || currentArticle.id !== articleId) return;
+        const how = x => window.t(x.how === 'related' ? 'knowledge.diagrams.related' : 'knowledge.diagrams.item');
+        host.innerHTML = '<div class="pl-card"><div class="pl-head"><span class="pl-title">' + escapeHtml(window.t('knowledge.diagrams.title'))
+            + ' <span class="pl-count">' + rows.length + '</span></span></div><div class="pl-body"><ul class="pl-list">'
+            + rows.map(x => '<li class="pl-row"><a class="pl-main" href="../network-mapper/diagram.php?id=' + encodeURIComponent(x.id) + '">'
+                + '<span class="pl-dot" style="background:var(--nm-accent, #06b6d4)"></span>'
+                + '<span class="pl-text"><span class="pl-name">' + escapeHtml(x.title) + '</span>'
+                + '<span class="pl-sub">' + (x.version_label ? escapeHtml(x.version_label) + ' &middot; ' : '') + escapeHtml(how(x)) + '</span></span></a></li>').join('')
+            + '</ul></div></div>';
+        host.hidden = false;
+    } catch (e) {
+        // not shown - the article reads the same without it
     }
 }
 

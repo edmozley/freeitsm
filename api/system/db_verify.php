@@ -3786,6 +3786,19 @@ try {
                                  SET s.icon_id = NULL WHERE s.icon_id IS NOT NULL AND i.id IS NULL");
                 }
             }
+            // GH #433: an article that is gone stops being linked (SET NULL / CASCADE semantics).
+            if ($tableExists('knowledge_articles')) {
+                foreach (['network_diagram_nodes', 'network_diagram_shapes'] as $nt) {
+                    if ($tableExists($nt) && $colExists($nt, 'article_id')) {
+                        $conn->exec("UPDATE $nt x LEFT JOIN knowledge_articles a ON a.id = x.article_id SET x.article_id = NULL WHERE x.article_id IS NOT NULL AND a.id IS NULL");
+                    }
+                }
+                if ($tableExists('network_diagram_articles')) {
+                    $conn->exec("DELETE x FROM network_diagram_articles x LEFT JOIN knowledge_articles a ON a.id = x.article_id WHERE a.id IS NULL");
+                    $conn->exec("DELETE x FROM network_diagram_articles x LEFT JOIN network_diagrams d ON d.id = x.diagram_id WHERE d.id IS NULL");
+                    $conn->exec("UPDATE network_diagram_articles x LEFT JOIN analysts an ON an.id = x.created_by_analyst_id SET x.created_by_analyst_id = NULL WHERE x.created_by_analyst_id IS NOT NULL AND an.id IS NULL");
+                }
+            }
             foreach (['network_diagram_pages', 'network_diagram_layers'] as $pl) {   // GH #433
                 if ($tableExists($pl)) {
                     $conn->exec("DELETE p FROM $pl p LEFT JOIN network_diagrams d ON d.id = p.diagram_id WHERE d.id IS NULL");
@@ -3838,6 +3851,11 @@ try {
         ['network_diagram_shapes',     'fk_net_shape_icon',  "ALTER TABLE network_diagram_shapes ADD CONSTRAINT fk_net_shape_icon FOREIGN KEY (icon_id) REFERENCES network_icon_library_icons (id) ON DELETE SET NULL"],
         ['network_diagram_pages',      'fk_net_page_diag',   "ALTER TABLE network_diagram_pages ADD CONSTRAINT fk_net_page_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
         ['network_diagram_layers',     'fk_net_layer_diag',  "ALTER TABLE network_diagram_layers ADD CONSTRAINT fk_net_layer_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_nodes',      'fk_net_node_article', "ALTER TABLE network_diagram_nodes ADD CONSTRAINT fk_net_node_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE SET NULL"],
+        ['network_diagram_shapes',     'fk_net_shape_article', "ALTER TABLE network_diagram_shapes ADD CONSTRAINT fk_net_shape_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE SET NULL"],
+        ['network_diagram_articles',   'fk_net_da_diag',     "ALTER TABLE network_diagram_articles ADD CONSTRAINT fk_net_da_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_articles',   'fk_net_da_article',  "ALTER TABLE network_diagram_articles ADD CONSTRAINT fk_net_da_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE CASCADE"],
+        ['network_diagram_articles',   'fk_net_da_analyst',  "ALTER TABLE network_diagram_articles ADD CONSTRAINT fk_net_da_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['network_icon_library_icons', 'fk_net_icon_lib',    "ALTER TABLE network_icon_library_icons ADD CONSTRAINT fk_net_icon_lib FOREIGN KEY (library_id) REFERENCES network_icon_libraries (id) ON DELETE CASCADE"],
         ['network_diagram_connectors', 'fk_net_conn_rel',    "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_rel FOREIGN KEY (cmdb_relationship_id) REFERENCES cmdb_object_relationships (id) ON DELETE SET NULL"],
     ];

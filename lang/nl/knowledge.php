@@ -542,6 +542,13 @@ Omdat de twee lijsten het tegenovergestelde betekenen, worden de {people} die nu
         'press_run' => 'Druk op “Zoeken naar hiaten”.',
         'none_to_read' => 'Geen gesloten tickets in de afgelopen {days} dagen om te lezen.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Netwerkdiagrammen',
+        'related' => 'Gerelateerd aan het diagram',
+        'item'    => 'Gekoppeld vanaf een item erin',
+    ],
+
     'help' => [
         'guide' => 'Handleiding',
         'topics_title' => 'Diepgaand',

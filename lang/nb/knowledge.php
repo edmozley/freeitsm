@@ -543,6 +543,13 @@ Fordi de to listene betyr motsatte ting, blir de {people} som er oppført nå, t
         'press_run' => 'Trykk “Se etter hull”.',
         'none_to_read' => 'Ingen lukkede saker de siste {days} dagene å lese.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Nettverksdiagrammer',
+        'related' => 'Knyttet til diagrammet',
+        'item'    => 'Koblet fra et element i det',
+    ],
+
     'help' => [
         'guide' => 'Veiledning',
         'topics_title' => 'I dybden',

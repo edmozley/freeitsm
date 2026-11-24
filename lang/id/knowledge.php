@@ -543,6 +543,13 @@ Karena kedua daftar berarti kebalikan satu sama lain, {people} yang terdaftar se
         'press_run' => 'Tekan “Cari kekurangan”.',
         'none_to_read' => 'Tidak ada tiket tertutup dalam {days} hari terakhir untuk dibaca.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Diagram jaringan',
+        'related' => 'Terkait dengan diagram',
+        'item'    => 'Ditautkan dari salah satu item di dalamnya',
+    ],
+
     'help' => [
         'guide' => 'Panduan',
         'topics_title' => 'Secara mendalam',

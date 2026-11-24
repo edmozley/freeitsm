@@ -542,6 +542,13 @@ Poiché i due elenchi significano cose opposte, le {people} elencate ora verrann
         'press_run' => 'Premi “Cerca lacune”.',
         'none_to_read' => 'Nessun ticket chiuso negli ultimi {days} giorni da leggere.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Diagrammi di rete',
+        'related' => 'Correlato al diagramma',
+        'item'    => 'Collegato da un elemento del diagramma',
+    ],
+
     'help' => [
         'guide' => 'Guida',
         'topics_title' => 'Approfondimenti',

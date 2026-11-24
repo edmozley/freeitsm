@@ -224,6 +224,9 @@
             }
             const lDd = document.getElementById('layersDropdown'), lBtn = document.getElementById('layersBtn');   // GH #433
             if (lDd && lDd.style.display !== 'none' && !(lBtn && lBtn.contains(e.target)) && !lDd.contains(e.target)) closeLayersPanel();
+            const aDd = document.getElementById('articlesDropdown'), aBtn = document.getElementById('articlesBtn');   // GH #433
+            if (aDd && aDd.style.display !== 'none' && !(aBtn && aBtn.contains(e.target)) && !aDd.contains(e.target)
+                && !e.target.closest('#articlePickerModal')) closeArticlesPanel();
         });
 
         ensureSvgLayer();
@@ -428,6 +431,10 @@
             shapes = data.shapes || [];   // GH #433
             pages = data.pages || [];
             layers = data.layers || [];
+            kbRelated = (data.articles && data.articles.related) || [];   // GH #433: Knowledge articles
+            kbTitles = (data.articles && data.articles.titles && !Array.isArray(data.articles.titles)) ? data.articles.titles : {};
+            canReadKb = !!data.can_read_knowledge;
+            renderArticlesPanel();
             ensurePagesLayers();
             renderHeader();
             applyReadOnlyState();
@@ -875,6 +882,7 @@
                 escapeHtml(n.name) +
             '</div>';
 
+        addKbMark(el, n);   // GH #433
         el.addEventListener('mousedown', onNodeMouseDown);
         // Edge handles initiate connector drag (separate from node move drag —
         // startConnectDrag stopPropagation()s so the node's own mousedown
@@ -1042,6 +1050,7 @@
         const key = e.currentTarget.dataset.key;
         const n = findNodeByKey(key);
         if (!n) return;
+        if (isPresenting() && n.article_id) { e.preventDefault(); openArticle(n.article_id); return; }   // GH #433
         if (multiMouseDown(e, 'n', n)) return;   // GH #433: Shift-click, the selection, a group
         selectNode(key);
         if (!diagram || !diagram.is_current) return; // read-only: select but no drag
@@ -1639,6 +1648,7 @@
         if (boxHint) boxHint.style.display = editable ? '' : 'none';
         const lay = document.getElementById('ndLayer');   // GH #433
         if (lay) { lay.innerHTML = layerSelectHtml(n, 'ndLayerSel'); bindLayerSelect('ndLayerSel', n); }
+        renderKbField(document.getElementById('ndArticle'), n);   // GH #433
     }
 
     /** Sets (or with null clears) the selected node's colour. */
@@ -2170,6 +2180,7 @@
             ['top', 'right', 'bottom', 'left'].forEach(side => { html += '<div class="nm-shape-port" data-side="' + side + '"></div>'; });
         }
         el.innerHTML = html;
+        addKbMark(el, s);   // GH #433
         el.addEventListener('mousedown', onShapeMouseDown);
         el.addEventListener('dblclick', e => { e.stopPropagation(); startShapeTextEdit(s); });
         el.querySelectorAll('.nm-shape-handle').forEach(h => h.addEventListener('mousedown', e => startShapeResize(e, s, h.dataset.dir)));
@@ -2216,6 +2227,7 @@
         e.stopPropagation();
         const s = findShapeByKey(key);
         if (!s) return;
+        if (isPresenting() && s.article_id) { e.preventDefault(); openArticle(s.article_id); return; }   // GH #433
         if (multiMouseDown(e, 's', s)) return;   // GH #433
         if (selectedShapeKey !== key) selectShape(key);
         if (!canEdit()) return;
@@ -2726,6 +2738,168 @@
     }
     function onLibSearchInput(v) { libSearch = v || ''; renderLibraryList(); }
 
+    // ---- GH #433: Knowledge articles - a node or a shape links to one; the diagram lists related ones ----
+    // Titles come from the server already filtered by Knowledge's own read rule: an article
+    // this analyst may not read arrives as null and shows as "an article you don't have access
+    // to" - never its title. includes/services/network_articles.php has the rules.
+    let kbRelated = [];      // article ids related to this diagram, in the order added
+    let kbTitles = {};       // article id -> title, or null when linked but not readable by this analyst
+    let canReadKb = false;   // has the Knowledge module - the picker needs it
+    let kbPick = null;       // the picker's callback while it is open
+    let kbTimer = null, kbSeq = 0;
+    const KB_BOOK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg>';
+
+    function kbTitle(id) { const v = kbTitles[id]; return typeof v === 'string' ? v : null; }
+    function kbLabel(id) { const v = kbTitle(id); return v !== null ? v : t('network-mapper.kb.no_access'); }
+
+    /** Opens a linked article in a new tab - or says it cannot, without naming it. */
+    function openArticle(id) {
+        if (!id) return;
+        if (kbTitle(id) === null) { if (window.showToast) showToast(t('network-mapper.kb.no_access'), 'error'); return; }
+        window.open('../knowledge/?article=' + encodeURIComponent(id), '_blank', 'noopener');
+    }
+
+    /** The small book on a node or shape that links to an article; clicking it opens the article. */
+    function addKbMark(el, it) {
+        if (!it.article_id) return;
+        el.classList.add('has-article');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'nm-kb-mark' + (kbTitle(it.article_id) === null ? ' is-hidden-article' : '');
+        b.title = kbLabel(it.article_id);
+        b.setAttribute('aria-label', kbLabel(it.article_id));
+        b.innerHTML = KB_BOOK;
+        b.addEventListener('mousedown', e => { e.stopPropagation(); e.preventDefault(); });
+        b.addEventListener('click', e => { e.stopPropagation(); openArticle(it.article_id); });
+        el.appendChild(b);
+    }
+
+    /** Links (or with null unlinks) an article on a node or shape. Saved with the diagram. */
+    function setItemArticle(it, a) {
+        it.article_id = a ? a.id : null;
+        if (a) kbTitles[a.id] = a.title;
+        if (nodes.includes(it)) { rerenderNode(it); renderConnectors(); } else { rerenderShape(it); }
+        markDirty();
+        ['ndArticle', 'spArticle'].forEach(id => { const h = document.getElementById(id); if (h && h._kbItem === it) renderKbField(h, it); });
+    }
+
+    /** The "Article" line in the node and shape panels. */
+    function renderKbField(host, it) {
+        if (!host) return;
+        host._kbItem = it;
+        const ed = canEdit();
+        const id = it.article_id;
+        const btn = (act, label) => '<button type="button" class="nm-detail-icon-btn" data-kb="' + act + '">' + escapeHtml(label) + '</button>';
+        let html;
+        if (id) {
+            const title = kbTitle(id);
+            html = '<span class="nm-kb-name' + (title === null ? ' is-hidden-article' : '') + '" title="' + escapeAttr(kbLabel(id)) + '">' + escapeHtml(kbLabel(id)) + '</span>'
+                + (title !== null ? btn('open', t('network-mapper.kb.open')) : '')
+                + (ed && canReadKb ? btn('change', t('network-mapper.kb.change')) : '')
+                + (ed ? btn('remove', t('network-mapper.kb.remove')) : '');
+        } else if (ed && canReadKb) {
+            html = btn('change', t('network-mapper.kb.link'));
+        } else {
+            html = '<span class="nm-kb-none">' + escapeHtml(t('network-mapper.kb.none')) + '</span>';
+        }
+        host.innerHTML = html;
+        host.querySelectorAll('[data-kb]').forEach(b => b.addEventListener('click', () => {
+            if (b.dataset.kb === 'open') openArticle(id);
+            else if (b.dataset.kb === 'remove') setItemArticle(it, null);
+            else openArticlePicker(a => setItemArticle(it, a));
+        }));
+    }
+
+    /** The article picker: articles this analyst can read, by title. onPick gets {id, title}. */
+    function openArticlePicker(onPick) {
+        kbPick = onPick;
+        const m = document.getElementById('articlePickerModal');
+        const inp = document.getElementById('articleSearch');
+        if (!m || !inp) return;
+        inp.value = '';
+        m.classList.add('active');
+        searchArticles('');
+        setTimeout(() => inp.focus(), 30);
+    }
+    function closeArticlePicker() {
+        const m = document.getElementById('articlePickerModal');
+        if (m) m.classList.remove('active');
+        kbPick = null;
+    }
+    function onArticleSearchInput(v) { clearTimeout(kbTimer); kbTimer = setTimeout(() => searchArticles(v), 200); }
+    async function searchArticles(q) {
+        const box = document.getElementById('articleResults');
+        const seq = ++kbSeq;
+        try {
+            const r = await fetch(API + 'articles.php?q=' + encodeURIComponent(q || ''), { credentials: 'same-origin' });
+            const d = await r.json();
+            if (seq !== kbSeq) return;   // a newer search has started
+            if (!d.success) throw new Error(d.error || 'failed');
+            const list = d.articles || [];
+            box.innerHTML = list.length
+                ? list.map(a => '<div class="nm-picker-row" data-id="' + a.id + '"><span class="nm-picker-name">' + KB_BOOK + escapeHtml(a.title) + '</span></div>').join('')
+                : '<div class="nm-picker-empty">' + escapeHtml(t('network-mapper.kb.no_results')) + '</div>';
+            box.querySelectorAll('.nm-picker-row').forEach(row => row.addEventListener('click', () => {
+                const a = list.find(x => x.id === +row.dataset.id);
+                const cb = kbPick;
+                closeArticlePicker();
+                if (cb && a) cb(a);
+            }));
+        } catch (e) {
+            box.innerHTML = '<div class="nm-picker-empty">' + escapeHtml(e.message) + '</div>';
+        }
+    }
+
+    /** The toolbar's Articles list - related articles for the whole diagram, saved as they change. */
+    function toggleArticlesPanel(e) {
+        if (e) e.stopPropagation();
+        const dd = document.getElementById('articlesDropdown');
+        if (!dd) return;
+        const open = dd.style.display === 'none';
+        dd.style.display = open ? '' : 'none';
+        if (open) renderArticlesPanel();
+    }
+    function closeArticlesPanel() { const dd = document.getElementById('articlesDropdown'); if (dd) dd.style.display = 'none'; }
+    function renderArticlesPanel() {
+        const lab = document.getElementById('articlesBtnCount');
+        if (lab) lab.textContent = String(kbRelated.length);
+        const dd = document.getElementById('articlesDropdown');
+        if (!dd || dd.style.display === 'none') return;
+        const ed = !!(diagram && diagram.is_current);
+        dd.innerHTML = '<div class="nm-layers-head">' + escapeHtml(t('network-mapper.kb.related_title')) + '</div>'
+            + (kbRelated.length ? kbRelated.map(id => '<div class="nm-kb-row">'
+                    + (kbTitle(id) !== null
+                        ? '<a href="../knowledge/?article=' + encodeURIComponent(id) + '" target="_blank" rel="noopener">' + KB_BOOK + '<span>' + escapeHtml(kbTitle(id)) + '</span></a>'
+                        : '<span class="is-hidden-article">' + KB_BOOK + '<span>' + escapeHtml(t('network-mapper.kb.no_access')) + '</span></span>')
+                    + (ed ? '<button type="button" class="nm-layer-ico nm-layer-del" data-del="' + id + '" title="' + escapeAttr(t('network-mapper.kb.remove')) + '">&times;</button>' : '')
+                    + '</div>').join('')
+                : '<div class="nm-kb-empty">' + escapeHtml(t('network-mapper.kb.related_empty')) + '</div>')
+            + (ed && canReadKb ? '<button type="button" class="nm-layers-add" id="kbRelAdd">+ ' + escapeHtml(t('network-mapper.kb.related_add')) + '</button>' : '')
+            + (!canReadKb ? '<div class="nm-layers-hint">' + escapeHtml(t('network-mapper.kb.no_knowledge')) + '</div>' : '')
+            + '<div class="nm-layers-hint">' + escapeHtml(t('network-mapper.kb.related_hint')) + '</div>';
+        dd.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); relatedPost('remove', +b.dataset.del); }));
+        const add = dd.querySelector('#kbRelAdd');
+        if (add) add.addEventListener('click', e => {
+            e.stopPropagation();
+            openArticlePicker(a => { kbTitles[a.id] = a.title; relatedPost('add', a.id); });
+        });
+    }
+    async function relatedPost(action, articleId) {
+        try {
+            const r = await fetch(API + 'articles.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                                                         body: JSON.stringify({ action: action, diagram_id: diagramId, article_id: articleId }) });
+            const d = await r.json();
+            if (!d.success) throw new Error(d.error || 'failed');
+            kbRelated = d.related || [];
+            kbTitles = Object.assign({}, kbTitles, d.titles || {});
+            const dd = document.getElementById('articlesDropdown');
+            if (dd) dd.style.display = '';
+            renderArticlesPanel();
+        } catch (e) {
+            if (window.showToast) showToast(e.message, 'error');
+        }
+    }
+
     // ---- GH #433: My images - pictures uploaded from the computer or pasted with Ctrl+V ----
     const MY_IMAGES = 'my-images';
     let lastCanvasPoint = null;   // where the mouse last was on the canvas, for pasting a picture there
@@ -2827,6 +3001,7 @@
             + num('spR', t('network-mapper.shapes.rotation'), s.rotation || 0, -360, 360, 5)
             + '</div>'
             + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.layers.field')) + '</span>' + layerSelectHtml(s, 'spLayer') + '</div>'
+            + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.kb.field')) + '</span><span class="nm-kb-field" id="spArticle"></span></div>'
             + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.layers.placement')) + '</span>'
             + seg([['layer_back', t('network-mapper.shapes.layer_back')], ['layer_front', t('network-mapper.shapes.layer_front')]], s.layer === 'front' ? 'layer_front' : 'layer_back', 'arrange', !ed) + '</div>'
             + '<div class="nm-fmt-btns">'
@@ -2853,6 +3028,7 @@
         body.querySelectorAll('[data-arrange]').forEach(b => b.addEventListener('click', () => arrangeShape(b.dataset.arrange)));
         const dup = document.getElementById('spDup'); if (dup) dup.addEventListener('click', duplicateSelectedShape);
         bindLayerSelect('spLayer', s);
+        renderKbField(document.getElementById('spArticle'), s);   // GH #433
         const del = document.getElementById('spDel'); if (del) del.addEventListener('click', deleteSelectedShape);
         renderStyleEditor(document.getElementById('spStyle'), window.nmShapeStyle(s.shape_type, s.style), {
             rounded: !!def.rounded, valign: true, editable: ed,
@@ -3955,6 +4131,8 @@
             const s = tg.it;
             items = [
                 { label: M('edit_text'), disabled: !ed, act: () => startShapeTextEdit(s) },
+                { label: M('open_article'), disabled: !s.article_id || kbTitle(s.article_id) === null, act: () => openArticle(s.article_id) },
+                { label: M('link_article'), disabled: !ed || !canReadKb, act: () => openArticlePicker(a => setItemArticle(s, a)) },
                 'sep',
                 { label: M('cut'), hint: 'Ctrl+X', disabled: !ed, act: () => { copySelection(); deleteSelectedShape(); } },
                 { label: M('copy'), hint: 'Ctrl+C', act: copySelection },
@@ -3978,6 +4156,8 @@
                 { label: M('open_cmdb'), disabled: !window.NM_CMDB, act: () => window.open('../cmdb/object.php?id=' + n.cmdb_object_id, '_blank') },
                 { label: t('network-mapper.detail.add_related'), disabled: !ed || !window.NM_CMDB, act: openRelatedModal },
                 { label: M('change_icon'), disabled: !ed, act: openIconPicker },
+                { label: M('open_article'), disabled: !n.article_id || kbTitle(n.article_id) === null, act: () => openArticle(n.article_id) },
+                { label: M('link_article'), disabled: !ed || !canReadKb, act: () => openArticlePicker(a => setItemArticle(n, a)) },
                 'sep',
                 { label: M('cut'), hint: 'Ctrl+X', disabled: !ed, act: () => { copySelection(); deleteSelectedNode(); } },
                 { label: M('copy'), hint: 'Ctrl+C', act: copySelection },
@@ -4736,7 +4916,8 @@
                         w: n.w || null,
                         h: n.h || null,
                         style: n.style || null,                       // GH #433
-                        page_key: itemPage(n), layer_key: itemLayer(n), group_key: n.group_key || null
+                        page_key: itemPage(n), layer_key: itemLayer(n), group_key: n.group_key || null,
+                        article_id: n.article_id || null                // GH #433
                     })),
                     pages: pages.map(p => ({ page_key: p.page_key, name: p.name, sort: p.sort })),
                     layers: layers.map(l => ({ page_key: l.page_key, layer_key: l.layer_key, name: l.name, sort: l.sort, visible: l.visible !== false, locked: !!l.locked })),
@@ -4745,7 +4926,8 @@
                         shape_type: sh.shape_type, x: sh.x, y: sh.y, w: sh.w, h: sh.h,
                         rotation: sh.rotation || 0, text: sh.text || '', style: sh.style || null,
                         layer: sh.layer || 'back', z: sh.z || 0, icon_id: sh.icon_id || null, uid: sh.uid || null,
-                        page_key: itemPage(sh), layer_key: itemLayer(sh), group_key: sh.group_key || null
+                        page_key: itemPage(sh), layer_key: itemLayer(sh), group_key: sh.group_key || null,
+                        article_id: sh.article_id || null
                     })),
                     connectors: connectors.map(c => ({
                         from_node_id: c.from_shape_uid ? null : c.from_node_id,
@@ -5395,6 +5577,7 @@
     //  Public surface
     // =========================================================
     window.NM = {
+        toggleArticlesPanel, closeArticlePicker, onArticleSearchInput,   // GH #433: Knowledge articles
         init,
         save: () => save(false),
         toggleAutosave,

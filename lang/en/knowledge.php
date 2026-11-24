@@ -615,6 +615,13 @@ return [
         'none_to_read'    => 'No closed tickets in the last {days} days to read.',
     ],
 
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Network diagrams',
+        'related' => 'Related to the diagram',
+        'item'    => 'Linked from an item on it',
+    ],
+
     'help' => [
         'guide'          => 'Guide',
         // The in-depth topic pages (knowledge/help/), first: documents in the Help Centre (GH #177).

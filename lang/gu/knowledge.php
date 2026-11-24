@@ -542,6 +542,13 @@ return [
         'press_run' => '“ખૂટતું શોધો” દબાવો.',
         'none_to_read' => 'છેલ્લા {days} દિવસમાં વાંચવા માટે કોઈ બંધ ટિકિટ નથી.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'નેટવર્ક ડાયાગ્રામ',
+        'related' => 'ડાયાગ્રામ સાથે સંબંધિત',
+        'item'    => 'તેની એક આઇટમ પરથી લિંક કરેલ',
+    ],
+
     'help' => [
         'guide' => 'માર્ગદર્શિકા',
         'topics_title' => 'વિગતવાર',

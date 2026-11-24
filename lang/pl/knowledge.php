@@ -543,6 +543,13 @@ Ponieważ obie listy oznaczają coś przeciwnego, {people} wymienionych obecnie 
         'press_run' => 'Naciśnij „Szukaj luk”.',
         'none_to_read' => 'Brak zamkniętych zgłoszeń z ostatnich {days} dni do przeczytania.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Diagramy sieci',
+        'related' => 'Powiązane z diagramem',
+        'item'    => 'Połączone z elementu na diagramie',
+    ],
+
     'help' => [
         'guide' => 'Przewodnik',
         'topics_title' => 'Dogłębnie',

@@ -329,6 +329,7 @@ function analystReferenceRegistry(): array {
         ['project_contracts', 'created_by_analyst_id', 'history'],
         ['project_cmdb_objects', 'created_by_analyst_id', 'history'],
         ['project_knowledge_articles', 'created_by_analyst_id', 'history'],
+        ['network_diagram_articles', 'created_by_analyst_id', 'history'],   // GH #433
         ['project_problems', 'created_by_analyst_id', 'history'],
         ['project_members', 'created_by_analyst_id', 'history'],
         ['project_raid', 'escalated_by_id', 'history'],

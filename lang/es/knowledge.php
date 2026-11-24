@@ -543,6 +543,13 @@ Como las dos listas significan lo contrario, las {people} que figuran ahora se b
         'press_run' => 'Pulse «Buscar lagunas».',
         'none_to_read' => 'No hay tickets cerrados en los últimos {days} días que leer.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Diagramas de red',
+        'related' => 'Relacionado con el diagrama',
+        'item'    => 'Vinculado desde un elemento del diagrama',
+    ],
+
     'help' => [
         'guide' => 'Guía',
         'topics_title' => 'En profundidad',

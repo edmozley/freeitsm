@@ -29,6 +29,7 @@
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../tenancy.php';   // CMDB objects on a diagram are company-scoped
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
+require_once __DIR__ . '/network_articles.php';   // GH #433: links to Knowledge articles
 
 class NetworkMapperService
 {
@@ -52,6 +53,10 @@ class NetworkMapperService
         }
         [$paperSize, $paperOrientation] = self::validatePaper($in, null);
 
+        // GH #433: which article links this save may keep (see NetworkArticleService::allowedForSave).
+        $articles = NetworkArticleService::allowedForSave($conn, (int)$ctx->actorId, 0, array_merge(
+            array_map(fn($x) => is_array($x) ? (int)($x['article_id'] ?? 0) : 0, is_array($in['nodes'] ?? null) ? $in['nodes'] : []),
+            array_map(fn($x) => is_array($x) ? (int)($x['article_id'] ?? 0) : 0, is_array($in['shapes'] ?? null) ? $in['shapes'] : [])));
         $conn->beginTransaction();
         try {
             $conn->prepare(
@@ -78,10 +83,10 @@ class NetworkMapperService
             $diagramId = (int)$conn->lastInsertId();
 
             if ((isset($in['nodes']) && is_array($in['nodes'])) || (isset($in['connectors']) && is_array($in['connectors']))) {
-                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
+                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? [], $articles);
             }
             if (isset($in['shapes']) && is_array($in['shapes'])) {
-                self::replaceShapes($conn, $diagramId, $in['shapes']);   // GH #433
+                self::replaceShapes($conn, $diagramId, $in['shapes'], $articles);   // GH #433
             }
             if (isset($in['pages']) && is_array($in['pages'])) {
                 self::replacePages($conn, $diagramId, $in['pages'], $in['layers'] ?? []);
@@ -115,6 +120,10 @@ class NetworkMapperService
         }
         [$paperSize, $paperOrientation] = self::validatePaper($in, $current);
 
+        // GH #433: which article links this save may keep (see NetworkArticleService::allowedForSave).
+        $articles = NetworkArticleService::allowedForSave($conn, (int)$ctx->actorId, $diagramId, array_merge(
+            array_map(fn($x) => is_array($x) ? (int)($x['article_id'] ?? 0) : 0, is_array($in['nodes'] ?? null) ? $in['nodes'] : []),
+            array_map(fn($x) => is_array($x) ? (int)($x['article_id'] ?? 0) : 0, is_array($in['shapes'] ?? null) ? $in['shapes'] : [])));
         $conn->beginTransaction();
         try {
             $conn->prepare(
@@ -144,12 +153,12 @@ class NetworkMapperService
             ]);
 
             if ((isset($in['nodes']) && is_array($in['nodes'])) || (isset($in['connectors']) && is_array($in['connectors']))) {
-                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
+                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? [], $articles);
             }
             // GH #433: shapes are replaced only when the caller sends them, so an API
             // caller that only knows about nodes and connectors never wipes them.
             if (isset($in['shapes']) && is_array($in['shapes'])) {
-                self::replaceShapes($conn, $diagramId, $in['shapes']);
+                self::replaceShapes($conn, $diagramId, $in['shapes'], $articles);
             }
             // GH #433: pages and their layers, when the caller sends them.
             if (isset($in['pages']) && is_array($in['pages'])) {
@@ -239,13 +248,14 @@ class NetworkMapperService
             $nodes = $conn->prepare("SELECT * FROM network_diagram_nodes WHERE diagram_id = ? ORDER BY id");
             $nodes->execute([$parentId]);
             $insertNode = $conn->prepare(
-                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key, group_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key, group_key, article_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             foreach ($nodes->fetchAll(PDO::FETCH_ASSOC) as $n) {
                 // GH #433: colour, box size, style, page and layer travel into the new version too.
                 $insertNode->execute([$newId, (int)$n['cmdb_object_id'], (int)$n['x'], (int)$n['y'], $n['size'], $n['icon_override'],
                                       $n['colour_override'] ?? null, $n['w'] ?? null, $n['h'] ?? null, $n['style'] ?? null,
-                                      (int)($n['page_key'] ?? 0), (int)($n['layer_key'] ?? 0), $n['group_key'] ?? null]);
+                                      (int)($n['page_key'] ?? 0), (int)($n['layer_key'] ?? 0), $n['group_key'] ?? null,
+                                      isset($n['article_id']) ? (int)$n['article_id'] : null]);
                 $nodeMap[(int)$n['id']] = (int)$conn->lastInsertId();
             }
             $conns = $conn->prepare("SELECT * FROM network_diagram_connectors WHERE diagram_id = ? ORDER BY id");
@@ -267,8 +277,8 @@ class NetworkMapperService
             }
             // GH #433: and the freestanding shapes.
             $conn->prepare(
-                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid)
-                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
+                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid, article_id)
+                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid, article_id FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
             )->execute([$newId, $parentId]);
             // ...and the pages and layers they sit on.
             $conn->prepare("INSERT INTO network_diagram_pages (diagram_id, page_key, name, sort) SELECT ?, page_key, name, sort FROM network_diagram_pages WHERE diagram_id = ?")
@@ -276,6 +286,7 @@ class NetworkMapperService
             $conn->prepare("INSERT INTO network_diagram_layers (diagram_id, page_key, layer_key, name, sort, visible, locked)
                             SELECT ?, page_key, layer_key, name, sort, visible, locked FROM network_diagram_layers WHERE diagram_id = ?")
                  ->execute([$newId, $parentId]);
+            NetworkArticleService::copyRelated($conn, $parentId, $newId);   // GH #433: related articles
             $conn->commit();
         } catch (Exception $e) {
             if ($conn->inTransaction()) $conn->rollBack();
@@ -400,7 +411,7 @@ class NetworkMapperService
      * @param array $nodesIn  [{cmdb_object_id, x?, y?, size?, icon_override?, colour_override?, w?, h?, ref?}] - nodes with no x/y are placed automatically
      * @param array $connectorsIn  [{from_ref | from_object_id, to_ref | to_object_id, cmdb_relationship_id?, label?, line_style?}]
      */
-    private static function replaceContents(PDO $conn, ActorContext $ctx, int $diagramId, array $nodesIn, array $connectorsIn): void
+    private static function replaceContents(PDO $conn, ActorContext $ctx, int $diagramId, array $nodesIn, array $connectorsIn, array $articles = []): void
     {
         $conn->prepare("DELETE FROM network_diagram_connectors WHERE diagram_id = ?")->execute([$diagramId]);
         $conn->prepare("DELETE FROM network_diagram_nodes WHERE diagram_id = ?")->execute([$diagramId]);
@@ -409,7 +420,7 @@ class NetworkMapperService
         $refMap = [];
         $objectMap = [];
         $insertNode = $conn->prepare(
-            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key, group_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key, group_key, article_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         foreach (array_values($nodesIn) as $i => $n) {
             if (!is_array($n)) {
@@ -426,7 +437,8 @@ class NetworkMapperService
                 $y = $y ?? $ay;
             }
             $insertNode->execute([$diagramId, $objectId, $x, $y, $size, $icon, $colour, $w, $h, $style,
-                                  self::keyOf($n['page_key'] ?? 0), self::keyOf($n['layer_key'] ?? 0), self::groupOf($n['group_key'] ?? null)]);   // GH #433
+                                  self::keyOf($n['page_key'] ?? 0), self::keyOf($n['layer_key'] ?? 0), self::groupOf($n['group_key'] ?? null),
+                                  isset($articles[(int)($n['article_id'] ?? 0)]) ? (int)$n['article_id'] : null]);   // GH #433
             $newId = (int)$conn->lastInsertId();
             if ($ref !== null) {
                 $refMap[$ref] = $newId;
@@ -494,12 +506,12 @@ class NetworkMapperService
      * @param int $diagramId  the diagram whose shapes are replaced
      * @param array $shapesIn  the new list (untrusted)
      */
-    private static function replaceShapes(PDO $conn, int $diagramId, array $shapesIn): void
+    private static function replaceShapes(PDO $conn, int $diagramId, array $shapesIn, array $articles = []): void
     {
         $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id = ?")->execute([$diagramId]);
         $insert = $conn->prepare(
-            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid, article_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         // icon_id must name an icon that exists - anything else saves as no icon.
         $iconIds = array_values(array_unique(array_filter(array_map(fn($s) => is_array($s) ? (int)($s['icon_id'] ?? 0) : 0, $shapesIn))));
@@ -548,6 +560,7 @@ class NetworkMapperService
                 self::keyOf($s['layer_key'] ?? 0),
                 self::groupOf($s['group_key'] ?? null),
                 (is_string($s['uid'] ?? null) && preg_match('/^[A-Za-z0-9_-]{1,20}$/', $s['uid'])) ? $s['uid'] : null,
+                isset($articles[(int)($s['article_id'] ?? 0)]) ? (int)$s['article_id'] : null,   // GH #433
             ]);
         }
     }
