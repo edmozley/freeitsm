@@ -8,9 +8,13 @@
  *   diagram   { id, parent_diagram_id, title, description, version_label,
  *               author_id, author_name, created_at, updated_at, is_current }
  *   nodes     [{ id, cmdb_object_id, name, class_id, class_name, class_icon,
- *                is_planned, x, y, size, icon_override, colour_override, w, h }]
- *   connectors[{ id, from_node_id, to_node_id, cmdb_relationship_id,
- *                label, line_style }]
+ *                is_planned, x, y, size, icon_override, colour_override, w, h,
+ *                style, page_key, layer_key, group_key, article_id }]
+ *   connectors[{ id, from_node_id, to_node_id, from_shape_uid, to_shape_uid,
+ *                cmdb_relationship_id, label, line_style, style }]
+ *   shapes    [{ id, uid, shape_type, x, y, w, h, rotation, text, style, layer, z,
+ *                icon_id, page_key, layer_key, group_key, article_id }]
+ *   pages, layers, articles {related, titles}, can_read_knowledge      (GH #433)
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';

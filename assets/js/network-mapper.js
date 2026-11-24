@@ -2381,7 +2381,8 @@
         const maxZ = shapes.reduce((m, x) => Math.max(m, x.z || 0), 0);
         const copy = Object.assign({}, s, {
             id: null, tempId: nextTempShapeId--, x: s.x + 20, y: s.y + 20, z: maxZ + 1, uid: newUid(),
-            style: s.style ? JSON.parse(JSON.stringify(s.style)) : null
+            style: s.style ? JSON.parse(JSON.stringify(s.style)) : null,
+            group_key: null   // a lone copy of one member is not part of the group (paste gives copies a group of their own)
         });
         shapes.push(copy);
         renderShapes();
@@ -2515,7 +2516,7 @@
                 html += '<div class="nm-shape-grid">' + hits.slice(0, 300).map(i =>
                     '<div class="nm-shape-tile nm-icon-tile" draggable="true" data-icon="' + i.id + '" title="' + escapeAttr((i.title || '') + ' - ' + t('network-mapper.shapes.tile_title')) + '">'
                     + '<img src="' + iconUrl(i.id) + '" alt="" loading="lazy" draggable="false">'
-                    + (mine && canEdit() ? '<button type="button" class="nm-icon-del" data-del="' + i.id + '" title="' + escapeAttr(t('network-mapper.iconlib.delete_image')) + '">&times;</button>' : '')
+                    + (mine && canEdit() && i.can_delete ? '<button type="button" class="nm-icon-del" data-del="' + i.id + '" title="' + escapeAttr(t('network-mapper.iconlib.delete_image')) + '">&times;</button>' : '')
                     + '</div>').join('') + '</div>';
                 if (hits.length > 300) html += '<div class="nm-iconlib-empty">' + escapeHtml(t('network-mapper.iconlib.more_hint', { count: hits.length - 300 })) + '</div>';
             }
@@ -3705,6 +3706,8 @@
             setSelection(cur);
             return true;
         }
+        // Alt+click picks one item out of its group - even while the whole group is selected.
+        if (e.altKey) { if (multi.size) clearMulti(); return false; }
         let sel = null;
         if (multi.has(key)) sel = multiItems();
         else if (it.group_key && !e.altKey) {
@@ -4229,7 +4232,11 @@
             // Don't save during an active node drag — save() reloads the diagram,
             // which would destroy the in-progress drag DOM and snap the node
             // back to its last-committed position. Reschedule and re-check.
-            if (nodeDrag || nodeResize || shapeDrag || shapeResize || shapeEditKey) {   // GH #433
+            // GH #433: every gesture and every inline edit the reload would destroy - a multi-select
+            // drag, the rubber band, a connector being drawn, and a label / page / layer rename.
+            const editing = document.activeElement && document.activeElement.matches &&
+                document.activeElement.matches('.nm-connector-label-input, .nm-page-rename, .nm-layer-rename');
+            if (nodeDrag || nodeResize || shapeDrag || shapeResize || shapeEditKey || multiDrag || band || connectDrag || editing) {
                 scheduleAutosave();
                 return;
             }

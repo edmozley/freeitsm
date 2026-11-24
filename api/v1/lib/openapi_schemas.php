@@ -7462,7 +7462,15 @@ return array (
           array (
             0 => 'solid',
             1 => 'dashed',
+            2 => 'dotted',
           ),
+        ),
+        'style' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'GH #433: colour, width, arrowStart / arrowEnd (none, arrow, open, diamond, circle), routing (straight, elbow, curved). Null = the normal look.',
+          'additionalProperties' => true,
         ),
       ),
     ),
@@ -7484,19 +7492,29 @@ return array (
     'NetworkConnectorEndpoint' => 
     array (
       'type' => 'object',
+      'description' => 'One end of a connector: a node (node_id, object_id, object_name) or, since GH #433, a shape (shape_uid). The other fields are null.',
       'properties' => 
       array (
         'node_id' => 
         array (
           'type' => 'integer',
+          'nullable' => true,
         ),
         'object_id' => 
         array (
           'type' => 'integer',
+          'nullable' => true,
         ),
         'object_name' => 
         array (
           'type' => 'string',
+          'nullable' => true,
+        ),
+        'shape_uid' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'GH #433: the uid of the shape this end is on.',
         ),
       ),
     ),
@@ -7536,6 +7554,39 @@ return array (
               'items' => 
               array (
                 '$ref' => '#/components/schemas/NetworkConnector',
+              ),
+            ),
+            'shapes' => 
+            array (
+              'type' => 'array',
+              'items' => 
+              array (
+                '$ref' => '#/components/schemas/NetworkShape',
+              ),
+            ),
+            'pages' => 
+            array (
+              'type' => 'array',
+              'items' => 
+              array (
+                '$ref' => '#/components/schemas/NetworkPage',
+              ),
+            ),
+            'layers' => 
+            array (
+              'type' => 'array',
+              'items' => 
+              array (
+                '$ref' => '#/components/schemas/NetworkLayer',
+              ),
+            ),
+            'related_article_ids' => 
+            array (
+              'type' => 'array',
+              'description' => 'GH #433: Knowledge articles related to the whole diagram (ids only).',
+              'items' => 
+              array (
+                'type' => 'integer',
               ),
             ),
             'layout' => 
@@ -8015,6 +8066,38 @@ return array (
         ),
       ),
     ),
+    'NetworkLayer' => 
+    array (
+      'type' => 'object',
+      'description' => 'GH #433: one layer of one page.',
+      'properties' => 
+      array (
+        'page_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'layer_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'sort' => 
+        array (
+          'type' => 'integer',
+        ),
+        'visible' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'locked' => 
+        array (
+          'type' => 'boolean',
+        ),
+      ),
+    ),
     'NetworkLayout' => 
     array (
       'type' => 'object',
@@ -8106,6 +8189,53 @@ return array (
         array (
           'type' => 'string',
           'nullable' => true,
+        ),
+        'colour_override' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'GH #433: the node\'s own colour, #rrggbb. Null = the class look.',
+        ),
+        'w' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'GH #433: box width in px (20-2000). Null = automatic.',
+        ),
+        'h' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'GH #433: box height in px (20-2000). Null = automatic.',
+        ),
+        'style' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'GH #433: the look - fill, fillColour, strokeColour, strokeWidth, opacity, shadow, rounded, font, fontSize, fontColour, bold, italic, underline, align, valign. Null = the normal look.',
+          'additionalProperties' => true,
+        ),
+        'page_key' => 
+        array (
+          'type' => 'integer',
+          'description' => 'GH #433: which page (see pages) the node is on.',
+        ),
+        'layer_key' => 
+        array (
+          'type' => 'integer',
+          'description' => 'GH #433: which layer of that page.',
+        ),
+        'group_key' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'GH #433: items with the same group_key move and select together.',
+        ),
+        'article_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'GH #433: a Knowledge article the node links to (id only).',
         ),
         'object' => 
         array (
@@ -8249,6 +8379,26 @@ return array (
         ),
       ),
     ),
+    'NetworkPage' => 
+    array (
+      'type' => 'object',
+      'description' => 'GH #433: one page (tab) of a diagram.',
+      'properties' => 
+      array (
+        'page_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'sort' => 
+        array (
+          'type' => 'integer',
+        ),
+      ),
+    ),
     'NetworkPaper' => 
     array (
       'type' => 'object',
@@ -8302,6 +8452,94 @@ return array (
         'inverse_verb' => 
         array (
           'type' => 'string',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'NetworkShape' => 
+    array (
+      'type' => 'object',
+      'description' => 'GH #433: a freestanding shape, imported icon or picture. Send the list back unchanged in a full-replace PATCH to keep it.',
+      'properties' => 
+      array (
+        'uid' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'Stable id a connector end names (from_shape_uid / to_shape_uid).',
+        ),
+        'shape_type' => 
+        array (
+          'type' => 'string',
+          'description' => 'A key of the shape library (rectangle, cloud, ...), or icon.',
+        ),
+        'x' => 
+        array (
+          'type' => 'integer',
+        ),
+        'y' => 
+        array (
+          'type' => 'integer',
+        ),
+        'w' => 
+        array (
+          'type' => 'integer',
+        ),
+        'h' => 
+        array (
+          'type' => 'integer',
+        ),
+        'rotation' => 
+        array (
+          'type' => 'integer',
+        ),
+        'text' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'style' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'GH #433: the look - fill, fillColour, strokeColour, strokeWidth, opacity, shadow, rounded, font, fontSize, fontColour, bold, italic, underline, align, valign. Null = the normal look.',
+          'additionalProperties' => true,
+        ),
+        'layer' => 
+        array (
+          'type' => 'string',
+          'description' => 'back = behind nodes, front = in front of them.',
+          'enum' => 
+          array (
+            0 => 'back',
+            1 => 'front',
+          ),
+        ),
+        'z' => 
+        array (
+          'type' => 'integer',
+        ),
+        'icon_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+        ),
+        'page_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'layer_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'group_key' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'article_id' => 
+        array (
+          'type' => 'integer',
           'nullable' => true,
         ),
       ),

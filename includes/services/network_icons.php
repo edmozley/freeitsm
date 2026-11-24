@@ -261,16 +261,20 @@ class NetworkIconService
     }
 
     /** Every icon of every ready library (no image data) - the Shapes palette reads this once. */
-    public static function paletteIcons(PDO $conn): array
+    public static function paletteIcons(PDO $conn, int $analystId = 0): array
     {
         $rows = $conn->query(
-            "SELECT i.id, i.library_id, i.title, i.tags, i.w, i.h
+            "SELECT i.id, i.library_id, i.title, i.tags, i.w, i.h, i.uploaded_by_analyst_id
                FROM network_icon_library_icons i
                JOIN network_icon_libraries l ON l.id = i.library_id AND l.status = 'ready'
            ORDER BY i.library_id, i.sort"
         )->fetchAll(PDO::FETCH_ASSOC);
+        $admin = $analystId > 0 && analystIsAdmin($conn, $analystId);
         foreach ($rows as &$r) {
             foreach (['id', 'library_id', 'w', 'h'] as $k) $r[$k] = (int)$r[$k];
+            // whether this analyst may remove it (My images only - the palette shows the cross)
+            $r['can_delete'] = $admin || ($analystId > 0 && (int)$r['uploaded_by_analyst_id'] === $analystId);
+            unset($r['uploaded_by_analyst_id']);
         }
         return $rows;
     }
@@ -281,7 +285,11 @@ class NetworkIconService
      */
     public static function deleteLibrary(PDO $conn, int $libraryId): void
     {
-        self::loadLibraryRow($conn, $libraryId);
+        $lib = self::loadLibraryRow($conn, $libraryId);
+        // My images is not an imported set: its pictures are removed one at a time, each by its uploader.
+        if ($lib['slug'] === self::MY_IMAGES) {
+            throw new ServiceError('validation', 'invalid_field', 'My images cannot be removed as a whole.');
+        }
         $conn->beginTransaction();
         try {
             $conn->prepare("UPDATE network_diagram_shapes s JOIN network_icon_library_icons i ON i.id = s.icon_id SET s.icon_id = NULL WHERE i.library_id = ?")
@@ -338,7 +346,7 @@ class NetworkIconService
         $title = trim(preg_replace('/[^\p{L}\p{N} _.-]+/u', ' ', pathinfo($name, PATHINFO_FILENAME)));
         $title = mb_substr($title !== '' ? $title : 'Picture', 0, 255);
         $sort = (int)$conn->query("SELECT COALESCE(MAX(sort), -1) + 1 FROM network_icon_library_icons WHERE library_id = " . $libId)->fetchColumn();
-        $ins = $conn->prepare("INSERT INTO network_icon_library_icons (library_id, sort, title, tags, mime, data, w, h) VALUES (?, ?, ?, '', ?, ?, ?, ?)");
+        $ins = $conn->prepare("INSERT INTO network_icon_library_icons (library_id, sort, title, tags, mime, data, w, h, uploaded_by_analyst_id) VALUES (?, ?, ?, '', ?, ?, ?, ?, ?)");
         $ins->bindValue(1, $libId, PDO::PARAM_INT);
         $ins->bindValue(2, $sort, PDO::PARAM_INT);
         $ins->bindValue(3, $title);
@@ -346,10 +354,11 @@ class NetworkIconService
         $ins->bindValue(5, $safe['data'], PDO::PARAM_LOB);
         $ins->bindValue(6, (int)$size[0], PDO::PARAM_INT);
         $ins->bindValue(7, (int)$size[1], PDO::PARAM_INT);
+        $ins->bindValue(8, $ctx->actorId ? (int)$ctx->actorId : null, $ctx->actorId ? PDO::PARAM_INT : PDO::PARAM_NULL);
         $ins->execute();
         $id = (int)$conn->lastInsertId();
         $conn->prepare("UPDATE network_icon_libraries SET icon_count = icon_count + 1, icon_total = icon_total + 1 WHERE id = ?")->execute([$libId]);
-        return ['id' => $id, 'library_id' => $libId, 'title' => $title, 'tags' => '', 'w' => (int)$size[0], 'h' => (int)$size[1]];
+        return ['id' => $id, 'library_id' => $libId, 'title' => $title, 'tags' => '', 'w' => (int)$size[0], 'h' => (int)$size[1], 'can_delete' => true];
     }
 
     /**
@@ -358,13 +367,18 @@ class NetworkIconService
      *
      * @param int $iconId  the picture
      */
-    public static function deleteUpload(PDO $conn, int $iconId): void
+    public static function deleteUpload(PDO $conn, int $iconId, int $analystId): void
     {
-        $st = $conn->prepare("SELECT i.library_id FROM network_icon_library_icons i JOIN network_icon_libraries l ON l.id = i.library_id
+        $st = $conn->prepare("SELECT i.library_id, i.uploaded_by_analyst_id FROM network_icon_library_icons i JOIN network_icon_libraries l ON l.id = i.library_id
                                WHERE i.id = ? AND l.slug = ?");
         $st->execute([$iconId, self::MY_IMAGES]);
-        $libId = (int)$st->fetchColumn();
-        if (!$libId) throw new ServiceError('not_found', 'not_found', 'Picture not found in My images.');
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$row) throw new ServiceError('not_found', 'not_found', 'Picture not found in My images.');
+        $libId = (int)$row['library_id'];
+        // My images is shared, so the picture is the uploader's to remove - or an admin's.
+        if ((int)$row['uploaded_by_analyst_id'] !== $analystId && !analystIsAdmin($conn, $analystId)) {
+            throw new ServiceError('forbidden', 'forbidden', 'Only the person who added this picture, or an administrator, can remove it.');
+        }
         $conn->prepare("UPDATE network_diagram_shapes SET icon_id = NULL WHERE icon_id = ?")->execute([$iconId]);
         $conn->prepare("DELETE FROM network_icon_library_icons WHERE id = ?")->execute([$iconId]);
         $conn->prepare("UPDATE network_icon_libraries SET icon_count = GREATEST(icon_count - 1, 0) WHERE id = ?")->execute([$libId]);

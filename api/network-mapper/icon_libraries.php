@@ -14,7 +14,8 @@
  *   POST {action:'delete_image', id}                 (one picture out of My images)
  *
  * Changes are POST only. Any analyst with Network Mapper access may import or remove a set -
- * an imported set is shared by the whole install.
+ * an imported set is shared by the whole install. A My images picture is removed only by the
+ * analyst who added it, or an admin; My images itself is never removed as a set.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -50,7 +51,7 @@ try {
         exit;
     }
     if ($method === 'GET' && $action === 'palette') {
-        echo json_encode(['success' => true, 'libraries' => NetworkIconService::libraries($conn), 'icons' => NetworkIconService::paletteIcons($conn)]);
+        echo json_encode(['success' => true, 'libraries' => NetworkIconService::libraries($conn), 'icons' => NetworkIconService::paletteIcons($conn, (int)$_SESSION['analyst_id'])]);
         exit;
     }
     if ($method !== 'POST') {
@@ -75,7 +76,7 @@ try {
         $bytes = (string)file_get_contents($f['tmp_name']);
         echo json_encode(['success' => true, 'icon' => NetworkIconService::addUpload($conn, $ctx, $bytes, (string)($f['name'] ?? 'picture'))]);
     } elseif ($action === 'delete_image') {
-        NetworkIconService::deleteUpload($conn, (int)($data['id'] ?? 0));
+        NetworkIconService::deleteUpload($conn, (int)($data['id'] ?? 0), (int)$_SESSION['analyst_id']);
         echo json_encode(['success' => true]);
     } elseif ($action === 'import_start') {
         echo json_encode(['success' => true] + NetworkIconService::importStart($conn, $ctx, (string)($data['slug'] ?? '')));

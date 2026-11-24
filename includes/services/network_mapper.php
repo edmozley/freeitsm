@@ -208,7 +208,8 @@ class NetworkMapperService
     }
 
     /**
-     * Fork the leaf into a new version (clones nodes + connectors forward). Returns the new id.
+     * Fork the leaf into a new version (clones nodes, connectors, shapes, pages, layers and
+     * Knowledge links forward). Returns the new id.
      *
      * @param int $parentId  the current (leaf) version to copy forward
      * @param array $in  optional title, description and version_label for the new version; the rest is copied
@@ -408,8 +409,8 @@ class NetworkMapperService
      * Full contents replace (delete + reinsert; ref-based connector wiring, strict validation).
      *
      * @param int $diagramId  the diagram whose nodes and connectors are replaced
-     * @param array $nodesIn  [{cmdb_object_id, x?, y?, size?, icon_override?, colour_override?, w?, h?, ref?}] - nodes with no x/y are placed automatically
-     * @param array $connectorsIn  [{from_ref | from_object_id, to_ref | to_object_id, cmdb_relationship_id?, label?, line_style?}]
+     * @param array $nodesIn  [{cmdb_object_id, x?, y?, size?, icon_override?, colour_override?, w?, h?, style?, page_key?, layer_key?, group_key?, article_id?, ref?}] - nodes with no x/y are placed automatically
+     * @param array $connectorsIn  [{from_ref | from_object_id | from_shape_uid, to_ref | to_object_id | to_shape_uid, cmdb_relationship_id?, label?, line_style?, style?}]
      */
     private static function replaceContents(PDO $conn, ActorContext $ctx, int $diagramId, array $nodesIn, array $connectorsIn, array $articles = []): void
     {
@@ -587,14 +588,14 @@ class NetworkMapperService
     }
 
     /** GH #433: a group key - letters, digits, _ and -, up to 40; anything else is no group. */
-    private static function groupOf($v): ?string
+    public static function groupOf($v): ?string
     {
         $v = is_string($v) ? trim($v) : '';
         return preg_match('/^[A-Za-z0-9_-]{1,40}$/', $v) ? $v : null;
     }
 
     /** GH #433: a page or layer key - a small whole number, 0 when missing or odd. */
-    private static function keyOf($v): int
+    public static function keyOf($v): int
     {
         return (is_numeric($v) && (int)$v >= 0 && (int)$v <= 100000) ? (int)$v : 0;
     }
@@ -847,7 +848,7 @@ class NetworkMapperService
     /**
      * Validates a connector line style against LINE_STYLES.
      *
-     * @param string $style  'solid' or 'dashed'
+     * @param string $style  'solid', 'dashed' or 'dotted'
      */
     private static function validateLineStyle(string $style): string
     {

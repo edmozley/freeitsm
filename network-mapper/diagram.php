@@ -1834,8 +1834,9 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             stroke: #64748b !important;
             stroke-width: 2 !important;
         }
-        /* Use the cyan default arrowhead in non-selected form too */
-        .nm-canvas-inner.is-exporting .nm-connector-line { marker-end: url(#nm-arrow) !important; }
+        /* TRAP: no marker-end rule here. captureCanvas() clears the selection and redraws the
+           connectors before capturing, so each line already carries its own arrowheads; a CSS
+           marker-end beat them and drew a default arrow on every line in PNG / PDF (GH #433). */
 
         /* ---- Dark-mode overrides for chrome amber/sky tints ----
            The read-only amber banners/pills and the sky-blue "tokens" info box
@@ -2266,7 +2267,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/save-to-files.js?v=3"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=21"></script>
+    <script src="../assets/js/network-mapper.js?v=22"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

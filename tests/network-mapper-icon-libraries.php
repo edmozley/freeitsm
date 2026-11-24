@@ -140,12 +140,33 @@ try {
     check('a diagram can use the picture', (int)$conn->query("SELECT icon_id FROM network_diagram_shapes WHERE diagram_id = $d3")->fetchColumn() === $ic['id']);
     $other = (int)$conn->query("SELECT i.id FROM network_icon_library_icons i JOIN network_icon_libraries l ON l.id = i.library_id WHERE l.slug <> 'my-images' LIMIT 1")->fetchColumn();
     if ($other) {
-        check('deleteUpload will not touch an icon from an imported set', (function () use ($conn, $other) {
-            try { NetworkIconService::deleteUpload($conn, $other); return false; } catch (ServiceError $e) { return true; }
+        check('deleteUpload will not touch an icon from an imported set', (function () use ($conn, $other, $ctx) {
+            try { NetworkIconService::deleteUpload($conn, $other, (int)$ctx->actorId); return false; } catch (ServiceError $e) { return true; }
         })());
     }
-    NetworkIconService::deleteUpload($conn, $ic['id']);
-    $upIds = [];
+
+    // Who may remove a picture: the analyst who added it, or an admin - nobody else.
+    $plain = array_map('intval', $conn->query("SELECT id FROM analysts WHERE is_active = 1 AND is_admin = 0 ORDER BY id LIMIT 2")->fetchAll(PDO::FETCH_COLUMN));
+    if (count($plain) === 2) {
+        [$a, $b] = $plain;
+        $mineA = NetworkIconService::addUpload($conn, new ActorContext($a, null, 'ui', 'en', 'ZZ tester'), $dot, 'ZZ A.png');
+        $upIds[] = $mineA['id'];
+        $can = fn(int $who) => (array_values(array_filter(NetworkIconService::paletteIcons($conn, $who), fn($i) => $i['id'] === $mineA['id']))[0]['can_delete'] ?? null);
+        check('the palette offers the cross to the uploader and an admin, not to a colleague', $can($a) === true && $can((int)$ctx->actorId) === true && $can($b) === false);
+        $removes = function (int $iconId, int $who) use ($conn) {
+            try { NetworkIconService::deleteUpload($conn, $iconId, $who); return true; } catch (ServiceError $e) { return false; }
+        };
+        check("a colleague cannot remove someone else's picture", !$removes($mineA['id'], $b) && !$removes($big['id'], $b));
+        check('...the uploader can', $removes($mineA['id'], $a));
+        $upIds = array_values(array_diff($upIds, [$mineA['id']]));
+    }
+    $myLib = (int)$conn->query("SELECT id FROM network_icon_libraries WHERE slug = 'my-images'")->fetchColumn();
+    check('My images cannot be removed as a whole set', (function () use ($conn, $myLib) {
+        try { NetworkIconService::deleteLibrary($conn, $myLib); return false; } catch (ServiceError $e) { return true; }
+    })());
+
+    NetworkIconService::deleteUpload($conn, $ic['id'], (int)$ctx->actorId);   // an admin (and here the uploader)
+    $upIds = array_values(array_diff($upIds, [$ic['id']]));   // TRAP: not [] - the 1 MB picture must still be cleaned up
     check('removing the picture keeps the shape, with no picture', $conn->query("SELECT icon_id FROM network_diagram_shapes WHERE diagram_id = $d3")->fetchColumn() === null);
 } catch (Throwable $e) {
     check('no unexpected error (My images)', false, $e->getMessage());

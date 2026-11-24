@@ -8977,6 +8977,9 @@ CREATE TABLE IF NOT EXISTS `network_icon_library_icons` (
     `data`        MEDIUMBLOB NOT NULL,
     `w`           INT NOT NULL DEFAULT 64,
     `h`           INT NOT NULL DEFAULT 64,
+    -- GH #433: who added a My images picture (NULL for imported sets). Only they, or an
+    -- admin, may remove it from the shared group.
+    `uploaded_by_analyst_id` INT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_net_icon_lib_sort` (`library_id`, `sort`),
     CONSTRAINT `fk_net_icon_lib` FOREIGN KEY (`library_id`) REFERENCES `network_icon_libraries` (`id`) ON DELETE CASCADE

@@ -330,6 +330,7 @@ function analystReferenceRegistry(): array {
         ['project_cmdb_objects', 'created_by_analyst_id', 'history'],
         ['project_knowledge_articles', 'created_by_analyst_id', 'history'],
         ['network_diagram_articles', 'created_by_analyst_id', 'history'],   // GH #433
+        ['network_icon_library_icons', 'uploaded_by_analyst_id', 'history'],   // GH #433: a leaver's My images picture stays; an admin can remove it
         ['project_problems', 'created_by_analyst_id', 'history'],
         ['project_members', 'created_by_analyst_id', 'history'],
         ['project_raid', 'escalated_by_id', 'history'],

@@ -6039,6 +6039,7 @@ return [
         'data'        => 'MEDIUMBLOB NOT NULL',
         'w'           => 'INT NOT NULL DEFAULT 64',
         'h'           => 'INT NOT NULL DEFAULT 64',
+        'uploaded_by_analyst_id' => 'INT NULL',   // GH #433: who added a My images picture
     ],
 
     // Search corpus — one row per searchable unit (ticket subject, email body,

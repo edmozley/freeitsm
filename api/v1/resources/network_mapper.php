@@ -55,7 +55,7 @@
  */
 
 const API_NM_NODE_SIZES_PX = ['small' => 40, 'medium' => 56, 'large' => 80];
-const API_NM_LINE_STYLES   = ['solid', 'dashed'];
+const API_NM_LINE_STYLES   = ['solid', 'dashed', 'dotted'];
 
 // Diagram-level WRITES (create/save/delete/version) are delegated to
 // NetworkMapperService. The incremental node/connector endpoints below are
@@ -231,6 +231,16 @@ function apiSerializeNmNode(array $n): array {
         'size_px'       => API_NM_NODE_SIZES_PX[$n['size']] ?? API_NM_NODE_SIZES_PX['medium'],
         'icon'          => $n['icon_override'] ?: ($n['class_icon'] ?: 'box'), // what actually renders
         'icon_override' => $n['icon_override'],
+        // GH #433: the node's own look and place. Sent back unchanged in a full-replace PATCH,
+        // these keep it - leave them out and the node goes back to the plain look on page 0.
+        'colour_override' => $n['colour_override'] ?? null,
+        'w'             => isset($n['w']) ? (int)$n['w'] : null,
+        'h'             => isset($n['h']) ? (int)$n['h'] : null,
+        'style'         => apiNmJson($n['style'] ?? null),
+        'page_key'      => (int)($n['page_key'] ?? 0),
+        'layer_key'     => (int)($n['layer_key'] ?? 0),
+        'group_key'     => $n['group_key'] ?? null,
+        'article_id'    => isset($n['article_id']) ? (int)$n['article_id'] : null,
         'object'        => [
             'id'         => (int)$n['cmdb_object_id'],
             'name'       => $n['object_name'],
@@ -252,10 +262,10 @@ function apiNmConnectorsForDiagram(PDO $conn, int $diagramId): array {
                 tn.cmdb_object_id AS to_object_id,   to2.name AS to_object_name,
                 rt.verb AS rel_verb, rt.inverse_verb AS rel_inverse_verb
          FROM network_diagram_connectors k
-         JOIN network_diagram_nodes fn ON fn.id = k.from_node_id
-         JOIN network_diagram_nodes tn ON tn.id = k.to_node_id
-         JOIN cmdb_objects fo  ON fo.id  = fn.cmdb_object_id
-         JOIN cmdb_objects to2 ON to2.id = tn.cmdb_object_id
+         LEFT JOIN network_diagram_nodes fn ON fn.id = k.from_node_id      -- LEFT: an end can be a shape (GH #433)
+         LEFT JOIN network_diagram_nodes tn ON tn.id = k.to_node_id
+         LEFT JOIN cmdb_objects fo  ON fo.id  = fn.cmdb_object_id
+         LEFT JOIN cmdb_objects to2 ON to2.id = tn.cmdb_object_id
          LEFT JOIN cmdb_object_relationships r ON r.id = k.cmdb_relationship_id
          LEFT JOIN cmdb_relationship_types rt ON rt.id = r.relationship_type_id
          WHERE k.diagram_id = ? ORDER BY k.id"
@@ -273,15 +283,18 @@ function apiNmConnectorsForDiagram(PDO $conn, int $diagramId): array {
 function apiSerializeNmConnector(array $k): array {
     return [
         'id'           => (int)$k['id'],
+        // GH #433: an end is a node (node_id, object_*) or a shape (shape_uid) - the others are null.
         'from'         => [
-            'node_id'     => (int)$k['from_node_id'],
-            'object_id'   => (int)$k['from_object_id'],
+            'node_id'     => $k['from_node_id'] === null ? null : (int)$k['from_node_id'],
+            'object_id'   => $k['from_object_id'] === null ? null : (int)$k['from_object_id'],
             'object_name' => $k['from_object_name'],
+            'shape_uid'   => $k['from_shape_uid'] ?? null,
         ],
         'to'           => [
-            'node_id'     => (int)$k['to_node_id'],
-            'object_id'   => (int)$k['to_object_id'],
+            'node_id'     => $k['to_node_id'] === null ? null : (int)$k['to_node_id'],
+            'object_id'   => $k['to_object_id'] === null ? null : (int)$k['to_object_id'],
             'object_name' => $k['to_object_name'],
+            'shape_uid'   => $k['to_shape_uid'] ?? null,
         ],
         'relationship' => $k['cmdb_relationship_id'] === null ? null : [
             'id'           => (int)$k['cmdb_relationship_id'],
@@ -290,7 +303,60 @@ function apiSerializeNmConnector(array $k): array {
         ],
         'label'        => $k['label'],
         'line_style'   => $k['line_style'] ?: 'solid',
+        'style'        => apiNmJson($k['style'] ?? null),
     ];
+}
+
+/** A stored style JSON column as an object for the API, or null. */
+function apiNmJson(?string $json): ?array {
+    if ($json === null || $json === '') return null;
+    $v = json_decode($json, true);
+    return is_array($v) ? $v : null;
+}
+
+/**
+ * GH #433: everything on a diagram that is not a node or a connector - freestanding shapes,
+ * the page tabs and their layers, and the Knowledge articles related to the whole diagram.
+ * Each list uses the same field names a full-replace PATCH accepts, so a client that reads a
+ * diagram and writes it back keeps them. Article ids only: a title is subject to Knowledge's
+ * own visibility rules, which an API key is not judged against here.
+ *
+ * @param int $diagramId  the network_diagrams id
+ */
+function apiNmExtrasForDiagram(PDO $conn, int $diagramId): array {
+    $q = function (string $sql) use ($conn, $diagramId): array {
+        try {
+            $st = $conn->prepare($sql);
+            $st->execute([$diagramId]);
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];   // an install that has not run DB Verify since GH #433
+        }
+    };
+    $shapes = array_map(fn($s) => [
+        'uid'        => $s['uid'],
+        'shape_type' => $s['shape_type'],
+        'x'          => (int)$s['x'], 'y' => (int)$s['y'], 'w' => (int)$s['w'], 'h' => (int)$s['h'],
+        'rotation'   => (int)$s['rotation'],
+        'text'       => $s['text'],
+        'style'      => apiNmJson($s['style']),
+        'layer'      => $s['layer'],
+        'z'          => (int)$s['z'],
+        'icon_id'    => $s['icon_id'] === null ? null : (int)$s['icon_id'],
+        'page_key'   => (int)$s['page_key'],
+        'layer_key'  => (int)$s['layer_key'],
+        'group_key'  => $s['group_key'],
+        'article_id' => $s['article_id'] === null ? null : (int)$s['article_id'],
+    ], $q("SELECT * FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY z, id"));
+    $pages = array_map(fn($p) => ['page_key' => (int)$p['page_key'], 'name' => $p['name'], 'sort' => (int)$p['sort']],
+        $q("SELECT page_key, name, sort FROM network_diagram_pages WHERE diagram_id = ? ORDER BY sort, page_key"));
+    $layers = array_map(fn($l) => [
+        'page_key' => (int)$l['page_key'], 'layer_key' => (int)$l['layer_key'], 'name' => $l['name'],
+        'sort' => (int)$l['sort'], 'visible' => (bool)$l['visible'], 'locked' => (bool)$l['locked'],
+    ], $q("SELECT * FROM network_diagram_layers WHERE diagram_id = ? ORDER BY page_key, sort, layer_key"));
+    $articles = array_map(fn($a) => (int)$a['article_id'],
+        $q("SELECT article_id FROM network_diagram_articles WHERE diagram_id = ? ORDER BY id"));
+    return ['shapes' => $shapes, 'pages' => $pages, 'layers' => $layers, 'related_article_ids' => $articles];
 }
 
 /**
@@ -402,6 +468,24 @@ function apiNmResolveEndpoint(PDO $conn, int $diagramId, array $body, string $pr
         return (int)$nodeIds[0];
     }
     apiError(422, 'missing_field', "Connector needs '{$prefix}_node_id' or '{$prefix}_object_id'.");
+}
+
+/**
+ * GH #433: a connector end given as a shape - {prefix}_shape_uid - which must be a shape on
+ * this diagram. Returns the uid, or null when the caller did not name a shape for this end.
+ *
+ * @param int $diagramId  the network_diagrams id the shape must be on
+ * @param string $prefix  'from' or 'to'
+ */
+function apiNmResolveShapeEnd(PDO $conn, int $diagramId, array $body, string $prefix): ?string {
+    $uid = isset($body["{$prefix}_shape_uid"]) ? trim((string)$body["{$prefix}_shape_uid"]) : '';
+    if ($uid === '') return null;
+    $st = $conn->prepare("SELECT 1 FROM network_diagram_shapes WHERE diagram_id = ? AND uid = ?");
+    $st->execute([$diagramId, $uid]);
+    if (!$st->fetchColumn()) {
+        apiError(422, 'invalid_field', "'{$prefix}_shape_uid' \"{$uid}\" is not a shape on this diagram.");
+    }
+    return $uid;
 }
 
 /**
@@ -577,17 +661,20 @@ function apiNmDiagramsGet(PDO $conn, array $apiKey, array $params, array $body):
 
     $out['nodes']      = $nodes;
     $out['connectors'] = apiNmConnectorsForDiagram($conn, $params[0]);
+    $out += apiNmExtrasForDiagram($conn, (int)$params[0]);   // GH #433
 
     // Layout metadata so an agent can reason about the canvas: raw x/y are
     // the node's top-left; add each size class's pixel footprint.
     $bounds = null;
-    foreach ($nodes as $n) {
-        $px = $n['size_px'];
+    // GH #433: a resized node's box is w x h; shapes count towards the canvas too.
+    $boxes = array_map(fn($n) => [$n['x'], $n['y'], $n['w'] ?? $n['size_px'], $n['h'] ?? $n['size_px']], $nodes);
+    foreach ($out['shapes'] as $s) $boxes[] = [$s['x'], $s['y'], $s['w'], $s['h']];
+    foreach ($boxes as [$bx, $by, $bw, $bh]) {
         $bounds = [
-            'min_x' => min($bounds['min_x'] ?? $n['x'], $n['x']),
-            'min_y' => min($bounds['min_y'] ?? $n['y'], $n['y']),
-            'max_x' => max($bounds['max_x'] ?? $n['x'] + $px, $n['x'] + $px),
-            'max_y' => max($bounds['max_y'] ?? $n['y'] + $px, $n['y'] + $px),
+            'min_x' => min($bounds['min_x'] ?? $bx, $bx),
+            'min_y' => min($bounds['min_y'] ?? $by, $by),
+            'max_x' => max($bounds['max_x'] ?? $bx + $bw, $bx + $bw),
+            'max_y' => max($bounds['max_y'] ?? $by + $bh, $by + $bh),
         ];
     }
     $out['layout'] = [
@@ -676,6 +763,7 @@ function apiNmRespondFull(PDO $conn, int $diagramId, int $status = 200): void {
     $stmt->execute([$diagramId]);
     $out['nodes']      = array_map('apiSerializeNmNode', $stmt->fetchAll(PDO::FETCH_ASSOC));
     $out['connectors'] = apiNmConnectorsForDiagram($conn, $diagramId);
+    $out += apiNmExtrasForDiagram($conn, $diagramId);   // GH #433
     apiRespond($out, $status);
 }
 
@@ -897,12 +985,35 @@ function apiNmNodesUpdate(PDO $conn, array $apiKey, array $params, array $body):
             : apiNmValidateIcon($conn, trim((string)$body['icon_override']));
     }
 
-    $conn->prepare("UPDATE network_diagram_nodes SET x = ?, y = ?, size = ?, icon_override = ? WHERE id = ?")
+    // GH #433: colour, box size, style, page / layer / group - each only when sent; null clears.
+    $colour = $node['colour_override'];
+    if (array_key_exists('colour_override', $body)) {
+        $colour = trim((string)($body['colour_override'] ?? '')) === '' ? null : strtolower(trim((string)$body['colour_override']));
+        if ($colour !== null && !preg_match('/^#[0-9a-f]{6}$/', $colour)) {
+            apiError(422, 'invalid_field', "'colour_override' must be a colour like #2563eb, or null.");
+        }
+    }
+    $dim = function (string $k) use ($body, $node): ?int {
+        if (!array_key_exists($k, $body)) return $node[$k] === null ? null : (int)$node[$k];
+        if ($body[$k] === null || $body[$k] === '') return null;
+        $v = (int)$body[$k];
+        if ($v < 20 || $v > 2000) apiError(422, 'invalid_field', "'{$k}' must be between 20 and 2000, or null.");
+        return $v;
+    };
+    $w = $dim('w');
+    $h = $dim('h');
+    $style = array_key_exists('style', $body) ? NetworkMapperService::sanitiseStyle($body['style']) : $node['style'];
+    $pageKey  = array_key_exists('page_key', $body)  ? NetworkMapperService::keyOf($body['page_key'])  : (int)$node['page_key'];
+    $layerKey = array_key_exists('layer_key', $body) ? NetworkMapperService::keyOf($body['layer_key']) : (int)$node['layer_key'];
+    $groupKey = array_key_exists('group_key', $body) ? NetworkMapperService::groupOf($body['group_key']) : $node['group_key'];
+
+    $conn->prepare("UPDATE network_diagram_nodes SET x = ?, y = ?, size = ?, icon_override = ?, colour_override = ?, w = ?, h = ?, style = ?, page_key = ?, layer_key = ?, group_key = ? WHERE id = ?")
          ->execute([
              array_key_exists('x', $body) ? (int)$body['x'] : (int)$node['x'],
              array_key_exists('y', $body) ? (int)$body['y'] : (int)$node['y'],
              $size,
              $icon,
+             $colour, $w, $h, $style, $pageKey, $layerKey, $groupKey,
              $params[1],
          ]);
     $conn->prepare("UPDATE network_diagrams SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$params[0]]);
@@ -944,12 +1055,15 @@ function apiNmConnectorsCreate(PDO $conn, array $apiKey, array $params, array $b
     $diagram = apiNmLoadDiagram($conn, $params[0]);
     apiNmRequireLeaf($diagram);
 
-    $fromId = apiNmResolveEndpoint($conn, $params[0], $body, 'from');
-    $toId   = apiNmResolveEndpoint($conn, $params[0], $body, 'to');
-    if ($fromId === $toId) {
-        apiError(422, 'invalid_field', 'Cannot connect a node to itself.');
+    // GH #433: either end may be a shape, named by its uid (from_shape_uid / to_shape_uid).
+    $fromUid = apiNmResolveShapeEnd($conn, $params[0], $body, 'from');
+    $toUid   = apiNmResolveShapeEnd($conn, $params[0], $body, 'to');
+    $fromId = $fromUid === null ? apiNmResolveEndpoint($conn, $params[0], $body, 'from') : null;
+    $toId   = $toUid === null ? apiNmResolveEndpoint($conn, $params[0], $body, 'to') : null;
+    if (($fromId !== null && $fromId === $toId) || ($fromUid !== null && $fromUid === $toUid)) {
+        apiError(422, 'invalid_field', 'Cannot connect something to itself.');
     }
-    if (empty($body['allow_duplicate'])) {
+    if (empty($body['allow_duplicate']) && $fromId !== null && $toId !== null) {
         $dup = $conn->prepare(
             "SELECT id FROM network_diagram_connectors
              WHERE diagram_id = ? AND ((from_node_id = ? AND to_node_id = ?) OR (from_node_id = ? AND to_node_id = ?))"
@@ -960,14 +1074,17 @@ function apiNmConnectorsCreate(PDO $conn, array $apiKey, array $params, array $b
             apiError(409, 'conflict', "These nodes are already connected (connector {$existing}). Pass allow_duplicate=true to add another.");
         }
     }
-    $relId = apiNmResolveRelationshipId($conn, $body['cmdb_relationship_id'] ?? null, $fromId, $toId);
+    // A CMDB relationship only ever stands between two nodes.
+    $relId = ($fromId !== null && $toId !== null)
+        ? apiNmResolveRelationshipId($conn, $body['cmdb_relationship_id'] ?? null, $fromId, $toId) : null;
 
     $conn->prepare(
-        "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, cmdb_relationship_id, label, line_style) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, from_shape_uid, to_shape_uid, cmdb_relationship_id, label, line_style, style) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )->execute([
-        $params[0], $fromId, $toId, $relId,
+        $params[0], $fromId, $toId, $fromUid, $toUid, $relId,
         ($v = trim((string)($body['label'] ?? ''))) !== '' ? substr($v, 0, 255) : null,
         apiNmValidateLineStyle(trim((string)($body['line_style'] ?? 'solid')) ?: 'solid'),
+        NetworkMapperService::sanitiseConnectorStyle($body['style'] ?? null),
     ]);
     $newId = (int)$conn->lastInsertId();
     $conn->prepare("UPDATE network_diagrams SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$params[0]]);
@@ -985,14 +1102,18 @@ function apiNmConnectorsUpdate(PDO $conn, array $apiKey, array $params, array $b
     }
 
     $relId = $connector['cmdb_relationship_id'] !== null ? (int)$connector['cmdb_relationship_id'] : null;
-    if (array_key_exists('cmdb_relationship_id', $body)) {
+    if (array_key_exists('cmdb_relationship_id', $body) && ($connector['from_node_id'] === null || $connector['to_node_id'] === null)) {
+        if ($body['cmdb_relationship_id'] !== null && $body['cmdb_relationship_id'] !== '') {
+            apiError(422, 'invalid_field', 'A connector that ends on a shape cannot stand for a CMDB relationship.');
+        }
+    } elseif (array_key_exists('cmdb_relationship_id', $body)) {
         $relId = apiNmResolveRelationshipId(
             $conn, $body['cmdb_relationship_id'],
             (int)$connector['from_node_id'], (int)$connector['to_node_id']
         );
     }
 
-    $conn->prepare("UPDATE network_diagram_connectors SET cmdb_relationship_id = ?, label = ?, line_style = ? WHERE id = ?")
+    $conn->prepare("UPDATE network_diagram_connectors SET cmdb_relationship_id = ?, label = ?, line_style = ?, style = ? WHERE id = ?")
          ->execute([
              $relId,
              array_key_exists('label', $body)
@@ -1001,6 +1122,7 @@ function apiNmConnectorsUpdate(PDO $conn, array $apiKey, array $params, array $b
              array_key_exists('line_style', $body)
                  ? apiNmValidateLineStyle(trim((string)$body['line_style']) ?: 'solid')
                  : ($connector['line_style'] ?: 'solid'),
+             array_key_exists('style', $body) ? NetworkMapperService::sanitiseConnectorStyle($body['style']) : $connector['style'],
              $params[1],
          ]);
     $conn->prepare("UPDATE network_diagrams SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$params[0]]);
