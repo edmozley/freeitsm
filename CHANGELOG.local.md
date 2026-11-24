@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3151 | Network Mapper    | Improvement | The diagram title moved from the toolbar to the row below it, beside the version and author, so it is no longer cut to "Impact: ..." - and on a laptop narrower than about 1300px the toolbar buttons wrap onto a second line instead of pushing Save off the screen (GH #433). |
 | 3150 | Watchtower        | Improvement | Browser extension 1.1.0: asks for access to your own FreeITSM server only, when you press Save or Test in its settings, instead of every website at install - ready for the Chrome Web Store - and warns when the server address is not https. |
 | 3149 | System            | Fix         | Photo Album: EGA and CGA looked grey on a webcam picture, because each character took the nearest of a few strong colours and muted photo colours are nearest the greys - with Dithering on, colours are now dithered as the real cards did, so skin, walls and clothes show in colour. |
 | 3148 | Files             | Feature     | The viewer steps through several files: previous / next and the arrow keys through the folder, Enter or Open on a selection opens it in one viewer, Open separately gives a window each (up to 10, or by default through Personalise -> Opening several files), and a Slideshow plays the pictures once - every step a real, audited open; strings in 22 languages (GH #424). |

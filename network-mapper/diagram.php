@@ -74,7 +74,9 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             align-items: center;
             gap: 12px;
             min-width: 0;
-            flex: 1;
+            /* GH #433: only the Back link lives here now (the title moved to the row below), so it must
+               not shrink - with flex: 1 + min-width: 0 it collapsed under the Autosave switch. */
+            flex: 0 0 auto;
         }
         .nm-back-btn {
             background: transparent;
@@ -116,7 +118,12 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             display: flex;
             gap: 10px;
             align-items: center;
-            flex-shrink: 0;
+            /* GH #433: on a laptop narrower than ~1300px the buttons ran off the right edge and Save
+               was lost. They wrap onto a second line instead, still right-aligned. */
+            flex: 1 1 auto;
+            min-width: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         /* ---- Autosave toggle ---- */
@@ -259,7 +266,15 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             background: var(--surface-2, #fafbfc);
             border-bottom: 1px solid var(--border, #e5e7eb);
             display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nm-meta-row .nm-editor-title { min-width: 0; flex: 0 1 auto; }
+        .nm-meta-details {
+            display: flex;
             gap: 18px;
+            margin-left: auto;
+            flex-shrink: 0;
         }
         .nm-meta-row strong { color: var(--text-muted, #374151); font-weight: 500; }
 
@@ -1399,8 +1414,6 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         <div class="nm-editor-bar">
             <div class="nm-editor-title-area">
                 <a class="nm-back-btn" href="index.php"><?php echo htmlspecialchars(t('network-mapper.editor.back')); ?></a>
-                <h1 class="nm-editor-title" id="diagramTitle"><?php echo htmlspecialchars(t('network-mapper.editor.loading')); ?></h1>
-                <span class="nm-version-pill" id="versionPill" style="display:none;"></span>
             </div>
             <div class="nm-editor-actions">
                 <div class="nm-autosave-wrap" id="autosaveWrap">
@@ -1443,10 +1456,16 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             </div>
         </div>
 
-        <div class="nm-meta-row" id="metaRow" style="display:none;">
-            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_author')); ?></strong> <span id="metaAuthor">&mdash;</span></span>
-            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_created')); ?></strong> <span id="metaCreated">&mdash;</span></span>
-            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_updated')); ?></strong> <span id="metaUpdated">&mdash;</span></span>
+        <?php /* GH #433: the title lives on this row, not in the toolbar - with every action button
+                 up there it was squeezed to "Impact: ..." on a normal laptop screen. */ ?>
+        <div class="nm-meta-row">
+            <h1 class="nm-editor-title" id="diagramTitle"><?php echo htmlspecialchars(t('network-mapper.editor.loading')); ?></h1>
+            <span class="nm-version-pill" id="versionPill" style="display:none;"></span>
+            <span class="nm-meta-details" id="metaRow" style="display:none;">
+                <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_author')); ?></strong> <span id="metaAuthor">&mdash;</span></span>
+                <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_created')); ?></strong> <span id="metaCreated">&mdash;</span></span>
+                <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_updated')); ?></strong> <span id="metaUpdated">&mdash;</span></span>
+            </span>
         </div>
 
         <div class="nm-readonly-banner" id="readonlyBanner" style="display:none;">
