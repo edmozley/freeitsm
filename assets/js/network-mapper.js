@@ -297,6 +297,8 @@
                 selectNode(null);
                 selectConnector(null);
                 selectShape(null);   // GH #433
+                if (!e.shiftKey) clearMulti();
+                if (!isPresenting()) startBand(e);   // drag on empty space selects an area
             }
         });
 
@@ -324,6 +326,20 @@
             if (document.activeElement && document.activeElement.isContentEditable) return;
             // Don't fire if a modal is open (search inputs inside the picker etc.)
             if (document.querySelector('.nm-modal-overlay.active')) return;
+            // GH #433: the multi-selection, grouping, copy / paste
+            const mod = e.ctrlKey || e.metaKey;
+            if (e.key === 'Escape' && (multi.size || selectedShapeKey != null)) { clearSelection(); return; }
+            if (mod && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); selectAllOnPage(); return; }
+            if (mod && (e.key === 'c' || e.key === 'C') && !(window.getSelection() && String(window.getSelection()))) { if (copySelection()) e.preventDefault(); return; }
+            if (mod && (e.key === 'v' || e.key === 'V')) { if (pasteClipboard()) e.preventDefault(); return; }
+            if (mod && (e.key === 'g' || e.key === 'G')) { e.preventDefault(); if (e.shiftKey) ungroupSelection(); else groupSelection(); return; }
+            if (multi.size && canEdit() && e.key.indexOf('Arrow') === 0) {
+                e.preventDefault();
+                const st = e.shiftKey ? 10 : 1;
+                nudgeSelection(e.key === 'ArrowLeft' ? -st : e.key === 'ArrowRight' ? st : 0, e.key === 'ArrowUp' ? -st : e.key === 'ArrowDown' ? st : 0);
+                return;
+            }
+            if (multi.size && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); deleteSelection(); return; }
             // GH #433: arrow keys nudge the selected shape (Shift = 10px)
             if (selectedShapeKey != null && canEdit() && e.key.indexOf('Arrow') === 0) {
                 const sh = findShapeByKey(selectedShapeKey);
@@ -795,6 +811,7 @@
         el.style.width = sizePx + 'px';
         el.dataset.key = nodeKey(n);
         if (itemLocked(n)) el.classList.add('is-locked');   // GH #433: on a locked layer
+        if (multi.has('n:' + nodeKey(n))) el.classList.add('in-multi');
         if (hasBoxSize(n)) {
             // GH #433: its own box - the label gets the full width and is no longer cut to two lines.
             el.classList.add('has-size');
@@ -980,6 +997,7 @@
      * panel to match.
      */
     function selectNode(key) {
+        if (key != null && multi.size) { multi = new Set(); applyMultiClasses(); }   // GH #433
         if (selectedNodeKey === key) return;
         if (key != null && selectedShapeKey != null) selectShape(null);   // GH #433
         selectedNodeKey = key;
@@ -1007,6 +1025,7 @@
         const key = e.currentTarget.dataset.key;
         const n = findNodeByKey(key);
         if (!n) return;
+        if (multiMouseDown(e, 'n', n)) return;   // GH #433: Shift-click, the selection, a group
         selectNode(key);
         if (!diagram || !diagram.is_current) return; // read-only: select but no drag
 
@@ -2011,6 +2030,7 @@
         visibleShapes().sort((a, b) => (layerRank(a) - layerRank(b)) || ((a.z || 0) - (b.z || 0)))
             .forEach(s => elCanvasInner.insertBefore(buildShapeEl(s), first || null));
         updateCanvasEmpty();
+        drawGroupOutlines();
     }
 
     /** Swaps one shape's element for a freshly built one. */
@@ -2032,6 +2052,7 @@
         el.className = 'nm-shape' + (s.layer === 'front' ? ' is-front' : '') + (key === selectedShapeKey ? ' selected' : '');
         el.dataset.key = key;
         if (itemLocked(s)) el.classList.add('is-locked');   // GH #433
+        if (multi.has('s:' + key)) el.classList.add('in-multi');
         el.style.left = s.x + 'px';
         el.style.top = s.y + 'px';
         el.style.width = s.w + 'px';
@@ -2077,6 +2098,7 @@
 
     /** Selects a shape (null clears) - clears any node or connector selection - and opens the Format panel. */
     function selectShape(key) {
+        if (key != null && multi.size) { multi = new Set(); applyMultiClasses(); }   // GH #433
         if (shapeEditKey && shapeEditKey !== key) {
             const ed = elCanvasInner.querySelector('.nm-shape-text-inner[contenteditable="true"]');
             if (ed) ed.blur();
@@ -2102,6 +2124,7 @@
         e.stopPropagation();
         const s = findShapeByKey(key);
         if (!s) return;
+        if (multiMouseDown(e, 's', s)) return;   // GH #433
         if (selectedShapeKey !== key) selectShape(key);
         if (!canEdit()) return;
         const c = canvasModelCoords(e);
@@ -2876,6 +2899,7 @@
         selectNode(null);
         selectConnector(null);
         selectShape(null);
+        clearMulti();
     }
 
     function switchPage(pk) {
@@ -3203,6 +3227,404 @@
             renderShapes();
             renderLayersPanel();
             if (after) after();
+        });
+    }
+
+    // =========================================================
+    //  Multi-select, grouping, align / distribute, copy / paste (GH #433)
+    //  multi holds 'n:<nodeKey>' / 's:<shapeKey>'. Two or more = the Selection
+    //  panel; one is handed back to the ordinary single selection. Items with
+    //  the same group_key on a page select and move together (Alt+click picks
+    //  one out).
+    // =========================================================
+    let multi = new Set();
+    let multiDrag = null;        // { start, items: [{it, kind, x0, y0}], moved }
+    let band = null;             // rubber band { x0, y0, el, add }
+    let clipboard = null;        // { nodes, shapes, connectors } copied with Ctrl+C
+
+    const mkN = n => 'n:' + nodeKey(n);
+    const mkS = s => 's:' + shapeKey(s);
+    function multiItems() {
+        const out = [];
+        multi.forEach(k => {
+            if (k.indexOf('n:') === 0) { const n = findNodeByKey(k.slice(2)); if (n) out.push({ kind: 'n', it: n }); }
+            else { const s = findShapeByKey(k.slice(2)); if (s) out.push({ kind: 's', it: s }); }
+        });
+        return out;
+    }
+    /** The members of an item's group on this page (visible, unlocked) - or just the item. */
+    function groupOf(kind, it) {
+        if (!it.group_key) return [{ kind, it }];
+        return visibleNodes().filter(n => n.group_key === it.group_key && !itemLocked(n)).map(n => ({ kind: 'n', it: n }))
+            .concat(visibleShapes().filter(s => s.group_key === it.group_key && !itemLocked(s)).map(s => ({ kind: 's', it: s })));
+    }
+
+    /** Replaces the selection with these items: one = the ordinary selection, two or more = multi. */
+    function setSelection(list) {
+        const keys = new Set(list.map(x => x.kind === 'n' ? mkN(x.it) : mkS(x.it)));
+        if (keys.size < 2) {
+            multi = new Set();
+            applyMultiClasses();
+            const only = list[0];
+            if (!only) { selectNode(null); selectShape(null); selectConnector(null); closeShapePanel(); return; }
+            if (only.kind === 'n') selectNode(nodeKey(only.it)); else selectShape(shapeKey(only.it));
+            return;
+        }
+        selectNode(null);
+        selectConnector(null);
+        if (selectedShapeKey != null) { const p = findShapeByKey(selectedShapeKey); selectedShapeKey = null; if (p) rerenderShape(p); }
+        multi = keys;
+        applyMultiClasses();
+        renderMultiPanel();
+    }
+    function clearMulti() { if (multi.size) { multi = new Set(); applyMultiClasses(); closeShapePanel(); } }
+
+    /** Marks the multi-selected items on the canvas without rebuilding them. */
+    function applyMultiClasses() {
+        if (!elCanvasInner) return;
+        elCanvasInner.querySelectorAll('.nm-node').forEach(el => el.classList.toggle('in-multi', multi.has('n:' + el.dataset.key)));
+        elCanvasInner.querySelectorAll('.nm-shape').forEach(el => el.classList.toggle('in-multi', multi.has('s:' + el.dataset.key)));
+        drawGroupOutlines();
+    }
+
+    /** A dashed box round each group that is part of the selection. */
+    function drawGroupOutlines() {
+        elCanvasInner.querySelectorAll('.nm-group-outline').forEach(el => el.remove());
+        const groups = {};
+        multiItems().forEach(x => { if (x.it.group_key) (groups[x.it.group_key] = groups[x.it.group_key] || []).push(x); });
+        if (selectedShapeKey != null) { const s = findShapeByKey(selectedShapeKey); if (s && s.group_key) groups[s.group_key] = groups[s.group_key] || []; }
+        Object.keys(groups).forEach(g => {
+            const b = boundsOf(groupOf('s', { group_key: g }));
+            if (!b) return;
+            const o = document.createElement('div');
+            o.className = 'nm-group-outline';
+            o.style.left = (b.x - 8) + 'px'; o.style.top = (b.y - 8) + 'px';
+            o.style.width = (b.w + 16) + 'px'; o.style.height = (b.h + 16) + 'px';
+            elCanvasInner.appendChild(o);
+        });
+    }
+
+    /** An item's box in model px. */
+    function boxOf(x) {
+        if (x.kind === 's') return { x: x.it.x, y: x.it.y, w: x.it.w, h: x.it.h };
+        const e = nodeExtent(x.it);
+        return { x: x.it.x, y: x.it.y, w: e.w, h: e.h };
+    }
+    function boundsOf(list) {
+        if (!list.length) return null;
+        let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+        list.forEach(x => { const b = boxOf(x); x1 = Math.min(x1, b.x); y1 = Math.min(y1, b.y); x2 = Math.max(x2, b.x + b.w); y2 = Math.max(y2, b.y + b.h); });
+        return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+    }
+
+    /**
+     * Mousedown on a node or shape, before its own handler: Shift / Ctrl toggles it in the
+     * selection; a click on a selected item (or a grouped one) starts moving the whole selection.
+     * Returns true when it has handled the event.
+     */
+    function multiMouseDown(e, kind, it) {
+        if (e.button !== 0) return false;
+        const key = kind === 'n' ? mkN(it) : mkS(it);
+        if (e.shiftKey || e.ctrlKey || e.metaKey) {
+            e.stopPropagation();
+            e.preventDefault();
+            let cur = multi.size ? multiItems() : [];
+            if (!cur.length) {
+                if (selectedNodeKey != null) { const n = findNodeByKey(selectedNodeKey); if (n) cur.push({ kind: 'n', it: n }); }
+                if (selectedShapeKey != null) { const s = findShapeByKey(selectedShapeKey); if (s) cur.push({ kind: 's', it: s }); }
+            }
+            const members = e.altKey ? [{ kind, it }] : groupOf(kind, it);
+            const has = cur.some(x => (x.kind === 'n' ? mkN(x.it) : mkS(x.it)) === key);
+            const mk = x => x.kind === 'n' ? mkN(x.it) : mkS(x.it);
+            const memberKeys = new Set(members.map(mk));
+            cur = has ? cur.filter(x => !memberKeys.has(mk(x))) : cur.concat(members.filter(m => !cur.some(x => mk(x) === mk(m))));
+            setSelection(cur);
+            return true;
+        }
+        let sel = null;
+        if (multi.has(key)) sel = multiItems();
+        else if (it.group_key && !e.altKey) {
+            const g = groupOf(kind, it);
+            if (g.length > 1) { setSelection(g); sel = g; }
+        }
+        if (!sel) { if (multi.size) clearMulti(); return false; }
+        e.stopPropagation();
+        e.preventDefault();
+        if (!canEdit()) return true;
+        multiDrag = { start: canvasModelCoords(e), items: sel.map(x => ({ kind: x.kind, it: x.it, x0: x.it.x, y0: x.it.y })), moved: false };
+        document.addEventListener('mousemove', onMultiDragMove);
+        document.addEventListener('mouseup', onMultiDragUp);
+        return true;
+    }
+    function onMultiDragMove(e) {
+        if (!multiDrag) return;
+        const c = canvasModelCoords(e);
+        const dx = snapS(c.x - multiDrag.start.x), dy = snapS(c.y - multiDrag.start.y);
+        if (!multiDrag.moved && !dx && !dy) return;
+        multiDrag.moved = true;
+        multiDrag.items.forEach(m => {
+            m.it.x = Math.max(0, m.x0 + dx);
+            m.it.y = Math.max(0, m.y0 + dy);
+            const sel = m.kind === 'n' ? '.nm-node[data-key="' + cssEscape(nodeKey(m.it)) + '"]' : '.nm-shape[data-key="' + cssEscape(shapeKey(m.it)) + '"]';
+            const el = elCanvasInner.querySelector(sel);
+            if (el) { el.style.left = m.it.x + 'px'; el.style.top = m.it.y + 'px'; }
+        });
+        renderConnectors();
+        drawGroupOutlines();
+    }
+    function onMultiDragUp() {
+        document.removeEventListener('mousemove', onMultiDragMove);
+        document.removeEventListener('mouseup', onMultiDragUp);
+        if (multiDrag && multiDrag.moved) markDirty();
+        multiDrag = null;
+    }
+
+    // ---- rubber band on empty canvas ----
+    function startBand(e) {
+        if (e.button !== 0) return;
+        const c = canvasModelCoords(e);
+        const el = document.createElement('div');
+        el.className = 'nm-band';
+        elCanvasInner.appendChild(el);
+        band = { x0: c.x, y0: c.y, el, add: e.shiftKey, moved: false };
+        document.addEventListener('mousemove', onBandMove);
+        document.addEventListener('mouseup', onBandUp);
+    }
+    function onBandMove(e) {
+        if (!band) return;
+        const c = canvasModelCoords(e);
+        const x = Math.min(band.x0, c.x), y = Math.min(band.y0, c.y), w = Math.abs(c.x - band.x0), h = Math.abs(c.y - band.y0);
+        if (w > 3 || h > 3) band.moved = true;
+        Object.assign(band.el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+        band.rect = { x, y, w, h };
+    }
+    function onBandUp() {
+        document.removeEventListener('mousemove', onBandMove);
+        document.removeEventListener('mouseup', onBandUp);
+        if (!band) return;
+        const b = band;
+        band = null;
+        b.el.remove();
+        if (!b.moved || !b.rect) return;
+        const r = b.rect;
+        const inside = x => { const bx = boxOf(x); return bx.x >= r.x && bx.y >= r.y && bx.x + bx.w <= r.x + r.w && bx.y + bx.h <= r.y + r.h; };
+        let picked = visibleNodes().filter(n => !itemLocked(n)).map(n => ({ kind: 'n', it: n }))
+            .concat(visibleShapes().filter(s => !itemLocked(s)).map(s => ({ kind: 's', it: s }))).filter(inside);
+        // A grouped item brings its whole group.
+        const seen = new Set(), out = [];
+        const mk = x => x.kind === 'n' ? mkN(x.it) : mkS(x.it);
+        picked.forEach(x => groupOf(x.kind, x.it).forEach(m => { if (!seen.has(mk(m))) { seen.add(mk(m)); out.push(m); } }));
+        if (b.add) multiItems().forEach(m => { if (!seen.has(mk(m))) { seen.add(mk(m)); out.push(m); } });
+        setSelection(out);
+    }
+
+    function selectAllOnPage() {
+        setSelection(visibleNodes().filter(n => !itemLocked(n)).map(n => ({ kind: 'n', it: n }))
+            .concat(visibleShapes().filter(s => !itemLocked(s)).map(s => ({ kind: 's', it: s }))));
+    }
+
+    // ---- actions on the selection ----
+    function rerenderAfterMulti() {
+        renderNodes();
+        renderShapes();
+        applyMultiClasses();
+        markDirty();
+    }
+    function alignSelection(how) {
+        const items = multiItems();
+        if (items.length < 2 || !canEdit()) return;
+        const B = boundsOf(items);
+        items.forEach(x => {
+            const b = boxOf(x);
+            if (how === 'left') x.it.x = B.x;
+            if (how === 'centre') x.it.x = Math.round(B.x + B.w / 2 - b.w / 2);
+            if (how === 'right') x.it.x = B.x + B.w - b.w;
+            if (how === 'top') x.it.y = B.y;
+            if (how === 'middle') x.it.y = Math.round(B.y + B.h / 2 - b.h / 2);
+            if (how === 'bottom') x.it.y = B.y + B.h - b.h;
+        });
+        rerenderAfterMulti();
+    }
+    function distributeSelection(axis) {
+        const items = multiItems();
+        if (items.length < 3 || !canEdit()) return;
+        const c = x => { const b = boxOf(x); return axis === 'h' ? b.x + b.w / 2 : b.y + b.h / 2; };
+        items.sort((a, b) => c(a) - c(b));
+        const first = c(items[0]), last = c(items[items.length - 1]), step = (last - first) / (items.length - 1);
+        items.forEach((x, i) => {
+            const b = boxOf(x);
+            if (axis === 'h') x.it.x = Math.round(first + step * i - b.w / 2);
+            else x.it.y = Math.round(first + step * i - b.h / 2);
+        });
+        rerenderAfterMulti();
+    }
+    function groupSelection() {
+        const items = multiItems();
+        if (items.length < 2 || !canEdit()) return;
+        const g = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        items.forEach(x => { x.it.group_key = g; });
+        markDirty();
+        applyMultiClasses();
+        renderMultiPanel();
+    }
+    function ungroupSelection() {
+        const items = multiItems();
+        if (!items.length || !canEdit()) return;
+        items.forEach(x => { x.it.group_key = null; });
+        markDirty();
+        applyMultiClasses();
+        renderMultiPanel();
+    }
+    function deleteSelection() {
+        const items = multiItems();
+        if (!items.length || !canEdit()) return;
+        const gone = new Set(items.filter(x => x.kind === 'n').map(x => nodeRef(x.it)));
+        connectors = connectors.filter(c => !gone.has(c.from_node_id) && !gone.has(c.to_node_id));
+        nodes = nodes.filter(n => !items.some(x => x.it === n));
+        shapes = shapes.filter(s => !items.some(x => x.it === s));
+        multi = new Set();
+        closeShapePanel();
+        renderNodes();
+        renderShapes();
+        applyMultiClasses();
+        markDirty();
+    }
+    function nudgeSelection(dx, dy) {
+        multiItems().forEach(x => { x.it.x = Math.max(0, x.it.x + dx); x.it.y = Math.max(0, x.it.y + dy); });
+        rerenderAfterMulti();
+    }
+    function moveSelectionToLayer(lk) {
+        multiItems().forEach(x => { x.it.layer_key = lk; });
+        rerenderAfterMulti();
+        renderLayersPanel();
+    }
+
+    // ---- copy / paste ----
+    function copySelection() {
+        let items = multiItems();
+        if (!items.length) {
+            if (selectedShapeKey != null) { const s = findShapeByKey(selectedShapeKey); if (s) items = [{ kind: 's', it: s }]; }
+            else if (selectedNodeKey != null) { const n = findNodeByKey(selectedNodeKey); if (n) items = [{ kind: 'n', it: n }]; }
+        }
+        if (!items.length) return false;
+        const ns = items.filter(x => x.kind === 'n').map(x => x.it);
+        const refs = new Set(ns.map(nodeRef));
+        clipboard = {
+            nodes: JSON.parse(JSON.stringify(ns)),
+            shapes: JSON.parse(JSON.stringify(items.filter(x => x.kind === 's').map(x => x.it))),
+            connectors: JSON.parse(JSON.stringify(connectors.filter(c => refs.has(c.from_node_id) && refs.has(c.to_node_id))))
+        };
+        if (window.showToast) showToast(t('network-mapper.select.copied', { count: items.length }), 'success');
+        return true;
+    }
+    /**
+     * Pastes onto the current page and active layer, 20px along when it lands on the page it came
+     * from. A CMDB object is on a page once, so one that is already here is left out.
+     */
+    function pasteClipboard() {
+        if (!clipboard || !canEdit()) return false;
+        const lk = activeLayerKey();
+        const here = new Set(pageNodes().map(n => n.cmdb_object_id));
+        const groupMap = {};
+        const newGroup = g => g ? (groupMap[g] = groupMap[g] || ('g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6))) : null;
+        const fromThisPage = clipboard.nodes.concat(clipboard.shapes).some(x => itemPage(x) === currentPage);
+        const off = fromThisPage ? 20 : 0;
+        const refMap = new Map();
+        const pasted = [];
+        let skipped = 0;
+        clipboard.nodes.forEach(src => {
+            if (here.has(src.cmdb_object_id)) { skipped++; return; }
+            const n = Object.assign(JSON.parse(JSON.stringify(src)), { id: null, tempId: nextTempId--, page_key: currentPage, layer_key: lk,
+                x: src.x + off, y: src.y + off, group_key: newGroup(src.group_key) });
+            refMap.set(nodeRef(src), n.tempId);
+            nodes.push(n);
+            here.add(n.cmdb_object_id);
+            pasted.push({ kind: 'n', it: n });
+        });
+        clipboard.connectors.forEach(c => {
+            if (refMap.has(c.from_node_id) && refMap.has(c.to_node_id)) {
+                connectors.push(Object.assign({}, c, { id: null, _tempKey: nextTempId--, from_node_id: refMap.get(c.from_node_id), to_node_id: refMap.get(c.to_node_id) }));
+            }
+        });
+        const maxZ = shapes.reduce((m, s) => Math.max(m, s.z || 0), 0);
+        clipboard.shapes.forEach((src, i) => {
+            const s = Object.assign(JSON.parse(JSON.stringify(src)), { id: null, tempId: nextTempShapeId--, page_key: currentPage, layer_key: lk,
+                x: src.x + off, y: src.y + off, z: maxZ + 1 + i, group_key: newGroup(src.group_key) });
+            shapes.push(s);
+            pasted.push({ kind: 's', it: s });
+        });
+        // Paste again and it moves along again.
+        clipboard.nodes.forEach(n => { n.x += off; n.y += off; n.page_key = currentPage; });
+        clipboard.shapes.forEach(s => { s.x += off; s.y += off; s.page_key = currentPage; });
+        renderNodes();
+        renderShapes();
+        setSelection(pasted);
+        markDirty();
+        if (skipped && window.showToast) showToast(t('network-mapper.select.skipped', { count: skipped }), 'info');
+        return true;
+    }
+
+    // ---- the Selection panel (in the Format panel's frame) ----
+    function renderMultiPanel() {
+        const items = multiItems();
+        if (items.length < 2 || !elShapePanel) return;
+        closeDetail();
+        elShapePanel.classList.add('open');
+        elShapePanel.setAttribute('aria-hidden', 'false');
+        const ed = canEdit();
+        const dis = ed ? '' : ' disabled';
+        document.getElementById('spIcon').innerHTML = '';
+        document.getElementById('spName').textContent = t('network-mapper.select.title', { count: items.length });
+        const grouped = items.some(x => x.it.group_key);
+        const L = k => escapeHtml(t('network-mapper.select.' + k));
+        const btn = (act, label, extra) => '<button type="button" class="nm-detail-icon-btn" data-act="' + act + '"' + dis + (extra || '') + '>' + label + '</button>';
+        const pageLayersList = pageLayers(currentPage).slice().reverse();
+        let html = '<div class="nm-fmt-section"><div class="nm-fmt-title">' + L('align') + '</div><div class="nm-fmt-btns">'
+            // Some languages use one word for centre and middle: the arrows say which way it aligns.
+            + ['left', 'centre', 'right', 'top', 'middle', 'bottom'].map(a => btn('align-' + a, L('align_' + a) + (a === 'centre' ? ' &#8596;' : a === 'middle' ? ' &#8597;' : ''))).join('') + '</div>'
+            + '<div class="nm-fmt-title">' + L('distribute') + '</div><div class="nm-fmt-btns">'
+            + btn('dist-h', L('dist_h'), items.length < 3 ? ' disabled' : '') + btn('dist-v', L('dist_v'), items.length < 3 ? ' disabled' : '') + '</div>'
+            + '<div class="nm-fmt-btns">' + btn('group', L('group')) + (grouped ? btn('ungroup', L('ungroup')) : '')
+            + btn('copy', L('copy')) + '<button type="button" class="nm-detail-icon-btn nm-fmt-danger" data-act="delete"' + dis + '>' + escapeHtml(t('common.delete')) + '</button></div>'
+            + '<div class="nm-fmt-row"><span>' + escapeHtml(t('network-mapper.layers.field')) + '</span><select class="nm-fmt-select" id="msLayer"' + dis + '>'
+            + '<option value="">-</option>' + pageLayersList.map(l => '<option value="' + l.layer_key + '"' + (l.locked ? ' disabled' : '') + '>' + escapeHtml(l.name) + '</option>').join('') + '</select></div>'
+            + (ed ? '<div class="nm-detail-hint">' + L('hint') + '</div>' : '')
+            + '</div><div id="msStyle"></div>';
+        const body = document.getElementById('spBody');
+        body.innerHTML = html;
+        body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+            const a = b.dataset.act;
+            if (a.indexOf('align-') === 0) alignSelection(a.slice(6));
+            else if (a === 'dist-h') distributeSelection('h');
+            else if (a === 'dist-v') distributeSelection('v');
+            else if (a === 'group') groupSelection();
+            else if (a === 'ungroup') ungroupSelection();
+            else if (a === 'copy') copySelection();
+            else if (a === 'delete') deleteSelection();
+        }));
+        const lay = document.getElementById('msLayer');
+        if (lay) lay.addEventListener('change', () => { if (lay.value !== '') moveSelectionToLayer(+lay.value); });
+        // One style editor for all of them: it starts from the first shape's look (or a node's).
+        const firstShape = items.find(x => x.kind === 's');
+        const shown = firstShape ? window.nmShapeStyle(firstShape.it.shape_type, firstShape.it.style) : Object.assign({}, NODE_STYLE_SHOWN, items[0].it.style || {});
+        renderStyleEditor(document.getElementById('msStyle'), shown, {
+            rounded: true, valign: true, editable: ed,
+            onChange: patch => {
+                if (!canEdit()) return;
+                multiItems().forEach(x => {
+                    if (x.kind === 's') x.it.style = Object.assign({}, window.nmShapeStyle(x.it.shape_type, x.it.style), patch);
+                    else x.it.style = Object.assign({}, x.it.style || {}, patch);
+                });
+                renderNodes();
+                renderShapes();
+                applyMultiClasses();
+                markDirty();
+            },
+            onRebuild: () => renderMultiPanel(),
+            onReset: () => {
+                multiItems().forEach(x => { if (x.kind === 's') x.it.style = window.nmShapeStyle(x.it.shape_type, {}); else x.it.style = null; });
+                renderNodes(); renderShapes(); applyMultiClasses(); markDirty(); renderMultiPanel();
+            }
         });
     }
 
@@ -3916,7 +4338,7 @@
                         w: n.w || null,
                         h: n.h || null,
                         style: n.style || null,                       // GH #433
-                        page_key: itemPage(n), layer_key: itemLayer(n)
+                        page_key: itemPage(n), layer_key: itemLayer(n), group_key: n.group_key || null
                     })),
                     pages: pages.map(p => ({ page_key: p.page_key, name: p.name, sort: p.sort })),
                     layers: layers.map(l => ({ page_key: l.page_key, layer_key: l.layer_key, name: l.name, sort: l.sort, visible: l.visible !== false, locked: !!l.locked })),
@@ -3925,7 +4347,7 @@
                         shape_type: sh.shape_type, x: sh.x, y: sh.y, w: sh.w, h: sh.h,
                         rotation: sh.rotation || 0, text: sh.text || '', style: sh.style || null,
                         layer: sh.layer || 'back', z: sh.z || 0, icon_id: sh.icon_id || null,
-                        page_key: itemPage(sh), layer_key: itemLayer(sh)
+                        page_key: itemPage(sh), layer_key: itemLayer(sh), group_key: sh.group_key || null
                     })),
                     connectors: connectors.map(c => ({
                         from_node_id: c.from_node_id,
@@ -3959,6 +4381,7 @@
                 pages = data2.pages || [];
                 layers = data2.layers || [];
                 ensurePagesLayers();
+                if (multi.size) { multi = new Set(); closeShapePanel(); }   // temp keys are gone
                 selectedShapeKey = selShapeIdx >= 0 && shapes[selShapeIdx] ? shapeKey(shapes[selShapeIdx]) : null;
                 // Connector selection used a transient _tempKey for newly-drawn
                 // connectors; after reload everything has a real id so any

@@ -8818,6 +8818,9 @@ CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
     -- first layer, which every diagram has even before it has any page rows.
     `page_key`       INT NOT NULL DEFAULT 0,
     `layer_key`      INT NOT NULL DEFAULT 0,
+    -- A group: nodes and shapes on the same page with the same group_key move and select
+    -- together (Group / Ungroup in the editor). NULL = not grouped.
+    `group_key`      VARCHAR(40) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_node_diag` (`diagram_id`),
@@ -8869,6 +8872,7 @@ CREATE TABLE IF NOT EXISTS `network_diagram_shapes` (
     `icon_id`        INT NULL,
     `page_key`       INT NOT NULL DEFAULT 0,   -- as network_diagram_nodes.page_key
     `layer_key`      INT NOT NULL DEFAULT 0,
+    `group_key`      VARCHAR(40) NULL,         -- as network_diagram_nodes.group_key
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_shape_diag` (`diagram_id`),

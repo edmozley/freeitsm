@@ -239,13 +239,13 @@ class NetworkMapperService
             $nodes = $conn->prepare("SELECT * FROM network_diagram_nodes WHERE diagram_id = ? ORDER BY id");
             $nodes->execute([$parentId]);
             $insertNode = $conn->prepare(
-                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key, group_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             foreach ($nodes->fetchAll(PDO::FETCH_ASSOC) as $n) {
                 // GH #433: colour, box size, style, page and layer travel into the new version too.
                 $insertNode->execute([$newId, (int)$n['cmdb_object_id'], (int)$n['x'], (int)$n['y'], $n['size'], $n['icon_override'],
                                       $n['colour_override'] ?? null, $n['w'] ?? null, $n['h'] ?? null, $n['style'] ?? null,
-                                      (int)($n['page_key'] ?? 0), (int)($n['layer_key'] ?? 0)]);
+                                      (int)($n['page_key'] ?? 0), (int)($n['layer_key'] ?? 0), $n['group_key'] ?? null]);
                 $nodeMap[(int)$n['id']] = (int)$conn->lastInsertId();
             }
             $conns = $conn->prepare("SELECT * FROM network_diagram_connectors WHERE diagram_id = ? ORDER BY id");
@@ -262,8 +262,8 @@ class NetworkMapperService
             }
             // GH #433: and the freestanding shapes.
             $conn->prepare(
-                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key)
-                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
+                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key)
+                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
             )->execute([$newId, $parentId]);
             // ...and the pages and layers they sit on.
             $conn->prepare("INSERT INTO network_diagram_pages (diagram_id, page_key, name, sort) SELECT ?, page_key, name, sort FROM network_diagram_pages WHERE diagram_id = ?")
@@ -404,7 +404,7 @@ class NetworkMapperService
         $refMap = [];
         $objectMap = [];
         $insertNode = $conn->prepare(
-            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key, group_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         foreach (array_values($nodesIn) as $i => $n) {
             if (!is_array($n)) {
@@ -421,7 +421,7 @@ class NetworkMapperService
                 $y = $y ?? $ay;
             }
             $insertNode->execute([$diagramId, $objectId, $x, $y, $size, $icon, $colour, $w, $h, $style,
-                                  self::keyOf($n['page_key'] ?? 0), self::keyOf($n['layer_key'] ?? 0)]);   // GH #433
+                                  self::keyOf($n['page_key'] ?? 0), self::keyOf($n['layer_key'] ?? 0), self::groupOf($n['group_key'] ?? null)]);   // GH #433
             $newId = (int)$conn->lastInsertId();
             if ($ref !== null) {
                 $refMap[$ref] = $newId;
@@ -483,8 +483,8 @@ class NetworkMapperService
     {
         $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id = ?")->execute([$diagramId]);
         $insert = $conn->prepare(
-            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         // icon_id must name an icon that exists - anything else saves as no icon.
         $iconIds = array_values(array_unique(array_filter(array_map(fn($s) => is_array($s) ? (int)($s['icon_id'] ?? 0) : 0, $shapesIn))));
@@ -531,8 +531,16 @@ class NetworkMapperService
                 isset($knownIcons[(int)($s['icon_id'] ?? 0)]) ? (int)$s['icon_id'] : null,
                 self::keyOf($s['page_key'] ?? 0),
                 self::keyOf($s['layer_key'] ?? 0),
+                self::groupOf($s['group_key'] ?? null),
             ]);
         }
+    }
+
+    /** GH #433: a group key - letters, digits, _ and -, up to 40; anything else is no group. */
+    private static function groupOf($v): ?string
+    {
+        $v = is_string($v) ? trim($v) : '';
+        return preg_match('/^[A-Za-z0-9_-]{1,40}$/', $v) ? $v : null;
     }
 
     /** GH #433: a page or layer key - a small whole number, 0 when missing or odd. */

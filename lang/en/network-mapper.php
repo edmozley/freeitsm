@@ -417,6 +417,27 @@ return [
         'name_icon' => 'Icon',
     ],
 
+    // GH #433: several items selected (the Selection panel)
+    'select' => [
+        'title'        => '{count} items selected',
+        'align'        => 'Align',
+        'align_left'   => 'Left',
+        'align_centre' => 'Centre',
+        'align_right'  => 'Right',
+        'align_top'    => 'Top',
+        'align_middle' => 'Middle',
+        'align_bottom' => 'Bottom',
+        'distribute'   => 'Distribute',
+        'dist_h'       => 'Across',
+        'dist_v'       => 'Down',
+        'group'        => 'Group',
+        'ungroup'      => 'Ungroup',
+        'copy'         => 'Copy',
+        'copied'       => '{count} copied - Ctrl+V pastes them, on any page.',
+        'skipped'      => '{count} CMDB objects were already on this page, so they were not pasted again.',
+        'hint'         => 'Shift+click adds or removes an item; drag on empty space to select an area; Ctrl+A selects everything on the page. Ctrl+G groups, Ctrl+Shift+G ungroups, and Alt+click picks one item out of a group.',
+    ],
+
     // GH #433: pages - the tabs under the canvas
     'pages' => [
         'default_name'   => 'Page {n}',
@@ -712,6 +733,7 @@ return [
         'shapes_step5' => '<strong>Arrange:</strong> <strong>Behind nodes</strong> keeps a zone underneath everything; <strong>In front</strong> puts a shape over the nodes. <strong>Front</strong> and <strong>Back</strong> reorder shapes within the same layer, and <strong>Duplicate</strong> makes a copy.',
         'shapes_tip_nodes' => '<strong>Style a CMDB node too:</strong> select it and use the <strong>Style</strong> section in its side panel - the same fill, border, shadow, corner and font controls. <strong>Reset</strong> puts it back to the normal look.',
         'shapes_tip_icons' => '<strong>Icon libraries:</strong> on the <strong>Shapes</strong> tab, <strong>Libraries</strong> opens the draw.io icon catalogue - about a thousand sets, from IBM Carbon and Azure to Cisco and Kubernetes. Pick a set to see every icon in it with its licence and author, then <strong>Import</strong> copies the icons into FreeITSM. They appear on the Shapes tab to drag onto any diagram, with a label underneath when you double-click and type.',
+        'shapes_tip_select' => '<strong>Several at once:</strong> Shift+click, drag a box on empty space, or press Ctrl+A to select several items, then move, align, distribute, style, copy (Ctrl+C, then Ctrl+V on any page) or delete them together. <strong>Group</strong> (Ctrl+G) keeps them together; Alt+click picks one item out of a group.',
         'shapes_tip_lines' => 'Connectors join CMDB nodes; they do not attach to shapes yet.',
         'pages_title' => 'Pages and layers',
         'pages_body' => 'One diagram can have several pages - an overview, then a page per site or per rack - and each page has layers you can show, hide or lock, the way draw.io does.',

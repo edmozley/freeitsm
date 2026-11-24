@@ -50,11 +50,12 @@ try {
     $made[] = $d;
     $in = [
         'nodes' => [
-            ['cmdb_object_id' => $objs[0], 'x' => 10, 'y' => 10, 'ref' => 'a', 'page_key' => 0, 'layer_key' => 0],
+            ['cmdb_object_id' => $objs[0], 'x' => 10, 'y' => 10, 'ref' => 'a', 'page_key' => 0, 'layer_key' => 0, 'group_key' => 'gTest1'],
             ['cmdb_object_id' => $objs[1], 'x' => 10, 'y' => 10, 'ref' => 'b', 'page_key' => 1, 'layer_key' => 3],
         ],
         'connectors' => [],
-        'shapes' => [['shape_type' => 'zone', 'x' => 0, 'y' => 0, 'w' => 200, 'h' => 100, 'page_key' => 1, 'layer_key' => 0, 'z' => 1]],
+        'shapes' => [['shape_type' => 'zone', 'x' => 0, 'y' => 0, 'w' => 200, 'h' => 100, 'page_key' => 1, 'layer_key' => 0, 'z' => 1, 'group_key' => 'gTest1'],
+                     ['shape_type' => 'text', 'x' => 0, 'y' => 0, 'w' => 50, 'h' => 20, 'page_key' => 1, 'z' => 2, 'group_key' => 'not a key!']],
         'pages' => [
             ['page_key' => 0, 'name' => 'Overview', 'sort' => 0],
             ['page_key' => 1, 'name' => str_repeat('L', 140), 'sort' => 1],
@@ -76,6 +77,9 @@ try {
     $nodes = $q("SELECT page_key, layer_key FROM network_diagram_nodes WHERE diagram_id = $d ORDER BY page_key");
     check('nodes keep their page and layer', (int)$nodes[1]['page_key'] === 1 && (int)$nodes[1]['layer_key'] === 3, json_encode($nodes));
     check('shapes keep theirs', (int)$q("SELECT page_key FROM network_diagram_shapes WHERE diagram_id = $d")[0]['page_key'] === 1);
+    $g = $q("SELECT group_key FROM network_diagram_shapes WHERE diagram_id = $d ORDER BY z");
+    check('a group key is kept; a malformed one saves as no group', $g[0]['group_key'] === 'gTest1' && $g[1]['group_key'] === null
+        && $q("SELECT group_key FROM network_diagram_nodes WHERE diagram_id = $d AND page_key = 0")[0]['group_key'] === 'gTest1', json_encode($g));
 
     echo "Refusals, with a positive control\n";
     check('a diagram with no pages at all is refused', refused(fn() => NetworkMapperService::saveDiagram($conn, $ctx, $d, ['pages' => []])) === ''
@@ -95,8 +99,10 @@ try {
     $made[] = $v2;
     check('a new version copies the pages and layers', count($q("SELECT id FROM network_diagram_pages WHERE diagram_id = $v2")) === 2
         && count($q("SELECT id FROM network_diagram_layers WHERE diagram_id = $v2 AND locked = 1")) === 1);
+    check('...and the groups', count($q("SELECT id FROM network_diagram_shapes WHERE diagram_id = $v2 AND group_key = 'gTest1'")) === 1
+        && count($q("SELECT id FROM network_diagram_nodes WHERE diagram_id = $v2 AND group_key = 'gTest1'")) === 1);
     check('...and every item keeps its page and layer', count($q("SELECT id FROM network_diagram_nodes WHERE diagram_id = $v2 AND page_key = 1 AND layer_key = 3")) === 1
-        && count($q("SELECT id FROM network_diagram_shapes WHERE diagram_id = $v2 AND page_key = 1")) === 1);
+        && count($q("SELECT id FROM network_diagram_shapes WHERE diagram_id = $v2 AND page_key = 1")) === 2);
     NetworkMapperService::deleteDiagram($conn, $ctx, $v2);
     $made = array_values(array_diff($made, [$v2]));
     check('deleting a version removes its pages and layers', count($q("SELECT id FROM network_diagram_pages WHERE diagram_id = $v2")) === 0

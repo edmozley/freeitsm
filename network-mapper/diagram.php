@@ -659,6 +659,14 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-layers-add:hover { color: var(--text, #111827); border-color: var(--nm-accent, #06b6d4); }
         .nm-layers-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 6px 12px 4px; line-height: 1.4; }
         .nm-layers-count { display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 5px; border-radius: 999px; background: var(--border, #e5e7eb); font-size: var(--font-size-xs, 11px); }
+        /* GH #433: multi-selection, group outline, rubber band */
+        .nm-node.in-multi, .nm-shape.in-multi { outline: 2px solid #06b6d4; outline-offset: 3px; }
+        .nm-group-outline { position: absolute; border: 1.5px dashed #0891b2; border-radius: 6px; pointer-events: none; z-index: 7; }
+        .nm-band { position: absolute; border: 1px dashed #0891b2; background: rgba(6,182,212,0.08); pointer-events: none; z-index: 20; }
+        .nm-canvas-inner.is-exporting .nm-group-outline,
+        .nm-editor.is-presenting .nm-group-outline { display: none; }
+        .nm-canvas-inner.is-exporting .in-multi,
+        .nm-editor.is-presenting .in-multi { outline: none; }
         /* A locked layer's items can be seen, not picked up */
         .nm-node.is-locked, .nm-shape.is-locked { pointer-events: none; }
 
@@ -2165,7 +2173,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=14"></script>
+    <script src="../assets/js/network-mapper.js?v=15"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

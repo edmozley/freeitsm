@@ -5945,6 +5945,7 @@ return [
         'style'          => 'TEXT NULL',           // GH #433: the node's own look, JSON (sanitiseStyle)
         'page_key'       => 'INT NOT NULL DEFAULT 0',   // GH #433: page (network_diagram_pages.page_key)
         'layer_key'      => 'INT NOT NULL DEFAULT 0',   // ...and layer on it
+        'group_key'      => 'VARCHAR(40) NULL',         // GH #433: Group / Ungroup
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
@@ -5976,6 +5977,7 @@ return [
         'icon_id'        => 'INT NULL',            // an imported library icon (shape_type 'icon')
         'page_key'       => 'INT NOT NULL DEFAULT 0',
         'layer_key'      => 'INT NOT NULL DEFAULT 0',
+        'group_key'      => 'VARCHAR(40) NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 

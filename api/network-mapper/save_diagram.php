@@ -55,6 +55,7 @@ try {
                 'style'         => $n['style'] ?? null,               // GH #433
                 'page_key'      => $n['page_key'] ?? 0,
                 'layer_key'     => $n['layer_key'] ?? 0,
+                'group_key'     => $n['group_key'] ?? null,
                 'ref'           => (string)$ref,
             ];
         }

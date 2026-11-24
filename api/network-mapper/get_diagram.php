@@ -69,7 +69,7 @@ try {
     // Closing it properly means giving diagrams their own company — that's the
     // first thing Network Mapper's own multi-tenancy slice should do.
     $nstmt = $conn->prepare(
-        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h, n.style, n.page_key, n.layer_key,
+        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h, n.style, n.page_key, n.layer_key, n.group_key,
                 o.name, o.is_planned,
                 c.id AS class_id, c.name AS class_name, i.icon_key AS class_icon
            FROM network_diagram_nodes n
@@ -116,7 +116,7 @@ try {
     try {
         try {
             $sstmt = $conn->prepare(
-                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key
                    FROM network_diagram_shapes
                   WHERE diagram_id = ?
                ORDER BY z, id"
@@ -125,7 +125,7 @@ try {
         } catch (PDOException $e) {
             // icon_id arrived after the shapes table - an install between the two still opens.
             $sstmt = $conn->prepare(
-                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id, 0 AS page_key, 0 AS layer_key
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id, 0 AS page_key, 0 AS layer_key, NULL AS group_key
                    FROM network_diagram_shapes
                   WHERE diagram_id = ?
                ORDER BY z, id"
