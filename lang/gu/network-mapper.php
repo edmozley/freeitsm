@@ -254,8 +254,17 @@ return [
         'centred' => 'ડાયાગ્રામ પેજ પર કેન્દ્રિત થયું',
         'readonly' => 'જૂના વર્ઝન ફક્ત વાંચવા માટે હોય છે',
     ],
+    'details' => [
+        'title' => 'આકૃતિની વિગતો',
+        'edit_title' => 'શીર્ષક અને વર્ણન બદલો',
+        'saved' => 'વિગતો સાચવી',
+    ],
+
     'connector' => [
         'label_ph' => 'લેબલ (સાચવવા માટે Enter, રદ કરવા માટે Esc)',
+        'style' => 'લાઇન શૈલી',
+        'solid' => 'સળંગ',
+        'dashed' => 'ડેશવાળી',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'પસંદ કરવા ક્લિક કરો, ખસેડવા ડ્રેગ કરો, દૂર કરવા {del}.',
         'placing_tip1' => '<strong>પહેલેથી કેનવાસ પર છે?</strong> તમે પહેલેથી મૂકેલા ઓબ્જેક્ટ picker માંથી ફિલ્ટર થઈ જાય છે જેથી તમે ભૂલથી એક જ ડાયાગ્રામ પર એક જ ઓબ્જેક્ટ બે વાર ન મૂકી શકો.',
         'placing_tip2' => '<strong>Per-node icon override:</strong> ડિફોલ્ટ રીતે દરેક નોડ તેના CMDB class ના icon નો ઉપયોગ કરે છે. જો તમારે એક જ class ના બે ઓબ્જેક્ટને દેખાવમાં અલગ પાડવા હોય (દા.ત. "Production MS SQL" vs "Reporting Oracle", બંને Database Server), તો નોડ પસંદ કરો, detail panel ખોલો, અને Icon પંક્તિની બાજુમાં <strong>Change</strong> ક્લિક કરો — 12 કેટેગરીમાં જૂથબદ્ધ ~65 icons માંથી પસંદ કરો. Reset override સાફ કરે છે અને class ડિફોલ્ટ પર પાછું જાય છે.',
+        'placing_tip_class_icon' => '<strong>વર્ગ દીઠ મૂળભૂત આઇકોન:</strong> તેને એક વાર <strong>CMDB → સેટિંગ્સ → વર્ગો</strong>માં સેટ કરો - વર્ગ સંપાદિત કરીને <strong>આઇકોન</strong> પસંદ કરો - અને તે વર્ગનો દરેક નોડ તેનો ઉપયોગ કરશે.',
         'connectors_title' => 'કનેક્ટર્સ દોરવા',
         'connectors_body' => 'એક નોડ પર hover કરો અથવા પસંદ કરો — icon ની ધારો પર ચાર નાના cyan ટપકાં દેખાય છે. એક ટપકા પર mousedown કરો, બીજા નોડ પર ડ્રેગ કરો, કનેક્ટર બનાવવા mouseup કરો. તમે ડ્રેગ કરો ત્યારે ડેશવાળી cyan લાઇન કર્સરને ટ્રેક કરે છે જેથી તે ક્યાં ઉતરશે તે તમે જોઈ શકો.',
         'connectors_step1' => '<strong>દોરો:</strong> ધારના ટપકા પર mousedown → target નોડ પર ડ્રેગ → mouseup એક arrow બનાવે છે.',
         'connectors_step2' => '<strong>પસંદ કરો:</strong> કોઈપણ કનેક્ટર પર ક્લિક કરો — તે જાડા stroke સાથે cyan થઈ જાય છે.',
         'connectors_step3' => '<strong>Label:</strong> કનેક્ટર પર ડબલ-ક્લિક કરો — midpoint પર inline text input ખૂલે છે (Enter સાચવે છે, Esc રદ કરે છે).',
         'connectors_step4' => '<strong>કાઢી નાખો:</strong> કનેક્ટર પસંદ કરો અને {del} દબાવો.',
+        'connectors_style' => '<strong>શૈલી:</strong> કનેક્ટર પસંદ કરો અને તેની નીચે <strong>સળંગ</strong> અથવા <strong>ડેશવાળી</strong> પસંદ કરો - બેકઅપ લિંક અથવા ફક્ત આયોજિત જોડાણો માટે ઉપયોગી.',
         'connectors_tip' => '<strong>દિશા મહત્વની છે:</strong> arrows તમે તેમને દોર્યા તે ક્રમમાં <em>source</em> થી <em>target</em> તરફ નિર્દેશ કરે છે. જો તમારે arrow ફ્લિપ કરવો હોય, તો તેને કાઢી નાખો અને બીજા છેડેથી ફરી દોરો.',
         'related_title' => 'સંબંધિત ઓબ્જેક્ટ ઉમેરવા',
         'related_body' => 'આ killer feature છે. મૂકેલા નોડ પર ક્લિક કરો — detail panel કેનવાસની બાજુમાં સ્લાઇડ થઈને આવે છે. <strong>Add related objects</strong> દબાવો અને modal ત્રણ bucket માં આ સાથે જોડાયેલા દરેક CMDB ઓબ્જેક્ટને યાદીબદ્ધ કરે છે:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'વર્તમાન version ને મુક્તપણે સંપાદિત કરો — ફેરફારો Save બટન કે autosave દ્વારા ત્યાં જ સાચવાય છે.',
         'versioning_step2' => 'જ્યારે તમારે snapshot જોઈએ, ત્યારે <strong>Save as new version</strong> ક્લિક કરો — જૂની સ્થિતિ ઐતિહાસિક રેકોર્ડ બની જાય છે, તમે નવા leaf પર ચાલુ રાખો છો.',
         'versioning_step3' => 'ઐતિહાસિક versions read-only ખૂલે છે — તપાસવા કોઈપણ નોડ કે કનેક્ટર પર ક્લિક કરો, પણ તમે તેમને સંશોધિત કરી શકતા નથી.',
+        'versioning_rename' => '<strong>નામ બદલો:</strong> વર્તમાન આવૃત્તિનું શીર્ષક અને વર્ણન બદલવા શીર્ષકની બાજુમાં <strong>સંપાદન</strong> પર ક્લિક કરો.',
         'versioning_warn' => '<strong>No branching:</strong> chain માં parent ને વધુમાં વધુ એક જ child હોઈ શકે છે — ઇતિહાસ સંપૂર્ણપણે linear છે. જો તમારે વૈકલ્પિક આર્કિટેક્ચર explore કરવું હોય, તો chain ને fork કરવાને બદલે એક અલગ ડાયાગ્રામ બનાવો.',
         'saving_title' => 'સાચવવું',
         'saving_body' => 'બે modes. <strong>Autosave</strong> (ટૂલબારમાં toggle) તમારા છેલ્લા ફેરફાર પછી લગભગ 2 સેકન્ડે સાચવે છે — toggle ની બાજુમાં Word-style status indicator <em>Unsaved</em>, <em>Saving…</em>, પછી <em>Saved</em> બતાવે છે. Toggle સ્થિતિ analyst દીઠ યાદ રખાય છે. <strong>Manual save</strong> Save બટન કે {ctrl}+{s} દ્વારા બંને modes માં કામ કરે છે.',

@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagramma centrato sulla pagina',
         'readonly' => 'Le versioni storiche sono di sola lettura',
     ],
+    'details' => [
+        'title' => 'Dettagli del diagramma',
+        'edit_title' => 'Cambia titolo e descrizione',
+        'saved' => 'Dettagli salvati',
+    ],
+
     'connector' => [
         'label_ph' => 'Etichetta (Invio per salvare, Esc per annullare)',
+        'style' => 'Stile linea',
+        'solid' => 'Continua',
+        'dashed' => 'Tratteggiata',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Clicca per selezionare, trascina per spostare, {del} per rimuovere.',
         'placing_tip1' => '<strong>Già nell\'area di lavoro?</strong> Gli oggetti già posizionati vengono esclusi dal selettore, così non puoi inserire per errore lo stesso oggetto due volte nello stesso diagramma.',
         'placing_tip2' => '<strong>Icona personalizzata per nodo:</strong> per impostazione predefinita ogni nodo usa l\'icona della sua classe CMDB. Se vuoi distinguere visivamente due oggetti della stessa classe (ad es. "MS SQL di produzione" e "Oracle per i report", entrambi server di database), seleziona il nodo, apri il pannello di dettaglio e clicca <strong>Cambia</strong> accanto alla riga Icona: scegli tra circa 65 icone raggruppate in 12 categorie. Ripristina elimina la sostituzione e torna all\'icona predefinita della classe.',
+        'placing_tip_class_icon' => '<strong>Icona predefinita per classe:</strong> impostala una volta in <strong>CMDB → Impostazioni → Classi</strong> - modifica una classe e scegli un\'<strong>Icona</strong> - e ogni nodo di quella classe la usa.',
         'connectors_title' => 'Tracciare i connettori',
         'connectors_body' => 'Passa il mouse su un nodo o selezionalo: quattro piccoli punti ciano compaiono ai bordi dell\'icona. Premi il mouse su un punto, trascina su un altro nodo e rilascia per creare il connettore. Una linea ciano tratteggiata segue il cursore durante il trascinamento, così vedi dove arriverà.',
         'connectors_step1' => '<strong>Traccia:</strong> premi il mouse su un punto del bordo → trascina sul nodo di destinazione → rilascia per creare una freccia.',
         'connectors_step2' => '<strong>Seleziona:</strong> clicca su un connettore: diventa ciano con un tratto più spesso.',
         'connectors_step3' => '<strong>Etichetta:</strong> fai doppio clic su un connettore: al centro si apre un campo di testo (Invio salva, Esc annulla).',
         'connectors_step4' => '<strong>Elimina:</strong> seleziona un connettore e premi {del}.',
+        'connectors_style' => '<strong>Stile:</strong> seleziona un connettore e scegli <strong>Continua</strong> o <strong>Tratteggiata</strong> sotto di esso - utile per collegamenti di backup o connessioni solo pianificate.',
         'connectors_tip' => '<strong>La direzione conta:</strong> le frecce vanno dall\'<em>origine</em> alla <em>destinazione</em> nell\'ordine in cui le hai tracciate. Per invertire una freccia, eliminala e tracciala di nuovo dall\'altra estremità.',
         'related_title' => 'Aggiungere oggetti correlati',
         'related_body' => 'È la funzione più potente. Clicca su un nodo posizionato: il pannello di dettaglio scorre accanto all\'area di lavoro. Clicca <strong>Aggiungi oggetti correlati</strong> e la finestra elenca tutti gli oggetti CMDB collegati a questo, divisi in tre gruppi:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Modifica liberamente la versione corrente: le modifiche si salvano sul posto con il pulsante Salva o con il salvataggio automatico.',
         'versioning_step2' => 'Quando vuoi un\'istantanea, clicca <strong>Salva come nuova versione</strong>: lo stato precedente diventa il record storico e continui a lavorare sulla nuova versione.',
         'versioning_step3' => 'Le versioni storiche si aprono in sola lettura: clicca su un nodo o un connettore per ispezionarlo, ma non puoi modificarle.',
+        'versioning_rename' => '<strong>Rinomina:</strong> fai clic su <strong>Modifica</strong> accanto al titolo per cambiare titolo e descrizione della versione corrente.',
         'versioning_warn' => '<strong>Nessuna ramificazione:</strong> nella catena un genitore può avere al massimo un figlio, quindi la cronologia è strettamente lineare. Per esplorare un\'architettura alternativa, crea un diagramma separato invece di biforcare la catena.',
         'saving_title' => 'Salvataggio',
         'saving_body' => 'Due modalità. Il <strong>salvataggio automatico</strong> (interruttore nella barra degli strumenti) salva circa 2 secondi dopo l\'ultima modifica: l\'indicatore di stato accanto all\'interruttore, in stile Word, mostra <em>Non salvato</em>, <em>Salvataggio…</em> e infine <em>Salvato</em>. Lo stato dell\'interruttore viene ricordato per ogni analista. Il <strong>salvataggio manuale</strong> con il pulsante Salva o con {ctrl}+{s} funziona in entrambe le modalità.',

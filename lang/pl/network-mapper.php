@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagram wyśrodkowany na stronie',
         'readonly' => 'Wersje historyczne są tylko do odczytu',
     ],
+    'details' => [
+        'title' => 'Szczegóły diagramu',
+        'edit_title' => 'Zmień tytuł i opis',
+        'saved' => 'Szczegóły zapisane',
+    ],
+
     'connector' => [
         'label_ph' => 'Etykieta (Enter, aby zapisać, Esc, aby anulować)',
+        'style' => 'Styl linii',
+        'solid' => 'Ciągła',
+        'dashed' => 'Przerywana',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Kliknij, aby zaznaczyć, przeciągnij, aby przesunąć, {del}, aby usunąć.',
         'placing_tip1' => '<strong>Już na płótnie?</strong> Obiekty, które już umieściłeś, są odfiltrowywane z selektora, więc nie możesz przez pomyłkę umieścić tego samego obiektu dwa razy na jednym diagramie.',
         'placing_tip2' => '<strong>Nadpisanie ikony dla węzła:</strong> domyślnie każdy węzeł używa ikony swojej klasy CMDB. Jeśli chcesz wizualnie odróżnić dwa obiekty tej samej klasy (np. „Production MS SQL” i „Reporting Oracle”, oba typu Serwer bazy danych), zaznacz węzeł, otwórz panel szczegółów i kliknij <strong>Zmień</strong> obok wiersza Ikona — wybierz spośród ~65 ikon pogrupowanych w 12 kategorii. Resetuj usuwa nadpisanie i przywraca domyślną ikonę klasy.',
+        'placing_tip_class_icon' => '<strong>Domyślna ikona klasy:</strong> ustaw ją raz w <strong>CMDB → Ustawienia → Klasy</strong> - edytuj klasę i wybierz <strong>Ikonę</strong> - a każdy węzeł tej klasy będzie jej używał.',
         'connectors_title' => 'Rysowanie łączników',
         'connectors_body' => 'Najedź na węzeł lub go zaznacz — na krawędziach ikony pojawią się cztery małe błękitne kropki. Wciśnij przycisk myszy na kropce, przeciągnij do innego węzła, puść przycisk, aby utworzyć łącznik. Przerywana błękitna linia podąża za kursorem podczas przeciągania, dzięki czemu widać, gdzie łącznik wyląduje.',
         'connectors_step1' => '<strong>Rysowanie:</strong> wciśnij przycisk myszy na kropce krawędzi → przeciągnij do węzła docelowego → puść przycisk, aby utworzyć strzałkę.',
         'connectors_step2' => '<strong>Zaznaczanie:</strong> kliknij dowolny łącznik — zmieni kolor na błękitny i pogrubi się.',
         'connectors_step3' => '<strong>Etykieta:</strong> kliknij dwukrotnie łącznik — w jego środkowym punkcie otworzy się pole tekstowe (Enter zapisuje, Esc anuluje).',
         'connectors_step4' => '<strong>Usuwanie:</strong> zaznacz łącznik i naciśnij {del}.',
+        'connectors_style' => '<strong>Styl:</strong> zaznacz połączenie i wybierz pod nim <strong>Ciągła</strong> lub <strong>Przerywana</strong> - przydatne dla łączy zapasowych lub połączeń dopiero planowanych.',
         'connectors_tip' => '<strong>Kierunek ma znaczenie:</strong> strzałki wskazują od <em>źródła</em> do <em>celu</em>, w kolejności, w jakiej je narysowano. Jeśli chcesz odwrócić strzałkę, usuń ją i narysuj ponownie od drugiego końca.',
         'related_title' => 'Dodawanie powiązanych obiektów',
         'related_body' => 'To najmocniejsza funkcja. Kliknij umieszczony węzeł — obok płótna wysunie się panel szczegółów. Kliknij <strong>Dodaj powiązane obiekty</strong>, a okno wyświetli każdy obiekt CMDB połączony z tym obiektem, podzielony na trzy grupy:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Edytuj bieżącą wersję swobodnie — zmiany zapisują się w miejscu za pomocą przycisku Zapisz lub autozapisu.',
         'versioning_step2' => 'Gdy chcesz utworzyć migawkę, kliknij <strong>Zapisz jako nową wersję</strong> — poprzedni stan staje się zapisem historycznym, a Ty kontynuujesz pracę na nowej wersji końcowej.',
         'versioning_step3' => 'Wersje historyczne otwierają się w trybie tylko do odczytu — kliknij dowolny węzeł lub łącznik, aby go sprawdzić, ale nie możesz go modyfikować.',
+        'versioning_rename' => '<strong>Zmiana nazwy:</strong> kliknij <strong>Edytuj</strong> obok tytułu, aby zmienić tytuł i opis bieżącej wersji.',
         'versioning_warn' => '<strong>Bez rozgałęzień:</strong> element nadrzędny może mieć w łańcuchu co najwyżej jeden element podrzędny — historia jest ściśle liniowa. Jeśli chcesz zbadać alternatywną architekturę, utwórz osobny diagram zamiast rozgałęziać łańcuch.',
         'saving_title' => 'Zapisywanie',
         'saving_body' => 'Dwa tryby. <strong>Autozapis</strong> (przełącznik na pasku narzędzi) zapisuje ok. 2 sekundy po ostatniej zmianie — wskaźnik statusu w stylu Worda obok przełącznika pokazuje <em>Niezapisane</em>, <em>Zapisywanie…</em>, a potem <em>Zapisano</em>. Stan przełącznika jest zapamiętywany dla każdego analityka osobno. <strong>Zapis ręczny</strong> przyciskiem Zapisz lub {ctrl}+{s} działa w obu trybach.',

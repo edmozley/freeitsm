@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagramme centré sur la page',
         'readonly' => 'Les versions historiques sont en lecture seule',
     ],
+    'details' => [
+        'title' => 'Détails du diagramme',
+        'edit_title' => 'Modifier le titre et la description',
+        'saved' => 'Détails enregistrés',
+    ],
+
     'connector' => [
         'label_ph' => 'Étiquette (Entrée pour enregistrer, Échap pour annuler)',
+        'style' => 'Style de ligne',
+        'solid' => 'Continue',
+        'dashed' => 'Pointillée',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Cliquez pour sélectionner, glissez pour déplacer, {del} pour supprimer.',
         'placing_tip1' => '<strong>Déjà sur le canevas ?</strong> Les objets déjà placés sont exclus du sélecteur pour éviter de placer accidentellement le même objet deux fois sur un diagramme.',
         'placing_tip2' => '<strong>Icône personnalisée par nœud :</strong> par défaut, chaque nœud utilise l\'icône de sa classe CMDB. Pour distinguer visuellement deux objets de la même classe (ex. « SQL Server de production » vs « Oracle de reporting », tous deux Serveur de base de données), sélectionnez le nœud, ouvrez le panneau de détail, puis cliquez sur <strong>Modifier</strong> à côté de la ligne Icône — choisissez parmi ~65 icônes réparties en 12 catégories. Réinitialiser efface la personnalisation et revient à l\'icône par défaut de la classe.',
+        'placing_tip_class_icon' => '<strong>Icône par défaut d\'une classe :</strong> définissez-la une fois dans <strong>CMDB → Paramètres → Classes</strong> - modifiez une classe et choisissez une <strong>Icône</strong> - et chaque nœud de cette classe l\'utilise.',
         'connectors_title' => 'Tracer des connecteurs',
         'connectors_body' => 'Survolez ou sélectionnez un nœud — quatre petits points cyan apparaissent sur les bords de l\'icône. Cliquez-glissez depuis un point vers un autre nœud, relâchez pour créer le connecteur. Une ligne cyan en pointillés suit le curseur pendant le glissement afin que vous voyiez où elle va atterrir.',
         'connectors_step1' => '<strong>Tracer :</strong> clic maintenu sur un point de bordure → glisser vers le nœud cible → relâcher crée une flèche.',
         'connectors_step2' => '<strong>Sélectionner :</strong> cliquez sur un connecteur — il passe en cyan avec un trait plus épais.',
         'connectors_step3' => '<strong>Étiqueter :</strong> double-cliquez sur un connecteur — un champ de texte en ligne s\'ouvre au milieu (Entrée enregistre, Échap annule).',
         'connectors_step4' => '<strong>Supprimer :</strong> sélectionnez un connecteur et appuyez sur {del}.',
+        'connectors_style' => '<strong>Style :</strong> sélectionnez un connecteur et choisissez <strong>Continue</strong> ou <strong>Pointillée</strong> en dessous - pratique pour les liens de secours ou les connexions seulement prévues.',
         'connectors_tip' => '<strong>La direction compte :</strong> les flèches vont de la <em>source</em> vers la <em>cible</em> dans l\'ordre où vous les avez tracées. Pour inverser une flèche, supprimez-la et retracez-la depuis l\'autre extrémité.',
         'related_title' => 'Ajouter des objets liés',
         'related_body' => 'C\'est la fonctionnalité phare. Cliquez sur un nœud placé — le panneau de détail glisse à côté du canevas. Cliquez sur <strong>Ajouter des objets liés</strong> et la fenêtre liste tous les objets CMDB connectés à celui-ci, répartis en trois groupes :',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Modifiez librement la version actuelle — les modifications s\'enregistrent sur place via le bouton Enregistrer ou l\'enregistrement automatique.',
         'versioning_step2' => 'Quand vous voulez un instantané, cliquez sur <strong>Enregistrer comme nouvelle version</strong> — l\'ancien état devient l\'enregistrement historique, vous continuez sur la nouvelle feuille.',
         'versioning_step3' => 'Les versions historiques s\'ouvrent en lecture seule — cliquez sur un nœud ou un connecteur pour l\'inspecter, mais vous ne pouvez pas les modifier.',
+        'versioning_rename' => '<strong>Renommer :</strong> cliquez sur <strong>Modifier</strong> à côté du titre pour changer le titre et la description de la version actuelle.',
         'versioning_warn' => '<strong>Pas de branches :</strong> un parent ne peut avoir qu\'un seul enfant dans la chaîne — l\'historique est strictement linéaire. Pour explorer une architecture alternative, créez un diagramme séparé plutôt que de dériver la chaîne.',
         'saving_title' => 'Enregistrement',
         'saving_body' => 'Deux modes. <strong>L\'enregistrement automatique</strong> (bascule dans la barre d\'outils) enregistre environ 2 secondes après votre dernière modification — l\'indicateur de statut façon Word à côté du bouton affiche <em>Non enregistré</em>, <em>Enregistrement…</em>, puis <em>Enregistré</em>. L\'état du bouton est mémorisé par analyste. <strong>L\'enregistrement manuel</strong> via le bouton Enregistrer ou {ctrl}+{s} fonctionne dans les deux modes.',

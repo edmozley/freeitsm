@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagram op de pagina gecentreerd',
         'readonly' => 'Historische versies zijn alleen-lezen',
     ],
+    'details' => [
+        'title' => 'Diagramgegevens',
+        'edit_title' => 'Titel en beschrijving wijzigen',
+        'saved' => 'Gegevens opgeslagen',
+    ],
+
     'connector' => [
         'label_ph' => 'Label (Enter om op te slaan, Esc om te annuleren)',
+        'style' => 'Lijnstijl',
+        'solid' => 'Doorgetrokken',
+        'dashed' => 'Gestippeld',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Klik om te selecteren, sleep om te verplaatsen, {del} om te verwijderen.',
         'placing_tip1' => '<strong>Al op het canvas?</strong> Objecten die je al hebt geplaatst, worden uit de kiezer gefilterd, zodat je niet per ongeluk hetzelfde object twee keer op één diagram plaatst.',
         'placing_tip2' => '<strong>Pictogram per knooppunt aanpassen:</strong> standaard gebruikt elk knooppunt het pictogram van zijn CMDB-klasse. Wil je twee objecten van dezelfde klasse visueel onderscheiden (bv. "Productie MS SQL" en "Rapportage Oracle", beide Databaseserver), selecteer dan het knooppunt, open het detailpaneel en klik op <strong>Wijzigen</strong> naast de rij Pictogram — kies uit ongeveer 65 pictogrammen, gegroepeerd in 12 categorieën. Met Herstellen verdwijnt de aanpassing en keert het standaardpictogram van de klasse terug.',
+        'placing_tip_class_icon' => '<strong>Standaardpictogram per klasse:</strong> stel het één keer in bij <strong>CMDB → Instellingen → Klassen</strong> - bewerk een klasse en kies een <strong>Pictogram</strong> - en elk knooppunt van die klasse gebruikt het.',
         'connectors_title' => 'Verbindingen tekenen',
         'connectors_body' => 'Beweeg over een knooppunt of selecteer het — vier kleine cyaan stippen verschijnen aan de randen van het pictogram. Druk de muisknop in op een stip, sleep naar een ander knooppunt en laat los om de verbinding te maken. Tijdens het slepen volgt een gestippelde cyaan lijn de cursor, zodat je ziet waar de verbinding terechtkomt.',
         'connectors_step1' => '<strong>Tekenen:</strong> muisknop indrukken op een randstip → slepen naar het doelknooppunt → loslaten maakt een pijl.',
         'connectors_step2' => '<strong>Selecteren:</strong> klik op een verbinding — die wordt cyaan met een dikkere lijn.',
         'connectors_step3' => '<strong>Label:</strong> dubbelklik op een verbinding — in het midden opent een invoerveld (Enter slaat op, Esc annuleert).',
         'connectors_step4' => '<strong>Verwijderen:</strong> selecteer een verbinding en druk op {del}.',
+        'connectors_style' => '<strong>Stijl:</strong> selecteer een verbinding en kies eronder <strong>Doorgetrokken</strong> of <strong>Gestippeld</strong> - handig voor back-upverbindingen of verbindingen die alleen gepland zijn.',
         'connectors_tip' => '<strong>De richting telt:</strong> pijlen wijzen van <em>bron</em> naar <em>doel</em>, in de volgorde waarin je ze tekende. Wil je een pijl omdraaien, verwijder hem dan en teken hem opnieuw vanaf de andere kant.',
         'related_title' => 'Gerelateerde objecten toevoegen',
         'related_body' => 'Dit is de krachtigste functie. Klik op een geplaatst knooppunt — het detailpaneel schuift naast het canvas in beeld. Klik op <strong>Gerelateerde objecten toevoegen</strong> en het venster toont elk CMDB-object dat met dit object is verbonden, verdeeld over drie groepen:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Bewerk de huidige versie vrijuit — wijzigingen worden ter plekke opgeslagen met de knop Opslaan of automatisch.',
         'versioning_step2' => 'Wil je een momentopname, klik dan op <strong>Opslaan als nieuwe versie</strong> — de oude stand wordt het historische exemplaar en je werkt verder op de nieuwe versie.',
         'versioning_step3' => 'Historische versies openen alleen-lezen — klik op een knooppunt of verbinding om te bekijken, maar wijzigen kan niet.',
+        'versioning_rename' => '<strong>Hernoemen:</strong> klik naast de titel op <strong>Bewerken</strong> om de titel en beschrijving van de huidige versie te wijzigen.',
         'versioning_warn' => '<strong>Geen vertakkingen:</strong> een versie kan in de keten hoogstens één opvolger hebben — de geschiedenis is strikt lineair. Wil je een alternatieve architectuur uitproberen, maak dan een apart diagram in plaats van de keten te vertakken.',
         'saving_title' => 'Opslaan',
         'saving_body' => 'Twee manieren. <strong>Automatisch opslaan</strong> (schakelaar in de werkbalk) slaat ongeveer 2 seconden na je laatste bewerking op — de statusindicator in Word-stijl naast de schakelaar toont <em>Niet opgeslagen</em>, <em>Opslaan…</em> en daarna <em>Opgeslagen</em>. De stand van de schakelaar wordt per analist onthouden. <strong>Handmatig opslaan</strong> met de knop Opslaan of {ctrl}+{s} werkt in beide modi.',

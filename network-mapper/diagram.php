@@ -270,6 +270,18 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             gap: 12px;
         }
         .nm-meta-row .nm-editor-title { min-width: 0; flex: 0 1 auto; }
+        /* GH #433: change the title and description of the current version */
+        .nm-title-edit {
+            background: transparent;
+            border: 1px solid var(--border, #e5e7eb);
+            color: var(--text-dim, #6b7280);
+            padding: 2px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: var(--font-size-sm, 12px);
+            flex-shrink: 0;
+        }
+        .nm-title-edit:hover { background: var(--surface-hover, #f9fafb); color: var(--text, #111827); }
         .nm-meta-details {
             display: flex;
             gap: 18px;
@@ -527,6 +539,35 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         .nm-connector-line.dashed {
             stroke-dasharray: 6 4;
         }
+        /* GH #433: Solid / Dashed under the selected connector */
+        .nm-conn-style {
+            position: absolute;
+            z-index: 10;
+            display: flex;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            overflow: hidden;
+            transform: translateX(-50%);
+        }
+        .nm-conn-style button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: none;
+            padding: 4px 10px;
+            font-size: var(--font-size-sm, 12px);
+            font-family: inherit;
+            color: var(--text-dim, #6b7280);
+            cursor: pointer;
+        }
+        .nm-conn-style button + button { border-left: 1px solid var(--border, #e5e7eb); }
+        .nm-conn-style button:hover { background: var(--surface-hover, #f9fafb); color: var(--text, #111827); }
+        .nm-conn-style button.active { color: #0e7490; font-weight: 600; }
+        .nm-conn-style svg { display: block; }
+        .nm-editor.is-presenting .nm-conn-style { display: none !important; }
         .nm-connector-hit {
             fill: none;
             stroke: transparent;
@@ -1461,6 +1502,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         <div class="nm-meta-row">
             <h1 class="nm-editor-title" id="diagramTitle"><?php echo htmlspecialchars(t('network-mapper.editor.loading')); ?></h1>
             <span class="nm-version-pill" id="versionPill" style="display:none;"></span>
+            <button type="button" class="nm-title-edit" id="titleEditBtn" style="display:none;" onclick="NM.openDetailsModal()" title="<?php echo htmlspecialchars(t('network-mapper.details.edit_title')); ?>"><?php echo htmlspecialchars(t('common.edit')); ?></button>
             <span class="nm-meta-details" id="metaRow" style="display:none;">
                 <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_author')); ?></strong> <span id="metaAuthor">&mdash;</span></span>
                 <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_created')); ?></strong> <span id="metaCreated">&mdash;</span></span>
@@ -1674,6 +1716,27 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         </div>
     </div>
 
+    <?php /* GH #433: change the current version's title and description */ ?>
+    <div class="nm-modal-overlay" id="detailsModal">
+        <div class="nm-modal">
+            <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.details.title')); ?></div>
+            <div class="nm-modal-body">
+                <div class="nm-form-group">
+                    <label for="dtTitle"><?php echo htmlspecialchars(t('network-mapper.newversion.field_title')); ?></label>
+                    <input type="text" id="dtTitle" maxlength="255">
+                </div>
+                <div class="nm-form-group">
+                    <label for="dtDescription"><?php echo htmlspecialchars(t('network-mapper.newversion.field_description')); ?></label>
+                    <textarea id="dtDescription" maxlength="2000"></textarea>
+                </div>
+            </div>
+            <div class="nm-modal-actions">
+                <button class="nm-btn secondary" onclick="NM.closeDetailsModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="nm-btn" id="dtSaveBtn" onclick="NM.saveDetails()"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Vendor: PNG/PDF export. html2canvas rasterises the diagram canvas;
          the shared PDF writer wraps the rasterised image into a paper-sized PDF.
          Loaded eagerly because the editor is a heavy page already and lazy
@@ -1686,7 +1749,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
-    <script src="../assets/js/network-mapper.js?v=8"></script>
+    <script src="../assets/js/network-mapper.js?v=9"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 
@@ -1698,6 +1761,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             }
             if (e.key === 'Escape') {
                 NM.closeNewVersionModal();
+                NM.closeDetailsModal();
                 NM.closeObjectPicker();
                 NM.closeRelatedModal();
                 NM.closeVersionsDropdown();
@@ -1710,6 +1774,12 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         // Click-out to close modals
         document.getElementById('newVersionModal').addEventListener('click', function (e) {
             if (e.target === e.currentTarget) NM.closeNewVersionModal();
+        });
+        document.getElementById('detailsModal').addEventListener('click', function (e) {
+            if (e.target === e.currentTarget) NM.closeDetailsModal();
+        });
+        document.getElementById('dtTitle').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); NM.saveDetails(); }
         });
         document.getElementById('objectPickerModal').addEventListener('click', function (e) {
             if (e.target === e.currentTarget) NM.closeObjectPicker();

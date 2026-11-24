@@ -187,6 +187,7 @@ $translationNamespaces = ['common', 'network-mapper'];
 
                     <p class="help-note"><?php echo t('network-mapper.help.placing_tip1'); ?></p>
                     <p class="help-note"><?php echo t('network-mapper.help.placing_tip2'); ?></p>
+                    <p class="help-note"><?php echo t('network-mapper.help.placing_tip_class_icon'); ?></p>
                 </div>
 
                 <!-- 4. Connectors -->
@@ -203,7 +204,8 @@ $translationNamespaces = ['common', 'network-mapper'];
                         <div class="help-step"><span class="help-step-num">1</span><div><?php echo t('network-mapper.help.connectors_step1'); ?></div></div>
                         <div class="help-step"><span class="help-step-num">2</span><div><?php echo t('network-mapper.help.connectors_step2'); ?></div></div>
                         <div class="help-step"><span class="help-step-num">3</span><div><?php echo t('network-mapper.help.connectors_step3'); ?></div></div>
-                        <div class="help-step"><span class="help-step-num">4</span><div><?php echo t('network-mapper.help.connectors_step4', ['del' => '<span class="help-kbd">Delete</span>']); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">4</span><div><?php echo t('network-mapper.help.connectors_style'); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">5</span><div><?php echo t('network-mapper.help.connectors_step4', ['del' => '<span class="help-kbd">Delete</span>']); ?></div></div>
                     </div>
 
                     <p class="help-note"><?php echo t('network-mapper.help.connectors_tip'); ?></p>
@@ -299,6 +301,7 @@ $translationNamespaces = ['common', 'network-mapper'];
                         <div class="help-step"><span class="help-step-num">1</span><div><?php echo htmlspecialchars(t('network-mapper.help.versioning_step1')); ?></div></div>
                         <div class="help-step"><span class="help-step-num">2</span><div><?php echo t('network-mapper.help.versioning_step2'); ?></div></div>
                         <div class="help-step"><span class="help-step-num">3</span><div><?php echo htmlspecialchars(t('network-mapper.help.versioning_step3')); ?></div></div>
+                        <div class="help-step"><span class="help-step-num">4</span><div><?php echo t('network-mapper.help.versioning_rename'); ?></div></div>
                     </div>
                     <p class="help-note warn"><?php echo t('network-mapper.help.versioning_warn'); ?></p>
                 </div>

@@ -103,7 +103,7 @@
     let brandingDefaults = null;
 
     // ---- DOM refs (filled in init) ----
-    let elTitle, elVersionPill, elMetaRow, elMetaAuthor, elMetaCreated, elMetaUpdated;
+    let elTitle, elVersionPill, elMetaRow, elMetaAuthor, elMetaCreated, elMetaUpdated, elTitleEditBtn;
     let elStatus, elSaveBtn, elSaveVersionBtn, elAutosaveToggle, elAutosaveWrap;
     let elPaletteBody, elCanvas, elCanvasInner, elCanvasSpacer, elReadonlyBanner, elCanvasEmpty;
     let elZoomLabel, elEditor;
@@ -141,6 +141,7 @@
         elTitle           = document.getElementById('diagramTitle');
         elVersionPill     = document.getElementById('versionPill');
         elMetaRow         = document.getElementById('metaRow');
+        elTitleEditBtn    = document.getElementById('titleEditBtn');
         elMetaAuthor      = document.getElementById('metaAuthor');
         elMetaCreated     = document.getElementById('metaCreated');
         elMetaUpdated     = document.getElementById('metaUpdated');
@@ -398,6 +399,8 @@
             elVersionPill.textContent = t('network-mapper.editor.pill_readonly', { label: label });
         }
         elVersionPill.style.display = '';
+        // GH #433: only the current version can be renamed - older ones are read-only records.
+        if (elTitleEditBtn) elTitleEditBtn.style.display = diagram.is_current ? '' : 'none';
 
         elMetaRow.style.display = '';
         elMetaAuthor.textContent  = diagram.author_name || t('network-mapper.editor.author_unknown');
@@ -987,6 +990,53 @@
 
             elSvgLayer.appendChild(g);
         });
+        renderConnectorStyleBar();
+    }
+
+    /**
+     * GH #433: Solid / Dashed buttons under the selected connector's midpoint, on the current version
+     * only. Redrawn with the connectors, so clearing the selection (export, deselect) removes it.
+     */
+    function renderConnectorStyleBar() {
+        if (!elCanvasInner) return;
+        elCanvasInner.querySelectorAll('.nm-conn-style').forEach(el => el.remove());
+        if (selectedConnectorKey == null || !diagram || !diagram.is_current) return;
+        const c = findConnectorByKey(selectedConnectorKey);
+        if (!c) return;
+        const from = findNodeByRef(c.from_node_id);
+        const to   = findNodeByRef(c.to_node_id);
+        if (!from || !to) return;
+        const pts = calcConnectorPoints(nodeIconBBox(from), nodeIconBBox(to));
+        const mx = (pts.x1 + pts.x2) / 2;
+        const my = (pts.y1 + pts.y2) / 2;
+
+        const bar = document.createElement('div');
+        bar.className = 'nm-conn-style';
+        bar.setAttribute('role', 'group');
+        bar.setAttribute('aria-label', t('network-mapper.connector.style'));
+        const current = c.line_style === 'dashed' ? 'dashed' : 'solid';
+        [['solid', '0'], ['dashed', '5 3']].forEach(([style, dash]) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            if (style === current) b.classList.add('active');
+            b.innerHTML = '<svg width="22" height="6" viewBox="0 0 22 6"><line x1="1" y1="3" x2="21" y2="3" stroke="currentColor" stroke-width="2"'
+                + (dash !== '0' ? ' stroke-dasharray="' + dash + '"' : '') + '/></svg>';
+            b.appendChild(document.createTextNode(t('network-mapper.connector.' + style)));
+            // The canvas clears the selection on mousedown - keep it while a style is picked.
+            b.addEventListener('mousedown', e => e.stopPropagation());
+            b.addEventListener('click', e => {
+                e.stopPropagation();
+                if ((c.line_style || 'solid') === style) return;
+                c.line_style = style;
+                renderConnectors();
+                markDirty();
+            });
+            bar.appendChild(b);
+        });
+        bar.addEventListener('mousedown', e => e.stopPropagation());
+        bar.style.left = mx + 'px';             // centred on the midpoint by the CSS translate
+        bar.style.top  = (my + (c.label ? 16 : 10)) + 'px';
+        elCanvasInner.appendChild(bar);
     }
 
     /**
@@ -2409,6 +2459,56 @@
     // =========================================================
     //  Save as new version
     // =========================================================
+    /** GH #433: opens the details modal to change the current version's title and description. */
+    function openDetailsModal() {
+        if (!diagram || !diagram.is_current) return;
+        document.getElementById('dtTitle').value = diagram.title || '';
+        document.getElementById('dtDescription').value = diagram.description || '';
+        document.getElementById('detailsModal').classList.add('active');
+        setTimeout(() => document.getElementById('dtTitle').focus(), 50);
+    }
+
+    /** Closes the details modal. */
+    function closeDetailsModal() {
+        const m = document.getElementById('detailsModal');
+        if (m) m.classList.remove('active');
+    }
+
+    /**
+     * Saves the title and description straight away through save_diagram.php. Only those two fields
+     * are sent, so unsaved canvas edits are left alone for the next Save.
+     */
+    async function saveDetails() {
+        if (!diagram || !diagram.is_current) return;
+        const title = document.getElementById('dtTitle').value.trim();
+        const description = document.getElementById('dtDescription').value.trim();
+        if (!title) {
+            if (window.showToast) showToast(t('network-mapper.newversion.title_required'), 'error');
+            return;
+        }
+        const btn = document.getElementById('dtSaveBtn');
+        btn.disabled = true;
+        try {
+            const resp = await fetch(API + 'save_diagram.php', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: diagramId, title: title, description: description })
+            });
+            const data = await resp.json();
+            if (!data.success) throw new Error(data.error || 'Save failed');
+            diagram.title = title;
+            diagram.description = description || null;
+            renderHeader();
+            closeDetailsModal();
+            if (window.showToast) showToast(t('network-mapper.details.saved'), 'success');
+        } catch (e) {
+            if (window.showToast) showToast(t('network-mapper.toast.save_failed', { message: e.message }), 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
     async function openNewVersionModal() {
         if (!diagram || !diagram.is_current) {
             if (window.showToast) showToast(t('network-mapper.newversion.only_current'), 'error');
@@ -2913,6 +3013,10 @@
         toggleAutosave,
         openNewVersionModal,
         closeNewVersionModal,
+        // title + description (GH #433)
+        openDetailsModal,
+        closeDetailsModal,
+        saveDetails,
         createNewVersion,
         markDirty,
         // picker

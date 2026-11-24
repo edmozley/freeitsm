@@ -254,8 +254,17 @@ return [
         'centred' => 'Rajah ditengahkan pada halaman',
         'readonly' => 'Versi sejarah adalah baca sahaja',
     ],
+    'details' => [
+        'title' => 'Butiran rajah',
+        'edit_title' => 'Tukar tajuk dan penerangan',
+        'saved' => 'Butiran disimpan',
+    ],
+
     'connector' => [
         'label_ph' => 'Label (Enter untuk simpan, Esc untuk batal)',
+        'style' => 'Gaya garisan',
+        'solid' => 'Penuh',
+        'dashed' => 'Putus-putus',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Klik untuk memilih, seret untuk mengalihkan, {del} untuk membuang.',
         'placing_tip1' => '<strong>Sudah ada pada kanvas?</strong> Objek yang telah anda letakkan ditapis keluar daripada pemilih supaya anda tidak tersilap meletakkan objek yang sama dua kali pada satu rajah.',
         'placing_tip2' => '<strong>Penggantian ikon setiap nod:</strong> secara lalai setiap nod menggunakan ikon kelas CMDB-nya. Jika anda mahu membezakan dua objek dari kelas yang sama secara visual (cth. "MS SQL Produksi" berbanding "Oracle Pelaporan", kedua-duanya Pelayan Pangkalan Data), pilih nod, buka panel butiran, dan klik <strong>Tukar</strong> di sebelah baris Ikon — pilih daripada ~65 ikon yang dikumpulkan kepada 12 kategori. Set semula mengosongkan penggantian dan kembali kepada lalai kelas.',
+        'placing_tip_class_icon' => '<strong>Ikon lalai setiap kelas:</strong> tetapkan sekali dalam <strong>CMDB → Tetapan → Kelas</strong> - sunting kelas dan pilih <strong>Ikon</strong> - dan setiap nod kelas itu menggunakannya.',
         'connectors_title' => 'Melukis penyambung',
         'connectors_body' => 'Layangkan atau pilih nod — empat titik sian kecil muncul di tepi ikon. Tekan butang tetikus pada satu titik, seret ke nod lain, lepaskan untuk mencipta penyambung. Satu garis sian bertitik mengikuti kursor semasa anda menyeret supaya anda dapat lihat di mana ia akan mendarat.',
         'connectors_step1' => '<strong>Lukis:</strong> tekan tetikus pada titik tepi → seret ke nod sasaran → lepaskan untuk mencipta anak panah.',
         'connectors_step2' => '<strong>Pilih:</strong> klik mana-mana penyambung — ia bertukar sian dengan lejang lebih tebal.',
         'connectors_step3' => '<strong>Label:</strong> klik dua kali pada penyambung — medan input teks sebaris terbuka pada titik tengah (Enter simpan, Esc batal).',
         'connectors_step4' => '<strong>Padam:</strong> pilih penyambung dan tekan {del}.',
+        'connectors_style' => '<strong>Gaya:</strong> pilih penyambung dan pilih <strong>Penuh</strong> atau <strong>Putus-putus</strong> di bawahnya - berguna untuk pautan sandaran atau sambungan yang baru dirancang.',
         'connectors_tip' => '<strong>Arah penting:</strong> anak panah menunjuk dari <em>sumber</em> ke <em>sasaran</em> mengikut susunan anda melukisnya. Jika anda mahu songsangkan anak panah, padamkannya dan lukis semula dari hujung yang lain.',
         'related_title' => 'Menambah objek berkaitan',
         'related_body' => 'Inilah ciri utama. Klik nod yang telah diletakkan — panel butiran meluncur masuk di sebelah kanvas. Klik <strong>Tambah objek berkaitan</strong> dan modal itu menyenaraikan setiap objek CMDB yang terhubung dengan objek ini merentasi tiga kumpulan:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Sunting versi semasa dengan bebas — perubahan disimpan di tempatnya melalui butang Simpan atau simpan automatik.',
         'versioning_step2' => 'Apabila anda mahu tangkapan, klik <strong>Simpan sebagai versi baharu</strong> — keadaan lama menjadi rekod sejarah, anda meneruskan pada daun baharu.',
         'versioning_step3' => 'Versi sejarah dibuka baca sahaja — klik mana-mana nod atau penyambung untuk memeriksa, tetapi anda tidak boleh mengubahnya.',
+        'versioning_rename' => '<strong>Namakan semula:</strong> klik <strong>Sunting</strong> di sebelah tajuk untuk menukar tajuk dan penerangan versi semasa.',
         'versioning_warn' => '<strong>Tiada percabangan:</strong> induk boleh mempunyai paling banyak satu anak dalam rantaian — sejarah adalah ketat linear. Jika anda perlu meneroka seni bina alternatif, cipta rajah berasingan dan bukannya mencabangkan rantaian.',
         'saving_title' => 'Menyimpan',
         'saving_body' => 'Dua mod. <strong>Simpan automatik</strong> (togol dalam bar alat) menyimpan kira-kira 2 saat selepas suntingan terakhir anda — penunjuk status bergaya Word di sebelah togol menunjukkan <em>Belum disimpan</em>, <em>Menyimpan…</em>, kemudian <em>Disimpan</em>. Keadaan togol diingati mengikut penganalisis. <strong>Simpan manual</strong> melalui butang Simpan atau {ctrl}+{s} berfungsi dalam kedua-dua mod.',

@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagram op bladsy gesentreer',
         'readonly' => 'Historiese weergawes is leesalleen',
     ],
+    'details' => [
+        'title' => 'Diagrambesonderhede',
+        'edit_title' => 'Verander die titel en beskrywing',
+        'saved' => 'Besonderhede gestoor',
+    ],
+
     'connector' => [
         'label_ph' => 'Etiket (Enter om te stoor, Esc om te kanselleer)',
+        'style' => 'Lynstyl',
+        'solid' => 'Solied',
+        'dashed' => 'Gestippel',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Klik om te kies, sleep om te skuif, {del} om te verwyder.',
         'placing_tip1' => '<strong>Reeds op die doek?</strong> Objekte wat jy reeds geplaas het, word uit die kieser gefiltreer sodat jy nie per ongeluk dieselfde objek twee keer op een diagram kan plaas nie.',
         'placing_tip2' => '<strong>Ikoon-oorheersing per nodus:</strong> by verstek gebruik elke nodus sy CMDB-klas se ikoon. As jy twee objekte van dieselfde klas visueel wil onderskei (bv. "Produksie MS SQL" teenoor "Verslagdoening Oracle", albei Databasisbediener), kies die nodus, maak die detailpaneel oop, en klik <strong>Verander</strong> langs die Ikoon-ry — kies uit ~65 ikone wat in 12 kategorieë gegroepeer is. Herstel vee die oorheersing uit en keer terug na die klas se verstek.',
+        'placing_tip_class_icon' => '<strong>Verstekikoon per klas:</strong> stel dit een keer in <strong>CMDB → Instellings → Klasse</strong> - wysig \'n klas en kies \'n <strong>Ikoon</strong> - en elke nodus van daardie klas gebruik dit.',
         'connectors_title' => 'Verbindings teken',
         'connectors_body' => 'Sweef oor of kies \'n nodus — vier klein siaan kolletjies verskyn aan die rande van die ikoon. Muis-af op \'n kolletjie, sleep na \'n ander nodus, muis-op om die verbinding te skep. \'n Gestippelde siaan lyn volg die wyser terwyl jy sleep sodat jy kan sien waar dit sal beland.',
         'connectors_step1' => '<strong>Teken:</strong> muis-af op \'n randkolletjie → sleep na teikennodus → muis-op skep \'n pyl.',
         'connectors_step2' => '<strong>Kies:</strong> klik enige verbinding — dit word siaan met \'n dikker lyn.',
         'connectors_step3' => '<strong>Etiket:</strong> dubbelklik \'n verbinding — \'n inlyn-teksinvoer maak by die middelpunt oop (Enter stoor, Esc kanselleer).',
         'connectors_step4' => '<strong>Skrap:</strong> kies \'n verbinding en druk {del}.',
+        'connectors_style' => '<strong>Styl:</strong> kies \'n verbinding en kies <strong>Solied</strong> of <strong>Gestippel</strong> daaronder - handig vir rugsteunskakels of verbindings wat net beplan is.',
         'connectors_tip' => '<strong>Rigting maak saak:</strong> pyle wys van <em>bron</em> na <em>teiken</em> in die volgorde waarin jy dit geteken het. As jy \'n pyl wil omdraai, skrap dit en teken dit weer vanaf die ander kant.',
         'related_title' => 'Verwante objekte byvoeg',
         'related_body' => 'Dit is die uitblinker-kenmerk. Klik \'n geplaasde nodus — die detailpaneel gly langs die doek in. Klik <strong>Voeg verwante objekte by</strong> en die dialoog lys elke CMDB-objek wat met hierdie een verbind is, in drie groepe:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Wysig die huidige weergawe vryelik — veranderinge word ter plaatse gestoor via die Stoor-knoppie of outostoor.',
         'versioning_step2' => 'Wanneer jy \'n momentopname wil hê, klik <strong>Stoor as nuwe weergawe</strong> — die ou toestand word die historiese rekord, jy gaan voort op die nuwe blaar.',
         'versioning_step3' => 'Historiese weergawes maak leesalleen oop — klik enige nodus of verbinding om te inspekteer, maar jy kan hulle nie wysig nie.',
+        'versioning_rename' => '<strong>Hernoem:</strong> klik <strong>Wysig</strong> langs die titel om die titel en beskrywing van die huidige weergawe te verander.',
         'versioning_warn' => '<strong>Geen vertakking:</strong> \'n ouer kan hoogstens een kind in die ketting hê — die geskiedenis is streng lineêr. As jy \'n alternatiewe argitektuur wil verken, skep \'n aparte diagram eerder as om die ketting te vurk.',
         'saving_title' => 'Stoor',
         'saving_body' => 'Twee modusse. <strong>Outostoor</strong> (skakelaar in die nutsbalk) stoor omtrent 2 sekondes na jou laaste wysiging — die Word-styl statusaanwyser langs die skakelaar wys <em>Nie gestoor nie</em>, <em>Stoor tans…</em>, dan <em>Gestoor</em>. Die skakelaarstand word per ontleder onthou. <strong>Handmatige stoor</strong> via die Stoor-knoppie of {ctrl}+{s} werk in albei modusse.',

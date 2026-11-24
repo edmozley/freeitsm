@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagram ditengahkan pada halaman',
         'readonly' => 'Versi historis bersifat hanya-baca',
     ],
+    'details' => [
+        'title' => 'Detail diagram',
+        'edit_title' => 'Ubah judul dan deskripsi',
+        'saved' => 'Detail disimpan',
+    ],
+
     'connector' => [
         'label_ph' => 'Label (Enter untuk menyimpan, Esc untuk membatalkan)',
+        'style' => 'Gaya garis',
+        'solid' => 'Penuh',
+        'dashed' => 'Putus-putus',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Klik untuk memilih, seret untuk memindahkan, {del} untuk menghapus.',
         'placing_tip1' => '<strong>Sudah ada di kanvas?</strong> Objek yang sudah Anda tempatkan disaring dari pemilih sehingga Anda tidak sengaja menempatkan objek yang sama dua kali pada satu diagram.',
         'placing_tip2' => '<strong>Penimpaan ikon per node:</strong> secara default setiap node memakai ikon kelas CMDB-nya. Jika Anda ingin membedakan dua objek dari kelas yang sama secara visual (mis. "Production MS SQL" vs "Reporting Oracle", keduanya Server Database), pilih node, buka panel detail, lalu klik <strong>Ubah</strong> di samping baris Ikon — pilih dari ~65 ikon yang dikelompokkan dalam 12 kategori. Atur ulang menghapus penimpaan dan kembali ke default kelas.',
+        'placing_tip_class_icon' => '<strong>Ikon bawaan per kelas:</strong> atur sekali di <strong>CMDB → Pengaturan → Kelas</strong> - edit kelas dan pilih <strong>Ikon</strong> - dan setiap node dari kelas itu memakainya.',
         'connectors_title' => 'Menggambar konektor',
         'connectors_body' => 'Arahkan kursor ke node atau pilih node — empat titik cyan kecil muncul di tepi ikon. Tekan mouse pada titik, seret ke node lain, lepas untuk membuat konektor. Garis putus-putus cyan mengikuti kursor saat Anda menyeret sehingga Anda bisa melihat di mana konektor akan mendarat.',
         'connectors_step1' => '<strong>Gambar:</strong> tekan mouse pada titik tepi → seret ke node tujuan → lepas untuk membuat panah.',
         'connectors_step2' => '<strong>Pilih:</strong> klik konektor mana pun — berubah menjadi cyan dengan garis lebih tebal.',
         'connectors_step3' => '<strong>Label:</strong> klik ganda konektor — kolom teks sebaris terbuka di titik tengah (Enter menyimpan, Esc membatalkan).',
         'connectors_step4' => '<strong>Hapus:</strong> pilih konektor lalu tekan {del}.',
+        'connectors_style' => '<strong>Gaya:</strong> pilih konektor lalu pilih <strong>Penuh</strong> atau <strong>Putus-putus</strong> di bawahnya - berguna untuk tautan cadangan atau koneksi yang baru direncanakan.',
         'connectors_tip' => '<strong>Arah itu penting:</strong> panah menunjuk dari <em>sumber</em> ke <em>tujuan</em> sesuai urutan Anda menggambarnya. Jika ingin membalik panah, hapus dan gambar ulang dari ujung yang lain.',
         'related_title' => 'Menambah objek terkait',
         'related_body' => 'Ini fitur andalannya. Klik node yang sudah ditempatkan — panel detail bergeser masuk di samping kanvas. Tekan <strong>Tambah objek terkait</strong> dan modal mencantumkan setiap objek CMDB yang terhubung dengan objek ini dalam tiga kelompok:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Edit versi saat ini sesuka Anda — perubahan tersimpan di tempat melalui tombol Simpan atau simpan otomatis.',
         'versioning_step2' => 'Saat Anda menginginkan snapshot, klik <strong>Simpan sebagai versi baru</strong> — kondisi lama menjadi catatan historis, Anda melanjutkan di ujung rantai yang baru.',
         'versioning_step3' => 'Versi historis terbuka sebagai hanya-baca — klik node atau konektor mana pun untuk memeriksa, tetapi Anda tidak dapat mengubahnya.',
+        'versioning_rename' => '<strong>Ganti nama:</strong> klik <strong>Edit</strong> di samping judul untuk mengubah judul dan deskripsi versi saat ini.',
         'versioning_warn' => '<strong>Tanpa percabangan:</strong> satu induk paling banyak memiliki satu turunan dalam rantai — riwayatnya benar-benar linear. Jika Anda perlu menjajaki arsitektur alternatif, buat diagram terpisah alih-alih membuat cabang dari rantai.',
         'saving_title' => 'Menyimpan',
         'saving_body' => 'Dua mode. <strong>Simpan otomatis</strong> (sakelar di bilah alat) menyimpan sekitar 2 detik setelah pengeditan terakhir Anda — indikator status ala Word di samping sakelar menampilkan <em>Belum disimpan</em>, <em>Menyimpan…</em>, lalu <em>Tersimpan</em>. Status sakelar diingat per analis. <strong>Simpan manual</strong> melalui tombol Simpan atau {ctrl}+{s} berfungsi di kedua mode.',

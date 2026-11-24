@@ -78,6 +78,17 @@ try {
     check('an update to another class\'s key is refused', refused(fn() => CmdbSchemaService::saveClass($conn, $ctx, ['id' => $b['id'], 'name' => 'x', 'class_key' => $a['class_key']])) === 'Another class already uses that key');
     $u = CmdbSchemaService::saveClass($conn, $ctx, ['id' => $b['id'], 'name' => "$TAG Renamed", 'class_key' => $b['class_key'], 'is_active' => 1], $no);
     check('...while a rename keeping its own key is fine', !$u['created'] && $conn->query("SELECT name FROM cmdb_classes WHERE id = {$b['id']}")->fetchColumn() === "$TAG Renamed");
+    // GH #433: an edit that does not send icon_id keeps the icon; sending null clears it.
+    $iconId = (int)$conn->query("SELECT id FROM cmdb_icons ORDER BY id LIMIT 1")->fetchColumn();
+    if ($iconId) {
+        $iconOf = fn() => $conn->query("SELECT icon_id FROM cmdb_classes WHERE id = {$b['id']}")->fetchColumn();
+        CmdbSchemaService::saveClass($conn, $ctx, ['id' => $b['id'], 'name' => "$TAG Renamed", 'class_key' => $b['class_key'], 'icon_id' => $iconId, 'is_active' => 1], $no);
+        check('an icon can be set on a class', (int)$iconOf() === $iconId);
+        CmdbSchemaService::saveClass($conn, $ctx, ['id' => $b['id'], 'name' => "$TAG Renamed again", 'class_key' => $b['class_key'], 'is_active' => 1], $no);
+        check('...an edit that does not send icon_id keeps it', (int)$iconOf() === $iconId);
+        CmdbSchemaService::saveClass($conn, $ctx, ['id' => $b['id'], 'name' => "$TAG Renamed", 'class_key' => $b['class_key'], 'icon_id' => null, 'is_active' => 1], $no);
+        check('...and sending icon_id null clears it', $iconOf() === null);
+    }
 
     echo "Property definitions\n";
     $cls = $a['id'];

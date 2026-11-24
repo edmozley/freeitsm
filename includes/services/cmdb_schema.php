@@ -126,7 +126,11 @@ class CmdbSchemaService
         $name = trim((string)($in['name'] ?? ''));
         $key = trim((string)($in['class_key'] ?? ''));
         $description = trim((string)($in['description'] ?? ''));
-        $iconId = isset($in['icon_id']) && $in['icon_id'] !== '' && $in['icon_id'] !== null ? (int)$in['icon_id'] : null;
+        // TRAP: icon_id is only changed when the caller SENDS it. Before GH #433 the settings
+        // form never sent it, so every edit of a class silently wiped the icon that starter
+        // classes and the demo data had given it. Absent = keep; null / '' = clear.
+        $iconGiven = array_key_exists('icon_id', $in);
+        $iconId = $iconGiven && $in['icon_id'] !== '' && $in['icon_id'] !== null ? (int)$in['icon_id'] : null;
         $displayOrder = isset($in['display_order']) ? (int)$in['display_order'] : 0;
         $isActive = !empty($in['is_active']) ? 1 : 0;
 
@@ -164,6 +168,12 @@ class CmdbSchemaService
         $check->execute([$key, $id]);
         if ($check->fetch()) {
             throw new ServiceError('conflict', 'conflict', 'Another class already uses that key');
+        }
+        if (!$iconGiven) {
+            $cur = $conn->prepare("SELECT icon_id FROM cmdb_classes WHERE id = ?");
+            $cur->execute([$id]);
+            $v = $cur->fetchColumn();
+            $iconId = ($v === false || $v === null) ? null : (int)$v;
         }
         $conn->prepare(
             "UPDATE cmdb_classes

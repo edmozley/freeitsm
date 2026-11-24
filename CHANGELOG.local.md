@@ -14,6 +14,10 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3155 | CMDB              | Fix         | Editing a class in CMDB -> Settings -> Classes no longer wipes the icon it had (starter classes and demo data come with icons) - the class form never sent the icon, so every save cleared it (GH #433). |
+| 3154 | CMDB              | Feature     | A class can be given an icon in CMDB -> Settings -> Classes, from the same set asset types use; every node of that class on a network diagram uses it unless the node picks its own, and the classes list shows it; strings in 22 languages (GH #433). |
+| 3153 | Network Mapper    | Feature     | A selected connector shows Solid / Dashed buttons beneath it, so backup links or planned connections can be drawn dashed; saved with the diagram and shown in the help; strings in 22 languages (GH #433). |
+| 3152 | Network Mapper    | Feature     | Edit beside a diagram's title changes the title and description of the current version, saved straight away without touching unsaved changes on the canvas; strings in 22 languages (GH #433). |
 | 3151 | Network Mapper    | Improvement | The diagram title moved from the toolbar to the row below it, beside the version and author, so it is no longer cut to "Impact: ..." - and on a laptop narrower than about 1300px the toolbar buttons wrap onto a second line instead of pushing Save off the screen (GH #433). |
 | 3150 | Watchtower        | Improvement | Browser extension 1.1.0: asks for access to your own FreeITSM server only, when you press Save or Test in its settings, instead of every website at install - ready for the Chrome Web Store - and warns when the server address is not https. |
 | 3149 | System            | Fix         | Photo Album: EGA and CGA looked grey on a webcam picture, because each character took the nearest of a few strong colours and muted photo colours are nearest the greys - with Dithering on, colours are now dithered as the real cards did, so skin, walls and clothes show in colour. |

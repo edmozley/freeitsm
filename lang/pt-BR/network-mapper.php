@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagrama centralizado na página',
         'readonly' => 'Versões históricas são somente leitura',
     ],
+    'details' => [
+        'title' => 'Detalhes do diagrama',
+        'edit_title' => 'Alterar o título e a descrição',
+        'saved' => 'Detalhes salvos',
+    ],
+
     'connector' => [
         'label_ph' => 'Rótulo (Enter para salvar, Esc para cancelar)',
+        'style' => 'Estilo da linha',
+        'solid' => 'Contínua',
+        'dashed' => 'Tracejada',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Clique para selecionar, arraste para mover, {del} para remover.',
         'placing_tip1' => '<strong>Já está na tela?</strong> Objetos que você já posicionou são filtrados do seletor para que você não posicione acidentalmente o mesmo objeto duas vezes em um diagrama.',
         'placing_tip2' => '<strong>Substituição de ícone por nó:</strong> por padrão, cada nó usa o ícone da sua classe do CMDB. Se você quiser distinguir visualmente dois objetos da mesma classe (ex. "MS SQL de produção" vs "Oracle de relatórios", ambos Servidor de banco de dados), selecione o nó, abra o painel de detalhes e clique em <strong>Alterar</strong> ao lado da linha Ícone — escolha entre ~65 ícones agrupados em 12 categorias. Redefinir remove a substituição e volta ao padrão da classe.',
+        'placing_tip_class_icon' => '<strong>Ícone padrão por classe:</strong> defina uma vez em <strong>CMDB → Configurações → Classes</strong> - edite uma classe e escolha um <strong>Ícone</strong> - e todo nó dessa classe passa a usá-lo.',
         'connectors_title' => 'Desenhando conectores',
         'connectors_body' => 'Passe o cursor ou selecione um nó — quatro pequenos pontos ciano aparecem nas bordas do ícone. Pressione o botão do mouse sobre um ponto, arraste até outro nó e solte para criar o conector. Uma linha ciano tracejada acompanha o cursor enquanto você arrasta, para que você veja onde ela vai chegar.',
         'connectors_step1' => '<strong>Desenhar:</strong> pressione o mouse sobre um ponto de borda → arraste até o nó de destino → solte para criar uma seta.',
         'connectors_step2' => '<strong>Selecionar:</strong> clique em qualquer conector — ele fica ciano com um traço mais grosso.',
         'connectors_step3' => '<strong>Rótulo:</strong> dê um duplo clique em um conector — um campo de texto embutido abre no ponto médio (Enter salva, Esc cancela).',
         'connectors_step4' => '<strong>Excluir:</strong> selecione um conector e pressione {del}.',
+        'connectors_style' => '<strong>Estilo:</strong> selecione um conector e escolha <strong>Contínua</strong> ou <strong>Tracejada</strong> abaixo dele - útil para links de backup ou conexões apenas planejadas.',
         'connectors_tip' => '<strong>A direção importa:</strong> as setas apontam da <em>origem</em> para o <em>destino</em> na ordem em que você as desenhou. Se quiser inverter uma seta, exclua-a e redesenhe a partir da outra extremidade.',
         'related_title' => 'Adicionando objetos relacionados',
         'related_body' => 'Este é o recurso essencial. Clique em um nó posicionado — o painel de detalhes desliza ao lado da tela. Clique em <strong>Adicionar objetos relacionados</strong> e o modal lista todos os objetos do CMDB conectados a este, em três grupos:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Edite a versão atual livremente — as alterações são salvas no local pelo botão Salvar ou pelo salvamento automático.',
         'versioning_step2' => 'Quando quiser um instantâneo, clique em <strong>Salvar como nova versão</strong> — o estado antigo torna-se o registro histórico e você continua na nova folha.',
         'versioning_step3' => 'Versões históricas abrem em somente leitura — clique em qualquer nó ou conector para inspecionar, mas você não pode modificá-los.',
+        'versioning_rename' => '<strong>Renomear:</strong> clique em <strong>Editar</strong> ao lado do título para alterar o título e a descrição da versão atual.',
         'versioning_warn' => '<strong>Sem ramificação:</strong> um pai pode ter no máximo um filho na cadeia — o histórico é estritamente linear. Se você precisar explorar uma arquitetura alternativa, crie um diagrama separado em vez de ramificar a cadeia.',
         'saving_title' => 'Salvando',
         'saving_body' => 'Dois modos. O <strong>Salvamento automático</strong> (alternar na barra de ferramentas) salva cerca de 2 segundos após sua última edição — o indicador de status no estilo do Word ao lado do botão mostra <em>Não salvo</em>, <em>Salvando…</em> e, em seguida, <em>Salvo</em>. O estado do botão é lembrado por analista. O <strong>Salvamento manual</strong> pelo botão Salvar ou {ctrl}+{s} funciona em qualquer modo.',

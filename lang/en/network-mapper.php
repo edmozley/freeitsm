@@ -301,9 +301,19 @@ return [
         'readonly'         => 'Historical versions are read-only',
     ],
 
-    // Inline connector label editor
+    // Inline connector label editor, and the line style under a selected connector (GH #433)
     'connector' => [
         'label_ph'         => 'Label (Enter to save, Esc to cancel)',
+        'style'            => 'Line style',
+        'solid'            => 'Solid',
+        'dashed'           => 'Dashed',
+    ],
+
+    // Title + description of the current version (GH #433)
+    'details' => [
+        'title'            => 'Diagram details',
+        'edit_title'       => 'Change the title and description',
+        'saved'            => 'Details saved',
     ],
 
     // Help guide (help.php)
@@ -459,6 +469,7 @@ return [
         'placing_step4'    => 'Click to select, drag to move, {del} to remove.',
         'placing_tip1'     => '<strong>Already on the canvas?</strong> Objects you\'ve already placed are filtered out of the picker so you can\'t accidentally place the same object twice on one diagram.',
         'placing_tip2'     => '<strong>Per-node icon override:</strong> by default every node uses its CMDB class\'s icon. If you want to distinguish two objects of the same class visually (e.g. "Production MS SQL" vs "Reporting Oracle", both Database Server), select the node, open the detail panel, and click <strong>Change</strong> next to the Icon row — pick from ~65 icons grouped into 12 categories. Reset clears the override and goes back to the class default.',
+        'placing_tip_class_icon' => '<strong>Default icon per class:</strong> set it once in <strong>CMDB → Settings → Classes</strong> - edit a class and pick an <strong>Icon</strong> - and every node of that class uses it.',
 
         // 4. Connectors
         'connectors_title' => 'Drawing connectors',
@@ -467,6 +478,7 @@ return [
         'connectors_step2' => '<strong>Select:</strong> click any connector — it turns cyan with a thicker stroke.',
         'connectors_step3' => '<strong>Label:</strong> double-click a connector — an inline text input opens at the midpoint (Enter saves, Esc cancels).',
         'connectors_step4' => '<strong>Delete:</strong> select a connector and press {del}.',
+        'connectors_style' => '<strong>Style:</strong> select a connector and pick <strong>Solid</strong> or <strong>Dashed</strong> under it - handy for backup links or connections that are only planned.',
         'connectors_tip'   => '<strong>Direction matters:</strong> arrows point from <em>source</em> to <em>target</em> in the order you drew them. If you want to flip an arrow, delete it and re-draw from the other end.',
 
         // 5. Related
@@ -515,6 +527,7 @@ return [
         'versioning_step1' => 'Edit the current version freely — changes save in place via the Save button or autosave.',
         'versioning_step2' => 'When you want a snapshot, click <strong>Save as new version</strong> — the old state becomes the historical record, you continue on the new leaf.',
         'versioning_step3' => 'Historical versions open read-only — click any node or connector to inspect, but you can\'t modify them.',
+        'versioning_rename' => '<strong>Rename:</strong> click <strong>Edit</strong> beside the title to change the title and description of the current version.',
         'versioning_warn'  => '<strong>No branching:</strong> a parent can have at most one child in the chain — the history is strictly linear. If you need to explore an alternative architecture, create a separate diagram rather than forking the chain.',
 
         // 10. Saving

@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagrama centrado en la página',
         'readonly' => 'Las versiones históricas son de solo lectura',
     ],
+    'details' => [
+        'title' => 'Detalles del diagrama',
+        'edit_title' => 'Cambiar el título y la descripción',
+        'saved' => 'Detalles guardados',
+    ],
+
     'connector' => [
         'label_ph' => 'Etiqueta (Intro para guardar, Esc para cancelar)',
+        'style' => 'Estilo de línea',
+        'solid' => 'Continua',
+        'dashed' => 'Discontinua',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Haga clic para seleccionar, arrastre para mover y {del} para eliminar.',
         'placing_tip1' => '<strong>¿Ya está en el lienzo?</strong> Los objetos que ya ha colocado se excluyen del selector para que no pueda colocar el mismo objeto dos veces por accidente en un diagrama.',
         'placing_tip2' => '<strong>Icono personalizado por nodo:</strong> por defecto, cada nodo usa el icono de su clase de la CMDB. Si quiere distinguir visualmente dos objetos de la misma clase (p. ej. «Production MS SQL» frente a «Reporting Oracle», ambos Database Server), seleccione el nodo, abra el panel de detalle y haga clic en <strong>Cambiar</strong> junto a la fila Icono — elija entre unos 65 iconos agrupados en 12 categorías. Restablecer elimina la personalización y vuelve al icono predeterminado de la clase.',
+        'placing_tip_class_icon' => '<strong>Icono predeterminado por clase:</strong> configúralo una vez en <strong>CMDB → Configuración → Clases</strong> - edita una clase y elige un <strong>Icono</strong> - y todos los nodos de esa clase lo usarán.',
         'connectors_title' => 'Dibujar conectores',
         'connectors_body' => 'Pase el cursor sobre un nodo o selecciónelo — aparecen cuatro puntos cian pequeños en los bordes del icono. Pulse el botón del ratón sobre un punto, arrastre hasta otro nodo y suéltelo para crear el conector. Una línea discontinua cian sigue al cursor mientras arrastra, para que vea dónde va a quedar.',
         'connectors_step1' => '<strong>Dibujar:</strong> pulse sobre un punto del borde → arrastre hasta el nodo de destino → suelte para crear una flecha.',
         'connectors_step2' => '<strong>Seleccionar:</strong> haga clic en cualquier conector — se vuelve cian y con un trazo más grueso.',
         'connectors_step3' => '<strong>Etiquetar:</strong> haga doble clic en un conector — se abre un campo de texto en línea en el punto medio (Intro guarda, Esc cancela).',
         'connectors_step4' => '<strong>Eliminar:</strong> seleccione un conector y pulse {del}.',
+        'connectors_style' => '<strong>Estilo:</strong> selecciona un conector y elige <strong>Continua</strong> o <strong>Discontinua</strong> debajo - útil para enlaces de respaldo o conexiones que solo están previstas.',
         'connectors_tip' => '<strong>La dirección importa:</strong> las flechas apuntan del <em>origen</em> al <em>destino</em>, en el orden en que las dibujó. Si quiere invertir una flecha, elimínela y vuelva a dibujarla desde el otro extremo.',
         'related_title' => 'Añadir objetos relacionados',
         'related_body' => 'Esta es la función clave. Haga clic en un nodo colocado — el panel de detalle se despliega junto al lienzo. Pulse <strong>Añadir objetos relacionados</strong> y el modal muestra todos los objetos de la CMDB conectados a este, agrupados en tres bloques:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Edite la versión actual libremente — los cambios se guardan en el mismo lugar mediante el botón Guardar o el autoguardado.',
         'versioning_step2' => 'Cuando quiera una instantánea, haga clic en <strong>Guardar como nueva versión</strong> — el estado anterior se convierte en el registro histórico y usted continúa en el nuevo extremo.',
         'versioning_step3' => 'Las versiones históricas se abren en modo de solo lectura — haga clic en cualquier nodo o conector para inspeccionarlo, pero no podrá modificarlos.',
+        'versioning_rename' => '<strong>Renombrar:</strong> haz clic en <strong>Editar</strong> junto al título para cambiar el título y la descripción de la versión actual.',
         'versioning_warn' => '<strong>Sin ramificaciones:</strong> un padre puede tener como máximo un hijo en la cadena — el historial es estrictamente lineal. Si necesita explorar una arquitectura alternativa, cree un diagrama independiente en lugar de ramificar la cadena.',
         'saving_title' => 'Guardado',
         'saving_body' => 'Dos modos. <strong>Autoguardado</strong> (interruptor en la barra de herramientas) guarda unos 2 segundos después de su última edición — el indicador de estado, al estilo de Word, junto al interruptor muestra <em>Sin guardar</em>, <em>Guardando…</em> y luego <em>Guardado</em>. El estado del interruptor se recuerda por analista. El <strong>guardado manual</strong> mediante el botón Guardar o {ctrl}+{s} funciona en ambos modos.',

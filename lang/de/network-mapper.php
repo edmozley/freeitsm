@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagramm auf der Seite zentriert',
         'readonly' => 'Historische Versionen sind schreibgeschützt',
     ],
+    'details' => [
+        'title' => 'Diagrammdetails',
+        'edit_title' => 'Titel und Beschreibung ändern',
+        'saved' => 'Details gespeichert',
+    ],
+
     'connector' => [
         'label_ph' => 'Beschriftung (Enter zum Speichern, Esc zum Abbrechen)',
+        'style' => 'Linienstil',
+        'solid' => 'Durchgezogen',
+        'dashed' => 'Gestrichelt',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Klicken zum Auswählen, Ziehen zum Verschieben, {del} zum Entfernen.',
         'placing_tip1' => '<strong>Schon auf der Zeichenfläche?</strong> Bereits platzierte Objekte werden im Auswahlfenster ausgeblendet, sodass Sie dasselbe Objekt nicht versehentlich zweimal in einem Diagramm platzieren können.',
         'placing_tip2' => '<strong>Icon-Überschreibung pro Knoten:</strong> Standardmäßig verwendet jeder Knoten das Icon seiner CMDB-Klasse. Wenn Sie zwei Objekte derselben Klasse optisch unterscheiden möchten (z. B. „Produktions-MS-SQL“ vs. „Reporting-Oracle“, beide Datenbankserver), wählen Sie den Knoten aus, öffnen Sie das Detailpanel und klicken Sie neben der Icon-Zeile auf <strong>Ändern</strong> — wählen Sie aus rund 65 Icons in 12 Kategorien. Zurücksetzen entfernt die Überschreibung und stellt das Standard-Icon der Klasse wieder her.',
+        'placing_tip_class_icon' => '<strong>Standardsymbol je Klasse:</strong> einmal unter <strong>CMDB → Einstellungen → Klassen</strong> festlegen - Klasse bearbeiten und ein <strong>Symbol</strong> wählen - dann verwendet jeder Knoten dieser Klasse es.',
         'connectors_title' => 'Verbindungen zeichnen',
         'connectors_body' => 'Bewegen Sie den Mauszeiger über einen Knoten oder wählen Sie ihn aus — an den Rändern des Icons erscheinen vier kleine türkisfarbene Punkte. Drücken Sie die Maustaste auf einem Punkt, ziehen Sie zu einem anderen Knoten und lassen Sie los, um die Verbindung zu erstellen. Eine gestrichelte türkisfarbene Linie folgt beim Ziehen dem Mauszeiger, damit Sie sehen, wo sie landen wird.',
         'connectors_step1' => '<strong>Zeichnen:</strong> Maustaste auf einem Randpunkt drücken → zum Zielknoten ziehen → Loslassen erstellt einen Pfeil.',
         'connectors_step2' => '<strong>Auswählen:</strong> Klicken Sie auf eine beliebige Verbindung — sie wird türkisfarben und die Linie dicker.',
         'connectors_step3' => '<strong>Beschriften:</strong> Doppelklicken Sie auf eine Verbindung — an ihrem Mittelpunkt öffnet sich ein Texteingabefeld (Enter speichert, Esc bricht ab).',
         'connectors_step4' => '<strong>Löschen:</strong> Wählen Sie eine Verbindung aus und drücken Sie {del}.',
+        'connectors_style' => '<strong>Stil:</strong> Verbindung auswählen und darunter <strong>Durchgezogen</strong> oder <strong>Gestrichelt</strong> wählen - praktisch für Backup-Leitungen oder nur geplante Verbindungen.',
         'connectors_tip' => '<strong>Die Richtung ist wichtig:</strong> Pfeile zeigen von <em>Quelle</em> zu <em>Ziel</em>, in der Reihenfolge, in der Sie sie gezeichnet haben. Wenn Sie einen Pfeil umkehren möchten, löschen Sie ihn und zeichnen Sie ihn vom anderen Ende aus neu.',
         'related_title' => 'Verwandte Objekte hinzufügen',
         'related_body' => 'Dies ist die Schlüsselfunktion. Klicken Sie auf einen platzierten Knoten — das Detailpanel schiebt sich neben die Zeichenfläche. Klicken Sie auf <strong>Verwandte Objekte hinzufügen</strong>, und das Dialogfeld listet jedes mit diesem Objekt verbundene CMDB-Objekt in drei Gruppen auf:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Bearbeiten Sie die aktuelle Version frei — Änderungen werden über die Schaltfläche „Speichern“ oder durch automatisches Speichern direkt übernommen.',
         'versioning_step2' => 'Wenn Sie eine Momentaufnahme möchten, klicken Sie auf <strong>Als neue Version speichern</strong> — der alte Zustand wird zum historischen Eintrag, und Sie arbeiten auf dem neuen Blatt weiter.',
         'versioning_step3' => 'Historische Versionen öffnen sich schreibgeschützt — klicken Sie auf einen beliebigen Knoten oder eine Verbindung, um sie zu betrachten, aber Sie können sie nicht ändern.',
+        'versioning_rename' => '<strong>Umbenennen:</strong> neben dem Titel auf <strong>Bearbeiten</strong> klicken, um Titel und Beschreibung der aktuellen Version zu ändern.',
         'versioning_warn' => '<strong>Keine Verzweigung:</strong> Ein Elternknoten kann in der Kette höchstens ein Kind haben — der Verlauf ist streng linear. Wenn Sie eine alternative Architektur untersuchen möchten, erstellen Sie ein separates Diagramm, anstatt die Kette abzuzweigen.',
         'saving_title' => 'Speichern',
         'saving_body' => 'Zwei Modi. <strong>Automatisches Speichern</strong> (Schalter in der Werkzeugleiste) speichert etwa 2 Sekunden nach Ihrer letzten Änderung — die Word-ähnliche Statusanzeige neben dem Schalter zeigt <em>Nicht gespeichert</em>, <em>Speichern…</em>, dann <em>Gespeichert</em>. Der Schalterzustand wird pro Analyst gespeichert. <strong>Manuelles Speichern</strong> über die Schaltfläche Speichern oder {ctrl}+{s} funktioniert in beiden Modi.',

@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagrammet er centreret på siden',
         'readonly' => 'Historiske versioner er skrivebeskyttede',
     ],
+    'details' => [
+        'title' => 'Diagramdetaljer',
+        'edit_title' => 'Skift titel og beskrivelse',
+        'saved' => 'Detaljer gemt',
+    ],
+
     'connector' => [
         'label_ph' => 'Etiket (Enter for at gemme, Esc for at annullere)',
+        'style' => 'Linjestil',
+        'solid' => 'Fuldt optrukket',
+        'dashed' => 'Stiplet',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Klik for at vælge, træk for at flytte, {del} for at fjerne.',
         'placing_tip1' => '<strong>Allerede på lærredet?</strong> Objekter, du allerede har placeret, filtreres fra i vælgeren, så du ikke ved et uheld kan placere det samme objekt to gange på ét diagram.',
         'placing_tip2' => '<strong>Ikon-tilsidesættelse pr. knude:</strong> som standard bruger hver knude sin CMDB-klasses ikon. Hvis du vil adskille to objekter af samme klasse visuelt (f.eks. "Production MS SQL" over for "Reporting Oracle", begge Database Server), skal du vælge knuden, åbne detaljepanelet og klikke på <strong>Skift</strong> ud for Ikon-rækken — vælg blandt ca. 65 ikoner fordelt på 12 kategorier. Nulstil rydder tilsidesættelsen og går tilbage til klassens standard.',
+        'placing_tip_class_icon' => '<strong>Standardikon pr. klasse:</strong> angiv det én gang under <strong>CMDB → Indstillinger → Klasser</strong> - rediger en klasse, og vælg et <strong>Ikon</strong> - så bruger alle noder i den klasse det.',
         'connectors_title' => 'Tegn forbindelser',
         'connectors_body' => 'Hold musen over eller vælg en knude — fire små cyanfarvede prikker vises ved ikonets kanter. Tryk museknappen ned på en prik, træk til en anden knude, og slip for at oprette forbindelsen. En stiplet cyanfarvet linje følger markøren, mens du trækker, så du kan se, hvor den lander.',
         'connectors_step1' => '<strong>Tegn:</strong> tryk museknappen ned på en kantprik → træk til målknuden → slip opretter en pil.',
         'connectors_step2' => '<strong>Vælg:</strong> klik på en forbindelse — den bliver cyanfarvet med en tykkere streg.',
         'connectors_step3' => '<strong>Etiket:</strong> dobbeltklik på en forbindelse — et indlejret tekstfelt åbner ved midtpunktet (Enter gemmer, Esc annullerer).',
         'connectors_step4' => '<strong>Slet:</strong> vælg en forbindelse, og tryk på {del}.',
+        'connectors_style' => '<strong>Stil:</strong> vælg en forbindelse, og vælg <strong>Fuldt optrukket</strong> eller <strong>Stiplet</strong> under den - praktisk til backupforbindelser eller forbindelser, der kun er planlagt.',
         'connectors_tip' => '<strong>Retning betyder noget:</strong> pile peger fra <em>kilde</em> til <em>mål</em> i den rækkefølge, du tegnede dem. Hvis du vil vende en pil, skal du slette den og tegne den igen fra den anden ende.',
         'related_title' => 'Tilføj relaterede objekter',
         'related_body' => 'Dette er den store fidus. Klik på en placeret knude — detaljepanelet glider ind ved siden af lærredet. Klik på <strong>Tilføj relaterede objekter</strong>, og dialogboksen viser alle CMDB-objekter, der er forbundet med dette, fordelt på tre grupper:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Redigér den aktuelle version frit — ændringer gemmes direkte via Gem-knappen eller autogem.',
         'versioning_step2' => 'Når du vil have et øjebliksbillede, skal du klikke på <strong>Gem som ny version</strong> — den gamle tilstand bliver den historiske registrering, og du fortsætter på det nye blad.',
         'versioning_step3' => 'Historiske versioner åbner skrivebeskyttet — klik på en knude eller forbindelse for at undersøge den, men du kan ikke ændre dem.',
+        'versioning_rename' => '<strong>Omdøb:</strong> klik på <strong>Redigér</strong> ved siden af titlen for at ændre titel og beskrivelse for den aktuelle version.',
         'versioning_warn' => '<strong>Ingen forgrening:</strong> en forælder kan højst have ét barn i kæden — historikken er strengt lineær. Har du brug for at udforske en alternativ arkitektur, skal du oprette et separat diagram i stedet for at forgrene kæden.',
         'saving_title' => 'Gemning',
         'saving_body' => 'To tilstande. <strong>Autogem</strong> (til/fra-knap i værktøjslinjen) gemmer ca. 2 sekunder efter din sidste redigering — statusindikatoren i Word-stil ved siden af knappen viser <em>Ikke gemt</em>, <em>Gemmer…</em>, derefter <em>Gemt</em>. Knappens tilstand huskes pr. medarbejder. <strong>Manuel gemning</strong> via Gem-knappen eller {ctrl}+{s} virker i begge tilstande.',

@@ -254,8 +254,17 @@ return [
         'centred' => 'Diagrammet er midtstilt på sida',
         'readonly' => 'Historiske versjonar er skriveverna',
     ],
+    'details' => [
+        'title' => 'Diagramdetaljar',
+        'edit_title' => 'Endra tittel og skildring',
+        'saved' => 'Detaljar lagra',
+    ],
+
     'connector' => [
         'label_ph' => 'Etikett (Enter for å lagre, Esc for å avbryte)',
+        'style' => 'Linjestil',
+        'solid' => 'Heiltrekt',
+        'dashed' => 'Stipla',
     ],
     'icons' => [
         'category' => [
@@ -396,12 +405,14 @@ return [
         'placing_step4' => 'Klikk for å velje, dra for å flytte, {del} for å fjerne.',
         'placing_tip1' => '<strong>Allereie på lerretet?</strong> Objekt du alt har plassert, blir filtrerte bort frå veljaren, så du kan ikkje kome i skade for å plassere det same objektet to gonger på eitt diagram.',
         'placing_tip2' => '<strong>Overstyring av ikon per node:</strong> som standard brukar kvar node ikonet til CMDB-klassen sin. Vil du skilje to objekt av same klasse visuelt (t.d. "MS SQL i produksjon" mot "Oracle for rapportering", begge Databaseserver), vel du noden, opnar detaljpanelet og klikkar <strong>Endre</strong> ved sida av Ikon-rada — vel mellom ~65 ikon fordelte på 12 kategoriar. Nullstill fjernar overstyringa og går tilbake til standarden for klassen.',
+        'placing_tip_class_icon' => '<strong>Standardikon per klasse:</strong> set det éin gong under <strong>CMDB → Innstillingar → Klassar</strong> - rediger ein klasse og vel eit <strong>Ikon</strong> - så brukar alle nodar i den klassen det.',
         'connectors_title' => 'Teikne koplingar',
         'connectors_body' => 'Peik på eller vel ein node — fire små turkise punkt dukkar opp langs kantane av ikonet. Trykk museknappen på eit punkt, dra til ein annan node og slepp for å lage koplinga. Ei stipla turkis linje følgjer peikaren medan du dreg, så du ser kvar ho hamnar.',
         'connectors_step1' => '<strong>Teikn:</strong> trykk museknappen på eit kantpunkt → dra til målnoden → slepp for å lage ei pil.',
         'connectors_step2' => '<strong>Vel:</strong> klikk på ei kopling — ho blir turkis med tjukkare strek.',
         'connectors_step3' => '<strong>Etikett:</strong> dobbeltklikk på ei kopling — eit tekstfelt opnar seg på midtpunktet (Enter lagrar, Esc avbryt).',
         'connectors_step4' => '<strong>Slett:</strong> vel ei kopling og trykk {del}.',
+        'connectors_style' => '<strong>Stil:</strong> vel ei kopling og vel <strong>Heiltrekt</strong> eller <strong>Stipla</strong> under ho - nyttig for reservesamband eller samband som berre er planlagde.',
         'connectors_tip' => '<strong>Retninga har noko å seie:</strong> pilene peikar frå <em>kjelde</em> til <em>mål</em> i den rekkjefølgja du teikna dei. Vil du snu ei pil, må du slette henne og teikne på nytt frå den andre enden.',
         'related_title' => 'Leggje til relaterte objekt',
         'related_body' => 'Dette er den store funksjonen. Klikk på ein plassert node — detaljpanelet glir inn ved sida av lerretet. Trykk <strong>Legg til relaterte objekt</strong>, og dialogen listar opp alle CMDB-objekt som er kopla til dette, fordelte på tre bolkar:',
@@ -440,6 +451,7 @@ return [
         'versioning_step1' => 'Rediger den gjeldande versjonen fritt — endringane blir lagra på staden via Lagre-knappen eller autolagring.',
         'versioning_step2' => 'Når du vil ha eit augneblinksbilete, klikkar du <strong>Lagre som ny versjon</strong> — den gamle tilstanden blir den historiske oppføringa, og du held fram på det nye bladet.',
         'versioning_step3' => 'Historiske versjonar opnar skriveverna — klikk på ein node eller ei kopling for å inspisere, men du kan ikkje endre dei.',
+        'versioning_rename' => '<strong>Gje nytt namn:</strong> klikk <strong>Rediger</strong> ved sida av tittelen for å endra tittel og skildring for gjeldande versjon.',
         'versioning_warn' => '<strong>Inga forgreining:</strong> ein forelder kan ha høgst eitt barn i kjeda — historikken er strengt lineær. Treng du å utforske ein alternativ arkitektur, lag heller eit eige diagram enn å greine ut kjeda.',
         'saving_title' => 'Lagring',
         'saving_body' => 'To modusar. <strong>Autolagring</strong> (slå av og på i verktøylinja) lagrar om lag 2 sekund etter siste endring — statusindikatoren i Word-stil ved sida av brytaren viser <em>Ikkje lagra</em>, <em>Lagrar…</em> og så <em>Lagra</em>. Innstillinga blir hugsa per analytikar. <strong>Manuell lagring</strong> via Lagre-knappen eller {ctrl}+{s} verkar i begge modusar.',
