@@ -216,7 +216,7 @@ $translationNamespaces = ['common', 'network-mapper'];
                         <div class="help-step"><span class="help-step-num">6</span><div><?php echo t('network-mapper.help.connectors_step4', ['del' => '<span class="help-kbd">Delete</span>']); ?></div></div>
                     </div>
 
-                    <p class="help-note"><?php echo t('network-mapper.help.connectors_tip'); ?></p>
+                    <p class="help-note"><?php echo t('network-mapper.help.connectors_tip_dir'); ?></p>
                 </div>
 
                 <!-- 5. Shapes and styling (GH #433) -->
@@ -243,7 +243,6 @@ $translationNamespaces = ['common', 'network-mapper'];
                     <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_articles'); ?></p>
                     <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_select'); ?></p>
                     <p class="help-note"><?php echo t('network-mapper.help.shapes_tip_menu'); ?></p>
-                    <p class="help-note"><?php echo htmlspecialchars(t('network-mapper.help.shapes_tip_lines')); ?></p>
                 </div>
 
                 <!-- 6. Pages and layers (GH #433) -->
