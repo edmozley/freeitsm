@@ -322,6 +322,7 @@ $translationNamespaces = ['common', 'network-mapper'];
                     </div>
                     <p class="help-note"><?php echo t('network-mapper.help.paper_tip1'); ?></p>
                     <p class="help-note"><?php echo t('network-mapper.help.paper_tip2'); ?></p>
+                    <p class="help-note"><?php echo t('network-mapper.help.export_tip'); ?></p>
                 </div>
 
                 <!-- 10. Header &amp; footer -->

@@ -45,6 +45,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <title><?php echo htmlspecialchars(pageTitle('network-mapper', t('network-mapper.editor.browser_title'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
+    <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">   <?php /* PNG / PDF -> Save to Files */ ?>
     <style>
         /* Pin --accent to the module cyan so shared components (focus rings,
            inbox.css modal primitives) read on-brand. The diagram canvas + nodes
@@ -1897,8 +1898,8 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                 <button class="nm-btn secondary" id="brandingBtn" onclick="NM.openBrandingModal()" title="<?php echo htmlspecialchars(t('network-mapper.editor.branding_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.branding')); ?></button>
                 <button class="nm-btn secondary" id="centreBtn" onclick="NM.centre()" title="<?php echo htmlspecialchars(t('network-mapper.editor.centre_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.centre')); ?></button>
                 <div class="nm-export-group" role="group" aria-label="Export">
-                    <button class="nm-btn secondary nm-export-btn" id="exportPngBtn" onclick="NM.exportPng()" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_png_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_png')); ?></button>
-                    <button class="nm-btn secondary nm-export-btn" id="exportPdfBtn" onclick="NM.exportPdf()" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_pdf_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_pdf')); ?></button>
+                    <button class="nm-btn secondary nm-export-btn" id="exportPngBtn" onclick="NM.exportMenu(event, 'png')" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_png_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_png')); ?></button>
+                    <button class="nm-btn secondary nm-export-btn" id="exportPdfBtn" onclick="NM.exportMenu(event, 'pdf')" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_pdf_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_pdf')); ?></button>
                 </div>
                 <button class="nm-btn secondary" id="presentBtn" onclick="NM.enterPresent()" title="<?php echo htmlspecialchars(t('network-mapper.editor.present_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.present')); ?></button>
                 <div class="nm-versions-wrap">
@@ -2255,9 +2256,11 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
     <script src="../assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>
+    <script>window.NM_FILES = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'files') ? 'true' : 'false'; ?>;</script>   <?php /* exports can go to Files */ ?>
+    <script src="../assets/js/save-to-files.js?v=3"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
-    <script src="../assets/js/network-mapper.js?v=19"></script>
+    <script src="../assets/js/network-mapper.js?v=20"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

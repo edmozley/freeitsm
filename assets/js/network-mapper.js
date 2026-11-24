@@ -5513,22 +5513,50 @@
         }
     }
 
-    /** Exports the diagram as a PNG download. */
-    async function exportPng() {
-        const result = await captureCanvas();
-        if (!result) return;
+    /**
+     * PNG / PDF: a small menu - Download, or Save to Files (the shared dialog, assets/js/save-to-files.js).
+     * Someone without the Files module just gets the download, as before.
+     */
+    function exportMenu(e, kind) {
+        const run = kind === 'pdf' ? exportPdf : exportPng;
+        if (!window.NM_FILES || !window.SaveToFiles) { run('download'); return; }
+        if (e) e.stopPropagation();
+        const r = e.currentTarget.getBoundingClientRect();
+        showCtxMenu(r.left, r.bottom + 4, [
+            { label: t('common.documents.download'), act: () => run('download') },
+            { label: t('common.save_to_files.title'), act: () => run('files') }
+        ]);
+    }
+
+    /** Hands a finished export over: downloaded, or into the Save to Files dialog. */
+    function deliverExport(blob, name, mode, toastKey) {
+        if (mode === 'files' && window.SaveToFiles) {
+            window.SaveToFiles.open({ blob: blob, name: name });
+            return;
+        }
         // Browser-native download via a one-shot <a download> click
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.download = exportFilename('png');
-        link.href = result.canvas.toDataURL('image/png');
+        link.download = name;
+        link.href = url;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        if (window.showToast) showToast(t('network-mapper.toast.png_exported'), 'success');
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        if (window.showToast) showToast(t(toastKey), 'success');
     }
 
-    /** Exports the diagram as a PDF sized to its paper choice (A4 portrait when none is set). */
-    async function exportPdf() {
+    /** Exports the diagram as a PNG - downloaded, or (mode 'files') saved to Files. */
+    async function exportPng(mode) {
+        const result = await captureCanvas();
+        if (!result) return;
+        const blob = await new Promise(res => result.canvas.toBlob(res, 'image/png'));
+        if (!blob) return;
+        deliverExport(blob, exportFilename('png'), mode, 'network-mapper.toast.png_exported');
+    }
+
+    /** Exports the diagram as a PDF sized to its paper choice (A4 portrait when none is set); mode as exportPng. */
+    async function exportPdf(mode) {
         // The shared PDF writer (assets/js/pdf-writer.js - GH #254).
         if (!window.FitsmPdf) {
             if (window.showToast) showToast(t('network-mapper.toast.pdf_lib_failed'), 'error');
@@ -5551,8 +5579,7 @@
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
         doc.addImage(result.canvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
-        await doc.save(exportFilename('pdf'));
-        if (window.showToast) showToast(t('network-mapper.toast.pdf_exported'), 'success');
+        deliverExport(await doc.output('blob'), exportFilename('pdf'), mode, 'network-mapper.toast.pdf_exported');
     }
 
     // =========================================================
@@ -5636,6 +5663,7 @@
         // export
         exportPng,
         exportPdf,
+        exportMenu,   // Download or Save to Files
         // auto-centre
         centre: centreOnPage
     };

@@ -839,6 +839,7 @@ return [
         'paper_body'       => 'Use the <strong>Paper</strong> dropdown in the editor toolbar to overlay a paper outline on the canvas (A4, A3, A2, Letter, or Tabloid — portrait or landscape). Anything inside the dashed cyan box will print or export cleanly; anything outside gets cropped or scrolled past. Useful as a layout guide before sharing or screenshotting the diagram. Default is <strong>Off</strong> — no overlay shown.',
         'paper_tip1'       => '<strong>Per-diagram setting:</strong> each diagram remembers its own paper size, so a service map can use A3 landscape while a small workflow diagram uses A4 portrait without any setup each time. The setting is also carried forward when you save as a new version — you don\'t need to re-pick.',
         'paper_tip2'       => '<strong>Why not just export at the right size?</strong> Picking it up front means you can compose the diagram inside the printable area as you go — no surprise crops after the fact. PNG / PDF export will use this outline as the bounds when added in a future release.',
+        'export_tip' => '<strong>PNG</strong> and <strong>PDF</strong> ask where the export goes: <strong>Download</strong> saves it on your computer, <strong>Save to Files</strong> puts it in a Files folder you can upload to. If that folder already has a file with the same name, you get the same choices as an upload (a new version, or keep both). Without the Files module they simply download.',
 
         // 8. Branding
         'branding_title'   => 'Header & footer',
