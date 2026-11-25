@@ -121,7 +121,12 @@ try {
     check('...also by their linked address', errCode(fn() => TicketParticipants::add($conn, $ctx, $t, null, $mail('req-alt'), true)) === 'is_requester');
     check('someone who has left', errCode(fn() => TicketParticipants::add($conn, $ctx, $t, $left, null, true)) === 'inactive');
     check("one of the install's own mailbox addresses", errCode(fn() => TicketParticipants::add($conn, $ctx, $t, null, ' ' . strtoupper($mail('mbox')), true)) === 'mailbox_address');
-    check('anyone, on a trashed ticket', errCode(fn() => TicketParticipants::add($conn, $ctx, $tTrash, $p2, null, true)) === 'trashed');
+    $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active) VALUES (?, '!', 'ZZ analyst', ?, 1)")->execute([$tag . 'an', $mail('analyst')]);
+    $made['analysts'][] = (int)$conn->lastInsertId();
+    check("an analyst's address (they are staff, not an end user)", errCode(fn() => TicketParticipants::add($conn, $ctx, $t, null, ' ' . strtoupper($mail('analyst')), true)) === 'analyst_address');
+    $staffPerson = $person('analyst');
+    check('...also as a person record with that address, by id', errCode(fn() => TicketParticipants::add($conn, $ctx, $t, $staffPerson, null, true)) === 'analyst_address');
+    check('anyone, on a trashed ticket',errCode(fn() => TicketParticipants::add($conn, $ctx, $tTrash, $p2, null, true)) === 'trashed');
     check('anyone, on a confidential ticket', errCode(fn() => TicketParticipants::add($conn, $ctx, $tConf, $p2, null, true)) === 'confidential');
     check('anyone, without write access', errCode(fn() => TicketParticipants::add($conn, $ctx, $t, $p2, null, false)) === 'read_only');
     check('a person who does not exist', errCode(fn() => TicketParticipants::add($conn, $ctx, $t, 999999999, null, true)) === 'not_found');
@@ -408,6 +413,7 @@ try {
         if ($v === false) $conn->prepare("DELETE FROM system_settings WHERE setting_key = ?")->execute([$k]);
         else $conn->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = ?")->execute([$v, $k]);
     }
+    foreach ($made['analysts'] as $id) $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$id]);
     foreach ($made['keys'] as $id) { try { $conn->exec("DELETE FROM api_key_rate_limits WHERE api_key_id = $id"); } catch (Throwable) {} $conn->exec("DELETE FROM api_keys WHERE id = $id"); }
     foreach ($made['sessions'] as $f) @unlink($f);
 }

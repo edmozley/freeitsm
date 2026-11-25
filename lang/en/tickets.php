@@ -350,6 +350,7 @@ return [
         'err_confidential' => 'A confidential ticket has no participants.',
         'err_inactive' => 'This person has left.',
         'err_mailbox_address' => 'That is one of this service desk\'s own mailbox addresses.',
+        'err_analyst_address' => 'That is an analyst\'s address. Analysts follow a ticket with Watch instead.',
         'err_trashed' => 'This ticket is in the trash.',
         'err_invalid_email' => 'That is not a valid email address.',
         'err_read_only' => 'You need write access to Tickets to change the participants.',

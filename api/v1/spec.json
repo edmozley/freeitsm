@@ -832,7 +832,7 @@
                     "p": "\/tickets\/{id}\/participants",
                     "perm": "ticket_participants.create",
                     "s": "Add a participant",
-                    "d": "Copies a person on the ticket's emails, by user_id or by email. An address finds the person by their main or a linked address, or creates them as a new requester is created. Refused for the requester, someone who has left, one of the install's own mailbox addresses, and on a trashed or confidential ticket. 201 when added, 200 when they already were. GH #432.",
+                    "d": "Copies a person on the ticket's emails, by user_id or by email. An address finds the person by their main or a linked address, or creates them as a new requester is created. Refused for the requester, someone who has left, one of the install's own mailbox addresses, an active analyst's address, and on a trashed or confidential ticket. 201 when added, 200 when they already were. GH #432.",
                     "params": [
                         {
                             "name": "id",
@@ -901,6 +901,11 @@
                                 "code": 422,
                                 "slug": "mailbox_address",
                                 "when": "The address is one of the install's own mailbox addresses."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "analyst_address",
+                                "when": "The address is an active analyst's (analysts follow a ticket with Watch)."
                             },
                             {
                                 "code": 422,

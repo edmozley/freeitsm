@@ -14,7 +14,8 @@
  *   - Adding or removing needs write access to Tickets, on a ticket the actor can see.
  *     Every add and removal is written to the ticket's history.
  *   - Never the requester (nobody twice), never someone who has left, never one of the
- *     install's own mailbox addresses, never on a trashed ticket.
+ *     install's own mailbox addresses or an active analyst's address (staff are not end
+ *     users - they follow a ticket with Watch), never on a trashed ticket.
  *   - No participants at all on a confidential ticket (discussion #62): adding is
  *     refused, and whenever a ticket becomes confidential its participants are removed
  *     (clearForConfidential(), called from every path that raises sensitivity).
@@ -148,6 +149,9 @@ class TicketParticipants
             }
             if ($person['email'] !== null && self::isMailboxAddress($conn, (string)$person['email'])) {
                 throw new ServiceError('validation', 'mailbox_address', 'That is one of this service desk\'s own mailbox addresses.');
+            }
+            if ($person['email'] !== null && self::isAnalystAddress($conn, (string)$person['email'])) {
+                throw new ServiceError('validation', 'analyst_address', 'That is an analyst\'s address. Analysts follow a ticket with Watch.');
             }
             $otherCompany = self::otherCompany($conn, $person, $ticket);
 
@@ -354,6 +358,9 @@ class TicketParticipants
         if (self::isMailboxAddress($conn, $norm)) {
             throw new ServiceError('validation', 'mailbox_address', 'That is one of this service desk\'s own mailbox addresses.');
         }
+        if (self::isAnalystAddress($conn, $norm)) {
+            throw new ServiceError('validation', 'analyst_address', 'That is an analyst\'s address. Analysts follow a ticket with Watch.');
+        }
         $found = userIdForEmail($conn, $norm);
         if ($found !== null) {
             if (!analystCanAccessUser($conn, $ctx->actorId, $found)) {
@@ -391,6 +398,16 @@ class TicketParticipants
             }
         }
         return isset($addresses[$e]);
+    }
+
+    /** Is this address an active analyst's? (Compared case-insensitively by the column's collation.) */
+    private static function isAnalystAddress(PDO $conn, string $email): bool
+    {
+        $e = userEmailNorm($email);
+        if ($e === '') return false;
+        $s = $conn->prepare("SELECT 1 FROM analysts WHERE email = ? AND is_active = 1 LIMIT 1");
+        $s->execute([$e]);
+        return (bool)$s->fetchColumn();
     }
 
     /** Is the person in another company than the ticket's? Never on a single-company install. */
