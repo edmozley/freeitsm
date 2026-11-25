@@ -233,6 +233,14 @@ try {
     mergeTickets($conn, $actorId, [$nSrc], $cTgt);
     check("a normal ticket merged into a confidential one: its participants do not arrive", $rows($cTgt) === [], json_encode($rows($cTgt)));
 
+    $mA = $ticket('msa', $req); $mB = $ticket('msb', $req, 'confidential'); $mT = $ticket('mst', $pC);
+    $add($mA, $pA); $add($mA, $pB);
+    mergeTickets($conn, $actorId, [$mA, $mB], $mT);
+    check('two sources, one confidential: the survivor is confidential with no participants', $sens($mT) === 'confidential' && $rows($mT) === [], json_encode([$sens($mT), $rows($mT)]));
+    $m = $conn->prepare("SELECT id FROM ticket_merges WHERE source_ticket_id = ? ORDER BY id DESC LIMIT 1"); $m->execute([$mA]);
+    unmergeTicket($conn, $actorId, (int)$m->fetchColumn());
+    check('...and undoing the normal source gives it back all its participants', $rows($mA) === [$pA, $pB], json_encode($rows($mA)));
+
     echo "\nRequester, people, delete\n";
     $tq = $ticket('req', $req);
     $add($tq, $pA);

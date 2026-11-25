@@ -435,9 +435,17 @@ function mergeTickets(PDO $conn, int $actorId, array $sourceIds, int $targetId):
             $tickets[$realTarget] = TicketsService::loadTicket($conn, $ctx, $realTarget);
         }
 
+        // GH #432: will the survivor be confidential once this merge is done (it is, or any
+        // source is)? Decided once, before any source moves: a normal source merged first
+        // must not have its participants carried over and then removed, beyond Undo's reach,
+        // when a later source makes the survivor confidential.
+        require_once __DIR__ . '/ticket_sensitivity.php';
+        $survivorConfidential = ticketIsConfidential($conn, (int)$realTarget);
+        foreach ($sourceIds as $sid) $survivorConfidential = $survivorConfidential || ticketIsConfidential($conn, (int)$sid);
+
         $merged = [];
         foreach ($sourceIds as $sid) {
-            mergeOneTicket($conn, $actorId, $sid, $realTarget, $tickets[$sid], $settings);
+            mergeOneTicket($conn, $actorId, $sid, $realTarget, $tickets[$sid], $settings, $survivorConfidential);
             $merged[] = $sid;
         }
 
@@ -521,7 +529,7 @@ function mergeCreateTargetTicket(PDO $conn, array $model, int $actorId): int {
  * @param array $source  the source ticket's row, as loaded by TicketsService::loadTicket()
  * @param array $settings  the merge policy from mergeSettings(): reference_mode, originals_mode, ai_summary
  */
-function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, array $source, array $settings): void {
+function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, array $source, array $settings, bool $survivorConfidential = false): void {
     $moveMessages = ($settings['originals_mode'] !== 'html');
     $makeSnapshot = ($settings['originals_mode'] !== 'thread');
 
@@ -569,12 +577,12 @@ function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, a
     $droppedRows = [];
 
     // GH #432: participants who must not arrive on the survivor - its requester (nobody
-    // twice), and every one of them when the survivor is confidential or this ticket is
-    // (the survivor then becomes confidential, which allows none). Kept in _dropped
-    // like the duplicates below, so Undo merge puts them back.
+    // twice), and every one of them when the survivor is or will be confidential (any
+    // ticket in this merge is - mergeTickets() decides it once). Kept in _dropped like
+    // the duplicates below, so Undo merge puts them back.
     require_once __DIR__ . '/services/ticket_participants.php';
     if (TicketParticipants::ready($conn)) {
-        $dropAll = ticketIsConfidential($conn, $targetId) || ticketIsConfidential($conn, $sourceId);
+        $dropAll = $survivorConfidential || ticketIsConfidential($conn, $targetId) || ticketIsConfidential($conn, $sourceId);
         $pq = $conn->prepare($dropAll
             ? "SELECT * FROM ticket_participants WHERE ticket_id = ?"
             : "SELECT p.* FROM ticket_participants p JOIN tickets t ON t.id = ? AND t.user_id = p.user_id WHERE p.ticket_id = ?");
