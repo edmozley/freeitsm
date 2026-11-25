@@ -65,6 +65,7 @@ return [
         'no_match' => 'Nic tu nie pasuje do „{q}”.',
         'open' => 'Otwórz',
         'open_location' => 'Otwórz lokalizację pliku',
+        'open_separately' => 'Otwórz osobno',
         'open_new' => 'Otwórz w nowym oknie',
         'paste' => 'Wklej',
         'paste_into' => 'Wklej do folderu',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Zawsze pokazuj',
         'navbar' => 'Górny pasek nawigacji',
         'note' => 'Te wybory dotyczą tylko Ciebie. Logo na pulpicie ustawia administrator.',
+        'multi' => 'Otwieranie wielu plików',
+        'multi_viewer' => 'W jednej przeglądarce - przechodź między nimi klawiszami strzałek',
+        'multi_windows' => 'W osobnych oknach - do 10; więcej otwiera się w jednej przeglądarce',
     ],
     'props' => [
         'restore' => 'Przywróć',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Wyloguj',
         'title' => 'Start',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Ten plik nie może mieć miniatury ({why}).',
         'why_too_large' => 'jest zbyt duży, aby go zmniejszyć',
         'why_unsupported' => 'ten serwer nie potrafi odczytać tego rodzaju obrazu',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'To archiwum jest puste.',
         'zoom_in' => 'Powiększ',
         'zoom_out' => 'Pomniejsz',
+        'previous' => 'Poprzedni',
+        'next' => 'Następny',
+        'slideshow' => 'Pokaz slajdów',
+        'slideshow_tip' => 'Pokazuje obrazy jeden po drugim. Spacja wstrzymuje, Escape zatrzymuje.',
+        'pause' => 'Wstrzymaj',
+        'play' => 'Odtwórz',
+        'stop' => 'Zatrzymaj',
     ],
     'wm' => [
         'close' => 'Zamknij',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Każdy otwarty plik jest zapisywany w ścieżce audytu, wraz z informacją, która to wersja, a dla pliku zip - który plik w środku.',
             'p7' => 'Obraz lub PDF dopasowuje się na nowo przy zmianie rozmiaru lub maksymalizacji okna, dopóki sam nie powiększysz lub nie pomniejszysz widoku; **Dopasuj** oddaje mu kontrolę. Ta sama przeglądarka otwiera obrazy i pliki PDF dołączone do zgłoszeń, w oknie nad zgłoszeniem.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Kilka plików naraz',
+            'title' => 'Kilka plików naraz',
+            'intro' => 'Przeglądaj folder lub zaznaczenie w jednym oknie.',
+            'p1' => 'Gdy plik jest otwarty, przyciski **Poprzedni** i **Następny** na pasku narzędzi przeglądarki - albo klawisze strzałek w lewo i w prawo - przechodzą do pliku przed nim lub po nim w folderze, w kolejności, w jakiej folder jest posortowany. Home i End przechodzą do pierwszego i ostatniego.',
+            'p2' => 'Zaznacz kilka plików i naciśnij **Enter** albo kliknij prawym przyciskiem i wybierz **Otwórz**, aby otworzyć tylko je w jednej przeglądarce. Foldery w zaznaczeniu są pomijane. Aby każdy plik miał własne okno - na przykład żeby ustawić dwa obok siebie - kliknij prawym przyciskiem i wybierz **Otwórz osobno** (do 10 plików) albo zmień **Otwieranie wielu plików** w **Personalizuj**, żeby robił to Enter. Więcej niż 10 plików zawsze otwiera się w jednej przeglądarce.',
+            'p3' => '**Pokaz slajdów** pokazuje znajdujące się wśród nich obrazy jeden po drugim, na pełnym ekranie, jeśli przeglądarka na to pozwala, każdy przez kilka sekund. **Spacja** go wstrzymuje, a **Escape** zatrzymuje. Odtwarza się raz, od obrazu, na którym jesteś, do ostatniego, i pomija wszystko, co nie jest obrazem.',
+            'p4' => 'Każdy plik, do którego przechodzisz, jest otwierany tak, jakbyś otworzył go sam: wymaga uprawnienia **Wyświetlanie** do swojego folderu, obowiązują Tylko do wyświetlania i znak wodny, a otwarcie trafia do dziennika audytu.',
+        ],
+        'thumbnails' => [
             'nav' => 'Miniatury',
             'title' => 'Miniatury',
             'intro' => 'Obrazy i pliki PDF pokazują, co zawierają.',

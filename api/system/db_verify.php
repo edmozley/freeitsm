@@ -620,6 +620,17 @@ try {
         ];
     }
 
+    // Licences: the old "Subscription" / "Perpetual" types become the term (Alisdair's
+    // ask, 5.11.0). Only rows with no term yet, so running it again changes nothing.
+    try {
+        require_once __DIR__ . '/../../includes/services/software.php';
+        $movedTerms = SoftwareService::migrateLegacyTerms($conn);
+        if ($movedTerms > 0) {
+            $results[] = ['table' => 'software_licences', 'status' => 'updated',
+                          'details' => ["Moved {$movedTerms} licence(s) typed Subscription or Perpetual to the new Term field - pick how each is counted"]];
+        }
+    } catch (Throwable $e) { error_log('db_verify licence terms: ' . $e->getMessage()); }
+
     // One-time SSO JIT split (discussion #155). Keeps every existing provider
     // behaving exactly as it did before the upgrade:
     //  - analyst JIT stays on wherever the old single switch was on
@@ -1292,7 +1303,7 @@ try {
         ['consumable_movements',    'fk_consumable_movements_delivery', 'consumable_deliveries','delivery_id', 'id', 'RESTRICT'],
         ['consumable_field_options','fk_consumable_field_options_field','consumable_fields',    'field_id',    'id', 'CASCADE'],
         ['consumable_field_values', 'fk_cfv_item',                      'consumable_items',     'item_id',     'id', 'CASCADE'],
-        ['consumable_field_values', 'fk_cfv_field',                     'consumable_fields',    'field_id',    'id', 'RESTRICT'],
+        ['consumable_field_values', 'fk_consumable_fv_field',           'consumable_fields',    'field_id',    'id', 'RESTRICT'],
         // GH #200 parts C and D: a connection or a review case goes with either asset.
         ['asset_connections',      'fk_asset_connections_asset',   'assets',            'asset_id',              'id', 'CASCADE'],
         ['asset_connections',      'fk_asset_connections_other',   'assets',            'connected_asset_id',    'id', 'CASCADE'],
@@ -3777,10 +3788,40 @@ try {
                     $conn->exec("DELETE n FROM network_diagram_nodes n LEFT JOIN cmdb_objects o ON o.id = n.cmdb_object_id WHERE o.id IS NULL");
                 }
             }
+            if ($tableExists('network_diagram_shapes')) {
+                // GH #433: shapes of a diagram that no longer exists (CASCADE semantics).
+                $conn->exec("DELETE s FROM network_diagram_shapes s LEFT JOIN network_diagrams d ON d.id = s.diagram_id WHERE d.id IS NULL");
+                if ($tableExists('network_icon_library_icons')) {
+                    // ...and an icon that is gone becomes no icon (SET NULL semantics).
+                    $conn->exec("UPDATE network_diagram_shapes s LEFT JOIN network_icon_library_icons i ON i.id = s.icon_id
+                                 SET s.icon_id = NULL WHERE s.icon_id IS NOT NULL AND i.id IS NULL");
+                }
+            }
+            // GH #433: an article that is gone stops being linked (SET NULL / CASCADE semantics).
+            if ($tableExists('knowledge_articles')) {
+                foreach (['network_diagram_nodes', 'network_diagram_shapes'] as $nt) {
+                    if ($tableExists($nt) && $colExists($nt, 'article_id')) {
+                        $conn->exec("UPDATE $nt x LEFT JOIN knowledge_articles a ON a.id = x.article_id SET x.article_id = NULL WHERE x.article_id IS NOT NULL AND a.id IS NULL");
+                    }
+                }
+                if ($tableExists('network_diagram_articles')) {
+                    $conn->exec("DELETE x FROM network_diagram_articles x LEFT JOIN knowledge_articles a ON a.id = x.article_id WHERE a.id IS NULL");
+                    $conn->exec("DELETE x FROM network_diagram_articles x LEFT JOIN network_diagrams d ON d.id = x.diagram_id WHERE d.id IS NULL");
+                    $conn->exec("UPDATE network_diagram_articles x LEFT JOIN analysts an ON an.id = x.created_by_analyst_id SET x.created_by_analyst_id = NULL WHERE x.created_by_analyst_id IS NOT NULL AND an.id IS NULL");
+                }
+            }
+            foreach (['network_diagram_pages', 'network_diagram_layers'] as $pl) {   // GH #433
+                if ($tableExists($pl)) {
+                    $conn->exec("DELETE p FROM $pl p LEFT JOIN network_diagrams d ON d.id = p.diagram_id WHERE d.id IS NULL");
+                }
+            }
+            if ($tableExists('network_icon_library_icons') && $tableExists('network_icon_libraries')) {
+                $conn->exec("DELETE i FROM network_icon_library_icons i LEFT JOIN network_icon_libraries l ON l.id = i.library_id WHERE l.id IS NULL");
+            }
             if ($tableExists('network_diagram_connectors')) {
                 $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagrams d ON d.id = c.diagram_id WHERE d.id IS NULL");
-                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.from_node_id WHERE n.id IS NULL");
-                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.to_node_id WHERE n.id IS NULL");
+                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.from_node_id WHERE c.from_node_id IS NOT NULL AND n.id IS NULL");   // TRAP: a shape end has a NULL node id - not an orphan
+                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.to_node_id WHERE c.to_node_id IS NOT NULL AND n.id IS NULL");
                 if ($tableExists('cmdb_object_relationships')) {
                     $conn->exec("UPDATE network_diagram_connectors c LEFT JOIN cmdb_object_relationships r ON r.id = c.cmdb_relationship_id
                                  SET c.cmdb_relationship_id = NULL WHERE c.cmdb_relationship_id IS NOT NULL AND r.id IS NULL");
@@ -3792,6 +3833,23 @@ try {
                          SET d.created_by_analyst_id = NULL WHERE d.created_by_analyst_id IS NOT NULL AND a.id IS NULL");
         } catch (Exception $e) { /* shrug */ }
     }
+    // GH #433: a connector end can now be a shape, so its node columns may be NULL. Relaxing a
+    // NOT NULL cannot invalidate an existing row (every one has both nodes), and the foreign keys
+    // still hold - a NULL has nothing to check.
+    if ($tableExists('network_diagram_connectors')) {
+        try {
+            $cc = $conn->prepare("SELECT column_name, is_nullable FROM information_schema.columns
+                                   WHERE table_schema = ? AND table_name = 'network_diagram_connectors' AND column_name IN ('from_node_id', 'to_node_id')");
+            $cc->execute([$dbName]);
+            foreach ($cc->fetchAll(PDO::FETCH_NUM) as [$col, $nullable]) {
+                if (strtoupper($nullable) === 'NO') {
+                    $conn->exec("ALTER TABLE `network_diagram_connectors` MODIFY `$col` INT NULL");
+                    $results[] = ['table' => 'network_diagram_connectors', 'status' => 'updated', 'module' => 'network-mapper',
+                                  'details' => ["$col: NOT NULL -> NULL (a connector can end on a shape)"]];
+                }
+            }
+        } catch (Exception $e) { /* reported by the column check */ }
+    }
     $networkFks = [
         ['network_diagrams',           'fk_net_diag_parent', "ALTER TABLE network_diagrams ADD CONSTRAINT fk_net_diag_parent FOREIGN KEY (parent_diagram_id) REFERENCES network_diagrams (id) ON DELETE SET NULL"],
         ['network_diagrams',           'fk_net_diag_author', "ALTER TABLE network_diagrams ADD CONSTRAINT fk_net_diag_author FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
@@ -3800,6 +3858,16 @@ try {
         ['network_diagram_connectors', 'fk_net_conn_diag',   "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
         ['network_diagram_connectors', 'fk_net_conn_from',   "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_from FOREIGN KEY (from_node_id) REFERENCES network_diagram_nodes (id) ON DELETE CASCADE"],
         ['network_diagram_connectors', 'fk_net_conn_to',     "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_to FOREIGN KEY (to_node_id) REFERENCES network_diagram_nodes (id) ON DELETE CASCADE"],
+        ['network_diagram_shapes',     'fk_net_shape_diag',  "ALTER TABLE network_diagram_shapes ADD CONSTRAINT fk_net_shape_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_shapes',     'fk_net_shape_icon',  "ALTER TABLE network_diagram_shapes ADD CONSTRAINT fk_net_shape_icon FOREIGN KEY (icon_id) REFERENCES network_icon_library_icons (id) ON DELETE SET NULL"],
+        ['network_diagram_pages',      'fk_net_page_diag',   "ALTER TABLE network_diagram_pages ADD CONSTRAINT fk_net_page_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_layers',     'fk_net_layer_diag',  "ALTER TABLE network_diagram_layers ADD CONSTRAINT fk_net_layer_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_nodes',      'fk_net_node_article', "ALTER TABLE network_diagram_nodes ADD CONSTRAINT fk_net_node_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE SET NULL"],
+        ['network_diagram_shapes',     'fk_net_shape_article', "ALTER TABLE network_diagram_shapes ADD CONSTRAINT fk_net_shape_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE SET NULL"],
+        ['network_diagram_articles',   'fk_net_da_diag',     "ALTER TABLE network_diagram_articles ADD CONSTRAINT fk_net_da_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_articles',   'fk_net_da_article',  "ALTER TABLE network_diagram_articles ADD CONSTRAINT fk_net_da_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE CASCADE"],
+        ['network_diagram_articles',   'fk_net_da_analyst',  "ALTER TABLE network_diagram_articles ADD CONSTRAINT fk_net_da_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['network_icon_library_icons', 'fk_net_icon_lib',    "ALTER TABLE network_icon_library_icons ADD CONSTRAINT fk_net_icon_lib FOREIGN KEY (library_id) REFERENCES network_icon_libraries (id) ON DELETE CASCADE"],
         ['network_diagram_connectors', 'fk_net_conn_rel',    "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_rel FOREIGN KEY (cmdb_relationship_id) REFERENCES cmdb_object_relationships (id) ON DELETE SET NULL"],
     ];
     foreach ($networkFks as [$tbl, $name, $sql]) {

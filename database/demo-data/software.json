@@ -147,7 +147,8 @@
         "software_licences": [
             {
                 "app_id": "@software_inventory_apps.m365",
-                "licence_type": "Subscription",
+                "licence_type": "Per User",
+                "licence_term": "subscription",
                 "licence_key": "M365-ENT-E3-XXXX-XXXX",
                 "quantity": 250,
                 "renewal_date": "__RELATIVE_DATEONLY:+245d__",
@@ -163,7 +164,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.adobe_cc",
-                "licence_type": "Subscription",
+                "licence_type": "Per User",
+                "licence_term": "subscription",
                 "licence_key": "ADBE-CC-ALLAPS-XXXX",
                 "quantity": 15,
                 "renewal_date": "__RELATIVE_DATEONLY:+155d__",
@@ -179,7 +181,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.zoom",
-                "licence_type": "Subscription",
+                "licence_type": "Per User",
+                "licence_term": "subscription",
                 "licence_key": "ZM-BUS-XXXX-XXXX",
                 "quantity": 100,
                 "renewal_date": "__RELATIVE_DATEONLY:+35d__",
@@ -195,7 +198,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.slack",
-                "licence_type": "Subscription",
+                "licence_type": "Per User",
+                "licence_term": "subscription",
                 "licence_key": "SLCK-PRO-XXXX-XXXX",
                 "quantity": 200,
                 "renewal_date": "__RELATIVE_DATEONLY:+180d__",
@@ -211,7 +215,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.autocad",
-                "licence_type": "Subscription",
+                "licence_type": "Per User",
+                "licence_term": "subscription",
                 "licence_key": "ACAD-2025-SUB-XXXX",
                 "quantity": 5,
                 "renewal_date": "__RELATIVE_DATEONLY:+275d__",
@@ -227,7 +232,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.crowdstrike",
-                "licence_type": "Subscription",
+                "licence_type": "Per Device",
+                "licence_term": "subscription",
                 "licence_key": "CS-FALCON-PRO-XXXX",
                 "quantity": 300,
                 "renewal_date": "__RELATIVE_DATEONLY:+190d__",
@@ -243,7 +249,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.citrix",
-                "licence_type": "Subscription",
+                "licence_type": "Concurrent",
+                "licence_term": "subscription",
                 "licence_key": "CTX-CVAD-XXXX-XXXX",
                 "quantity": 50,
                 "renewal_date": "__RELATIVE_DATEONLY:+120d__",
@@ -259,7 +266,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.veeam",
-                "licence_type": "Perpetual",
+                "licence_type": "Per Device",
+                "licence_term": "perpetual_maintenance",
                 "licence_key": "VEEM-BKP-PERP-XXXX",
                 "quantity": 10,
                 "renewal_date": "__RELATIVE_DATEONLY:+90d__",
@@ -275,7 +283,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.vmware",
-                "licence_type": "Perpetual",
+                "licence_type": "Per Device",
+                "licence_term": "perpetual",
                 "licence_key": "VMW-WS17-XXXX-XXXX",
                 "quantity": 8,
                 "renewal_date": null,
@@ -291,7 +300,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.sep",
-                "licence_type": "Subscription",
+                "licence_type": "Per Device",
+                "licence_term": "subscription",
                 "licence_key": "SEP-14-XXXX-XXXX",
                 "quantity": 300,
                 "renewal_date": "__RELATIVE_DATEONLY:-45d__",
@@ -307,7 +317,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.teams",
-                "licence_type": "Subscription",
+                "licence_type": "Per User",
+                "licence_term": "subscription",
                 "licence_key": null,
                 "quantity": 250,
                 "renewal_date": null,
@@ -323,7 +334,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.power_bi",
-                "licence_type": "Subscription",
+                "licence_type": "Per User",
+                "licence_term": "subscription",
                 "licence_key": "PBI-PRO-XXXX",
                 "quantity": 20,
                 "renewal_date": "__RELATIVE_DATEONLY:+305d__",
@@ -339,7 +351,8 @@
             },
             {
                 "app_id": "@software_inventory_apps.snagit",
-                "licence_type": "Perpetual",
+                "licence_type": "Per User",
+                "licence_term": "perpetual",
                 "licence_key": "SNAG-2024-XXXX-XXXX",
                 "quantity": 10,
                 "renewal_date": null,

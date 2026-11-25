@@ -262,8 +262,10 @@ final class StartersService
             throw new ServiceError('validation', 'invalid_field', 'Choose the date - the first day, the move, or the last day.');
         }
 
-        // The person: someone already in Users (movers and leavers always are),
-        // or a new starter's name until they are added.
+        // The person: someone in Users, or a name. A starter is not in Users yet; a
+        // mover or leaver may never have been (5.11.0 - a supporter of the project
+        // had leavers who were not): the case is then its steps, with no kit and no
+        // account to switch off until Link joins it to somebody.
         $userId = !empty($in['user_id']) ? (int)$in['user_id'] : null;
         $user = null;
         if ($userId) {
@@ -274,10 +276,6 @@ final class StartersService
             $st->execute([$userId]);
             $user = $st->fetch(PDO::FETCH_ASSOC);
             if (!$user) throw new ServiceError('not_found', 'not_found', 'Person not found.');
-        } elseif ($kind !== JmlKind::Starter && empty($in['_from_form'])) {
-            // From a form the person may not be found by their email yet: the
-            // case opens with the name typed, and Link joins it up later.
-            throw new ServiceError('validation', 'missing_field', 'Choose the person - a mover or a leaver is someone already in Users.');
         }
         $name = $user ? trim((string)($user['display_name'] ?: $user['email'])) : trim((string)($in['person_name'] ?? ''));
         if ($name === '') throw new ServiceError('validation', 'missing_field', 'Give the person\'s name.');

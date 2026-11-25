@@ -65,6 +65,10 @@ function oav_validate($data, $schema, $components, $path = 'data', $depth = 0) {
     if ($depth > 40) return $errs;
     $schema = oav_resolveRef($schema, $components);
     if (!$schema) return $errs;
+    // `nullable` beside an allOf ({type, allOf: [$ref], nullable}) is the OAS 3.0 way to say "this
+    // object, or null" - the $ref itself cannot carry it. Honour it before descending, or every
+    // null reference (CMDB value_record) reads as a schema error.
+    if ($data === null && !empty($schema['nullable'])) return $errs;
     if (isset($schema['allOf'])) {
         // An allOf of objects (TicketDetail = Ticket + the detail-only fields) is ONE object: merge the
         // parts and check it once. Checked part by part, every field documented in the other part

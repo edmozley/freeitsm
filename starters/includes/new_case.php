@@ -21,7 +21,7 @@ $nt = fn(string $k) => htmlspecialchars(t('starters.' . $k));
             <div class="jml-field">
                 <div class="lbl"><?php echo $nt('new.person'); ?></div>
                 <div class="jml-seg" id="jmlNewWho">
-                    <button type="button" data-who="new" class="active"><?php echo $nt('new.person_new'); ?></button>
+                    <button type="button" data-who="new" class="active" id="jmlNewWhoNew"><?php echo $nt('new.person_new'); ?></button>
                     <button type="button" data-who="existing"><?php echo $nt('new.person_existing'); ?></button>
                 </div>
                 <div id="jmlNewPersonNew">
@@ -30,6 +30,7 @@ $nt = fn(string $k) => htmlspecialchars(t('starters.' . $k));
                         <div class="jml-field"><label for="jmlNewEmail"><?php echo $nt('new.email'); ?></label><input type="email" id="jmlNewEmail" maxlength="255" autocomplete="off"></div>
                     </div>
                     <div class="jml-field"><label for="jmlNewJob"><?php echo $nt('new.job_title'); ?></label><input type="text" id="jmlNewJob" maxlength="150" autocomplete="off"></div>
+                    <p class="jml-muted" id="jmlNewNotInUsersNote" hidden style="margin:0"><?php echo $nt('new.not_in_users_note'); ?></p>
                 </div>
                 <div id="jmlNewPersonExisting" hidden>
                     <div class="jml-search" id="jmlNewPersonSearch"></div>

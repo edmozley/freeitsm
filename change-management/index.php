@@ -9,6 +9,8 @@ require_once __DIR__ . '/../includes/i18n.php';
 require_once __DIR__ . '/../includes/theme.php';
 require_once __DIR__ . '/../includes/timezone.php';
 requireModuleAccess('changes');
+require_once __DIR__ . '/../includes/changes/field_labels.php';   // GH #435: fields' own names
+$cmFieldConn = connectToDatabase();
 I18n::initFromSession();
 Tz::init();
 
@@ -31,6 +33,7 @@ $translationNamespaces = ['common', 'change-management'];
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
+    <?php echo changeFieldLabelsScript($cmFieldConn); ?>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/record-preview.css?v=1">
     <script src="<?php echo BASE_URL; ?>assets/js/record-preview.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js?v=8.10.2"></script>
@@ -134,21 +137,21 @@ $translationNamespaces = ['common', 'change-management'];
                         </div>
                         <div class="cm-field-wrap" data-field-key="title">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.title_label')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'title')); ?></label>
                                 <input type="text" class="form-input" id="changeTitle" placeholder="<?php echo htmlspecialchars(t('change-management.editor.title_placeholder')); ?>">
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="change_type">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.change_type')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'change_type')); ?></label>
                                 <select class="form-input" id="changeType"></select>
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="status">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.status')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'status')); ?></label>
                                 <!-- Options populated from change_statuses (active rows only) on page load. -->
                                 <select class="form-input" id="changeStatus"></select>
                             </div>
@@ -156,14 +159,14 @@ $translationNamespaces = ['common', 'change-management'];
 
                         <div class="cm-field-wrap" data-field-key="priority">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.priority')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'priority')); ?></label>
                                 <select class="form-input" id="changePriority"></select>
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="impact">
                             <div class="form-group">
-                                <label class="form-label" for="changeImpact"><?php echo htmlspecialchars(t('change-management.editor.impact')); ?></label>
+                                <label class="form-label" for="changeImpact"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'impact')); ?></label>
                                 <select class="form-input" id="changeImpact" aria-describedby="changeImpactHelp"></select>
                                 <div class="approval-note" id="changeImpactHelp"><?php echo htmlspecialchars(t('change-management.editor.impact_help')); ?></div>
                             </div>
@@ -171,7 +174,7 @@ $translationNamespaces = ['common', 'change-management'];
 
                         <div class="cm-field-wrap" data-field-key="category">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.category')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'category')); ?></label>
                                 <input type="text" class="form-input" id="changeCategory" placeholder="<?php echo htmlspecialchars(t('change-management.editor.category_placeholder')); ?>">
                             </div>
                         </div>
@@ -182,7 +185,7 @@ $translationNamespaces = ['common', 'change-management'];
 
                         <div class="cm-field-wrap" data-field-key="requester">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.requester')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'requester')); ?></label>
                                 <select class="form-input" id="changeRequester">
                                     <option value=""><?php echo htmlspecialchars(t('change-management.editor.select')); ?></option>
                                 </select>
@@ -191,7 +194,7 @@ $translationNamespaces = ['common', 'change-management'];
 
                         <div class="cm-field-wrap" data-field-key="assigned_to">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.assigned_to')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'assigned_to')); ?></label>
                                 <select class="form-input" id="changeAssignedTo">
                                     <option value=""><?php echo htmlspecialchars(t('change-management.editor.select')); ?></option>
                                 </select>
@@ -200,7 +203,7 @@ $translationNamespaces = ['common', 'change-management'];
 
                         <div class="cm-field-wrap" data-field-key="approver">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.approver')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'approver')); ?></label>
                                 <select class="form-input" id="changeApprover">
                                     <option value=""><?php echo htmlspecialchars(t('change-management.editor.select')); ?></option>
                                 </select>
@@ -244,28 +247,28 @@ $translationNamespaces = ['common', 'change-management'];
 
                         <div class="cm-field-wrap" data-field-key="work_start">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.work_start')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'work_start')); ?></label>
                                 <input type="datetime-local" class="form-input" id="changeWorkStart">
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="work_end">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.work_end')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'work_end')); ?></label>
                                 <input type="datetime-local" class="form-input" id="changeWorkEnd">
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="outage_start">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.outage_start')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'outage_start')); ?></label>
                                 <input type="datetime-local" class="form-input" id="changeOutageStart">
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="outage_end">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.outage_end')); ?></label>
+                                <label class="form-label"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'outage_end')); ?></label>
                                 <input type="datetime-local" class="form-input" id="changeOutageEnd">
                             </div>
                         </div>
@@ -343,12 +346,12 @@ $translationNamespaces = ['common', 'change-management'];
                         -->
                         <div class="cm-rich-text-widget" id="cmRichTextWidget">
                             <div class="rich-text-tabs" id="richTextTabs">
-                                <button class="rich-text-tab active" data-field-key="description" onclick="switchTab('description')"><?php echo htmlspecialchars(t('change-management.editor.tab_description')); ?></button>
-                                <button class="rich-text-tab" data-field-key="reason" onclick="switchTab('reason')"><?php echo htmlspecialchars(t('change-management.editor.tab_reason')); ?></button>
-                                <button class="rich-text-tab" data-field-key="risk" onclick="switchTab('risk')"><?php echo htmlspecialchars(t('change-management.editor.tab_risk')); ?></button>
-                                <button class="rich-text-tab" data-field-key="testplan" onclick="switchTab('testplan')"><?php echo htmlspecialchars(t('change-management.editor.tab_testplan')); ?></button>
-                                <button class="rich-text-tab" data-field-key="rollback" onclick="switchTab('rollback')"><?php echo htmlspecialchars(t('change-management.editor.tab_rollback')); ?></button>
-                                <button class="rich-text-tab" data-field-key="pir" onclick="switchTab('pir')"><?php echo htmlspecialchars(t('change-management.editor.tab_pir')); ?></button>
+                                <button class="rich-text-tab active" data-field-key="description" onclick="switchTab('description')"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'description')); ?></button>
+                                <button class="rich-text-tab" data-field-key="reason" onclick="switchTab('reason')"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'reason')); ?></button>
+                                <button class="rich-text-tab" data-field-key="risk" onclick="switchTab('risk')"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'risk')); ?></button>
+                                <button class="rich-text-tab" data-field-key="testplan" onclick="switchTab('testplan')"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'testplan')); ?></button>
+                                <button class="rich-text-tab" data-field-key="rollback" onclick="switchTab('rollback')"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'rollback')); ?></button>
+                                <button class="rich-text-tab" data-field-key="pir" onclick="switchTab('pir')"><?php echo htmlspecialchars(changeFieldLabel($cmFieldConn, 'pir')); ?></button>
                             </div>
 
                             <div class="rich-text-panel active" id="panel-description" data-field-key="description">
@@ -629,7 +632,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
     <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=50"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=51"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

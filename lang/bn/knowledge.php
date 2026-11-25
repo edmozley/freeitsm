@@ -542,6 +542,13 @@ return [
         'press_run' => '“ঘাটতি খুঁজুন” চাপুন।',
         'none_to_read' => 'গত {days} দিনে পড়ার মতো কোনো বন্ধ টিকিট নেই।',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'নেটওয়ার্ক ডায়াগ্রাম',
+        'related' => 'ডায়াগ্রামের সঙ্গে সম্পর্কিত',
+        'item'    => 'এর একটি আইটেম থেকে লিংক করা',
+    ],
+
     'help' => [
         'guide' => 'গাইড',
         'topics_title' => 'বিস্তারিত গাইড',

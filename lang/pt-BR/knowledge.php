@@ -543,6 +543,13 @@ Como as duas listas significam coisas opostas, as {people} listadas agora serão
         'press_run' => 'Pressione “Procurar lacunas”.',
         'none_to_read' => 'Nenhum ticket fechado nos últimos {days} dias para ler.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Diagramas de rede',
+        'related' => 'Relacionado ao diagrama',
+        'item'    => 'Vinculado a partir de um item dele',
+    ],
+
     'help' => [
         'guide' => 'Guia',
         'topics_title' => 'Em detalhe',

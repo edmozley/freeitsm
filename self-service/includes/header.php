@@ -108,6 +108,9 @@ $portalNav = [
     // chosen People groups (System -> Self-service portal). The page and its
     // endpoint ask portalOrgChartAllowed() again - a hidden tab is not a permission.
     'org_chart'   => ['href' => 'org-chart.php',   'label' => t('self-service.nav.org_chart'), 'cap' => 'org_chart'],
+    // 5.11.0: Starters & leavers cases, for chosen People groups only (HR). The page and its
+    // endpoint ask portalStartersAllowed() again - a hidden tab is not a permission.
+    'starters'    => ['href' => 'starters.php',    'label' => t('self-service.nav.starters'), 'cap' => 'jml_cases'],
     'help'        => ['href' => 'help.php',        'label' => t('self-service.nav.help')],
 ];
 
@@ -129,6 +132,14 @@ $portalNavCap = function (string $cap) use ($ss_user_id) {
         try {
             require_once __DIR__ . '/../../includes/portal_org_chart.php';
             return portalOrgChartAllowed(connectToDatabase(), (int)$ss_user_id);   // fails closed itself
+        } catch (Throwable) {
+            return false;
+        }
+    }
+    if ($cap === 'jml_cases') {
+        try {
+            require_once __DIR__ . '/../../includes/portal_starters.php';
+            return portalStartersAllowed(connectToDatabase(), (int)$ss_user_id);   // fails closed itself
         } catch (Throwable) {
             return false;
         }
@@ -195,6 +206,7 @@ $portalNavModules = [
     'equipment'   => 'assets',
     'catalogue'   => 'forms',
     'org_chart'   => 'people',
+    'starters'    => 'starters',
     'approvals'   => 'forms',
 ];
 foreach ($portalNav as $navKey => $navItem) {

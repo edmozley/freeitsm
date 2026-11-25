@@ -48,23 +48,25 @@
 
     /** Translates a key under change-management.table, or returns the key when i18n.js is not loaded. */
     const T = (k) => (window.t ? window.t('change-management.table.' + k) : k);
+    /** GH #435: a field's own name (Settings -> Fields), else the standard column name. */
+    const cmL = (key, standard) => (typeof window.cmLabel === 'function' ? window.cmLabel(key, standard) : standard);
 
     const COLUMNS = [
         { key: 'id', label: T('col_ref'), type: 'number', defaultVisible: true, defaultOrder: 0,
           display: c => (c.id != null ? '#' + c.id : ''), value: c => Number(c.id) },
-        { key: 'title', label: T('col_title'), type: 'string', defaultVisible: true, defaultOrder: 1,
+        { key: 'title', label: cmL('title', T('col_title')), type: 'string', defaultVisible: true, defaultOrder: 1,
           display: c => c.title || '' },
-        { key: 'change_type', label: T('col_type'), type: 'string', defaultVisible: true, defaultOrder: 2,
+        { key: 'change_type', label: cmL('change_type', T('col_type')), type: 'string', defaultVisible: true, defaultOrder: 2,
           display: c => c.change_type || '',
           editable: { kind: 'lookup', listKey: 'types', valueKey: 'name', labelKey: 'name', colourKey: 'colour' } },
-        { key: 'status', label: T('col_status'), type: 'string', defaultVisible: true, defaultOrder: 3,
+        { key: 'status', label: cmL('status', T('col_status')), type: 'string', defaultVisible: true, defaultOrder: 3,
           display: c => c.status || '',
           // Read-only on purpose — open the change to move status (CAB / workflow).
           cellTitle: () => T('status_readonly') },
-        { key: 'priority', label: T('col_priority'), type: 'string', defaultVisible: true, defaultOrder: 4,
+        { key: 'priority', label: cmL('priority', T('col_priority')), type: 'string', defaultVisible: true, defaultOrder: 4,
           display: c => c.priority || '',
           editable: { kind: 'lookup', listKey: 'priorities', valueKey: 'name', labelKey: 'name', colourKey: 'colour' } },
-        { key: 'impact', label: T('col_impact'), type: 'string', defaultVisible: false, defaultOrder: 5,
+        { key: 'impact', label: cmL('impact', T('col_impact')), type: 'string', defaultVisible: false, defaultOrder: 5,
           display: c => c.impact || '',
           editable: { kind: 'lookup', listKey: 'impacts', valueKey: 'name', labelKey: 'name', colourKey: 'colour' } },
         { key: 'risk_level', label: T('col_risk'), type: 'string', defaultVisible: true, defaultOrder: 6,
@@ -73,16 +75,16 @@
           display: c => c.risk_level
               ? window.ChangeRisk.resultName(window.ChangeRisk.resultByLabel(window.ChangeRisk.policy(c.risk_policy_version_id), c.risk_level), c.risk_level)
               : '' },
-        { key: 'assigned_to_id', label: T('col_assigned_to'), type: 'string', defaultVisible: true, defaultOrder: 7,
+        { key: 'assigned_to_id', label: cmL('assigned_to', T('col_assigned_to')), type: 'string', defaultVisible: true, defaultOrder: 7,
           display: c => c.assigned_to_name || '',
           editable: { kind: 'lookup', listKey: 'analysts', valueKey: 'id', labelKey: 'name', allowNull: true, nullLabel: '—' } },
-        { key: 'requester_name', label: T('col_requester'), type: 'string', defaultVisible: false, defaultOrder: 8,
+        { key: 'requester_name', label: cmL('requester', T('col_requester')), type: 'string', defaultVisible: false, defaultOrder: 8,
           display: c => c.requester_name || '' },
-        { key: 'category', label: T('col_category'), type: 'string', defaultVisible: false, defaultOrder: 9,
+        { key: 'category', label: cmL('category', T('col_category')), type: 'string', defaultVisible: false, defaultOrder: 9,
           display: c => c.category || '' },
-        { key: 'work_start_datetime', label: T('col_work_start'), type: 'date', defaultVisible: true, defaultOrder: 10,
+        { key: 'work_start_datetime', label: cmL('work_start', T('col_work_start')), type: 'date', defaultVisible: true, defaultOrder: 10,
           value: c => c.work_start_datetime || '', display: c => fmtNaive(c.work_start_datetime) },
-        { key: 'work_end_datetime', label: T('col_work_end'), type: 'date', defaultVisible: false, defaultOrder: 11,
+        { key: 'work_end_datetime', label: cmL('work_end', T('col_work_end')), type: 'date', defaultVisible: false, defaultOrder: 11,
           value: c => c.work_end_datetime || '', display: c => fmtNaive(c.work_end_datetime) },
         { key: 'created_datetime', label: T('col_created'), type: 'date', defaultVisible: false, defaultOrder: 12,
           value: c => c.created_datetime || '', display: c => fmt(c.created_datetime) },

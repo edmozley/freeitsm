@@ -70,8 +70,8 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.' . $k));
     </div>
 
     <script>window.JML_CASE_ID = <?php echo $caseId; ?>;</script>
-    <script src="../assets/js/starters.js?v=2"></script>
-    <script src="../assets/js/starters-view.js?v=5"></script>
+    <script src="../assets/js/starters.js?v=3"></script>
+    <script src="../assets/js/starters-view.js?v=6"></script>
     <?php documentsPanelAssets('../'); ?>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>

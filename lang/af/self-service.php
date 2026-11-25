@@ -16,6 +16,19 @@ return [
         'title' => 'Organisasiekaart',
         'subtitle' => 'Wie aan wie rapporteer. Soek vir \'n naam, pos of departement, of maak \'n span oop met die pyltjie.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Intreders en vertrekkers',
+        'subtitle' => 'Die mense wat aansluit, oorplaas en vertrek, en hoe ver IT met elkeen gevorder het. Slegs lees: vra die eienaar oor enigiets hier.',
+        'tab_open' => 'Oop ({n})',
+        'tab_done' => 'Onlangs klaar ({n})',
+        'none_open' => 'Daar is geen oop sake nie.',
+        'none_done' => 'Geen sake is in die laaste 60 dae afgehandel nie.',
+        'load_failed' => 'Die sake kon nie gelaai word nie. Probeer asseblief weer.',
+        'progress' => '{done} van {total} stappe klaar',
+        'no_steps' => 'Nog geen stappe nie',
+        'owner' => 'Eienaar',
+    ],
     'approvals' => [
         'title' => 'Goedkeurings',
         'subtitle' => 'Versoeke wat wag dat jy hulle goedkeur, as bestuurder of as die eienaar van \'n kostesentrum.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Kennis',
         'equipment' => 'My toerusting',
         'org_chart' => 'Organisasie',
+        'starters'    => 'Intreders en vertrekkers',
         'training' => 'Opleiding',
         'help' => 'Hulp',
         'menu' => 'Kieslys',

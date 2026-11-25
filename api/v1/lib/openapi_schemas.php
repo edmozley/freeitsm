@@ -3245,6 +3245,178 @@ return array (
             '$ref' => '#/components/schemas/CmdbImpactRelationshipRef',
           ),
         ),
+        'blast_radius' => 
+        array (
+          'type' => 'array',
+          'description' => 'Everything ultimately affected, not just what is attached directly: each object once, at its shortest hop count, with how it was reached and (GH #199) its grade.',
+          'items' => 
+          array (
+            '$ref' => '#/components/schemas/CmdbBlastRadiusEntry',
+          ),
+        ),
+        'blast_radius_truncated' => 
+        array (
+          'type' => 'boolean',
+          'description' => 'True when the walk stopped at its depth or size limit - the list is then incomplete and should be said to be.',
+        ),
+        'blast_radius_grades' => 
+        array (
+          '$ref' => '#/components/schemas/CmdbBlastRadiusGrades',
+        ),
+      ),
+    ),
+    'CmdbBlastRadiusEntry' => 
+    array (
+      'type' => 'object',
+      'description' => 'One object in a blast radius (GET /cmdb/objects/{id}/impact).',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'class_name' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'via_from' => 
+        array (
+          'type' => 'integer',
+          'description' => 'The object it was reached from.',
+        ),
+        'via_kind' => 
+        array (
+          'type' => 'string',
+          'description' => 'How: a child of via_from, a relationship, or an object_ref property.',
+          'enum' => 
+          array (
+            0 => 'child',
+            1 => 'relationship',
+            2 => 'property',
+          ),
+        ),
+        'via_label' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'The relationship verb or the property label; null for a child.',
+        ),
+        'via_rel_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'The relationship row, when via_kind is relationship.',
+        ),
+        'via_type_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'Its relationship type.',
+        ),
+        'via_name' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'The name of via_from.',
+        ),
+        'depth' => 
+        array (
+          'type' => 'integer',
+          'description' => 'Hops from the object asked about (1 = directly attached).',
+        ),
+        'grade' => 
+        array (
+          'type' => 'string',
+          'description' => 'GH #199: how badly it is hit. affected unless a relationship type models redundancy or failover.',
+          'enum' => 
+          array (
+            0 => 'affected',
+            1 => 'may_be_interrupted',
+            2 => 'redundancy_reduced',
+            3 => 'unknown',
+          ),
+        ),
+        'grade_via' => 
+        array (
+          'type' => 'object',
+          'allOf' => 
+          array (
+            0 => 
+            array (
+              '$ref' => '#/components/schemas/CmdbBlastRadiusGradeVia',
+            ),
+          ),
+          'nullable' => true,
+          'description' => 'The path that gave the grade; null when it is plainly affected.',
+        ),
+        'unknown_via' => 
+        array (
+          'type' => 'array',
+          'description' => 'Names of objects whose state the grade depends on but the model does not know.',
+          'items' => 
+          array (
+            'type' => 'string',
+          ),
+        ),
+      ),
+    ),
+    'CmdbBlastRadiusGradeVia' => 
+    array (
+      'type' => 'object',
+      'description' => 'The path that gave a blast radius entry its grade; null when it is plainly affected.',
+      'properties' => 
+      array (
+        'from' => 
+        array (
+          'type' => 'integer',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'label' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'kind' => 
+        array (
+          'type' => 'string',
+        ),
+      ),
+    ),
+    'CmdbBlastRadiusGrades' => 
+    array (
+      'type' => 'object',
+      'description' => 'GH #199: whether redundancy rules were used, how many entries got each grade, and what the model does not know.',
+      'properties' => 
+      array (
+        'used' => 
+        array (
+          'type' => 'boolean',
+          'description' => 'False = no relationship type models redundancy, so every entry is affected.',
+        ),
+        'counts' => 
+        array (
+          'type' => 'object',
+          'description' => 'Entries per grade: affected, may_be_interrupted, redundancy_reduced, unknown.',
+          'additionalProperties' => true,
+        ),
+        'limits' => 
+        array (
+          'type' => 'array',
+          'items' => 
+          array (
+            'description' => 'A string code, or an object {code, names}.',
+          ),
+          'description' => 'What the model does not know when rules were used: the strings quorum, storage, capacity, placement_rules, truncated, and {code: assumed_available, names: [...]} for members assumed to be running.',
+        ),
       ),
     ),
     'CmdbImpactDescendant' => 
@@ -7462,7 +7634,15 @@ return array (
           array (
             0 => 'solid',
             1 => 'dashed',
+            2 => 'dotted',
           ),
+        ),
+        'style' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'GH #433: colour, width, arrowStart / arrowEnd (none, arrow, open, diamond, circle), routing (straight, elbow, curved). Null = the normal look.',
+          'additionalProperties' => true,
         ),
       ),
     ),
@@ -7484,19 +7664,29 @@ return array (
     'NetworkConnectorEndpoint' => 
     array (
       'type' => 'object',
+      'description' => 'One end of a connector: a node (node_id, object_id, object_name) or, since GH #433, a shape (shape_uid). The other fields are null.',
       'properties' => 
       array (
         'node_id' => 
         array (
           'type' => 'integer',
+          'nullable' => true,
         ),
         'object_id' => 
         array (
           'type' => 'integer',
+          'nullable' => true,
         ),
         'object_name' => 
         array (
           'type' => 'string',
+          'nullable' => true,
+        ),
+        'shape_uid' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'GH #433: the uid of the shape this end is on.',
         ),
       ),
     ),
@@ -7536,6 +7726,39 @@ return array (
               'items' => 
               array (
                 '$ref' => '#/components/schemas/NetworkConnector',
+              ),
+            ),
+            'shapes' => 
+            array (
+              'type' => 'array',
+              'items' => 
+              array (
+                '$ref' => '#/components/schemas/NetworkShape',
+              ),
+            ),
+            'pages' => 
+            array (
+              'type' => 'array',
+              'items' => 
+              array (
+                '$ref' => '#/components/schemas/NetworkPage',
+              ),
+            ),
+            'layers' => 
+            array (
+              'type' => 'array',
+              'items' => 
+              array (
+                '$ref' => '#/components/schemas/NetworkLayer',
+              ),
+            ),
+            'related_article_ids' => 
+            array (
+              'type' => 'array',
+              'description' => 'GH #433: Knowledge articles related to the whole diagram (ids only).',
+              'items' => 
+              array (
+                'type' => 'integer',
               ),
             ),
             'layout' => 
@@ -8015,6 +8238,38 @@ return array (
         ),
       ),
     ),
+    'NetworkLayer' => 
+    array (
+      'type' => 'object',
+      'description' => 'GH #433: one layer of one page.',
+      'properties' => 
+      array (
+        'page_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'layer_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'sort' => 
+        array (
+          'type' => 'integer',
+        ),
+        'visible' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'locked' => 
+        array (
+          'type' => 'boolean',
+        ),
+      ),
+    ),
     'NetworkLayout' => 
     array (
       'type' => 'object',
@@ -8106,6 +8361,53 @@ return array (
         array (
           'type' => 'string',
           'nullable' => true,
+        ),
+        'colour_override' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'GH #433: the node\'s own colour, #rrggbb. Null = the class look.',
+        ),
+        'w' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'GH #433: box width in px (20-2000). Null = automatic.',
+        ),
+        'h' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'GH #433: box height in px (20-2000). Null = automatic.',
+        ),
+        'style' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'GH #433: the look - fill, fillColour, strokeColour, strokeWidth, opacity, shadow, rounded, font, fontSize, fontColour, bold, italic, underline, align, valign. Null = the normal look.',
+          'additionalProperties' => true,
+        ),
+        'page_key' => 
+        array (
+          'type' => 'integer',
+          'description' => 'GH #433: which page (see pages) the node is on.',
+        ),
+        'layer_key' => 
+        array (
+          'type' => 'integer',
+          'description' => 'GH #433: which layer of that page.',
+        ),
+        'group_key' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'GH #433: items with the same group_key move and select together.',
+        ),
+        'article_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'GH #433: a Knowledge article the node links to (id only).',
         ),
         'object' => 
         array (
@@ -8249,6 +8551,26 @@ return array (
         ),
       ),
     ),
+    'NetworkPage' => 
+    array (
+      'type' => 'object',
+      'description' => 'GH #433: one page (tab) of a diagram.',
+      'properties' => 
+      array (
+        'page_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'sort' => 
+        array (
+          'type' => 'integer',
+        ),
+      ),
+    ),
     'NetworkPaper' => 
     array (
       'type' => 'object',
@@ -8302,6 +8624,94 @@ return array (
         'inverse_verb' => 
         array (
           'type' => 'string',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'NetworkShape' => 
+    array (
+      'type' => 'object',
+      'description' => 'GH #433: a freestanding shape, imported icon or picture. Send the list back unchanged in a full-replace PATCH to keep it.',
+      'properties' => 
+      array (
+        'uid' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'Stable id a connector end names (from_shape_uid / to_shape_uid).',
+        ),
+        'shape_type' => 
+        array (
+          'type' => 'string',
+          'description' => 'A key of the shape library (rectangle, cloud, ...), or icon.',
+        ),
+        'x' => 
+        array (
+          'type' => 'integer',
+        ),
+        'y' => 
+        array (
+          'type' => 'integer',
+        ),
+        'w' => 
+        array (
+          'type' => 'integer',
+        ),
+        'h' => 
+        array (
+          'type' => 'integer',
+        ),
+        'rotation' => 
+        array (
+          'type' => 'integer',
+        ),
+        'text' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'style' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'GH #433: the look - fill, fillColour, strokeColour, strokeWidth, opacity, shadow, rounded, font, fontSize, fontColour, bold, italic, underline, align, valign. Null = the normal look.',
+          'additionalProperties' => true,
+        ),
+        'layer' => 
+        array (
+          'type' => 'string',
+          'description' => 'back = behind nodes, front = in front of them.',
+          'enum' => 
+          array (
+            0 => 'back',
+            1 => 'front',
+          ),
+        ),
+        'z' => 
+        array (
+          'type' => 'integer',
+        ),
+        'icon_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+        ),
+        'page_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'layer_key' => 
+        array (
+          'type' => 'integer',
+        ),
+        'group_key' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'article_id' => 
+        array (
+          'type' => 'integer',
           'nullable' => true,
         ),
       ),
@@ -9380,6 +9790,18 @@ return array (
         array (
           'type' => 'string',
         ),
+        'licence_term' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' =>
+          array (
+            0 => 'subscription',
+            1 => 'perpetual',
+            2 => 'perpetual_maintenance',
+          ),
+          'description' => 'How long it lasts (5.11.0). licence_type is how it is counted. Null = not said.',
+        ),
         'quantity' => 
         array (
           'type' => 'integer',
@@ -9451,6 +9873,18 @@ return array (
         'licence_type' => 
         array (
           'type' => 'string',
+        ),
+        'licence_term' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' =>
+          array (
+            0 => 'subscription',
+            1 => 'perpetual',
+            2 => 'perpetual_maintenance',
+          ),
+          'description' => 'How long it lasts (5.11.0). licence_type is how it is counted. Null = not said.',
         ),
         'licence_key' => 
         array (
@@ -12401,11 +12835,21 @@ return array (
           ),
           'nullable' => true,
         ),
-        'is_active' => 
+        'is_active' =>
         array (
           'type' => 'boolean',
         ),
-        'created_by' => 
+        'run_order' =>
+        array (
+          'type' => 'integer',
+          'description' => 'Its place in the run order on its trigger (Workflows -> Run order). 0 = not placed yet: runs after the placed ones, oldest first. Set the order in the app.',
+        ),
+        'stop_after' =>
+        array (
+          'type' => 'boolean',
+          'description' => 'When this workflow runs (its conditions match), the workflows after it on the same trigger do not run for that event; their run log says which one stopped them.',
+        ),
+        'created_by' =>
         array (
           'type' => 'object',
           'nullable' => true,
@@ -13000,11 +13444,21 @@ return array (
           ),
           'nullable' => true,
         ),
-        'is_active' => 
+        'is_active' =>
         array (
           'type' => 'boolean',
         ),
-        'created_by' => 
+        'run_order' =>
+        array (
+          'type' => 'integer',
+          'description' => 'Its place in the run order on its trigger (Workflows -> Run order). 0 = not placed yet: runs after the placed ones, oldest first. Set the order in the app.',
+        ),
+        'stop_after' =>
+        array (
+          'type' => 'boolean',
+          'description' => 'When this workflow runs (its conditions match), the workflows after it on the same trigger do not run for that event; their run log says which one stopped them.',
+        ),
+        'created_by' =>
         array (
           'type' => 'object',
           'nullable' => true,

@@ -8,9 +8,13 @@
  *   diagram   { id, parent_diagram_id, title, description, version_label,
  *               author_id, author_name, created_at, updated_at, is_current }
  *   nodes     [{ id, cmdb_object_id, name, class_id, class_name, class_icon,
- *                is_planned, x, y, size, icon_override }]
- *   connectors[{ id, from_node_id, to_node_id, cmdb_relationship_id,
- *                label, line_style }]
+ *                is_planned, x, y, size, icon_override, colour_override, w, h,
+ *                style, page_key, layer_key, group_key, article_id }]
+ *   connectors[{ id, from_node_id, to_node_id, from_shape_uid, to_shape_uid,
+ *                cmdb_relationship_id, label, line_style, style }]
+ *   shapes    [{ id, uid, shape_type, x, y, w, h, rotation, text, style, layer, z,
+ *                icon_id, page_key, layer_key, group_key, article_id }]
+ *   pages, layers, articles {related, titles, states}, can_read_knowledge      (GH #433)
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -69,7 +73,7 @@ try {
     // Closing it properly means giving diagrams their own company — that's the
     // first thing Network Mapper's own multi-tenancy slice should do.
     $nstmt = $conn->prepare(
-        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override,
+        "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override, n.colour_override, n.w, n.h, n.style, n.page_key, n.layer_key, n.group_key, n.article_id,
                 o.name, o.is_planned,
                 c.id AS class_id, c.name AS class_name, i.icon_key AS class_icon
            FROM network_diagram_nodes n
@@ -87,11 +91,17 @@ try {
         $n['class_id'] = (int)$n['class_id'];
         $n['x'] = (int)$n['x'];
         $n['y'] = (int)$n['y'];
+        $n['w'] = $n['w'] !== null ? (int)$n['w'] : null;
+        $n['h'] = $n['h'] !== null ? (int)$n['h'] : null;
+        $n['style'] = $n['style'] !== null ? (json_decode($n['style'], true) ?: null) : null;   // GH #433
+        $n['page_key'] = (int)$n['page_key'];
+        $n['layer_key'] = (int)$n['layer_key'];
         $n['is_planned'] = (int)$n['is_planned'] === 1;
+        $n['article_id'] = $n['article_id'] !== null ? (int)$n['article_id'] : null;   // GH #433
     }
 
     $cstmt = $conn->prepare(
-        "SELECT id, from_node_id, to_node_id, cmdb_relationship_id, label, line_style
+        "SELECT *
            FROM network_diagram_connectors
           WHERE diagram_id = ?
        ORDER BY id"
@@ -100,12 +110,80 @@ try {
     $conns = $cstmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($conns as &$c) {
         $c['id'] = (int)$c['id'];
-        $c['from_node_id'] = (int)$c['from_node_id'];
-        $c['to_node_id']   = (int)$c['to_node_id'];
+        // GH #433: an end on a shape has no node (NULL) but a shape uid.
+        $c['from_node_id'] = $c['from_node_id'] !== null ? (int)$c['from_node_id'] : null;
+        $c['to_node_id']   = $c['to_node_id'] !== null ? (int)$c['to_node_id'] : null;
+        $c['from_shape_uid'] = $c['from_shape_uid'] ?? null;
+        $c['to_shape_uid']   = $c['to_shape_uid'] ?? null;
+        $c['style'] = isset($c['style']) && $c['style'] !== null ? (json_decode($c['style'], true) ?: null) : null;
+        unset($c['diagram_id'], $c['is_demo']);
         $c['cmdb_relationship_id'] = $c['cmdb_relationship_id'] !== null ? (int)$c['cmdb_relationship_id'] : null;
     }
 
-    echo json_encode(['success' => true, 'diagram' => $d, 'nodes' => $nodes, 'connectors' => $conns]);
+    // GH #433: freestanding shapes. An install that has not run DB Verify since the
+    // table arrived simply has none - the diagram still opens.
+    $shapes = [];
+    try {
+        try {
+            $sstmt = $conn->prepare(
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid, article_id
+                   FROM network_diagram_shapes
+                  WHERE diagram_id = ?
+               ORDER BY z, id"
+            );
+            $sstmt->execute([$id]);
+        } catch (PDOException $e) {
+            // icon_id arrived after the shapes table - an install between the two still opens.
+            $sstmt = $conn->prepare(
+                "SELECT id, shape_type, x, y, w, h, rotation, text, style, layer, z, NULL AS icon_id, 0 AS page_key, 0 AS layer_key, NULL AS group_key, NULL AS uid, NULL AS article_id
+                   FROM network_diagram_shapes
+                  WHERE diagram_id = ?
+               ORDER BY z, id"
+            );
+            $sstmt->execute([$id]);
+        }
+        foreach ($sstmt->fetchAll(PDO::FETCH_ASSOC) as $s) {
+            foreach (['id', 'x', 'y', 'w', 'h', 'rotation', 'z', 'page_key', 'layer_key'] as $k) $s[$k] = (int)$s[$k];
+            $s['style'] = $s['style'] !== null ? (json_decode($s['style'], true) ?: null) : null;
+            $s['icon_id'] = $s['icon_id'] !== null ? (int)$s['icon_id'] : null;
+            $s['article_id'] = $s['article_id'] !== null ? (int)$s['article_id'] : null;
+            $shapes[] = $s;
+        }
+    } catch (PDOException $e) {
+        $shapes = [];
+    }
+
+    // GH #433: pages (tabs) and layers. None yet = one page with one layer, made by the editor.
+    $pages = []; $layers = [];
+    try {
+        $ps = $conn->prepare("SELECT page_key, name, sort FROM network_diagram_pages WHERE diagram_id = ? ORDER BY sort, page_key");
+        $ps->execute([$id]);
+        foreach ($ps->fetchAll(PDO::FETCH_ASSOC) as $p) {
+            $pages[] = ['page_key' => (int)$p['page_key'], 'name' => $p['name'], 'sort' => (int)$p['sort']];
+        }
+        $ls = $conn->prepare("SELECT page_key, layer_key, name, sort, visible, locked FROM network_diagram_layers WHERE diagram_id = ? ORDER BY page_key, sort, layer_key");
+        $ls->execute([$id]);
+        foreach ($ls->fetchAll(PDO::FETCH_ASSOC) as $l) {
+            $layers[] = ['page_key' => (int)$l['page_key'], 'layer_key' => (int)$l['layer_key'], 'name' => $l['name'],
+                         'sort' => (int)$l['sort'], 'visible' => (int)$l['visible'] === 1, 'locked' => (int)$l['locked'] === 1];
+        }
+    } catch (PDOException $e) {
+        $pages = []; $layers = [];
+    }
+
+    // GH #433: Knowledge articles - the related list, and a title for each linked article that
+    // this analyst may read (null = linked, but not one they can read: no title is sent).
+    $articles = ['related' => [], 'titles' => new stdClass(), 'states' => new stdClass()];
+    try {
+        require_once '../../includes/services/network_articles.php';
+        $articles = NetworkArticleService::forDiagram($conn, (int)$_SESSION['analyst_id'], $id);
+        if (!$articles['titles']) $articles['titles'] = new stdClass();
+    } catch (Exception $e) {
+        // Knowledge not set up on this install - the diagram still opens
+    }
+
+    echo json_encode(['success' => true, 'diagram' => $d, 'nodes' => $nodes, 'connectors' => $conns, 'shapes' => $shapes, 'pages' => $pages, 'layers' => $layers,
+                      'articles' => $articles, 'can_read_knowledge' => analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'knowledge')]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

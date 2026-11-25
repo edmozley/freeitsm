@@ -65,6 +65,7 @@ return [
         'no_match' => 'Nulla corrisponde a "{q}".',
         'open' => 'Apri',
         'open_location' => 'Apri percorso file',
+        'open_separately' => 'Apri separatamente',
         'open_new' => 'Apri in una nuova finestra',
         'paste' => 'Incolla',
         'paste_into' => 'Incolla nella cartella',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Mostra sempre',
         'navbar' => 'Barra di navigazione superiore',
         'note' => 'Queste scelte sono solo tue. Il logo sul desktop è impostato da un amministratore.',
+        'multi' => 'Apertura di più file',
+        'multi_viewer' => 'In un solo visualizzatore - scorrili con i tasti freccia',
+        'multi_windows' => 'In finestre separate - fino a 10; oltre si aprono in un solo visualizzatore',
     ],
     'props' => [
         'restore' => 'Ripristina',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Esci',
         'title' => 'Start',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Questo file non può avere una miniatura ({why}).',
         'why_too_large' => 'è troppo grande per essere ridotto',
         'why_unsupported' => 'questo server non sa leggere quel tipo di immagine',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Questo archivio è vuoto.',
         'zoom_in' => 'Ingrandisci',
         'zoom_out' => 'Riduci',
+        'previous' => 'Precedente',
+        'next' => 'Successivo',
+        'slideshow' => 'Presentazione',
+        'slideshow_tip' => 'Mostra le immagini una dopo l\'altra. Spazio mette in pausa, Esc interrompe.',
+        'pause' => 'Pausa',
+        'play' => 'Riproduci',
+        'stop' => 'Interrompi',
     ],
     'wm' => [
         'close' => 'Chiudi',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Ogni file aperto viene registrato nella traccia di controllo, compresa la versione e, per uno zip, il file al suo interno.',
             'p7' => 'Un\'immagine o un PDF si adatta di nuovo quando ridimensioni o ingrandisci la finestra, finché non applichi tu lo zoom; **Adatta** gli restituisce il controllo. Lo stesso visualizzatore apre le immagini e i PDF allegati ai ticket, in una finestra sopra il ticket.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Più file insieme',
+            'title' => 'Più file insieme',
+            'intro' => 'Scorri una cartella, o una selezione, in una sola finestra.',
+            'p1' => 'Con un file aperto, **Precedente** e **Successivo** nella barra degli strumenti del visualizzatore - o i tasti freccia sinistra e destra - passano al file prima o dopo nella cartella, nell\'ordine in cui la cartella è ordinata. Home e Fine vanno al primo e all\'ultimo.',
+            'p2' => 'Seleziona più file e premi **Invio**, oppure fai clic destro e scegli **Apri**, per aprire solo quelli in un visualizzatore. Le cartelle nella selezione vengono saltate. Per avere invece ogni file in una finestra sua - per affiancarne due - fai clic destro e scegli **Apri separatamente** (fino a 10 file), oppure cambia **Apertura di più file** in **Personalizza** perché lo faccia Invio. Più di 10 file si aprono sempre in un solo visualizzatore.',
+            'p3' => '**Presentazione** mostra le immagini che ci sono una dopo l\'altra, a schermo intero dove il browser lo consente, qualche secondo ciascuna. **Spazio** la mette in pausa ed **Esc** la interrompe. Scorre una volta sola, dall\'immagine in cui sei all\'ultima, e salta tutto ciò che non è un\'immagine.',
+            'p4' => 'Ogni file a cui passi viene aperto come se lo avessi aperto tu: serve **Visualizza** sulla sua cartella, valgono Solo visualizzazione e la filigrana, e viene registrato nel registro di controllo.',
+        ],
+        'thumbnails' => [
             'nav' => 'Miniature',
             'title' => 'Miniature',
             'intro' => 'Immagini e PDF mostrano il loro contenuto.',

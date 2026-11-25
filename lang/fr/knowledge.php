@@ -543,6 +543,13 @@ Comme les deux listes signifient le contraire l\'une de l\'autre, les {people} l
         'press_run' => 'Appuyez sur « Chercher les lacunes ».',
         'none_to_read' => 'Aucun ticket fermé à lire au cours des {days} derniers jours.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Diagrammes réseau',
+        'related' => 'Lié au diagramme',
+        'item'    => 'Lié depuis un élément du diagramme',
+    ],
+
     'help' => [
         'guide' => 'Guide',
         'topics_title' => 'En détail',

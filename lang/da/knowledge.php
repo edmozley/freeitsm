@@ -543,6 +543,13 @@ Fordi de to lister betyder det modsatte, ryddes de {people}, der er angivet nu.'
         'press_run' => 'Tryk på “Find huller”.',
         'none_to_read' => 'Ingen lukkede sager i de seneste {days} dage at læse.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Netværksdiagrammer',
+        'related' => 'Relateret til diagrammet',
+        'item'    => 'Tilknyttet fra et element i det',
+    ],
+
     'help' => [
         'guide' => 'Vejledning',
         'topics_title' => 'I dybden',

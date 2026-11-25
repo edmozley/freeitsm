@@ -543,6 +543,13 @@ Fordi dei to listene tyder motsette ting, blir dei {people} som er lista no, tø
         'press_run' => 'Trykk på “Sjå etter hol”.',
         'none_to_read' => 'Ingen lukka saker frå dei siste {days} dagane å lese.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Nettverksdiagram',
+        'related' => 'Knytt til diagrammet',
+        'item'    => 'Kopla frå eit element i det',
+    ],
+
     'help' => [
         'guide' => 'Rettleiing',
         'topics_title' => 'Grundigare',

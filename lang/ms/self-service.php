@@ -16,6 +16,19 @@ return [
         'title' => 'Carta organisasi',
         'subtitle' => 'Siapa melapor kepada siapa. Cari nama, jawatan atau jabatan, atau buka sesuatu pasukan dengan anak panah.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Pekerja baharu & berhenti',
+        'subtitle' => 'Orang yang menyertai, bertukar dan berhenti, dan sejauh mana IT telah menguruskan setiap seorang. Baca sahaja: tanya pemilik tentang apa-apa di sini.',
+        'tab_open' => 'Terbuka ({n})',
+        'tab_done' => 'Baru selesai ({n})',
+        'none_open' => 'Tiada kes terbuka.',
+        'none_done' => 'Tiada kes yang selesai dalam 60 hari lepas.',
+        'load_failed' => 'Kes tidak dapat dimuatkan. Sila cuba lagi.',
+        'progress' => '{done} daripada {total} langkah selesai',
+        'no_steps' => 'Belum ada langkah',
+        'owner' => 'Pemilik',
+    ],
     'approvals' => [
         'title' => 'Kelulusan',
         'subtitle' => 'Permintaan yang menunggu kelulusan anda, sebagai pengurus atau sebagai pemilik pusat kos.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Pengetahuan',
         'equipment' => 'Peralatan saya',
         'org_chart' => 'Organisasi',
+        'starters'    => 'Pekerja baharu & berhenti',
         'training' => 'Latihan',
         'help' => 'Bantuan',
         'menu' => 'Menu',

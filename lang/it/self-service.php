@@ -16,6 +16,19 @@ return [
         'title' => 'Organigramma',
         'subtitle' => 'Chi risponde a chi. Cerca un nome, una qualifica o un dipartimento, oppure apri un team con la freccia.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Nuovi arrivi e uscite',
+        'subtitle' => 'Le persone che arrivano, si trasferiscono e se ne vanno, e a che punto è l\'IT con ciascuna. Sola lettura: chiedi al proprietario per qualsiasi cosa qui.',
+        'tab_open' => 'Aperte ({n})',
+        'tab_done' => 'Completate di recente ({n})',
+        'none_open' => 'Non ci sono pratiche aperte.',
+        'none_done' => 'Nessuna pratica è stata completata negli ultimi 60 giorni.',
+        'load_failed' => 'Non è stato possibile caricare le pratiche. Riprova.',
+        'progress' => '{done} di {total} passaggi completati',
+        'no_steps' => 'Ancora nessun passaggio',
+        'owner' => 'Proprietario',
+    ],
     'approvals' => [
         'title' => 'Approvazioni',
         'subtitle' => 'Richieste che aspettano la tua approvazione, come responsabile o come proprietario di un centro di costo.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Knowledge',
         'equipment' => 'La mia attrezzatura',
         'org_chart' => 'Organizzazione',
+        'starters'    => 'Nuovi arrivi e uscite',
         'training' => 'Formazione',
         'help' => 'Aiuto',
         'menu' => 'Menu',

@@ -45,6 +45,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <title><?php echo htmlspecialchars(pageTitle('network-mapper', t('network-mapper.editor.browser_title'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
+    <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">   <?php /* PNG / PDF -> Save to Files */ ?>
     <style>
         /* Pin --accent to the module cyan so shared components (focus rings,
            inbox.css modal primitives) read on-brand. The diagram canvas + nodes
@@ -74,7 +75,9 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             align-items: center;
             gap: 12px;
             min-width: 0;
-            flex: 1;
+            /* GH #433: only the Back link lives here now (the title moved to the row below), so it must
+               not shrink - with flex: 1 + min-width: 0 it collapsed under the Autosave switch. */
+            flex: 0 0 auto;
         }
         .nm-back-btn {
             background: transparent;
@@ -116,7 +119,12 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             display: flex;
             gap: 10px;
             align-items: center;
-            flex-shrink: 0;
+            /* GH #433: on a laptop narrower than ~1300px the buttons ran off the right edge and Save
+               was lost. They wrap onto a second line instead, still right-aligned. */
+            flex: 1 1 auto;
+            min-width: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         /* ---- Autosave toggle ---- */
@@ -259,9 +267,32 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             background: var(--surface-2, #fafbfc);
             border-bottom: 1px solid var(--border, #e5e7eb);
             display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nm-meta-row .nm-editor-title { min-width: 0; flex: 0 1 auto; }
+        /* GH #433: change the title and description of the current version */
+        .nm-title-edit {
+            background: transparent;
+            border: 1px solid var(--border, #e5e7eb);
+            color: var(--text-dim, #6b7280);
+            padding: 2px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: var(--font-size-sm, 12px);
+            flex-shrink: 0;
+        }
+        .nm-title-edit:hover { background: var(--surface-hover, #f9fafb); color: var(--text, #111827); }
+        .nm-meta-details {
+            display: flex;
             gap: 18px;
+            margin-left: auto;
+            flex-shrink: 0;
         }
         .nm-meta-row strong { color: var(--text-muted, #374151); font-weight: 500; }
+        /* Versions / Save as new version / Save live on the meta row, right of Updated */
+        .nm-meta-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 6px; }
+        .nm-meta-actions .nm-btn { padding: 5px 12px; }
 
         /* ---- Read-only banner ---- */
         .nm-readonly-banner {
@@ -509,9 +540,448 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             stroke: #06b6d4;
             stroke-width: 2.5;
         }
+        /* GH #433: a node's own colour (border, icon, soft tint) and box size */
+        .nm-node.has-colour { border-color: var(--nmc); background: var(--nmc-bg); }
+        .nm-node.has-colour:hover { border-color: var(--nmc); }
+        .nm-node.has-colour .nm-node-icon { color: var(--nmc); }
+        .nm-node.has-colour.selected { border-color: #06b6d4; }
+        .nm-node.has-size { justify-content: center; }   /* icon + name centred as one group in a taller box */
+        .nm-node.has-size .nm-node-label {
+            max-width: 100%;
+            display: block;
+            -webkit-line-clamp: unset;
+            line-clamp: unset;
+            overflow: visible;
+        }
+        .nm-resize-handle {
+            position: absolute;
+            right: -6px;
+            bottom: -6px;
+            width: 11px;
+            height: 11px;
+            background: var(--surface, #fff);
+            border: 1.5px solid #06b6d4;
+            border-radius: 2px;
+            cursor: nwse-resize;
+            display: none;
+            z-index: 4;
+        }
+        .nm-node.selected .nm-resize-handle { display: block; }
+        .nm-editor.is-presenting .nm-resize-handle,
+        .nm-canvas-inner.is-exporting .nm-resize-handle { display: none !important; }
+        .nm-swatches { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; justify-content: flex-end; }
+        .nm-swatch {
+            width: 18px;
+            height: 18px;
+            padding: 0;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+            cursor: pointer;
+        }
+        .nm-swatch.active { border-color: var(--text, #111827); }
+        .nm-swatch:disabled { cursor: default; opacity: 0.6; }
+        .nm-swatch-custom {
+            display: inline-flex;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        .nm-swatch-custom.active { border-color: var(--text, #111827); }
+        .nm-swatch-custom input { width: 24px; height: 20px; padding: 0; border: none; background: none; cursor: pointer; }
+        .nm-seg { display: inline-flex; border: 1px solid var(--border, #e5e7eb); border-radius: 4px; overflow: hidden; }
+        .nm-seg button {
+            background: var(--surface, #fff);
+            border: none;
+            padding: 3px 9px;
+            font-size: var(--font-size-xs, 11px);
+            font-family: inherit;
+            color: var(--text-dim, #6b7280);
+            cursor: pointer;
+        }
+        .nm-seg button + button { border-left: 1px solid var(--border, #e5e7eb); }
+        .nm-seg button.active { color: #0e7490; font-weight: 600; background: var(--nm-accent-soft, #ecfeff); }
+        .nm-seg button:disabled { cursor: default; }
+        .nm-detail-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 2px 0 6px; }
+
+        /* ---- GH #433: pages (tab bar under the canvas) and layers ---- */
+        .nm-canvas-col { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+        .nm-page-tabs {
+            display: flex; align-items: stretch; gap: 2px; flex-shrink: 0; overflow-x: auto;
+            padding: 0 8px; background: var(--surface-2, #fafbfc); border-top: 1px solid var(--border, #e5e7eb);
+            scrollbar-width: thin;
+        }
+        .nm-page-tab, .nm-page-add {
+            background: transparent; border: none; border-top: 2px solid transparent;
+            padding: 6px 14px; font: inherit; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280);
+            cursor: pointer; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+        }
+        .nm-page-tab:hover, .nm-page-add:hover { color: var(--text, #111827); background: var(--surface-hover, #f3f4f6); }
+        .nm-page-tab.active { color: var(--text, #111827); font-weight: 600; background: var(--surface, #fff); border-top-color: var(--nm-accent, #06b6d4); }
+        .nm-page-add { font-size: var(--font-size-lg, 15px); padding: 4px 12px; }
+        .nm-page-rename, .nm-layer-rename {
+            font: inherit; font-size: var(--font-size-sm, 12px); padding: 3px 6px; margin: 3px 0;
+            border: 1px solid var(--nm-accent, #06b6d4); border-radius: 3px; background: var(--surface, #fff); color: var(--text, #111827); width: 150px;
+        }
+        .nm-page-menu {
+            position: fixed; z-index: 1100; display: flex; flex-direction: column; min-width: 150px;
+            background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 4px 0;
+        }
+        .nm-page-menu button {
+            background: none; border: none; text-align: left; padding: 7px 14px; font: inherit;
+            font-size: var(--font-size-sm, 12px); color: var(--text, #111827); cursor: pointer;
+        }
+        .nm-page-menu button:hover:not(:disabled) { background: var(--surface-hover, #f3f4f6); }
+        .nm-page-menu button:disabled { color: var(--text-faint, #9ca3af); cursor: default; }
+        .nm-editor.is-presenting .nm-page-tabs { display: none; }
+
+        .nm-layers-dropdown { width: 320px; padding: 6px 0; right: 0; left: auto; }
+        .nm-layers-head {
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            color: var(--text-dim, #6b7280); padding: 6px 12px 8px;
+        }
+        .nm-layer-row { display: flex; align-items: center; gap: 4px; padding: 4px 8px 4px 6px; cursor: pointer; border-left: 3px solid transparent; }
+        .nm-layer-row:hover { background: var(--surface-hover, #f9fafb); }
+        .nm-layer-row.active { background: var(--nm-accent-soft, #ecfeff); border-left-color: var(--nm-accent, #06b6d4); }
+        .nm-layer-row.is-hidden .nm-layer-name { color: var(--text-faint, #9ca3af); text-decoration: line-through; }
+        .nm-layer-ico {
+            background: none; border: none; padding: 3px; border-radius: 3px; cursor: pointer; line-height: 1;
+            color: var(--text-dim, #6b7280); display: inline-flex; align-items: center; font-size: var(--font-size-xs, 11px);
+        }
+        .nm-layer-ico:hover:not(:disabled) { background: var(--border, #e5e7eb); color: var(--text, #111827); }
+        .nm-layer-ico:disabled { opacity: 0.35; cursor: default; }
+        .nm-layer-ico.on { color: #b45309; }
+        .nm-layer-del { font-size: var(--font-size-lg, 14px); }
+        .nm-layer-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-md, 13px); color: var(--text, #111827); }
+        .nm-layer-count { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); min-width: 18px; text-align: right; }
+        .nm-layers-add {
+            display: block; width: calc(100% - 16px); margin: 6px 8px 2px; padding: 6px; text-align: left;
+            background: none; border: 1px dashed var(--border, #e5e7eb); border-radius: 4px; cursor: pointer;
+            font: inherit; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280);
+        }
+        .nm-layers-add:hover { color: var(--text, #111827); border-color: var(--nm-accent, #06b6d4); }
+        .nm-layers-hint { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); padding: 6px 12px 4px; line-height: 1.4; }
+        .nm-layers-count { display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 5px; border-radius: 999px; background: var(--border, #e5e7eb); font-size: var(--font-size-xs, 11px); }
+        /* GH #433: right-click menus */
+        .nm-ctx-menu {
+            position: fixed; z-index: 1200; min-width: 210px; padding: 4px 0;
+            background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 6px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+        }
+        .nm-ctx-item {
+            display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: none; text-align: left;
+            padding: 6px 12px; font: inherit; font-size: var(--font-size-sm, 12px); color: var(--text, #111827); cursor: pointer;
+        }
+        .nm-ctx-item > span:first-child { flex: 1; }
+        .nm-ctx-item:hover:not(:disabled), .nm-ctx-item.open { background: var(--nm-accent-soft, #ecfeff); }
+        .nm-ctx-item:disabled { color: var(--text-faint, #9ca3af); cursor: default; }
+        .nm-ctx-hint { color: var(--text-faint, #9ca3af); font-size: var(--font-size-xs, 11px); }
+        .nm-ctx-arrow { color: var(--text-dim, #6b7280); }
+        .nm-ctx-sep { height: 1px; margin: 4px 0; background: var(--border-soft, #f3f4f6); }
+        /* GH #433: connection dots on shapes - just outside each edge, clear of the resize squares */
+        .nm-shape-port {
+            position: absolute; width: 10px; height: 10px; border-radius: 50%;
+            background: var(--nm-accent, #06b6d4); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(6,182,212,0.4);
+            transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.12s; z-index: 3; cursor: crosshair;
+        }
+        .nm-shape-port[data-side="top"]    { left: 50%;  top: -14px; }
+        .nm-shape-port[data-side="right"]  { left: calc(100% + 14px); top: 50%; }
+        .nm-shape-port[data-side="bottom"] { left: 50%;  top: calc(100% + 14px); }
+        .nm-shape-port[data-side="left"]   { left: -14px; top: 50%; }
+        .nm-shape:hover .nm-shape-port, .nm-shape.selected .nm-shape-port { opacity: 1; }
+        .nm-editor.is-presenting .nm-shape-port, .nm-canvas-inner.is-exporting .nm-shape-port { display: none !important; }
+        .nm-conn-label { width: 160px; }
+        /* GH #433: multi-selection, group outline, rubber band */
+        .nm-node.in-multi, .nm-shape.in-multi { outline: 2px solid #06b6d4; outline-offset: 3px; }
+        .nm-group-outline { position: absolute; border: 1.5px dashed #0891b2; border-radius: 6px; pointer-events: none; z-index: 7; }
+        .nm-band { position: absolute; border: 1px dashed #0891b2; background: rgba(6,182,212,0.08); pointer-events: none; z-index: 20; }
+        .nm-canvas-inner.is-exporting .nm-group-outline,
+        .nm-editor.is-presenting .nm-group-outline { display: none; }
+        .nm-canvas-inner.is-exporting .in-multi,
+        .nm-editor.is-presenting .in-multi { outline: none; }
+        /* A locked layer's items can be seen, not picked up */
+        .nm-node.is-locked, .nm-shape.is-locked { pointer-events: none; }
+
+        /* ---- GH #433: icons from imported libraries, and the library browser ---- */
+        .nm-shape-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .nm-shape.is-missing { outline: 1px dashed #94a3b8; }
+        .nm-icon-tile img { max-width: 34px; max-height: 34px; pointer-events: none; }
+        .nm-iconlib-head { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .nm-iconlib-head .nm-detail-icon-btn { text-transform: none; letter-spacing: 0; }
+        .nm-iconlib-btns { display: inline-flex; gap: 4px; }
+        .nm-icon-tile { position: relative; }
+        .nm-icon-del {
+            position: absolute; top: 1px; right: 1px; width: 16px; height: 16px; padding: 0; border: none; border-radius: 50%;
+            background: var(--surface, #fff); color: #b91c1c; font-size: var(--font-size-sm, 12px); line-height: 1; cursor: pointer;
+            box-shadow: 0 0 0 1px var(--border, #e5e7eb); display: none;
+        }
+        .nm-icon-tile:hover .nm-icon-del { display: block; }
+        /* GH #433: Knowledge articles */
+        .nm-kb-mark {
+            position: absolute; top: -9px; right: -9px; z-index: 3; width: 20px; height: 20px; padding: 0;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer;
+            border: 1px solid var(--nm-accent, #06b6d4); background: var(--surface, #fff); color: var(--nm-accent, #06b6d4);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+        }
+        .nm-kb-mark:hover { background: var(--nm-accent, #06b6d4); color: #fff; }
+        .nm-kb-mark.is-hidden-article { border-color: var(--border, #e5e7eb); color: var(--text-faint, #9ca3af); }
+        .nm-canvas-inner.is-exporting .nm-kb-mark { display: none; }
+        .nm-editor.is-presenting .has-article { cursor: pointer; }
+        .nm-kb-field { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; }
+        .nm-kb-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .is-hidden-article { font-style: italic; color: var(--text-faint, #9ca3af); }
+        .nm-kb-none { color: var(--text-faint, #9ca3af); }
+        .nm-kb-row { display: flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: var(--font-size-md, 13px); }
+        .nm-kb-row > a, .nm-kb-row > span { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; color: var(--text, #1f2937); text-decoration: none; }
+        .nm-kb-row > a:hover { color: var(--nm-accent, #06b6d4); }
+        .nm-kb-row > a > span, .nm-kb-row > span > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nm-kb-empty { padding: 6px 12px; color: var(--text-faint, #9ca3af); font-size: var(--font-size-md, 13px); }
+        .nm-picker-name svg { flex-shrink: 0; color: var(--nm-accent, #06b6d4); }
+        /* GH #433: "Draft" beside an unpublished article in the picker */
+        .nm-kb-state {
+            margin-left: 6px; padding: 0 6px; border-radius: 8px;
+            font-size: var(--font-size-xs, 11px); color: var(--text-muted, #6b7280);
+            border: 1px solid var(--border, #e5e7eb); flex-shrink: 0;
+        }
+        .nm-iconlib-empty { font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); padding: 4px 0 8px; }
+        .nm-iconlib-error { color: #b91c1c; }
+        .nm-iconlib-group { margin-bottom: 4px; }
+        .nm-iconlib-toggle {
+            display: flex; align-items: center; gap: 6px; width: 100%;
+            background: none; border: none; padding: 6px 2px; cursor: pointer;
+            font: inherit; font-size: var(--font-size-sm, 12px); font-weight: 600; color: var(--text, #111827); text-align: left;
+        }
+        .nm-iconlib-toggle:hover { color: #0e7490; }
+        .nm-iconlib-caret { width: 10px; color: var(--text-dim, #6b7280); }
+        .nm-iconlib-count { margin-left: auto; font-weight: 400; color: var(--text-dim, #6b7280); }
+
+        .nm-modal.nm-lib-modal { width: min(1180px, 95vw); height: 86vh; max-width: none; max-height: none; }
+        .nm-lib-modal .nm-modal-header { display: flex; align-items: center; gap: 10px; }
+        .nm-lib-sub { font-weight: 400; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); }
+        .nm-lib-close { margin-left: auto; background: none; border: none; font-size: var(--font-size-4xl, 24px); line-height: 1; color: var(--text-dim, #6b7280); cursor: pointer; }
+        .nm-lib-body { flex: 1; min-height: 0; display: flex; }
+        .nm-lib-side { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border, #e5e7eb); display: flex; flex-direction: column; min-height: 0; }
+        .nm-lib-side .nm-shape-search { margin: 12px 12px 8px; }
+        .nm-lib-side .nm-seg { margin: 0 12px 8px; align-self: flex-start; }
+        .nm-lib-list { flex: 1; overflow-y: auto; padding: 0 6px 10px; }
+        .nm-lib-group {
+            font-size: var(--font-size-xs, 11px); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            color: var(--text-dim, #6b7280); padding: 10px 8px 4px;
+        }
+        .nm-lib-item {
+            display: flex; align-items: center; gap: 6px; width: 100%; text-align: left;
+            background: none; border: none; border-radius: 4px; padding: 6px 8px; cursor: pointer;
+            font: inherit; font-size: var(--font-size-sm, 12px); color: var(--text, #111827);
+        }
+        .nm-lib-item:hover { background: var(--surface-hover, #f9fafb); }
+        .nm-lib-item.active { background: var(--nm-accent-soft, #ecfeff); color: #0e7490; font-weight: 600; }
+        .nm-lib-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nm-lib-badge { color: #16a34a; font-weight: 700; }
+        .nm-lib-n { color: var(--text-dim, #6b7280); font-variant-numeric: tabular-nums; }
+        .nm-lib-main { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; padding: 16px 20px 0; }
+        .nm-lib-placeholder { margin: auto; color: var(--text-dim, #6b7280); font-size: var(--font-size-md, 13px); text-align: center; max-width: 360px; line-height: 1.5; }
+        .nm-lib-head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
+        .nm-lib-titles h3 { margin: 0 0 6px; font-size: var(--font-size-xl, 16px); color: var(--text, #111827); }
+        .nm-lib-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--font-size-sm, 12px); color: var(--text-dim, #6b7280); }
+        .nm-lib-meta strong { color: var(--text-muted, #374151); font-weight: 600; }
+        .nm-lib-meta a { color: #0e7490; }
+        .nm-lib-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; flex-shrink: 0; max-width: 300px; }
+        .nm-lib-done { color: #16a34a; font-weight: 600; font-size: var(--font-size-md, 13px); }
+        .nm-lib-used { width: 100%; text-align: right; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); }
+        .nm-lib-progress { width: 260px; }
+        .nm-lib-bar { height: 8px; border-radius: 999px; background: var(--border, #e5e7eb); overflow: hidden; }
+        .nm-lib-bar span { display: block; height: 100%; background: var(--nm-accent, #06b6d4); transition: width 0.25s ease; }
+        .nm-lib-progress-text { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); margin-top: 4px; text-align: right; }
+        .nm-lib-icon-search { margin: 14px 0 10px; }
+        .nm-lib-grid {
+            flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+            gap: 6px; align-content: start; padding-bottom: 12px;
+        }
+        .nm-lib-icon {
+            display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px;
+            border: 1px solid var(--border-soft, #f3f4f6); border-radius: 6px; background: var(--surface, #fff);
+        }
+        .nm-lib-icon img { width: 44px; height: 44px; object-fit: contain; }
+        .nm-lib-icon span {
+            font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); max-width: 100%;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .nm-lib-more { padding: 6px 0 14px; text-align: center; }
+        .nm-lib-foot { padding: 10px 20px; border-top: 1px solid var(--border, #e5e7eb); font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); line-height: 1.5; }
+
+        /* ---- GH #433: palette tabs, the shape library, shapes on the canvas, the Format panel ---- */
+        .nm-palette-tabs { padding: 0; gap: 0; }
+        .nm-palette-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 11px 8px 9px;
+            font: inherit;
+            font-size: var(--font-size-md, 13px);
+            font-weight: 600;
+            color: var(--text-dim, #6b7280);
+            cursor: pointer;
+        }
+        .nm-palette-tab:hover { color: var(--text, #111827); }
+        .nm-palette-tab.active { color: var(--text, #111827); border-bottom-color: var(--nm-accent, #06b6d4); }
+        .nm-shape-palette { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+        .nm-shape-search {
+            margin: 10px 10px 2px;
+            padding: 6px 8px;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 4px;
+            font: inherit;
+            font-size: var(--font-size-sm, 12px);
+            background: var(--surface, #fff);
+            color: var(--text, #111827);
+        }
+        .nm-shape-palette-body { flex: 1; overflow-y: auto; padding: 0 10px 10px; }
+        .nm-shape-cat {
+            font-size: var(--font-size-xs, 11px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-dim, #6b7280);
+            margin: 12px 0 6px;
+        }
+        .nm-shape-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .nm-shape-tile {
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            cursor: grab;
+        }
+        .nm-shape-tile:hover { border-color: var(--border, #e5e7eb); background: var(--surface-hover, #f9fafb); }
+        .nm-shape-tile svg { overflow: visible; }
+
+        .nm-shape { position: absolute; z-index: 0; cursor: move; transform-origin: 50% 50%; user-select: none; }
+        .nm-shape.is-front { z-index: 6; }
+        .nm-shape > .nm-shape-svg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+        .nm-shape-tile .nm-shape-svg { display: block; pointer-events: none; }
+        .nm-shape.selected { outline: 1.5px dashed #06b6d4; outline-offset: 4px; }
+        .nm-shape-text { position: absolute; display: flex; flex-direction: column; overflow: hidden; pointer-events: none; }
+        .nm-shape-text-inner { width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.25; outline: none; }
+        .nm-shape-text-inner[contenteditable="true"] { pointer-events: auto; cursor: text; min-height: 1.25em; background: rgba(255,255,255,0.55); }
+        .nm-shape-handle {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            background: #fff;
+            border: 1.5px solid #06b6d4;
+            border-radius: 2px;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+        .nm-shape-handle[data-dir="nw"] { left: 0;    top: 0;    cursor: nwse-resize; }
+        .nm-shape-handle[data-dir="n"]  { left: 50%;  top: 0;    cursor: ns-resize; }
+        .nm-shape-handle[data-dir="ne"] { left: 100%; top: 0;    cursor: nesw-resize; }
+        .nm-shape-handle[data-dir="e"]  { left: 100%; top: 50%;  cursor: ew-resize; }
+        .nm-shape-handle[data-dir="se"] { left: 100%; top: 100%; cursor: nwse-resize; }
+        .nm-shape-handle[data-dir="s"]  { left: 50%;  top: 100%; cursor: ns-resize; }
+        .nm-shape-handle[data-dir="sw"] { left: 0;    top: 100%; cursor: nesw-resize; }
+        .nm-shape-handle[data-dir="w"]  { left: 0;    top: 50%;  cursor: ew-resize; }
+        .nm-editor.is-presenting .nm-shape-handle,
+        .nm-canvas-inner.is-exporting .nm-shape-handle { display: none !important; }
+        .nm-editor.is-presenting .nm-shape.selected,
+        .nm-canvas-inner.is-exporting .nm-shape.selected { outline: none; }
+
+        /* A CMDB node with its own style: border and shadow through custom properties so the
+           selected ring below still wins; fill, corners and opacity are inline. */
+        .nm-node.has-style {
+            border-width: var(--nms-bw, 1.5px);
+            border-style: var(--nms-bs, solid);
+            border-color: var(--nms-bc, var(--nmc, transparent));
+            box-shadow: var(--nms-shadow, none);
+        }
+        .nm-node.is-planned.has-style { border-style: var(--nms-bs, dashed); border-color: var(--nms-bc, #fcd34d); }
+        .nm-node.has-style.selected {
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.18), 0 4px 12px rgba(6,182,212,0.18);
+        }
+
+        .nm-fmt-section { border-top: 1px solid var(--border-soft, #f3f4f6); padding: 10px 0 6px; }
+        .nm-fmt-section:first-child { border-top: 0; padding-top: 0; }
+        .nm-fmt-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--font-size-xs, 11px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-dim, #6b7280);
+            margin-bottom: 8px;
+        }
+        .nm-fmt-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; font-size: var(--font-size-md, 13px); }
+        .nm-fmt-row > span:first-child { color: var(--text-dim, #6b7280); }
+        .nm-fmt-sub { padding-left: 10px; }
+        .nm-fmt-inline { display: inline-flex; align-items: center; gap: 6px; }
+        .nm-fmt-colour { width: 30px; height: 24px; padding: 0; border: 1px solid var(--border, #e5e7eb); border-radius: 4px; background: none; cursor: pointer; }
+        .nm-fmt-select, .nm-fmt-n, .nm-fmt-num input {
+            font: inherit;
+            font-size: var(--font-size-sm, 12px);
+            padding: 3px 5px;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 4px;
+            background: var(--surface, #fff);
+            color: var(--text, #111827);
+            box-sizing: border-box;
+        }
+        .nm-fmt-select { max-width: 150px; }
+        .nm-fmt-n { width: 58px; }
+        .nm-fmt-range { width: 110px; }
+        .nm-fmt-val { font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); min-width: 34px; text-align: right; }
+        .nm-fmt-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+        .nm-fmt-num { display: flex; flex-direction: column; gap: 2px; font-size: var(--font-size-xs, 11px); color: var(--text-dim, #6b7280); }
+        .nm-fmt-num input { width: 100%; }
+        .nm-fmt-num-inline { flex-direction: row; align-items: center; gap: 4px; }
+        .nm-fmt-num-inline input { width: 58px; }
+        .nm-fmt-btns { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+        .nm-fmt-danger { color: #b91c1c; border-color: #fecaca; }
+        .nm-fmt-presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px; }
+        .nm-fmt-preset { height: 26px; border: 1.5px solid; border-radius: 4px; font-weight: 600; font-size: var(--font-size-xs, 11px); cursor: pointer; padding: 0; }
+        .nm-fmt-toggles button { min-width: 28px; }
+        .nm-fmt-bold { font-weight: 700; }
+        .nm-fmt-italic { font-style: italic; }
+        .nm-fmt-underline { text-decoration: underline; }
+
         .nm-connector-line.dashed {
             stroke-dasharray: 6 4;
         }
+        /* GH #433: Solid / Dashed under the selected connector */
+        .nm-conn-style {
+            position: absolute;
+            z-index: 10;
+            display: flex;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            overflow: hidden;
+            transform: translateX(-50%);
+        }
+        .nm-conn-style button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: none;
+            padding: 4px 10px;
+            font-size: var(--font-size-sm, 12px);
+            font-family: inherit;
+            color: var(--text-dim, #6b7280);
+            cursor: pointer;
+        }
+        .nm-conn-style button + button { border-left: 1px solid var(--border, #e5e7eb); }
+        .nm-conn-style button:hover { background: var(--surface-hover, #f9fafb); color: var(--text, #111827); }
+        .nm-conn-style button.active { color: #0e7490; font-weight: 600; }
+        .nm-conn-style svg { display: block; }
+        .nm-editor.is-presenting .nm-conn-style { display: none !important; }
         .nm-connector-hit {
             fill: none;
             stroke: transparent;
@@ -1370,8 +1840,9 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             stroke: #64748b !important;
             stroke-width: 2 !important;
         }
-        /* Use the cyan default arrowhead in non-selected form too */
-        .nm-canvas-inner.is-exporting .nm-connector-line { marker-end: url(#nm-arrow) !important; }
+        /* TRAP: no marker-end rule here. captureCanvas() clears the selection and redraws the
+           connectors before capturing, so each line already carries its own arrowheads; a CSS
+           marker-end beat them and drew a default arrow on every line in PNG / PDF (GH #433). */
 
         /* ---- Dark-mode overrides for chrome amber/sky tints ----
            The read-only amber banners/pills and the sky-blue "tokens" info box
@@ -1390,7 +1861,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <!-- Mobile layer LAST, after this page's own <style>, or every rule that
          targets the same selector at the same specificity loses on document
          order (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=202">
 </head>
 <body data-mobile-module="network-mapper" data-mobile-page="nm-diagram">
     <?php include 'includes/header.php'; ?>
@@ -1399,8 +1870,6 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         <div class="nm-editor-bar">
             <div class="nm-editor-title-area">
                 <a class="nm-back-btn" href="index.php"><?php echo htmlspecialchars(t('network-mapper.editor.back')); ?></a>
-                <h1 class="nm-editor-title" id="diagramTitle"><?php echo htmlspecialchars(t('network-mapper.editor.loading')); ?></h1>
-                <span class="nm-version-pill" id="versionPill" style="display:none;"></span>
             </div>
             <div class="nm-editor-actions">
                 <div class="nm-autosave-wrap" id="autosaveWrap">
@@ -1418,6 +1887,18 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                     </button>
                     <div class="nm-versions-dropdown" id="pageDropdown" style="display:none;"></div>
                 </div>
+                <div class="nm-versions-wrap">   <?php /* GH #433: layers of the current page */ ?>
+                    <button class="nm-btn secondary" id="layersBtn" onclick="NM.toggleLayersPanel(event)" title="<?php echo htmlspecialchars(t('network-mapper.layers.button_title')); ?>">
+                        <?php echo htmlspecialchars(t('network-mapper.layers.button')); ?><span class="nm-layers-count" id="layersBtnCount">1</span>
+                    </button>
+                    <div class="nm-versions-dropdown nm-layers-dropdown" id="layersDropdown" style="display:none;"></div>
+                </div>
+                <div class="nm-versions-wrap">   <?php /* GH #433: Knowledge articles related to the diagram */ ?>
+                    <button class="nm-btn secondary" id="articlesBtn" onclick="NM.toggleArticlesPanel(event)" title="<?php echo htmlspecialchars(t('network-mapper.kb.related_button_title')); ?>">
+                        <?php echo htmlspecialchars(t('network-mapper.kb.related_button')); ?><span class="nm-layers-count" id="articlesBtnCount">0</span>
+                    </button>
+                    <div class="nm-versions-dropdown nm-layers-dropdown" id="articlesDropdown" style="display:none;"></div>
+                </div>
                 <div class="nm-zoom-group" role="group" aria-label="Zoom">
                     <button class="nm-btn secondary nm-zoom-btn" id="zoomOutBtn" onclick="NM.zoomOut()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_out')); ?>">&minus;</button>
                     <button class="nm-btn secondary nm-zoom-label" id="zoomLabel" onclick="NM.zoomReset()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_reset_title')); ?>">100%</button>
@@ -1427,10 +1908,26 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                 <button class="nm-btn secondary" id="brandingBtn" onclick="NM.openBrandingModal()" title="<?php echo htmlspecialchars(t('network-mapper.editor.branding_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.branding')); ?></button>
                 <button class="nm-btn secondary" id="centreBtn" onclick="NM.centre()" title="<?php echo htmlspecialchars(t('network-mapper.editor.centre_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.centre')); ?></button>
                 <div class="nm-export-group" role="group" aria-label="Export">
-                    <button class="nm-btn secondary nm-export-btn" id="exportPngBtn" onclick="NM.exportPng()" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_png_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_png')); ?></button>
-                    <button class="nm-btn secondary nm-export-btn" id="exportPdfBtn" onclick="NM.exportPdf()" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_pdf_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_pdf')); ?></button>
+                    <button class="nm-btn secondary nm-export-btn" id="exportPngBtn" onclick="NM.exportMenu(event, 'png')" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_png_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_png')); ?></button>
+                    <button class="nm-btn secondary nm-export-btn" id="exportPdfBtn" onclick="NM.exportMenu(event, 'pdf')" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_pdf_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_pdf')); ?></button>
                 </div>
                 <button class="nm-btn secondary" id="presentBtn" onclick="NM.enterPresent()" title="<?php echo htmlspecialchars(t('network-mapper.editor.present_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.present')); ?></button>
+            </div>
+        </div>
+
+        <?php /* GH #433: the title lives on this row, not in the toolbar - with every action button
+                 up there it was squeezed to "Impact: ..." on a normal laptop screen. */ ?>
+        <div class="nm-meta-row">
+            <h1 class="nm-editor-title" id="diagramTitle"><?php echo htmlspecialchars(t('network-mapper.editor.loading')); ?></h1>
+            <span class="nm-version-pill" id="versionPill" style="display:none;"></span>
+            <button type="button" class="nm-title-edit" id="titleEditBtn" style="display:none;" onclick="NM.openDetailsModal()" title="<?php echo htmlspecialchars(t('network-mapper.details.edit_title')); ?>"><?php echo htmlspecialchars(t('common.edit')); ?></button>
+            <span class="nm-meta-details" id="metaRow" style="display:none;">
+                <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_author')); ?></strong> <span id="metaAuthor">&mdash;</span></span>
+                <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_created')); ?></strong> <span id="metaCreated">&mdash;</span></span>
+                <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_updated')); ?></strong> <span id="metaUpdated">&mdash;</span></span>
+            </span>
+            <?php /* Save sits here, not in the toolbar, so the toolbar fits on one row (GH #433) */ ?>
+            <div class="nm-meta-actions">
                 <div class="nm-versions-wrap">
                     <button class="nm-btn secondary" id="versionsBtn" onclick="NM.toggleVersionsDropdown(event)" title="<?php echo htmlspecialchars(t('network-mapper.editor.versions_title')); ?>">
                         <?php echo htmlspecialchars(t('network-mapper.editor.versions')); ?>
@@ -1443,12 +1940,6 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             </div>
         </div>
 
-        <div class="nm-meta-row" id="metaRow" style="display:none;">
-            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_author')); ?></strong> <span id="metaAuthor">&mdash;</span></span>
-            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_created')); ?></strong> <span id="metaCreated">&mdash;</span></span>
-            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_updated')); ?></strong> <span id="metaUpdated">&mdash;</span></span>
-        </div>
-
         <div class="nm-readonly-banner" id="readonlyBanner" style="display:none;">
             <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.readonly_banner')); ?></strong><?php echo htmlspecialchars(t('network-mapper.editor.readonly_banner_rest')); ?></span>
             <a href="index.php"><?php echo htmlspecialchars(t('network-mapper.editor.readonly_back')); ?></a>
@@ -1456,14 +1947,21 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
 
         <div class="nm-canvas-wrap">
             <aside class="nm-palette">
-                <div class="nm-palette-header">
-                    <span><?php echo htmlspecialchars(t('network-mapper.editor.palette_title')); ?></span>
-                    <span class="nm-palette-hint"><?php echo htmlspecialchars(t('network-mapper.editor.palette_hint')); ?></span>
+                <?php /* GH #433: two tabs - the CMDB classes, and the shape library */ ?>
+                <div class="nm-palette-header nm-palette-tabs" role="tablist">
+                    <button type="button" class="nm-palette-tab active" data-tab="cmdb" role="tab" onclick="NM.setPaletteTab('cmdb')" title="<?php echo htmlspecialchars(t('network-mapper.editor.palette_hint')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.palette_title')); ?></button>
+                    <button type="button" class="nm-palette-tab" data-tab="shapes" role="tab" onclick="NM.setPaletteTab('shapes')"><?php echo htmlspecialchars(t('network-mapper.shapes.tab')); ?></button>
                 </div>
                 <div class="nm-palette-body" id="paletteBody">
                     <div class="nm-palette-empty"><?php echo htmlspecialchars(t('network-mapper.editor.palette_loading')); ?></div>
                 </div>
+                <div class="nm-shape-palette" id="shapePalette" style="display:none;">
+                    <input type="search" class="nm-shape-search" placeholder="<?php echo htmlspecialchars(t('network-mapper.shapes.search_ph')); ?>" oninput="NM.onShapeSearchInput(this.value)">
+                    <div class="nm-shape-palette-body" id="shapePaletteBody"></div>
+                </div>
             </aside>
+            <?php /* GH #433: the canvas and, under it, the page tabs */ ?>
+            <div class="nm-canvas-col">
             <div class="nm-canvas" id="canvas">
                 <!-- Invisible spacer that drives the scrollable area when zoomed:
                      CSS `transform` doesn't affect layout, so without this the
@@ -1481,6 +1979,8 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                         <p><?php echo htmlspecialchars(t('network-mapper.editor.canvas_empty_body')); ?></p>
                     </div>
                 </div>
+            </div>
+            <div class="nm-page-tabs" id="pageTabs" role="tablist" aria-label="<?php echo htmlspecialchars(t('network-mapper.pages.bar_label')); ?>"></div>
             </div>
             <!-- Floating Exit pill in Present mode (hidden until .nm-editor.is-presenting) -->
             <button class="nm-present-exit" id="presentExitBtn" onclick="NM.exitPresent()" title="<?php echo htmlspecialchars(t('network-mapper.editor.present_exit_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.present_exit')); ?></button>
@@ -1513,7 +2013,33 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                                 <button class="nm-detail-icon-btn nm-detail-icon-reset" id="ndIconResetBtn" onclick="NM.resetIconOverride()" title="<?php echo htmlspecialchars(t('network-mapper.detail.icon_reset_title')); ?>" style="display:none;"><?php echo htmlspecialchars(t('network-mapper.detail.icon_reset')); ?></button>
                             </span>
                         </div>
+                        <?php /* GH #433: the node's own colour, icon size and box size */ ?>
+                        <div class="nm-detail-field">
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.colour')); ?></span>
+                            <span class="nm-detail-value nm-swatches" id="ndColours"></span>
+                        </div>
+                        <div class="nm-detail-field">
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.icon_size')); ?></span>
+                            <span class="nm-detail-value"><span class="nm-seg" id="ndIconSize"></span></span>
+                        </div>
+                        <div class="nm-detail-field">
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.box')); ?></span>
+                            <span class="nm-detail-value nm-detail-icon-row">
+                                <span id="ndBoxSize"></span>
+                                <button class="nm-detail-icon-btn nm-detail-icon-reset" id="ndBoxReset" onclick="NM.resetBoxSize()" title="<?php echo htmlspecialchars(t('network-mapper.detail.box_reset_title')); ?>" style="display:none;"><?php echo htmlspecialchars(t('network-mapper.detail.icon_reset')); ?></button>
+                            </span>
+                        </div>
+                        <div class="nm-detail-hint" id="ndBoxHint"><?php echo htmlspecialchars(t('network-mapper.detail.box_hint')); ?></div>
+                        <div class="nm-detail-field">   <?php /* GH #433 */ ?>
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.layers.field')); ?></span>
+                            <span class="nm-detail-value" id="ndLayer"></span>
+                        </div>
+                        <div class="nm-detail-field">   <?php /* GH #433: a linked Knowledge article */ ?>
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.kb.field')); ?></span>
+                            <span class="nm-detail-value nm-kb-field" id="ndArticle"></span>
+                        </div>
                     </div>
+                    <div class="nm-detail-section" id="ndStyle"></div>   <?php /* GH #433: filled by renderNodeStyleEditor() */ ?>
                     <div class="nm-detail-section" id="ndPropertiesSection" style="display:none;">
                         <div class="nm-detail-section-header"><?php echo htmlspecialchars(t('network-mapper.detail.properties')); ?> <span class="nm-detail-section-sub"><?php echo htmlspecialchars(t('network-mapper.detail.properties_from')); ?></span></div>
                         <div id="ndProperties"></div>
@@ -1528,6 +2054,20 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
                     <button class="nm-btn" id="ndAddRelatedBtn" onclick="NM.openRelatedModal()"><?php echo htmlspecialchars(t('network-mapper.detail.add_related')); ?></button>
                     <?php endif; ?>
                 </div>
+            </aside>
+            <?php /* GH #433: the Format panel for a selected shape (same frame as the node panel) */ ?>
+            <aside class="nm-detail-panel nm-format-panel" id="shapeFormatPanel" aria-hidden="true">
+                <div class="nm-detail-header">
+                    <div class="nm-detail-title-area">
+                        <div class="nm-detail-icon" id="spIcon"></div>
+                        <div class="nm-detail-title-text">
+                            <h3 id="spName"><?php echo htmlspecialchars(t('network-mapper.shapes.panel_title')); ?></h3>
+                            <div class="nm-detail-subtitle"><?php echo htmlspecialchars(t('network-mapper.shapes.panel_sub')); ?></div>
+                        </div>
+                    </div>
+                    <button class="nm-detail-close" onclick="NM.closeShapePanel()" title="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
+                </div>
+                <div class="nm-detail-body" id="spBody"></div>
             </aside>
         </div>
     </div>
@@ -1546,6 +2086,22 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             </div>
             <div class="nm-modal-actions">
                 <button class="nm-btn secondary" onclick="NM.closeObjectPicker()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GH #433: link a node or shape (or the diagram) to a Knowledge article -->
+    <div class="nm-modal-overlay" id="articlePickerModal">
+        <div class="nm-modal">
+            <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.kb.picker_title')); ?></div>
+            <div class="nm-modal-body">
+                <div class="nm-picker-search-wrap">
+                    <input type="text" class="nm-picker-search" id="articleSearch" placeholder="<?php echo htmlspecialchars(t('network-mapper.kb.search_ph')); ?>" oninput="NM.onArticleSearchInput(this.value)" onkeydown="if (event.key === 'Escape') NM.closeArticlePicker()">
+                </div>
+                <div class="nm-picker-results" id="articleResults"></div>
+            </div>
+            <div class="nm-modal-actions">
+                <button class="nm-btn secondary" onclick="NM.closeArticlePicker()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
             </div>
         </div>
     </div>
@@ -1655,6 +2211,53 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         </div>
     </div>
 
+    <?php /* GH #433: icon libraries from icons.diagrams.net - browse, preview, import */ ?>
+    <div class="nm-modal-overlay" id="iconLibModal">
+        <div class="nm-modal nm-lib-modal" role="dialog" aria-labelledby="iconLibTitle">
+            <div class="nm-modal-header">
+                <span id="iconLibTitle"><?php echo htmlspecialchars(t('network-mapper.iconlib.title')); ?></span>
+                <span class="nm-lib-sub"><?php echo htmlspecialchars(t('network-mapper.iconlib.from')); ?></span>
+                <button type="button" class="nm-lib-close" onclick="NM.closeLibraryBrowser()" title="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
+            </div>
+            <div class="nm-lib-body">
+                <div class="nm-lib-side">
+                    <input type="search" class="nm-shape-search" id="libSearch" placeholder="<?php echo htmlspecialchars(t('network-mapper.iconlib.search_sets')); ?>" oninput="NM.onLibSearchInput(this.value)">
+                    <span class="nm-seg" id="libFilter">
+                        <button type="button" data-value="all" class="active" onclick="NM.setLibFilter('all')"><?php echo htmlspecialchars(t('network-mapper.iconlib.filter_all')); ?></button>
+                        <button type="button" data-value="vendor" onclick="NM.setLibFilter('vendor')"><?php echo htmlspecialchars(t('network-mapper.iconlib.filter_vendor')); ?></button>
+                        <button type="button" data-value="imported" onclick="NM.setLibFilter('imported')"><?php echo htmlspecialchars(t('network-mapper.iconlib.filter_imported')); ?></button>
+                    </span>
+                    <div class="nm-lib-list" id="libList"></div>
+                </div>
+                <div class="nm-lib-main" id="libMain">
+                    <div class="nm-lib-placeholder"><?php echo htmlspecialchars(t('network-mapper.iconlib.pick')); ?></div>
+                </div>
+            </div>
+            <div class="nm-lib-foot"><?php echo htmlspecialchars(t('network-mapper.iconlib.licence_note')); ?></div>
+        </div>
+    </div>
+
+    <?php /* GH #433: change the current version's title and description */ ?>
+    <div class="nm-modal-overlay" id="detailsModal">
+        <div class="nm-modal">
+            <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.details.title')); ?></div>
+            <div class="nm-modal-body">
+                <div class="nm-form-group">
+                    <label for="dtTitle"><?php echo htmlspecialchars(t('network-mapper.newversion.field_title')); ?></label>
+                    <input type="text" id="dtTitle" maxlength="255">
+                </div>
+                <div class="nm-form-group">
+                    <label for="dtDescription"><?php echo htmlspecialchars(t('network-mapper.newversion.field_description')); ?></label>
+                    <textarea id="dtDescription" maxlength="2000"></textarea>
+                </div>
+            </div>
+            <div class="nm-modal-actions">
+                <button class="nm-btn secondary" onclick="NM.closeDetailsModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="nm-btn" id="dtSaveBtn" onclick="NM.saveDetails()"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Vendor: PNG/PDF export. html2canvas rasterises the diagram canvas;
          the shared PDF writer wraps the rasterised image into a paper-sized PDF.
          Loaded eagerly because the editor is a heavy page already and lazy
@@ -1666,8 +2269,11 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
     <script src="../assets/js/pdf-writer.js?v=4"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>
+    <script>window.NM_FILES = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'files') ? 'true' : 'false'; ?>;</script>   <?php /* exports can go to Files */ ?>
+    <script src="../assets/js/save-to-files.js?v=3"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
-    <script src="../assets/js/network-mapper.js?v=8"></script>
+    <script src="../assets/js/network-mapper-shapes.js?v=2"></script>   <!-- GH #433: shape library -->
+    <script src="../assets/js/network-mapper.js?v=23"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 
@@ -1679,6 +2285,8 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
             }
             if (e.key === 'Escape') {
                 NM.closeNewVersionModal();
+                NM.closeDetailsModal();
+                NM.closeLibraryBrowser();
                 NM.closeObjectPicker();
                 NM.closeRelatedModal();
                 NM.closeVersionsDropdown();
@@ -1691,6 +2299,15 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
         // Click-out to close modals
         document.getElementById('newVersionModal').addEventListener('click', function (e) {
             if (e.target === e.currentTarget) NM.closeNewVersionModal();
+        });
+        document.getElementById('detailsModal').addEventListener('click', function (e) {
+            if (e.target === e.currentTarget) NM.closeDetailsModal();
+        });
+        document.getElementById('iconLibModal').addEventListener('click', function (e) {
+            if (e.target === e.currentTarget) NM.closeLibraryBrowser();
+        });
+        document.getElementById('dtTitle').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); NM.saveDetails(); }
         });
         document.getElementById('objectPickerModal').addEventListener('click', function (e) {
             if (e.target === e.currentTarget) NM.closeObjectPicker();

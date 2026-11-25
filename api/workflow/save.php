@@ -37,6 +37,7 @@ $triggerEvent  = trim((string)($in['trigger_event'] ?? ''));
 $conditions    = is_array($in['conditions'] ?? null) ? $in['conditions'] : [];
 $actions       = is_array($in['actions']    ?? null) ? $in['actions']    : [];
 $isActive      = !empty($in['is_active']) ? 1 : 0;
+$stopAfter     = !empty($in['stop_after']) ? 1 : 0;   // discussion #304: "Stop here when this one runs"
 
 if ($name === '') {
     echo json_encode(['success' => false, 'error' => 'Name is required']);
@@ -125,6 +126,7 @@ try {
     $condJson = json_encode($conditions);
     $actJson  = json_encode($actions);
     if ($id) {
+        $oldTrigger = (string)$conn->query("SELECT trigger_event FROM workflows WHERE id = " . (int)$id)->fetchColumn();
         $tSet = $tenancyOn ? ', tenant_id = ?' : '';
         $stmt = $conn->prepare(
             "UPDATE workflows
@@ -135,6 +137,11 @@ try {
         if ($tenancyOn) $vals[] = $newTenant;
         $vals[] = $id;
         $stmt->execute($vals);
+        if (WorkflowEngine::runOrderReady($conn)) {
+            // Discussion #304. A workflow moved to another trigger joins the end of that trigger's order.
+            $conn->prepare("UPDATE workflows SET stop_after = ?, run_order = IF(? = 1, run_order, 0) WHERE id = ?")
+                 ->execute([$stopAfter, (int)($oldTrigger === $triggerEvent), $id]);
+        }
     } else {
         $tCol = $tenancyOn ? ', tenant_id' : '';
         $stmt = $conn->prepare(
@@ -149,6 +156,9 @@ try {
         if ($tenancyOn) $vals[] = $newTenant;
         $stmt->execute($vals);
         $id = (int)$conn->lastInsertId();
+        if ($stopAfter && WorkflowEngine::runOrderReady($conn)) {
+            $conn->prepare("UPDATE workflows SET stop_after = 1 WHERE id = ?")->execute([$id]);
+        }
     }
     echo json_encode(['success' => true, 'id' => $id]);
 } catch (Exception $e) {

@@ -267,6 +267,10 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     -- Whether the "Sign in with ..." button shows on the portal login. Off
     -- gives the email-box-only page; the analyst login is unaffected.
     `portal_show_button`     TINYINT(1) NOT NULL DEFAULT 1,
+    -- Whether the button shows on the ANALYST login (5.11.0). Off keeps a
+    -- provider a few analysts are trying off everyone else's page; the
+    -- analysts assigned to it still reach it through the email box.
+    `analyst_show_button`    TINYINT(1) NOT NULL DEFAULT 1,
     `created_datetime`       DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `last_modified_datetime` DATETIME NULL,
     PRIMARY KEY (`id`)
@@ -4843,6 +4847,8 @@ CREATE TABLE IF NOT EXISTS `change_field_layout` (
     `section_id`     INT NOT NULL,
     `display_order`  INT NOT NULL DEFAULT 0,
     `is_visible`     TINYINT(1) NOT NULL DEFAULT 1,
+    -- GH #435: the field's own name, shown everywhere instead of the standard one; NULL = standard
+    `label`          VARCHAR(100) NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_cfl_field_key` (`field_key`),
     CONSTRAINT `fk_cfl_section` FOREIGN KEY (`section_id`) REFERENCES `change_field_sections` (`id`) ON DELETE CASCADE
@@ -6090,6 +6096,11 @@ CREATE TABLE IF NOT EXISTS `software_licences` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `app_id`            INT NOT NULL,
     `licence_type`      VARCHAR(50) NOT NULL,
+    -- How long it lasts (Alisdair's ask): subscription | perpetual | perpetual_maintenance;
+    -- NULL = not said. licence_type is how it is COUNTED (Per User, Per Device, Site,
+    -- Concurrent, Other). Before 5.11.0 "Subscription" was a type: SoftwareService::
+    -- migrateLegacyTerms() moves it (and "Perpetual") here. A perpetual licence has no renewal.
+    `licence_term`      VARCHAR(25) NULL,
     `licence_key`       VARCHAR(500) NULL,
     `quantity`          INT NULL,
     `renewal_date`      DATE NULL,
@@ -7954,6 +7965,11 @@ CREATE TABLE IF NOT EXISTS `workflows` (
     -- actions may only touch that company's records. CASCADE, never SET NULL: a
     -- deleted company's workflows must go with it, not become shared ones.
     `tenant_id`         INT NULL,
+    -- Discussion #304: the order workflows on one trigger run in (Workflows -> Run order).
+    -- 0 = not placed yet: runs after the placed ones, oldest first - today's order.
+    `run_order`         INT NOT NULL DEFAULT 0,
+    -- When this one runs (its conditions match), the workflows after it for that event do not.
+    `stop_after`        TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_workflows_trigger` (`trigger_event`),
     KEY `idx_workflows_active` (`is_active`),
@@ -8804,22 +8820,51 @@ CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
     `y`              INT NOT NULL DEFAULT 0,
     `size`           VARCHAR(20) NOT NULL DEFAULT 'medium',
     `icon_override`  VARCHAR(100) NULL,
+    -- GH #433: a node's own colour (#rrggbb; NULL = the normal look) and its box size in
+    -- canvas pixels (NULL = automatic: as wide as the icon, label clamped to two lines).
+    `colour_override` VARCHAR(20) NULL,
+    `w`              INT NULL,
+    `h`              INT NULL,
+    -- Shapes: the node's own look as JSON (fill, gradient, border, shadow, opacity,
+    -- rounded corners, font) - only the keys that differ from the normal look.
+    -- NetworkMapperService::sanitiseStyle() whitelists every key. NULL = normal.
+    `style`          TEXT NULL,
+    -- Pages and layers: which page (network_diagram_pages.page_key) and which layer on it
+    -- (network_diagram_layers.layer_key) the node is on. 0 / 0 = the first page and its
+    -- first layer, which every diagram has even before it has any page rows.
+    `page_key`       INT NOT NULL DEFAULT 0,
+    `layer_key`      INT NOT NULL DEFAULT 0,
+    -- A group: nodes and shapes on the same page with the same group_key move and select
+    -- together (Group / Ungroup in the editor). NULL = not grouped.
+    `group_key`      VARCHAR(40) NULL,
+    -- A Knowledge article the node links to (click in Present; the book marker or right-click menu in the editor).
+    -- Who may read it is Knowledge's own rule - the diagram never shows a title past it.
+    `article_id`     INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_node_diag` (`diagram_id`),
     KEY `ix_net_node_cmdb` (`cmdb_object_id`),
+    KEY `ix_net_node_article` (`article_id`),
     CONSTRAINT `fk_net_node_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_net_node_cmdb` FOREIGN KEY (`cmdb_object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE
+    CONSTRAINT `fk_net_node_cmdb` FOREIGN KEY (`cmdb_object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_node_article` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `network_diagram_connectors` (
     `id`                       INT NOT NULL AUTO_INCREMENT,
     `diagram_id`               INT NOT NULL,
-    `from_node_id`             INT NOT NULL,
-    `to_node_id`               INT NOT NULL,
+    -- GH #433: an end is a node (from_node_id / to_node_id) OR a shape (from_shape_uid /
+    -- to_shape_uid - network_diagram_shapes.uid, stable across saves where row ids are not).
+    `from_node_id`             INT NULL,
+    `to_node_id`               INT NULL,
+    `from_shape_uid`           VARCHAR(20) NULL,
+    `to_shape_uid`             VARCHAR(20) NULL,
     `cmdb_relationship_id`     INT NULL,
     `label`                    VARCHAR(255) NULL,
     `line_style`               VARCHAR(20) NULL DEFAULT 'solid',
+    -- The line's own look as JSON: colour, width, arrowStart, arrowEnd (none / arrow / open /
+    -- diamond / circle), routing (straight / elbow / curved). NULL = the normal grey arrow.
+    `style`                    TEXT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_net_conn_diag` (`diagram_id`),
@@ -8830,6 +8875,134 @@ CREATE TABLE IF NOT EXISTS `network_diagram_connectors` (
     CONSTRAINT `fk_net_conn_to`   FOREIGN KEY (`to_node_id`)   REFERENCES `network_diagram_nodes` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_net_conn_rel`  FOREIGN KEY (`cmdb_relationship_id`) REFERENCES `cmdb_object_relationships` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Shapes: freestanding shapes on a diagram - rectangles, flowchart symbols, arrows,
+-- zones, text and notes - that are NOT bound to a CMDB object. shape_type is a key of
+-- the shape library in assets/js/network-mapper-shapes.js (an unknown key draws as a
+-- rectangle, so the library can grow without a schema change). style is the same JSON
+-- as network_diagram_nodes.style. layer: 'back' = behind connectors and nodes,
+-- 'front' = in front of them; z orders shapes within a layer.
+CREATE TABLE IF NOT EXISTS `network_diagram_shapes` (
+    `id`             INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`     INT NOT NULL,
+    `shape_type`     VARCHAR(40) NOT NULL,
+    `x`              INT NOT NULL DEFAULT 0,
+    `y`              INT NOT NULL DEFAULT 0,
+    `w`              INT NOT NULL DEFAULT 120,
+    `h`              INT NOT NULL DEFAULT 80,
+    `rotation`       INT NOT NULL DEFAULT 0,
+    `text`           TEXT NULL,
+    `style`          TEXT NULL,
+    `layer`          VARCHAR(10) NOT NULL DEFAULT 'back',
+    `z`              INT NOT NULL DEFAULT 0,
+    -- An icon from an imported icon library (shape_type 'icon'); NULL for drawn shapes, and
+    -- for an icon whose library was removed (the shape keeps its place, loses the picture).
+    `icon_id`        INT NULL,
+    `page_key`       INT NOT NULL DEFAULT 0,   -- as network_diagram_nodes.page_key
+    `layer_key`      INT NOT NULL DEFAULT 0,
+    `group_key`      VARCHAR(40) NULL,         -- as network_diagram_nodes.group_key
+    -- A stable id for connectors to point at (letters, digits, _ and -). Row ids change on
+    -- every save because shapes are replaced; this does not.
+    `uid`            VARCHAR(20) NULL,
+    `article_id`     INT NULL,                 -- as network_diagram_nodes.article_id
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
+    PRIMARY KEY (`id`),
+    KEY `ix_net_shape_diag` (`diagram_id`),
+    KEY `ix_net_shape_icon` (`icon_id`),
+    KEY `ix_net_shape_article` (`article_id`),
+    CONSTRAINT `fk_net_shape_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_shape_article` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- GH #433: Knowledge articles related to a diagram as a whole ("Articles" in the editor), and
+-- listed back on the article as "Network diagrams". One row per diagram VERSION - a new
+-- version copies them. Titles are only ever shown through Knowledge's own read rule.
+CREATE TABLE IF NOT EXISTS `network_diagram_articles` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`            INT NOT NULL,
+    `article_id`            INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_diag_article` (`diagram_id`, `article_id`),
+    KEY `ix_net_diag_article` (`article_id`),
+    CONSTRAINT `fk_net_da_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_da_article` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_da_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Pages and layers: a diagram has tabs (pages); each page has layers that can be hidden or
+-- locked. Items carry page_key / layer_key - small numbers stable across saves and versions
+-- (rows are replaced on every save, ids are not stable). A diagram with no rows here is one
+-- page with one layer, key 0 / 0. sort orders tabs left to right and layers bottom to top.
+CREATE TABLE IF NOT EXISTS `network_diagram_pages` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`  INT NOT NULL,
+    `page_key`    INT NOT NULL DEFAULT 0,
+    `name`        VARCHAR(100) NOT NULL,
+    `sort`        INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_page` (`diagram_id`, `page_key`),
+    CONSTRAINT `fk_net_page_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `network_diagram_layers` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`  INT NOT NULL,
+    `page_key`    INT NOT NULL DEFAULT 0,
+    `layer_key`   INT NOT NULL DEFAULT 0,
+    `name`        VARCHAR(100) NOT NULL,
+    `sort`        INT NOT NULL DEFAULT 0,
+    `visible`     TINYINT(1) NOT NULL DEFAULT 1,
+    `locked`      TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_layer` (`diagram_id`, `page_key`, `layer_key`),
+    CONSTRAINT `fk_net_layer_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Icon libraries imported from icons.diagrams.net (draw.io's icon catalogue). The icons are
+-- COPIED here, so diagrams never depend on that site. licence / author / source come from the
+-- set's own library file and are shown wherever the set is. status: importing | ready.
+-- See includes/services/network_icons.php.
+CREATE TABLE IF NOT EXISTS `network_icon_libraries` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `slug`             VARCHAR(120) NOT NULL,
+    `title`            VARCHAR(255) NOT NULL,
+    `licence`          VARCHAR(255) NULL,
+    `author`           VARCHAR(255) NULL,
+    `author_url`       VARCHAR(500) NULL,
+    `source`           VARCHAR(500) NULL,
+    `icon_total`       INT NOT NULL DEFAULT 0,
+    `icon_count`       INT NOT NULL DEFAULT 0,
+    `status`           VARCHAR(20) NOT NULL DEFAULT 'importing',
+    `created_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_iconlib_slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One icon of an imported library: the picture itself (PNG / JPEG / GIF / WebP as sent; SVG
+-- only after NetworkIconService::cleanSvg), served by api/network-mapper/icon.php with a
+-- sandbox CSP. sort = its position in the set, unique per library so a retried batch is safe.
+CREATE TABLE IF NOT EXISTS `network_icon_library_icons` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `library_id`  INT NOT NULL,
+    `sort`        INT NOT NULL DEFAULT 0,
+    `title`       VARCHAR(255) NULL,
+    `tags`        VARCHAR(1000) NULL,
+    `mime`        VARCHAR(40) NOT NULL,
+    `data`        MEDIUMBLOB NOT NULL,
+    `w`           INT NOT NULL DEFAULT 64,
+    `h`           INT NOT NULL DEFAULT 64,
+    -- GH #433: who added a My images picture (NULL for imported sets). Only they, or an
+    -- admin, may remove it from the shared group.
+    `uploaded_by_analyst_id` INT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_net_icon_lib_sort` (`library_id`, `sort`),
+    CONSTRAINT `fk_net_icon_lib` FOREIGN KEY (`library_id`) REFERENCES `network_icon_libraries` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `network_diagram_shapes`
+    ADD CONSTRAINT `fk_net_shape_icon` FOREIGN KEY (`icon_id`) REFERENCES `network_icon_library_icons` (`id`) ON DELETE SET NULL;
 
 -- ---------------------------------------------------------------------------
 -- Search corpus. One row per SEARCHABLE UNIT, whatever it came from: a ticket
@@ -11839,7 +12012,7 @@ CREATE TABLE IF NOT EXISTS `consumable_field_values` (
     UNIQUE KEY `uq_consumable_field_value` (`item_id`, `field_id`, `seq`),
     KEY `ix_cfv_field_text` (`field_id`, `value_text`(64)),
     CONSTRAINT `fk_cfv_item` FOREIGN KEY (`item_id`) REFERENCES `consumable_items` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_cfv_field` FOREIGN KEY (`field_id`) REFERENCES `consumable_fields` (`id`)
+    CONSTRAINT `fk_consumable_fv_field` FOREIGN KEY (`field_id`) REFERENCES `consumable_fields` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------

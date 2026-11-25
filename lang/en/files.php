@@ -59,6 +59,7 @@ return [
         'no_match' => 'Nothing here matches "{q}".',
         'open' => 'Open',
         'open_location' => 'Open file location',
+        'open_separately' => 'Open separately',   // GH #424
         'open_new' => 'Open in new window',
         'paste' => 'Paste',
         'paste_into' => 'Paste into folder',
@@ -129,6 +130,9 @@ return [
         'nav_on' => 'Always show',
         'navbar' => 'Top navigation bar',
         'note' => 'These choices are yours alone. The logo on the desktop is set by an administrator.',
+        'multi' => 'Opening several files',   // GH #424
+        'multi_viewer' => 'In one viewer - step through them with the arrow keys',
+        'multi_windows' => 'In separate windows - up to 10; more than that open in one viewer',
     ],
     'props' => [
         'restore' => 'Restore',   // GH #303
@@ -437,6 +441,14 @@ return [
         'zip_empty' => 'This archive is empty.',
         'zoom_in' => 'Zoom in',
         'zoom_out' => 'Zoom out',
+        // GH #424: the gallery
+        'previous' => 'Previous',
+        'next' => 'Next',
+        'slideshow' => 'Slideshow',
+        'slideshow_tip' => 'Shows the pictures one after another. Space pauses, Escape stops.',
+        'pause' => 'Pause',
+        'play' => 'Play',
+        'stop' => 'Stop',
     ],
     'wm' => [
         'close' => 'Close',
@@ -538,6 +550,15 @@ return [
             'p5' => 'None of this stops a determined person: anything a browser can show can be photographed or captured. View-only and the watermark make leaking deliberate and traceable, not impossible.',
             'p6' => 'Every file opened is recorded in the audit trail, including which version and, for a zip, which file inside it.',
             'p7' => 'A picture or PDF refits as you resize or maximise its window, until you zoom in or out yourself; **Fit** hands it back. The same viewer opens pictures and PDFs attached to tickets, in a window over the ticket.',
+        ],
+        'gallery' => [   // GH #424
+            'nav' => 'Several files at once',
+            'title' => 'Several files at once',
+            'intro' => 'Step through a folder, or a selection, in one window.',
+            'p1' => 'When a file is open, **Previous** and **Next** in the viewer\'s toolbar - or the left and right arrow keys - move to the file before or after it in the folder, in the order the folder is sorted. Home and End go to the first and the last.',
+            'p2' => 'Select several files and press **Enter**, or right-click and choose **Open**, to open just those in one viewer. Folders in the selection are left out. To have each file in a window of its own instead - to put two side by side - right-click and choose **Open separately** (up to 10 files), or change **Opening several files** in **Personalise** so Enter does it. More than 10 files always open in one viewer.',
+            'p3' => '**Slideshow** shows the pictures among them one after another, full screen where the browser allows it, a few seconds each. **Space** pauses it and **Escape** stops it. It plays once, from the picture you are on to the last, and skips anything that is not a picture.',
+            'p4' => 'Every file you step to is opened as if you had opened it yourself: it needs View on its folder, View only and the watermark apply, and it is recorded in the audit trail.',
         ],
         'thumbnails' => [   // GH #424
             'nav' => 'Thumbnails',

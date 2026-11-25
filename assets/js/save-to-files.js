@@ -3,6 +3,9 @@
  * (email attachments) and by every Documents panel (stored documents).
  *
  *   window.SaveToFiles.open({ source: 'email_attachment' | 'document', id, name, ticket: bool })
+ *   window.SaveToFiles.open({ blob, name })   something the page has just made - a diagram's
+ *                                             PNG or PDF, a report (export formats only:
+ *                                             FilesSave::saveExport)
  *
  * Asks api/files/save_from.php for the folders the person can save into and the
  * Files -> Settings -> Sharing defaults, lets them pick one (and "In a folder for this
@@ -38,6 +41,19 @@
         return fetch(API + (body ? '' : '?targets=1'), body
             ? { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
             : { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (j) { if (!j.success) throw new Error(j.error || 'Error'); return j; });
+    }
+
+    /** Posts a file the page made (o.blob) with the folder and choice; same answers as call(). */
+    function sendExport(o, folderId, onConflict) {
+        var fd = new FormData();
+        fd.append('source', 'export');
+        fd.append('name', o.name || 'export');
+        fd.append('folder_id', String(folderId));
+        fd.append('on_conflict', onConflict || 'ask');
+        fd.append('file', o.blob, o.name || 'export');
+        return fetch(API, { method: 'POST', credentials: 'same-origin', body: fd })
             .then(function (r) { return r.json(); })
             .then(function (j) { if (!j.success) throw new Error(j.error || 'Error'); return j; });
     }
@@ -111,7 +127,8 @@
             var send = function (onConflict) {
                 var tick = body.querySelector('#stfTicket');
                 say(esc(T('saving', 'Saving...')));
-                call({ source: o.source, id: o.id, folder_id: parseInt(sel.value, 10), ticket_folder: !!(tick && tick.checked), on_conflict: onConflict || 'ask' })
+                (o.blob ? sendExport(o, parseInt(sel.value, 10), onConflict)
+                        : call({ source: o.source, id: o.id, folder_id: parseInt(sel.value, 10), ticket_folder: !!(tick && tick.checked), on_conflict: onConflict || 'ask' }))
                     .then(function (r) {
                         if (r.conflict) {
                             say(esc(T('conflict', 'This folder already has a file called "{name}".', { name: r.name })));

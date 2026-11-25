@@ -24,6 +24,8 @@
 const SELF_SERVICE_PATTERNS = ['dots', 'grid', 'diagonal', 'flow', 'mesh'];
 /** Who sees the portal's organisation chart (GH #414): nobody, everybody, or chosen People groups. */
 const SELF_SERVICE_ORG_CHART_MODES = ['off', 'all', 'groups'];
+/** Who sees Starters & leavers cases on the portal (5.11.0): nobody, or chosen People groups - never everyone. */
+const SELF_SERVICE_JML_MODES = ['off', 'groups'];
 
 /** Where the portal logo sits. 'header' is the nav bar, and the default. */
 const SELF_SERVICE_LOGO_POSITIONS = ['header', 'page'];
@@ -36,7 +38,7 @@ const SELF_SERVICE_LOGO_POSITIONS = ['header', 'page'];
  * @return array{
  *   logo_path:string, header_colour:string, table_header_colour:string,
  *   background_pattern:string, allow_self_close:bool, show_my_assets:bool,
- *   org_chart:string, org_chart_groups:int[]
+ *   org_chart:string, org_chart_groups:int[], jml_cases:string, jml_cases_groups:int[]
  * }
  */
 function selfServicePortalSettings(PDO $conn, bool $fresh = false): array
@@ -57,6 +59,11 @@ function selfServicePortalSettings(PDO $conn, bool $fresh = false): array
         // other's staff lists by surprise. See includes/portal_org_chart.php.
         'self_service_org_chart'           => 'off',
         'self_service_org_chart_groups'    => '',
+        // 5.11.0: Starters & leavers cases - 'off' | 'groups' (only members of
+        // jml_cases_groups). No 'everyone': a leaver's case can be a dismissal.
+        // See includes/portal_starters.php.
+        'self_service_jml_cases'           => 'off',
+        'self_service_jml_cases_groups'    => '',
     ];
 
     $rows = [];
@@ -103,6 +110,9 @@ function selfServicePortalSettings(PDO $conn, bool $fresh = false): array
         'org_chart'           => in_array($get('self_service_org_chart'), SELF_SERVICE_ORG_CHART_MODES, true)
                                  ? $get('self_service_org_chart') : 'off',
         'org_chart_groups'    => array_values(array_filter(array_map('intval', explode(',', $get('self_service_org_chart_groups'))))),
+        'jml_cases'           => in_array($get('self_service_jml_cases'), SELF_SERVICE_JML_MODES, true)
+                                 ? $get('self_service_jml_cases') : 'off',
+        'jml_cases_groups'    => array_values(array_filter(array_map('intval', explode(',', $get('self_service_jml_cases_groups'))))),
     ];
 }
 

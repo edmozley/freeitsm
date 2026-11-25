@@ -233,6 +233,12 @@ if ($wfCompanyPicker) {
                             <input type="checkbox" id="wfActive" checked> <?php echo htmlspecialchars(t('workflow.editor.active_label')); ?>
                         </label>
                     </div>
+                    <div class="form-group">
+                        <label style="font-weight: normal;">
+                            <input type="checkbox" id="wfStopAfter"> <?php echo htmlspecialchars(t('workflow.editor.stop_after_label')); ?>
+                        </label>
+                        <small style="display:block; color:var(--text-muted, #666); margin-top:6px; line-height:1.5;"><?php echo htmlspecialchars(t('workflow.editor.stop_after_help')); ?></small>
+                    </div>
                     <?php if ($wfCompanyPicker): ?>
                     <div class="form-group">
                         <label for="wfCompany"><?php echo htmlspecialchars(t('workflow.editor.company_label')); ?></label>
@@ -475,7 +481,7 @@ if ($wfCompanyPicker) {
         };
     </script>
     <script src="../checklists/search_scoring.js?v=1"></script>
-    <script src="../assets/js/workflow-editor.js?v=30"></script>
+    <script src="../assets/js/workflow-editor.js?v=31"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

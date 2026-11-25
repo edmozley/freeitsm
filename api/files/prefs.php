@@ -1,6 +1,6 @@
 <?php
 /**
- * POST {desktop_colour?, navbar?, view?, windows?} - the person's own desktop.
+ * POST {desktop_colour?, navbar?, view?, multi_open?, windows?} - the person's own desktop.
  * Desktop colour is the ONLY appearance choice a person has (Ed, 2026-10-10);
  * the logo and its corner are System -> Branding's. navbar and view are module
  * behaviour, windows is remembered sizes and positions.
@@ -20,6 +20,11 @@ filesApiRun(function () use ($conn, $analystId) {
     if (isset($in['view'])) {
         if (!in_array($in['view'], ['icons', 'thumbs', 'details'], true)) filesApiFail('Unknown view.');
         filesSavePref($conn, $analystId, 'files_view', $in['view']);
+    }
+    if (isset($in['multi_open'])) {
+        // GH #424: what Enter does with several files selected.
+        if (!in_array($in['multi_open'], ['viewer', 'windows'], true)) filesApiFail('Unknown setting.');
+        filesSavePref($conn, $analystId, 'files_multi_open', $in['multi_open']);
     }
     if (isset($in['windows']) && is_array($in['windows'])) {
         // Only numbers survive: {kind: {x, y, w, h, max}} - nothing a page could be tricked into rendering.

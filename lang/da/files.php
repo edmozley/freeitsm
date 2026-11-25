@@ -65,6 +65,7 @@ return [
         'no_match' => 'Intet her matcher "{q}".',
         'open' => 'Åbn',
         'open_location' => 'Åbn filens placering',
+        'open_separately' => 'Åbn hver for sig',
         'open_new' => 'Åbn i nyt vindue',
         'paste' => 'Indsæt',
         'paste_into' => 'Indsæt i mappe',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Vis altid',
         'navbar' => 'Øverste navigationslinje',
         'note' => 'Disse valg er kun dine. Logoet på skrivebordet indstilles af en administrator.',
+        'multi' => 'Åbning af flere filer',
+        'multi_viewer' => 'I én fremviser - bladr igennem dem med piletasterne',
+        'multi_windows' => 'I separate vinduer - op til 10; flere end det åbnes i én fremviser',
     ],
     'props' => [
         'restore' => 'Gendan',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Log ud',
         'title' => 'Start',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Denne fil kan ikke få en miniature ({why}).',
         'why_too_large' => 'den er for stor til at blive gjort mindre',
         'why_unsupported' => 'serveren kan ikke læse den slags billeder',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Dette arkiv er tomt.',
         'zoom_in' => 'Zoom ind',
         'zoom_out' => 'Zoom ud',
+        'previous' => 'Forrige',
+        'next' => 'Næste',
+        'slideshow' => 'Diasshow',
+        'slideshow_tip' => 'Viser billederne ét efter ét. Mellemrum sætter på pause, Escape stopper.',
+        'pause' => 'Pause',
+        'play' => 'Afspil',
+        'stop' => 'Stop',
     ],
     'wm' => [
         'close' => 'Luk',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Hver åbnet fil registreres i revisionssporet, inklusive hvilken version og, for en zip-fil, hvilken fil indeni.',
             'p7' => 'Et billede eller en PDF tilpasses igen, når du ændrer størrelsen på eller maksimerer dets vindue, indtil du selv zoomer ind eller ud; **Tilpas** giver den kontrollen tilbage. Den samme viser åbner billeder og PDF\'er, der er vedhæftet sager, i et vindue over sagen.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Flere filer på én gang',
+            'title' => 'Flere filer på én gang',
+            'intro' => 'Bladr gennem en mappe, eller et udvalg, i ét vindue.',
+            'p1' => 'Når en fil er åben, flytter **Forrige** og **Næste** i fremviserens værktøjslinje - eller venstre og højre piletast - til filen før eller efter den i mappen, i den rækkefølge mappen er sorteret. Home og End går til den første og den sidste.',
+            'p2' => 'Markér flere filer og tryk **Enter**, eller højreklik og vælg **Åbn**, for at åbne netop dem i én fremviser. Mapper i markeringen springes over. Vil du i stedet have hver fil i sit eget vindue - for at stille to side om side - så højreklik og vælg **Åbn hver for sig** (op til 10 filer), eller skift **Åbning af flere filer** under **Tilpas**, så Enter gør det. Flere end 10 filer åbnes altid i én fremviser.',
+            'p3' => '**Diasshow** viser billederne blandt dem ét efter ét, i fuld skærm hvor browseren tillader det, et par sekunder hver. **Mellemrum** sætter det på pause, og **Escape** stopper det. Det kører én gang, fra det billede du står på til det sidste, og springer alt over, der ikke er et billede.',
+            'p4' => 'Hver fil, du bladrer til, åbnes, som om du selv havde åbnet den: den kræver **Vis** på sin mappe, Kun visning og vandmærket gælder, og den registreres i revisionssporet.',
+        ],
+        'thumbnails' => [
             'nav' => 'Miniaturer',
             'title' => 'Miniaturer',
             'intro' => 'Billeder og PDF\'er viser, hvad der er i dem.',

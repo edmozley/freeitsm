@@ -10,7 +10,7 @@
  * Shared: enabled, auto_create_users, require_verified_email, default_modules,
  *         sort_order, tenant_id, auto_create_analysts (discussion #155).
  * OIDC only in practice: analyst_fallback_mode, profile_sync_mode (#155).
- * OIDC only: portal_email_domains, portal_show_button (GH #147).
+ * OIDC only: portal_email_domains, portal_show_button (GH #147), analyst_show_button (5.11.0).
  *
  * Secrets (client_secret / ldap_bind_password) are encrypted at rest via
  * encryptValue(). On update, a blank or masked ("****") secret means "leave the
@@ -119,6 +119,8 @@ $id              = isset($data['id']) ? (int)$data['id'] : 0;
 // GH #147 - portal routing. Only an OIDC provider can be redirected to, so
 // the per-protocol branches below reset these for LDAP and CardDAV.
 $portalShowButton = array_key_exists('portal_show_button', $data) ? (!empty($data['portal_show_button']) ? 1 : 0) : 1;
+// 5.11.0 - the same for the analyst login.
+$analystShowButton = array_key_exists('analyst_show_button', $data) ? (!empty($data['analyst_show_button']) ? 1 : 0) : 1;
 $portalDomains    = ssoParseEmailDomains($data['portal_email_domains'] ?? '');
 if ($portalDomains['invalid']) {
     bail('"' . implode('", "', $portalDomains['invalid']) . '" is not an email domain. Type just the part after the @, for example company.com.');
@@ -229,6 +231,7 @@ if ($protocol === 'carddav') {
     $profileSyncMode    = 'never';
     $portalDomainList   = [];
     $portalShowButton   = 1;
+    $analystShowButton  = 1;
 
 } elseif ($protocol === 'oidc') {
     $issuerUrl = rtrim(trim($data['issuer_url'] ?? ''), '/');
@@ -261,6 +264,7 @@ if ($protocol === 'carddav') {
     // A directory has no redirect and no portal button (GH #147).
     $portalDomainList = [];
     $portalShowButton = 1;
+    $analystShowButton = 1;
 
     $host   = trim($data['ldap_host'] ?? '');
     $baseDn = trim($data['ldap_base_dn'] ?? '');
@@ -366,6 +370,8 @@ try {
     $vals[] = $portalDomainList ? implode("\n", $portalDomainList) : null;
     $cols[] = 'portal_show_button';
     $vals[] = $portalShowButton;
+    $cols[] = 'analyst_show_button';
+    $vals[] = $analystShowButton;
     $cols[] = 'jit_company_access';
     $vals[] = $protocol === 'carddav' ? 'all' : $jitCompanyIn;   // an address book creates nobody
     // Claim mapping (3.5.0): an OIDC provider's; cleared for any other protocol.
@@ -402,7 +408,7 @@ try {
             $readable = ['enabled', 'default_modules', 'sort_order', 'tenant_id', 'jit_company_access'];
             if ($protocol === 'oidc') {
                 $readable = array_merge($readable, ['auto_create_users', 'auto_create_analysts', 'analyst_fallback_mode', 'require_verified_email', 'profile_sync_mode', 'issuer_url', 'client_id', 'scopes',
-                                                    'portal_email_domains', 'portal_show_button',
+                                                    'portal_email_domains', 'portal_show_button', 'analyst_show_button',
                                                     'oidc_group_claim', 'oidc_analyst_group', 'oidc_admin_group',
                                                     // Entra directory sync (entra.php / save_entra_sync.php) uses
                                                     // these on an OIDC row; the dialog never sends them, so an
@@ -447,6 +453,11 @@ try {
     if (!$conn->query("SHOW COLUMNS FROM auth_providers LIKE 'carddav_allow_create'")->fetch()) {
         array_splice($cols, $iAc, 1);
         array_splice($vals, $iAc, 1);
+    }
+    // And the analyst-login button column (5.11.0).
+    if (!ssoAnalystButtonColumnReady($conn)) {
+        $i = array_search('analyst_show_button', $cols, true);
+        if ($i !== false) { array_splice($cols, $i, 1); array_splice($vals, $i, 1); }
     }
     // Same for the three discussion #155 columns, which arrive together.
     if (!ssoJitColumnsReady($conn)) {

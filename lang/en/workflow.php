@@ -125,6 +125,24 @@ return [
         'inactive'        => 'Inactive',
     ],
 
+    // Discussion #304: the order workflows on one trigger run in
+    'order' => [
+        'btn'             => 'Run order',
+        'title'           => 'Run order',
+        'intro'           => 'When several workflows start on the same trigger, they run in this order, top to bottom. Drag them to change it. A workflow with Stop here ticked stops the ones below it, when it runs.',
+        'trigger'         => 'Trigger',
+        'one_only'        => 'Only one workflow starts on this trigger, so there is no order to set.',
+        'inactive'        => 'Off',
+        'stops'           => 'Stops the rest',
+        'drag'            => 'Drag to change the order',
+        'saved'           => 'Order saved',
+        'save_failed'     => 'The order could not be saved',
+        'needs_db_verify' => 'Run Database Verification (System) first, then set the order.',
+        'no_workflows'    => 'No workflows start on that trigger.',
+        'not_all_yours'   => 'Only someone who can edit every workflow on this trigger can change its order.',
+        'list_changed'    => 'The workflows on this trigger have changed - reload the page and try again.',
+    ],
+
     'editor' => [
         'new_title'       => 'New workflow',
         'edit_title'      => 'Edit workflow',
@@ -142,6 +160,8 @@ return [
         'actions_label'   => 'Actions',
         'actions_hint'    => 'Run these in order, top to bottom. At least one action is required.',
         'active_label'    => 'Active — run when the trigger fires',
+        'stop_after_label' => 'Stop here when this one runs',
+        'stop_after_help'  => 'When this workflow\'s conditions match and it runs, the workflows after it on the same trigger do not run for that event - so a catch-all at the end only catches what nothing before it handled. Set the order with Run order on the Workflows list.',
         'company_label'   => 'Runs for',
         'company_shared'  => 'All companies (shared)',
         'company_help'    => 'A company\'s own workflow runs only for that company\'s tickets, tasks and other records, and its actions can only change that company\'s records. A shared one runs for every company.',
@@ -435,6 +455,8 @@ return [
         'triggers_family_forms'  => '<strong>Forms and catalogue requests</strong> &mdash; <code>form.submitted</code> fires for an ordinary form. A form that needs approval fires <code>catalogue_request.submitted</code> instead, then <code>catalogue_request.approved</code> or <code>catalogue_request.rejected</code> once your approver has decided, or <code>catalogue_request.cancelled</code> if the requester withdraws it while it waits (it carries the reason as <code>{{request.reason}}</code> and who was to approve it, so a rule can tell them). The separate event is deliberate: a rule cannot raise a ticket for a request that is still awaiting approval, one that was rejected, or one the requester cancelled &mdash; <strong>Create a ticket</strong> refuses all three, and on an approved request it uses the ticket the approval already raised rather than making a second. All five carry the submitted answers, so <code>{{submission.fields.Device type}}</code> works at every stage, and all five can be narrowed to a single form.',
         'triggers_family_crud'   => '<strong>Create / update / delete events</strong> &mdash; every reusable record and settings lookup emits <code>&lt;entity&gt;.created</code> / <code>.updated</code> / <code>.deleted</code>: tickets, assets, changes, problems, tasks, CMDB, contracts &amp; suppliers, calendar, software licences, network diagrams, and all their settings lists (statuses, priorities, types, tags&hellip;).',
         'triggers_picker'  => 'Because the list is dozens deep, the editor\'s <strong>trigger picker is searchable</strong> &mdash; start typing (<code>resolved</code>, <code>contract</code>, <code>delete</code>&hellip;) to filter it. Each event fires from a <strong>single shared write path</strong>, so it behaves identically whether the change came from the browser, the REST API, or another workflow &mdash; it can\'t drift.',
+        'order_heading' => 'Several workflows on one trigger: the run order, and Stop here',   // discussion #304
+        'order_body'    => 'When more than one workflow starts on the same trigger, they run one after another. <strong>Run order</strong> on the Workflows list sets the order: pick the trigger, then drag the workflows, or use the arrow buttons, top to bottom. One you have never placed runs after the placed ones, oldest first. Tick <strong>Stop here when this one runs</strong> on a workflow and, when its conditions match and it runs, the workflows after it are not run for that event: put the specific rules first, each with Stop here, and a catch-all last, and the catch-all only gets what nothing before it handled. A workflow that was stopped says so in its run log, with the name of the one that stopped it. One whose conditions do not match stops nothing. Each workflow still reads the record as it was when the event happened, not as an earlier workflow left it.',
 
         // 9. Failures
         'failures_heading' => 'Engine failures are isolated',

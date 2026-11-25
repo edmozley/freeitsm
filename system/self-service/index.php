@@ -248,6 +248,28 @@ requireModuleAccess('system');
                     <?php endif; ?>
                 </div>
             </div>
+
+            <?php /* 5.11.0: Starters & leavers cases for HR - off, or chosen People groups only. */ ?>
+            <div class="ssp-field">
+                <label class="ssp-label" for="sspJmlCases"><?php echo htmlspecialchars(t('system.self_service.jml_label')); ?></label>
+                <div class="ssp-desc"><?php echo t('system.self_service.jml_desc'); ?></div>
+                <select class="ssp-input" id="sspJmlCases" style="max-width: 320px;" onchange="sspJmlGroupsShow()">
+                    <option value="off"><?php echo htmlspecialchars(t('system.self_service.org_chart_off')); ?></option>
+                    <option value="groups"><?php echo htmlspecialchars(t('system.self_service.org_chart_groups')); ?></option>
+                </select>
+                <div class="ssp-groups" id="sspJmlGroups" hidden>
+                    <div class="ssp-label"><?php echo htmlspecialchars(t('system.self_service.org_chart_groups_label')); ?></div>
+                    <?php if (!$sspGroups): ?>
+                        <div class="ssp-desc"><?php echo htmlspecialchars(t('system.self_service.org_chart_no_groups')); ?></div>
+                    <?php else: ?>
+                        <div class="ssp-group-list">
+                        <?php foreach ($sspGroups as $g): ?>
+                            <label><input type="checkbox" name="sspJmlGroup" value="<?php echo (int)$g['id']; ?>"> <?php echo htmlspecialchars($g['display_name']); ?></label>
+                        <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
 
         <button class="btn btn-primary" id="sspSave" onclick="sspSave()"><?php echo htmlspecialchars(t('common.save')); ?></button>
@@ -392,12 +414,19 @@ requireModuleAccess('system');
         const orgGroups = (s.org_chart_groups || []).map(Number);
         document.querySelectorAll('input[name=sspOrgGroup]').forEach(b => { b.checked = orgGroups.includes(Number(b.value)); });
         sspOrgChartGroupsShow();
+        document.getElementById('sspJmlCases').value = s.jml_cases || 'off';
+        const jmlGroups = (s.jml_cases_groups || []).map(Number);
+        document.querySelectorAll('input[name=sspJmlGroup]').forEach(b => { b.checked = jmlGroups.includes(Number(b.value)); });
+        sspJmlGroupsShow();
         sspPattern = s.background_pattern || '';
         sspRenderPatterns();
         sspPaintPreview();
     }
 
     // GH #414: the group list only matters when the chart is limited to groups.
+    function sspJmlGroupsShow() {
+        document.getElementById('sspJmlGroups').hidden = document.getElementById('sspJmlCases').value !== 'groups';
+    }
     function sspOrgChartGroupsShow() {
         document.getElementById('sspOrgChartGroups').hidden = document.getElementById('sspOrgChart').value !== 'groups';
     }
@@ -433,7 +462,9 @@ requireModuleAccess('system');
                     allow_self_close:    document.getElementById('sspSelfClose').checked,
                     show_my_assets:      document.getElementById('sspMyAssets').checked,
                     org_chart:           document.getElementById('sspOrgChart').value,
-                    org_chart_groups:    Array.from(document.querySelectorAll('input[name=sspOrgGroup]:checked')).map(b => Number(b.value))
+                    org_chart_groups:    Array.from(document.querySelectorAll('input[name=sspOrgGroup]:checked')).map(b => Number(b.value)),
+                    jml_cases:           document.getElementById('sspJmlCases').value,
+                    jml_cases_groups:    Array.from(document.querySelectorAll('input[name=sspJmlGroup]:checked')).map(b => Number(b.value))
                 })
             })).json();
             if (!d.success) {

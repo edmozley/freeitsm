@@ -112,4 +112,16 @@ return [
         'link'     => 'morning-checks/settings/',
         'check'    => ['rows', 'morningChecks_Checks', 'ScheduleType IS NOT NULL AND IsActive = 1'],
     ],
+    [
+        'id'       => 'morning-checks.report_pack',
+        'module'   => 'morning-checks',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Weekly and monthly check reports',
+        'what'     => 'Report Packs blocks for Morning Checks (5.11.0): per check, the days at each status and the days nobody checked; the days that need a look, with their notes; and a chart by status.',
+        'why'      => 'One day\'s PDF proves the round was done today. A month in one page proves it was done every day - and shows which check keeps going amber.',
+        'done'     => 'A report pack has a Morning Checks block.',
+        'link'     => 'reporting/packs/',
+        'check'    => ['rows', 'report_packs', "design LIKE '%\"handler\":\"checks.%'"],
+    ],
 ];

@@ -55,7 +55,7 @@ $recycleDays = FilesRecycleService::retentionDays($conn);   // null = never set:
     <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/float-window.css?v=2">
+    <link rel="stylesheet" href="../assets/css/float-window.css?v=3">
     <link rel="stylesheet" href="../assets/css/files.css?v=15">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
 </head>
@@ -123,7 +123,7 @@ $recycleDays = FilesRecycleService::retentionDays($conn);   // null = never set:
     <script src="../assets/js/files-icons.js?v=4"></script>
     <script src="../assets/js/float-window.js?v=3"></script>
     <script src="../assets/js/files-wm.js?v=6"></script>
-    <script src="../assets/js/files-viewer.js?v=11"></script>
+    <script src="../assets/js/files-viewer.js?v=12"></script>
     <script src="../assets/js/files-thumbs.js?v=3"></script>
     <script src="../assets/js/files-desktop.js?v=21"></script>
     <script src="../assets/js/mobile.js?v=87"></script>

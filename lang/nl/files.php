@@ -65,6 +65,7 @@ return [
         'no_match' => 'Niets hier komt overeen met "{q}".',
         'open' => 'Openen',
         'open_location' => 'Bestandslocatie openen',
+        'open_separately' => 'Afzonderlijk openen',
         'open_new' => 'Openen in nieuw venster',
         'paste' => 'Plakken',
         'paste_into' => 'Plakken in map',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Altijd tonen',
         'navbar' => 'Bovenste navigatiebalk',
         'note' => 'Deze keuzes zijn alleen van jou. Het logo op het bureaublad wordt door een beheerder ingesteld.',
+        'multi' => 'Meerdere bestanden openen',
+        'multi_viewer' => 'In één viewer - blader erdoor met de pijltjestoetsen',
+        'multi_windows' => 'In aparte vensters - tot 10; meer worden in één viewer geopend',
     ],
     'props' => [
         'restore' => 'Herstellen',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Afmelden',
         'title' => 'Start',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Dit bestand kan geen miniatuur krijgen ({why}).',
         'why_too_large' => 'het is te groot om te verkleinen',
         'why_unsupported' => 'deze server kan dat soort afbeelding niet lezen',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Dit archief is leeg.',
         'zoom_in' => 'Inzoomen',
         'zoom_out' => 'Uitzoomen',
+        'previous' => 'Vorige',
+        'next' => 'Volgende',
+        'slideshow' => 'Diavoorstelling',
+        'slideshow_tip' => 'Toont de afbeeldingen een voor een. Spatie pauzeert, Escape stopt.',
+        'pause' => 'Pauzeren',
+        'play' => 'Afspelen',
+        'stop' => 'Stoppen',
     ],
     'wm' => [
         'close' => 'Sluiten',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Elk geopend bestand wordt vastgelegd in de audittrail, inclusief welke versie en, bij een zip, welk bestand erin.',
             'p7' => 'Een afbeelding of PDF past zich opnieuw aan wanneer je het venster vergroot of maximaliseert, totdat je zelf in- of uitzoomt; **Passend** geeft de controle terug. Dezelfde viewer opent afbeeldingen en PDF\'s die aan tickets zijn gekoppeld, in een venster over het ticket.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Meerdere bestanden tegelijk',
+            'title' => 'Meerdere bestanden tegelijk',
+            'intro' => 'Blader door een map, of een selectie, in één venster.',
+            'p1' => 'Als een bestand open is, gaan **Vorige** en **Volgende** in de werkbalk van de viewer - of de pijltjestoetsen links en rechts - naar het bestand ervoor of erna in de map, in de volgorde waarin de map gesorteerd is. Home en End gaan naar het eerste en het laatste.',
+            'p2' => 'Selecteer meerdere bestanden en druk op **Enter**, of klik met de rechtermuisknop en kies **Openen**, om alleen die in één viewer te openen. Mappen in de selectie worden overgeslagen. Wil je liever elk bestand in een eigen venster - om er twee naast elkaar te zetten -, klik dan met de rechtermuisknop en kies **Afzonderlijk openen** (tot 10 bestanden), of wijzig **Meerdere bestanden openen** bij **Personaliseren** zodat Enter dat doet. Meer dan 10 bestanden openen altijd in één viewer.',
+            'p3' => '**Diavoorstelling** toont de afbeeldingen ertussen een voor een, schermvullend waar de browser het toestaat, een paar seconden per stuk. **Spatie** pauzeert en **Escape** stopt. Hij speelt één keer, van de afbeelding waar je bent tot de laatste, en slaat alles over wat geen afbeelding is.',
+            'p4' => 'Elk bestand waar je naartoe gaat, wordt geopend alsof je het zelf had geopend: het vereist **Bekijken** op de map, Alleen bekijken en het watermerk gelden, en het wordt vastgelegd in het auditspoor.',
+        ],
+        'thumbnails' => [
             'nav' => 'Miniaturen',
             'title' => 'Miniaturen',
             'intro' => 'Afbeeldingen en PDF\'s laten zien wat erin staat.',

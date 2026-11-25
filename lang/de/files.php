@@ -65,6 +65,7 @@ return [
         'no_match' => 'Nichts hier entspricht „{q}“.',
         'open' => 'Öffnen',
         'open_location' => 'Dateispeicherort öffnen',
+        'open_separately' => 'Einzeln öffnen',
         'open_new' => 'In neuem Fenster öffnen',
         'paste' => 'Einfügen',
         'paste_into' => 'In Ordner einfügen',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Immer anzeigen',
         'navbar' => 'Obere Navigationsleiste',
         'note' => 'Diese Auswahl gilt nur für Sie. Das Logo auf dem Desktop legt ein Administrator fest.',
+        'multi' => 'Mehrere Dateien öffnen',
+        'multi_viewer' => 'In einem Viewer - mit den Pfeiltasten durchblättern',
+        'multi_windows' => 'In separaten Fenstern - bis zu 10; mehr werden in einem Viewer geöffnet',
     ],
     'props' => [
         'restore' => 'Wiederherstellen',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Abmelden',
         'title' => 'Start',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Für diese Datei kann kein Vorschaubild erstellt werden ({why}).',
         'why_too_large' => 'sie ist zu groß zum Verkleinern',
         'why_unsupported' => 'dieser Server kann diese Art von Bild nicht lesen',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Dieses Archiv ist leer.',
         'zoom_in' => 'Vergrößern',
         'zoom_out' => 'Verkleinern',
+        'previous' => 'Zurück',
+        'next' => 'Weiter',
+        'slideshow' => 'Diashow',
+        'slideshow_tip' => 'Zeigt die Bilder nacheinander. Leertaste pausiert, Escape beendet.',
+        'pause' => 'Pause',
+        'play' => 'Abspielen',
+        'stop' => 'Beenden',
     ],
     'wm' => [
         'close' => 'Schließen',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Jede geöffnete Datei wird im Audit-Trail festgehalten, einschließlich der Version und bei einer Zip-Datei der darin geöffneten Datei.',
             'p7' => 'Ein Bild oder PDF passt sich an, wenn Sie die Größe seines Fensters ändern oder es maximieren, bis Sie selbst vergrößern oder verkleinern; **Einpassen** stellt es wieder her. Derselbe Betrachter öffnet an Tickets angehängte Bilder und PDFs in einem Fenster über dem Ticket.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Mehrere Dateien auf einmal',
+            'title' => 'Mehrere Dateien auf einmal',
+            'intro' => 'Einen Ordner oder eine Auswahl in einem Fenster durchblättern.',
+            'p1' => 'Ist eine Datei geöffnet, wechseln **Zurück** und **Weiter** in der Symbolleiste des Viewers - oder die Pfeiltasten links und rechts - zur Datei davor oder danach im Ordner, in der Reihenfolge, nach der der Ordner sortiert ist. Pos1 und Ende springen zur ersten und zur letzten.',
+            'p2' => 'Markieren Sie mehrere Dateien und drücken Sie **Enter**, oder klicken Sie mit der rechten Maustaste und wählen Sie **Öffnen**, um genau diese in einem Viewer zu öffnen. Ordner in der Auswahl werden übergangen. Soll stattdessen jede Datei ein eigenes Fenster bekommen - um zwei nebeneinander zu legen -, klicken Sie mit der rechten Maustaste und wählen Sie **Einzeln öffnen** (bis zu 10 Dateien), oder stellen Sie **Mehrere Dateien öffnen** unter **Personalisieren** um, damit Enter das tut. Mehr als 10 Dateien öffnen sich immer in einem Viewer.',
+            'p3' => '**Diashow** zeigt die Bilder darunter nacheinander, im Vollbild, wo der Browser es erlaubt, jeweils einige Sekunden. Die **Leertaste** pausiert sie, **Escape** beendet sie. Sie läuft einmal, vom aktuellen Bild bis zum letzten, und überspringt alles, was kein Bild ist.',
+            'p4' => 'Jede Datei, zu der Sie wechseln, wird geöffnet, als hätten Sie sie selbst geöffnet: Sie brauchen **Ansehen** auf ihrem Ordner, Nur Ansicht und das Wasserzeichen gelten, und sie wird im Prüfprotokoll festgehalten.',
+        ],
+        'thumbnails' => [
             'nav' => 'Vorschaubilder',
             'title' => 'Vorschaubilder',
             'intro' => 'Bilder und PDFs zeigen, was in ihnen steckt.',

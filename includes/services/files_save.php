@@ -96,6 +96,70 @@ final class FilesSave
         throw $none;
     }
 
+    /** Export formats a page may save straight into Files, by extension => what the bytes must start with. */
+    public const EXPORT_TYPES = [
+        'png'  => "\x89PNG\r\n\x1a\n",
+        'jpg'  => "\xFF\xD8\xFF",
+        'jpeg' => "\xFF\xD8\xFF",
+        'pdf'  => '%PDF-',
+        'xlsx' => "PK\x03\x04",
+        'csv'  => '',            // text: checked below instead
+    ];
+
+    /**
+     * Which of $needles appear anywhere in the file, read in 1 MB chunks (with an overlap, so a
+     * needle across a chunk boundary is still found). Returns the needles found.
+     *
+     * @param string $path  a local file
+     * @param array $needles  byte strings to look for
+     */
+    private static function fileHas(string $path, array $needles): array
+    {
+        $found = [];
+        $keep = max(array_map('strlen', $needles)) - 1;
+        $fh = fopen($path, 'rb');
+        if (!$fh) return [];
+        $tail = '';
+        while (!feof($fh) && count($found) < count($needles)) {
+            $chunk = $tail . (string)fread($fh, 1048576);
+            foreach ($needles as $n) {
+                if (!in_array($n, $found, true) && strpos($chunk, $n) !== false) $found[] = $n;
+            }
+            $tail = $keep > 0 ? substr($chunk, -$keep) : '';
+        }
+        fclose($fh);
+        return $found;
+    }
+
+    /**
+     * Save to Files for something a page has just MADE in the browser - a diagram's PNG or
+     * PDF, a report - rather than a file FreeITSM already holds. Only the export formats in
+     * EXPORT_TYPES, and the bytes must be what the name says (so this cannot become a way to
+     * put any file anywhere - that is what Upload in Files is for, with its own screen).
+     * Otherwise exactly a save: Files module, Upload on the folder, the same name rules.
+     *
+     * @param string $localPath  PHP's temp copy of the posted file
+     * @param string $name       the file name the page chose, e.g. head-office-v2.png
+     * @param string $onConflict 'ask' first; then the person's choice
+     */
+    public static function saveExport(PDO $conn, int $analystId, string $localPath, string $name, int $folderId, string $onConflict = 'ask'): array
+    {
+        if (!analystCanAccessModule($conn, $analystId, 'files')) throw new ServiceError('forbidden', 'forbidden', 'You do not have access to Files.');
+        if (FilesAcl::level($conn, $analystId, $folderId) < FilesAcl::UPLOAD) throw new ServiceError('forbidden', 'forbidden', 'You cannot save into that folder - it needs Upload.');
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        $bad = new ServiceError('validation', 'invalid_field', 'Only a PNG, JPEG, PDF, CSV or Excel export can be saved this way.');
+        if (!array_key_exists($ext, self::EXPORT_TYPES) || !is_file($localPath)) throw $bad;
+        $head = (string)file_get_contents($localPath, false, null, 0, 4096);
+        $magic = self::EXPORT_TYPES[$ext];
+        if ($magic !== '' && strncmp($head, $magic, strlen($magic)) !== 0) throw $bad;
+        // text, not a binary renamed .csv - the whole file, not just its first 4 KB
+        if ($ext === 'csv' && ($head === '' || self::fileHas($localPath, ["\0"]) !== [])) throw $bad;
+        // TRAP: "PK\x03\x04" starts EVERY zip - a .docx, a .jar or any archive. A workbook also names
+        // [Content_Types].xml and xl/workbook.xml in its entries (stored uncompressed in the zip's headers).
+        if ($ext === 'xlsx' && count(self::fileHas($localPath, ['[Content_Types].xml', 'xl/workbook.xml'])) !== 2) throw $bad;
+        return filesStoreLocalFile($conn, $analystId, $folderId, $localPath, $name, $onConflict) + ['folder_id' => $folderId];
+    }
+
     /**
      * The sub-folder for a ticket's files inside $parentId - "ABC-123 - Printer jammed" -
      * reused when it is already there, made (inheriting the parent's permissions) when not.

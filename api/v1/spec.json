@@ -12157,7 +12157,7 @@
                     "p": "\/software\/licences",
                     "perm": "software_licences.create",
                     "s": "Create a licence",
-                    "d": "app_id and licence_type are required (app validated). Currency defaults GBP, status defaults Active; dates YYYY-MM-DD; created_by is the analyst the key acts as.",
+                    "d": "app_id is required (app validated), and licence_type (how it is counted) or licence_term (how long it lasts), ideally both. A perpetual licence has no renewal: renewal_date and notice_period_days are cleared. Before 5.11.0 \"Subscription\" was a licence_type; sent that way it is still taken as licence_term subscription. Currency defaults GBP, status defaults Active; dates YYYY-MM-DD; created_by is the analyst the key acts as.",
                     "params": [
                         {
                             "name": "app_id",
@@ -12168,8 +12168,14 @@
                         {
                             "name": "licence_type",
                             "in": "body",
-                            "desc": "e.g. Per-seat subscription",
-                            "req": true
+                            "desc": "How it is counted. The app offers Per User, Per Device, Site, Concurrent, Other; other text is kept as sent. Required unless licence_term is sent",
+                            "req": false
+                        },
+                        {
+                            "name": "licence_term",
+                            "in": "body",
+                            "desc": "How long it lasts: subscription, perpetual (nothing renews) or perpetual_maintenance (owned, with maintenance such as Software Assurance renewing on renewal_date). null clears it",
+                            "req": false
                         },
                         {
                             "name": "quantity",
@@ -12204,7 +12210,8 @@
                     ],
                     "body": {
                         "app_id": 1,
-                        "licence_type": "Per-seat subscription",
+                        "licence_type": "Per User",
+                        "licence_term": "subscription",
                         "quantity": 50,
                         "renewal_date": "2027-03-31",
                         "cost": 2400,
@@ -12216,10 +12223,10 @@
                         "examples": [
                             {
                                 "title": "Minimum fields",
-                                "note": "app_id and licence_type are the only requirements — currency defaults GBP, status defaults Active.",
+                                "note": "app_id and how it is counted are enough — currency defaults GBP, status defaults Active.",
                                 "body": {
                                     "app_id": 1,
-                                    "licence_type": "Per-seat subscription"
+                                    "licence_type": "Per User"
                                 }
                             },
                             {
@@ -12227,7 +12234,8 @@
                                 "note": "A typical per-seat licence with a renewal date, cost and a custom notice period.",
                                 "body": {
                                     "app_id": 1,
-                                    "licence_type": "Per-seat subscription",
+                                    "licence_type": "Per User",
+                                    "licence_term": "subscription",
                                     "quantity": 50,
                                     "renewal_date": "2027-03-31",
                                     "cost": 2400,
@@ -12240,7 +12248,7 @@
                                 "note": "No `quantity` means unmetered — the API flags this so compliance reports show seats_available as null instead of a misleading number.",
                                 "body": {
                                     "app_id": 2,
-                                    "licence_type": "Site licence",
+                                    "licence_type": "Site",
                                     "renewal_date": "2027-01-15",
                                     "portal_url": "https:\/\/vendor.example.com\/portal",
                                     "vendor_contact": "accounts@vendor.example.com",
@@ -12262,7 +12270,7 @@
                             {
                                 "code": 422,
                                 "slug": "missing_field",
-                                "when": "`licence_type` is missing."
+                                "when": "Neither `licence_type` nor `licence_term` is sent."
                             }
                         ]
                     }
@@ -14165,6 +14173,12 @@
                             "req": false
                         },
                         {
+                            "name": "stop_after",
+                            "in": "body",
+                            "desc": "Default false. When true and this workflow runs, the workflows after it on the same trigger do not run for that event. The order itself is set in the app (Workflows -> Run order).",
+                            "req": false
+                        },
+                        {
                             "name": "company_id",
                             "in": "body",
                             "desc": "The company it runs for, or null for shared (every company). Shared needs a key that reaches every company.",
@@ -14315,7 +14329,7 @@
                             "req": true
                         },
                         {
-                            "name": "name \/ description \/ trigger_event \/ conditions \/ actions \/ is_active \/ company_id",
+                            "name": "name \/ description \/ trigger_event \/ conditions \/ actions \/ is_active \/ stop_after \/ company_id",
                             "in": "body",
                             "desc": "What to change",
                             "req": false
@@ -14860,7 +14874,7 @@
                     "p": "\/network-diagrams\/{id}",
                     "perm": "network_diagrams.read",
                     "s": "Get one diagram, fully hydrated",
-                    "d": "Everything an agent needs to understand the drawing: nodes with their CMDB object's name\/class\/effective icon\/planned flag, connectors with both endpoints' objects and the CMDB relationship verb, branding, and a layout block (canvas bounding box + pixel size per node size class). Add include_properties=true for each object's full typed CI property values.",
+                    "d": "Everything an agent needs to understand the drawing: nodes with their CMDB object's name\/class\/effective icon\/planned flag and their own look and place (colour_override, w, h, style, page_key, layer_key, group_key, article_id), connectors with both endpoints (a node's object, or a shape's shape_uid) and the CMDB relationship verb, the freestanding shapes, the pages and their layers, related_article_ids, branding, and a layout block (canvas bounding box + pixel size per node size class). Add include_properties=true for each object's full typed CI property values.",
                     "params": [
                         {
                             "name": "id",
@@ -14904,7 +14918,7 @@
                     "p": "\/network-diagrams\/{id}",
                     "perm": "network_diagrams.update",
                     "s": "Update metadata \/ replace contents",
-                    "d": "Partial metadata update (title, description, version_label, paper, branding). Sending nodes and\/or connectors switches to FULL CONTENTS REPLACE (both sets — node ids regenerate, so old connectors can't survive a node replace); for surgical edits use the node\/connector endpoints below. Historical versions are a 409 — only the current (leaf) version is editable.",
+                    "d": "Partial metadata update (title, description, version_label, paper, branding). Sending nodes and\/or connectors switches to FULL CONTENTS REPLACE (both sets — node ids regenerate, so old connectors can't survive a node replace); for surgical edits use the node\/connector endpoints below. A node's colour_override, w, h, style, page_key, layer_key, group_key and article_id are part of it: send them back as GET returned them, or the node returns to the plain look on page 0. shapes, and pages with layers, are replaced only when sent - leave them out and they are kept. A connector end may be from_shape_uid \/ to_shape_uid instead of a node. Historical versions are a 409 — only the current (leaf) version is editable.",
                     "params": [
                         {
                             "name": "id",
@@ -14913,7 +14927,7 @@
                             "req": true
                         },
                         {
-                            "name": "title \/ description \/ version_label \/ paper_size \/ paper_orientation \/ branding \/ nodes \/ connectors",
+                            "name": "title \/ description \/ version_label \/ paper_size \/ paper_orientation \/ branding \/ nodes \/ connectors \/ shapes \/ pages \/ layers",
                             "in": "body",
                             "desc": "What to change",
                             "req": false
@@ -15303,7 +15317,7 @@
                     "p": "\/network-diagrams\/{id}\/nodes\/{node_id}",
                     "perm": "network_diagrams.update",
                     "s": "Move \/ restyle a node",
-                    "d": "Partial: x, y, size, icon_override (null reverts to the class icon).",
+                    "d": "Partial: x, y, size, icon_override (null reverts to the class icon), colour_override (#rrggbb), w \/ h (20-2000), style, page_key, layer_key, group_key. null clears colour_override, w, h and style; a field not sent is left alone.",
                     "params": [
                         {
                             "name": "id",
@@ -15318,7 +15332,7 @@
                             "req": true
                         },
                         {
-                            "name": "x \/ y \/ size \/ icon_override",
+                            "name": "x \/ y \/ size \/ icon_override \/ colour_override \/ w \/ h \/ style \/ page_key \/ layer_key \/ group_key",
                             "in": "body",
                             "desc": "What to change",
                             "req": false
@@ -15406,7 +15420,7 @@
                     "p": "\/network-diagrams\/{id}\/connectors",
                     "perm": "network_diagrams.update",
                     "s": "Connect two nodes",
-                    "d": "Endpoints by from_node_id\/to_node_id or from_object_id\/to_object_id (422 if the object isn't on the diagram or is ambiguous). cmdb_relationship_id: an id, null, or \"auto\" — auto binds to the existing CMDB relationship between the two objects. An already-connected pair (either direction) is a 409 unless allow_duplicate=true.",
+                    "d": "Endpoints by from_node_id\/to_node_id or from_object_id\/to_object_id (422 if the object isn't on the diagram or is ambiguous), or a shape by from_shape_uid\/to_shape_uid (422 if no shape on the diagram has that uid; a CMDB relationship is never bound to a shape end). style: colour, width, arrowStart, arrowEnd, routing. cmdb_relationship_id: an id, null, or \"auto\" — auto binds to the existing CMDB relationship between the two objects. An already-connected pair (either direction) is a 409 unless allow_duplicate=true.",
                     "params": [
                         {
                             "name": "id",
@@ -15433,9 +15447,9 @@
                             "req": false
                         },
                         {
-                            "name": "label \/ line_style",
+                            "name": "label \/ line_style \/ style",
                             "in": "body",
-                            "desc": "Label + solid|dashed",
+                            "desc": "Label + solid|dashed|dotted + the look",
                             "req": false
                         }
                     ],
@@ -15505,7 +15519,7 @@
                     "p": "\/network-diagrams\/{id}\/connectors\/{connector_id}",
                     "perm": "network_diagrams.update",
                     "s": "Update a connector",
-                    "d": "label, line_style, cmdb_relationship_id (null clears, \"auto\" re-resolves).",
+                    "d": "label, line_style (solid, dashed, dotted), style, cmdb_relationship_id (null clears, \"auto\" re-resolves; 422 on a connector that ends on a shape).",
                     "params": [
                         {
                             "name": "id",
@@ -21533,10 +21547,10 @@
             "examples": [
                 {
                     "title": "Minimum fields",
-                    "note": "app_id and licence_type are the only requirements — currency defaults GBP, status defaults Active.",
+                    "note": "app_id and how it is counted are enough — currency defaults GBP, status defaults Active.",
                     "body": {
                         "app_id": 1,
-                        "licence_type": "Per-seat subscription"
+                        "licence_type": "Per User"
                     }
                 },
                 {
@@ -21544,7 +21558,8 @@
                     "note": "A typical per-seat licence with a renewal date, cost and a custom notice period.",
                     "body": {
                         "app_id": 1,
-                        "licence_type": "Per-seat subscription",
+                        "licence_type": "Per User",
+                        "licence_term": "subscription",
                         "quantity": 50,
                         "renewal_date": "2027-03-31",
                         "cost": 2400,
@@ -21557,7 +21572,7 @@
                     "note": "No `quantity` means unmetered — the API flags this so compliance reports show seats_available as null instead of a misleading number.",
                     "body": {
                         "app_id": 2,
-                        "licence_type": "Site licence",
+                        "licence_type": "Site",
                         "renewal_date": "2027-01-15",
                         "portal_url": "https:\/\/vendor.example.com\/portal",
                         "vendor_contact": "accounts@vendor.example.com",
@@ -21579,7 +21594,7 @@
                 {
                     "code": 422,
                     "slug": "missing_field",
-                    "when": "`licence_type` is missing."
+                    "when": "Neither `licence_type` nor `licence_term` is sent."
                 }
             ]
         },

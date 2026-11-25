@@ -16,6 +16,19 @@ return [
         'title' => 'Organigram',
         'subtitle' => 'Wie aan wie rapporteert. Zoek op naam, functie of afdeling, of open een team met de pijl.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Starters & leavers',
+        'subtitle' => 'De mensen die in dienst komen, verhuizen en vertrekken, en hoe ver IT met elk van hen is. Alleen-lezen: vraag de eigenaar naar alles hier.',
+        'tab_open' => 'Open ({n})',
+        'tab_done' => 'Onlangs klaar ({n})',
+        'none_open' => 'Er zijn geen open dossiers.',
+        'none_done' => 'Er zijn de afgelopen 60 dagen geen dossiers afgerond.',
+        'load_failed' => 'De dossiers konden niet worden geladen. Probeer het opnieuw.',
+        'progress' => '{done} van {total} stappen klaar',
+        'no_steps' => 'Nog geen stappen',
+        'owner' => 'Eigenaar',
+    ],
     'approvals' => [
         'title' => 'Goedkeuringen',
         'subtitle' => 'Aanvragen die wachten op je goedkeuring, als manager of als eigenaar van een kostenplaats.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Kennis',
         'equipment' => 'Mijn apparatuur',
         'org_chart' => 'Organisatie',
+        'starters'    => 'Starters & leavers',
         'training' => 'Training',
         'help' => 'Help',
         'menu' => 'Menu',

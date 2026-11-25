@@ -65,6 +65,7 @@ return [
         'no_match' => 'Ingenting her samsvarar med «{q}».',
         'open' => 'Opne',
         'open_location' => 'Opne filplassering',
+        'open_separately' => 'Opne kvar for seg',
         'open_new' => 'Opne i nytt vindauge',
         'paste' => 'Lim inn',
         'paste_into' => 'Lim inn i mappe',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Vis alltid',
         'navbar' => 'Toppnavigasjonsfelt',
         'note' => 'Desse vala er berre dine. Logoen på skrivebordet blir sett av ein administrator.',
+        'multi' => 'Opne fleire filer',
+        'multi_viewer' => 'I éi vising - bla gjennom dei med piltastane',
+        'multi_windows' => 'I separate vindauge - opptil 10; fleire enn det blir opna i éi vising',
     ],
     'props' => [
         'restore' => 'Gjenopprett',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Logg ut',
         'title' => 'Start',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Denne fila kan ikkje få miniatyrbilete ({why}).',
         'why_too_large' => 'ho er for stor til å bli gjord mindre',
         'why_unsupported' => 'tenaren kan ikkje lese den typen bilete',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Dette arkivet er tomt.',
         'zoom_in' => 'Zoom inn',
         'zoom_out' => 'Zoom ut',
+        'previous' => 'Førre',
+        'next' => 'Neste',
+        'slideshow' => 'Lysbiletframsyning',
+        'slideshow_tip' => 'Viser bileta eitt etter eitt. Mellomrom set på pause, Escape stoppar.',
+        'pause' => 'Pause',
+        'play' => 'Spel av',
+        'stop' => 'Stopp',
     ],
     'wm' => [
         'close' => 'Lukk',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Kvar fil som blir opna, blir registrert i revisjonssporet, med kva versjon og, for ei zip-fil, kva fil inni henne.',
             'p7' => 'Eit bilete eller ein PDF passar seg på nytt når du endrar storleik på eller maksimerer vindauget, til du zoomar inn eller ut sjølv; **Tilpass** gir han tilbake. Same visar opnar bilete og PDF-ar som er lagde ved saker, i eit vindauge over saka.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Fleire filer samstundes',
+            'title' => 'Fleire filer samstundes',
+            'intro' => 'Bla gjennom ei mappe, eller eit utval, i eitt vindauge.',
+            'p1' => 'Når ei fil er open, går **Førre** og **Neste** i verktøylinja til visinga - eller venstre og høgre piltast - til fila før eller etter ho i mappa, i den rekkjefølgja mappa er sortert. Home og End går til den første og den siste.',
+            'p2' => 'Merk fleire filer og trykk **Enter**, eller høgreklikk og vel **Opne**, for å opne berre dei i éi vising. Mapper i utvalet blir hoppa over. Vil du heller ha kvar fil i sitt eige vindauge - for å leggje to side om side - høgreklikkar du og vel **Opne kvar for seg** (opptil 10 filer), eller endrar **Opne fleire filer** under **Tilpass** så Enter gjer det. Fleire enn 10 filer blir alltid opna i éi vising.',
+            'p3' => '**Lysbiletframsyning** viser bileta blant dei eitt etter eitt, i fullskjerm der nettlesaren tillèt det, nokre sekund kvart. **Mellomrom** set ho på pause, og **Escape** stoppar ho. Ho blir spela éin gong, frå biletet du står på til det siste, og hoppar over alt som ikkje er eit bilete.',
+            'p4' => 'Kvar fil du blar til, blir opna som om du hadde opna ho sjølv: ho krev **Vis** på mappa si, Berre vising og vassmerket gjeld, og ho blir registrert i revisjonssporet.',
+        ],
+        'thumbnails' => [
             'nav' => 'Miniatyrbilete',
             'title' => 'Miniatyrbilete',
             'intro' => 'Bilete og PDF-ar viser kva dei inneheld.',

@@ -542,6 +542,13 @@ return [
         'press_run' => '“उणिवा शोधा” दाबा.',
         'none_to_read' => 'गेल्या {days} दिवसांत वाचण्यासाठी बंद तिकिटे नाहीत.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'नेटवर्क आकृत्या',
+        'related' => 'आकृतीशी संबंधित',
+        'item'    => 'तिच्यातील एका आयटमवरून लिंक केलेले',
+    ],
+
     'help' => [
         'guide' => 'मार्गदर्शक',
         'topics_title' => 'सखोल माहिती',

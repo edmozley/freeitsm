@@ -576,11 +576,11 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script>window.API_BASE = '../api/knowledge/';</script>
     <!-- The organisation's own logo for the PDF, or null - never FreeITSM's (GH #254). -->
     <script>window.KB_PDF_LOGO = <?php echo json_encode(brandingCustomLogoUrl()); ?>;</script>
-    <script>window.KB_SHOW_DOMAINS = <?php echo $showDomains ? 'true' : 'false'; ?>; window.KB_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.KB_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
+    <script>window.KB_SHOW_DOMAINS = <?php echo $showDomains ? 'true' : 'false'; ?>; window.KB_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.KB_BASE = <?php echo json_encode(BASE_URL); ?>; window.KB_SHOW_DIAGRAMS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'network-mapper') ? 'true' : 'false'; ?>;   // GH #433</script>
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/safe-html.js?v=4"></script>   <!-- article bodies are cleaned before display -->
-    <script src="../assets/js/knowledge.js?v=74"></script>
+    <script src="../assets/js/knowledge.js?v=75"></script>
     <!-- Prism.js for code syntax highlighting when viewing articles -->
     <script src="../assets/js/vendor/prism.min.js?v=1.30.0"></script>
     <script src="../assets/js/vendor/prism-powershell.min.js"></script>

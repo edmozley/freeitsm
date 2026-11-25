@@ -2160,6 +2160,9 @@ return [
         'fallback_mode_confirm'       => 'Warn and confirm before switching to Self-Service Portal',
         'fallback_mode_redirect'      => 'Automatically switch to Self-Service Portal',
         'fallback_mode_block'         => 'Block sign-in with access denied error',
+        // 5.11.0 - the analyst login's button, as the portal has its own
+        'cb_analyst_show_button'      => 'Show the button on the analyst login',
+        'cb_analyst_show_button_desc' => 'Untick to keep it off the analyst sign-in page - for example while a few analysts try a new provider. Analysts assigned to it still reach it by typing their email. Only a Global provider ever shows there. The portal login is not affected.',
         'cb_verified'      => 'Require a verified-email claim',
         'cb_verified_desc' => "Refuse sign-in unless the provider sends {claim}. Leave off for providers that omit the claim entirely (e.g. Okta's org server). An explicit {claim_false} is always refused regardless of this setting. Turn on only for IdPs where users can self-register with unverified addresses.",
         'field_profile_sync_mode'      => 'Profile attribute sync',
@@ -3315,6 +3318,9 @@ return [
         'org_chart_groups' => 'Only members of chosen People groups',
         'org_chart_groups_label' => 'People groups who can see it',
         'org_chart_no_groups' => 'There are no People groups yet. They come from a directory sync (System → Single sign-on).',
+        // 5.11.0: Starters & leavers cases on the portal
+        'jml_label' => 'Starters & leavers cases',
+        'jml_desc'  => 'Adds a <strong>Starters & leavers</strong> page for HR: the open cases of the person\'s own company and those finished in the last 60 days - who, starter, mover or leaver, the date, how many steps are done and who owns it. Read-only, and not the notes, the steps or the kit. Only for People groups you choose: a leaver\'s case can be sensitive.',
 
         'load_failed' => 'Could not load the settings. Nothing has been changed.',
         'save_failed' => 'Could not save the settings.',

@@ -317,6 +317,9 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
             </ul>
             <p><?php echo t('workflow.help.triggers_picker'); ?></p>
 
+            <h4 id="order"><?php echo htmlspecialchars(t('workflow.help.order_heading')); ?></h4>
+            <p><?php echo t('workflow.help.order_body'); ?></p>
+
             <h4><?php echo htmlspecialchars(t('workflow.help.triggers_time_heading')); ?></h4>
             <p><?php echo t('workflow.help.triggers_time_body'); ?></p>
             <div class="help-note"><?php echo t('workflow.help.triggers_time_cron'); ?></div>

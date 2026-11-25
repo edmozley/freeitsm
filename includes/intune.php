@@ -365,9 +365,42 @@ function intuneLinkDevicesToAssets(PDO $conn, ?int $companyId = null): array {
         $linkOne->execute([':asset_id' => $assetId, ':id' => $row['id']]);
     }
 
+    // Step 3 (GH #436): every linked asset's Last seen follows its device's last check-in.
+    $lastSeen = intuneRefreshLastSeen($conn);
+
     // Recount how many ended up linked total for the message.
     $linked = (int)$conn->query("SELECT COUNT(*) FROM intune_devices WHERE asset_id IS NOT NULL")->fetchColumn();
-    return ['linked' => $linked, 'stubs_created' => $stubsCreated];
+    return ['linked' => $linked, 'stubs_created' => $stubsCreated, 'last_seen_updated' => $lastSeen];
+}
+
+/**
+ * Move each linked asset's Last seen up to its Intune device's last check-in
+ * (lastSyncDateTime). Returns how many assets changed.
+ *
+ * TRAP (GH #436): before this, last_seen was only written when the sync CREATED
+ * the asset - a device already linked, or matched to an existing asset, never moved
+ * it again. So every Intune-only machine read "last seen" on the day it was first
+ * synced, and a week later all of them counted as "not seen in 7 days" on
+ * Watchtower, while Intune showed them checking in that morning.
+ *
+ * Only FORWARD: the software inventory agent writes last_seen too, and its report may
+ * be newer than Intune's - an older check-in never pulls it back. Two devices linked
+ * to one asset: the later check-in wins. A check-in in the future (a device with a
+ * wrong clock) is ignored rather than pinning the asset as "seen" for months.
+ */
+function intuneRefreshLastSeen(PDO $conn): int {
+    $st = $conn->prepare(
+        "UPDATE assets a
+           JOIN (SELECT asset_id, MAX(last_sync_datetime) AS checked_in
+                   FROM intune_devices
+                  WHERE asset_id IS NOT NULL AND last_sync_datetime IS NOT NULL
+                    AND last_sync_datetime <= DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 DAY)
+               GROUP BY asset_id) d ON d.asset_id = a.id
+            SET a.last_seen = d.checked_in
+          WHERE a.last_seen IS NULL OR a.last_seen < d.checked_in"
+    );
+    $st->execute();
+    return $st->rowCount();
 }
 
 /**
@@ -645,7 +678,7 @@ function intuneRunSync(PDO $conn, int $jobId): array {
 
         $setProgress($processed, $processed, 'running', 'Linking to assets...', false);
         $linkResult = intuneLinkDevicesToAssets($conn);
-        $log("linking done: linked={$linkResult['linked']}, stubs_created={$linkResult['stubs_created']}");
+        $log("linking done: linked={$linkResult['linked']}, stubs_created={$linkResult['stubs_created']}, last_seen_updated={$linkResult['last_seen_updated']}");
 
         // GH #336: an asset with no type gets the one its device's kind is mapped to.
         $setProgress($processed, $processed, 'running', 'Giving assets their type...', false);

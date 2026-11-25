@@ -37,6 +37,7 @@ require_once __DIR__ . '/blocks_assets.php';
 require_once __DIR__ . '/blocks_projects.php';
 require_once __DIR__ . '/blocks_changes.php';   // Change Management
 require_once __DIR__ . '/blocks_starters.php';  // Starters & leavers (GH #324)
+require_once __DIR__ . '/blocks_checks.php';    // Morning Checks (5.11.0)
 require_once __DIR__ . '/blocks_asset_tickets.php';   // assets and their tickets (GH #310)
 require_once __DIR__ . '/../asset_retirement.php';   // retired assets leave the estate figures
 
@@ -402,6 +403,26 @@ function rpHandlers(): array
                 'limit' => rpOptInt(t('reporting.packs.opt.rows'), 10, 2000, 200),
             ],
         ],
+
+        // ── Morning Checks (5.11.0) - includes/report_packs/blocks_checks.php ──
+        'checks.summary' => [
+            'module' => 'morning-checks', 'kind' => 'table', 'fn' => 'rpChecksSummary',
+            'opts' => ['group' => rpOptBool(t('reporting.packs.checks.opt_group'), true)],
+        ],
+        'checks.exceptions' => [
+            'module' => 'morning-checks', 'kind' => 'table', 'fn' => 'rpChecksExceptions',
+            'opts' => [
+                'not_checked' => rpOptBool(t('reporting.packs.checks.opt_not_checked'), true),
+                'limit'       => rpOptInt(t('reporting.packs.opt.rows'), 10, 2000, 300),
+            ],
+        ],
+        'checks.by_status' => [
+            'module' => 'morning-checks', 'kind' => 'chart', 'fn' => 'rpChecksByStatus',
+            'opts' => [
+                'chart'       => rpChartOpt('doughnut'),
+                'not_checked' => rpOptBool(t('reporting.packs.checks.opt_not_checked'), true),
+            ],
+        ],
     ];
 }
 
@@ -482,6 +503,11 @@ function rpToolboxItems(): array
         'starters_by_kind'  => ['handler' => 'starters.breakdown', 'area' => 'starters', 'span' => 6,  'opts' => ['by' => 'kind', 'chart' => 'doughnut'], 'kw' => 'joiners movers leavers onboarding offboarding chart'],
         'starters_list'     => ['handler' => 'starters.list',      'area' => 'starters', 'span' => 12, 'opts' => [], 'kw' => 'cases list joiners new starters leavers onboarding offboarding progress hr'],
         'starters_overdue'  => ['handler' => 'starters.overdue',   'area' => 'starters', 'span' => 12, 'opts' => [], 'kw' => 'overdue late steps onboarding offboarding behind'],
+
+        // Morning Checks (5.11.0)
+        'checks_summary'    => ['handler' => 'checks.summary',    'area' => 'checks', 'span' => 12, 'opts' => [], 'kw' => 'morning checks daily checks weekly monthly green amber red summary round'],
+        'checks_exceptions' => ['handler' => 'checks.exceptions', 'area' => 'checks', 'span' => 12, 'opts' => [], 'kw' => 'morning checks daily checks amber red failed missed not checked notes problems'],
+        'checks_by_status'  => ['handler' => 'checks.by_status',  'area' => 'checks', 'span' => 6,  'opts' => [], 'kw' => 'morning checks daily checks status chart green amber red doughnut'],
     ];
 }
 

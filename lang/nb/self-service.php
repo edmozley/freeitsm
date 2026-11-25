@@ -16,6 +16,19 @@ return [
         'title' => 'Organisasjonskart',
         'subtitle' => 'Hvem som rapporterer til hvem. Søk etter navn, stillingstittel eller avdeling, eller åpne et team med pilen.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Nyansatte og sluttende',
+        'subtitle' => 'Personene som begynner, flytter og slutter, og hvor langt IT har kommet med hver av dem. Bare lesetilgang: spør eieren om alt her.',
+        'tab_open' => 'Åpne ({n})',
+        'tab_done' => 'Nylig ferdige ({n})',
+        'none_open' => 'Det er ingen åpne forløp.',
+        'none_done' => 'Ingen forløp er fullført de siste 60 dagene.',
+        'load_failed' => 'Forløpene kunne ikke lastes. Prøv igjen.',
+        'progress' => '{done} av {total} trinn ferdige',
+        'no_steps' => 'Ingen trinn ennå',
+        'owner' => 'Eier',
+    ],
     'approvals' => [
         'title' => 'Godkjenninger',
         'subtitle' => 'Forespørsler som venter på at du godkjenner dem, som leder eller som eier av et kostnadssted.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Kunnskap',
         'equipment' => 'Mitt utstyr',
         'org_chart' => 'Organisasjon',
+        'starters'    => 'Nyansatte og sluttende',
         'training' => 'Opplæring',
         'help' => 'Hjelp',
         'menu' => 'Meny',

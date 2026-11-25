@@ -438,12 +438,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($analyst['totp_enabled'])) {
                     // Check for trusted device cookie — skip MFA if valid
                     $trustedDeviceValid = false;
-                    if (!empty($_COOKIE['trusted_device']) && !empty($analyst['trust_device_enabled'])) {
-                        $tokenHash = hash('sha256', hex2bin($_COOKIE['trusted_device']));
-                        $tdStmt = $conn->prepare("SELECT id FROM trusted_devices WHERE device_token_hash = ? AND analyst_id = ? AND expires_datetime > UTC_TIMESTAMP()");
-                        $tdStmt->execute([$tokenHash, $analyst['id']]);
-                        if ($tdStmt->fetch()) {
-                            $trustedDeviceValid = true;
+                    $tdCookie = (string)($_COOKIE['trusted_device'] ?? '');
+                    if ($tdCookie !== '' && ctype_xdigit($tdCookie) && strlen($tdCookie) % 2 === 0
+                        && !empty($analyst['trust_device_enabled'])) {
+                        // TRAP: the trust duration is read HERE, at sign-in, not only when
+                        // the device was trusted. expires_datetime is fixed when the row is
+                        // written, so on its own it ignores a later change to the setting:
+                        // 0 ("disable entirely") left every trusted device skipping OTP, and
+                        // 30 -> 1 day left them trusted for the old 30 (#429). The device must
+                        // pass BOTH its own expiry and today's duration.
+                        $tdDaysStmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'trusted_device_days'");
+                        $tdDaysStmt->execute();
+                        $trustDays = (int)($tdDaysStmt->fetchColumn() ?: 0);
+                        if ($trustDays > 0) {
+                            $tokenHash = hash('sha256', hex2bin($tdCookie));
+                            $tdStmt = $conn->prepare("SELECT id FROM trusted_devices
+                                                      WHERE device_token_hash = ? AND analyst_id = ?
+                                                        AND expires_datetime > UTC_TIMESTAMP()
+                                                        AND created_datetime > DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? DAY)");
+                            $tdStmt->execute([$tokenHash, $analyst['id'], $trustDays]);
+                            if ($tdStmt->fetch()) {
+                                $trustedDeviceValid = true;
+                            }
                         }
                     }
 
@@ -997,7 +1013,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // protocol='oidc' ONLY: an LDAP provider has no button and nothing
                     // to redirect to — its users type their directory password into the
                     // ordinary form below, and login.php checks it by bind.
-                    $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'oidc' ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
+                    //
+                    // 5.11.0: a provider can keep its button off this page
+                    // (analyst_show_button = 0) - say a new one a few analysts are
+                    // trying. The analysts assigned to it still get there through
+                    // the email box (api/auth/resolve_login.php routes by that).
+                    require_once __DIR__ . '/../includes/sso_identity.php';
+                    $btnCol = ssoAnalystButtonColumnReady($ssoConn) ? 'analyst_show_button' : '1';
+                    $ssoAll = $ssoConn->query("SELECT id, display_name, $btnCol AS show_button FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'oidc' ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
+                    $ssoProviders = array_values(array_filter($ssoAll, fn($p) => (int)$p['show_button'] === 1));
+                    // TRAP: with every button hidden the email box must STILL show -
+                    // it is how the assigned analysts reach their provider. Hiding a
+                    // button must never switch the router off (as on the portal, GH #147).
+                    $ssoRouterNeeded = !empty($ssoAll);
                 }
                 // Is a directory configured? Directory users sign in through the
                 // username/password form, so calling it "a local account" would be a
@@ -1005,7 +1033,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // account at all.
                 $hasLdap = (int)$ssoConn->query("SELECT COUNT(*) FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'ldap'")->fetchColumn() > 0;
             } catch (Exception $e) { $ssoProviders = []; $hasLdap = false; }
-            $ssoActive = $ssoOn && !empty($ssoProviders);
+            $ssoActive = $ssoOn && !empty($ssoRouterNeeded);
             $localLinkLabel = !empty($hasLdap)
                 ? tr('reveal_local_ldap', 'Sign in with a username and password')
                 : tr('reveal_local_plain', 'Sign in with a local account');
@@ -1026,7 +1054,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="button" class="login-button" id="continueBtn"><?php echo htmlspecialchars(tr('continue', 'Continue')); ?></button>
                     <div class="error-message" id="routerError" style="display:none;margin-top:10px;"></div>
                 </div>
+                <?php if ($ssoProviders): ?>
                 <div style="<?php echo $divider; ?>"><span style="flex:1;height:1px;background:#ddd;"></span><?php echo htmlspecialchars(tr('or', 'or')); ?><span style="flex:1;height:1px;background:#ddd;"></span></div>
+                <?php endif; ?>
                 <?php foreach ($ssoProviders as $p): ?>
                     <a href="<?php echo htmlspecialchars(BASE_URL . 'api/auth/oidc_login.php?provider=' . (int)$p['id']); ?>"
                        style="display:block;text-align:center;padding:11px;margin-bottom:8px;border:1px solid #cfd8dc;border-radius:6px;color:#37474f;text-decoration:none;font-weight:600;font-size:var(--font-size-lg, 14px);background:#fff;">

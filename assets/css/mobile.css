@@ -9580,6 +9580,8 @@
     [data-mobile-module="network-mapper"] .nm-editor-actions {
         flex: 0 0 auto;
         min-width: 0;
+        flex-wrap: nowrap;              /* GH #433: desktop now wraps; the phone keeps its scrolling strip */
+        justify-content: flex-start;
         gap: 6px;
         overflow-x: auto;
         overscroll-behavior-x: contain;
@@ -9939,6 +9941,20 @@
         gap: 4px 14px;
         padding: 8px 12px;
         font-size: var(--font-size-sm, 12px);
+    }
+    /* GH #433 moved the title and pill onto this row; the Author / Created /
+       Updated group wraps under them instead of being pushed to the right. */
+    [data-mobile-module="network-mapper"] .nm-meta-details {
+        flex-wrap: wrap;
+        flex-shrink: 1;
+        gap: 4px 14px;
+        margin-left: 0;
+        min-width: 0;
+    }
+    /* Versions / Save as new version / Save moved onto this row (GH #433) - on the
+       phone they wrap to a line of their own, flush with the details above. */
+    [data-mobile-module="network-mapper"] .nm-meta-actions {
+        margin-left: 0;
     }
     [data-mobile-module="network-mapper"] .nm-readonly-banner {
         flex-wrap: wrap;

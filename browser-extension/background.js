@@ -31,6 +31,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
 });
 
+// Access granted on the options page: fetch now rather than at the next poll
+chrome.permissions.onAdded.addListener(() => {
+    fetchDashboard();
+});
+
 // Listen for manual refresh from popup
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === 'refresh') {
@@ -66,6 +71,25 @@ async function fetchDashboard() {
     }
 
     const url = settings.serverUrl.replace(/\/+$/, '') + '/api/watchtower/get_dashboard_ext.php';
+
+    // Access to the server is granted on the options page (optional host permission). If an upgrade from
+    // 1.0.0 did not carry the old blanket access over, pressing Save once in the settings grants it.
+    let granted = false;
+    try {
+        granted = await chrome.permissions.contains({ origins: [new URL(settings.serverUrl).origin + '/*'] });
+    } catch (e) {
+        granted = false;
+    }
+    if (!granted) {
+        await chrome.storage.local.set({
+            dashboardData: null,
+            lastError: 'No access to your FreeITSM server yet. Open the extension settings and press Save to allow it.',
+            lastFetch: null
+        });
+        chrome.action.setBadgeText({ text: '!' });
+        chrome.action.setBadgeBackgroundColor({ color: '#888' });
+        return;
+    }
 
     try {
         const response = await fetch(url, {

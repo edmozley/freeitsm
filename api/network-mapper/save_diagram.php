@@ -49,6 +49,14 @@ try {
                 'y'             => $n['y'] ?? null,
                 'size'          => $n['size'] ?? null,
                 'icon_override' => $n['icon_override'] ?? null,
+                'colour_override' => $n['colour_override'] ?? null,   // GH #433
+                'w'             => $n['w'] ?? null,
+                'h'             => $n['h'] ?? null,
+                'style'         => $n['style'] ?? null,               // GH #433
+                'page_key'      => $n['page_key'] ?? 0,
+                'layer_key'     => $n['layer_key'] ?? 0,
+                'group_key'     => $n['group_key'] ?? null,
+                'article_id'    => $n['article_id'] ?? null,   // GH #433: a linked Knowledge article
                 'ref'           => (string)$ref,
             ];
         }
@@ -64,8 +72,21 @@ try {
                 'cmdb_relationship_id' => $c['cmdb_relationship_id'] ?? null,
                 'label'                => $c['label'] ?? null,
                 'line_style'           => $c['line_style'] ?? null,
+                'from_shape_uid'       => $c['from_shape_uid'] ?? null,   // GH #433: an end on a shape
+                'to_shape_uid'         => $c['to_shape_uid'] ?? null,
+                'style'                => $c['style'] ?? null,
             ];
         }
+    }
+
+    // GH #433: freestanding shapes, passed through as they are (the service validates).
+    if (array_key_exists('shapes', $data) && is_array($data['shapes'])) {
+        $in['shapes'] = $data['shapes'];
+    }
+    // GH #433: pages (tabs) and their layers.
+    if (array_key_exists('pages', $data) && is_array($data['pages'])) {
+        $in['pages'] = $data['pages'];
+        $in['layers'] = is_array($data['layers'] ?? null) ? $data['layers'] : [];
     }
 
     $savedId = NetworkMapperService::saveDiagram($conn, ActorContext::fromSession($conn), $id, $in);

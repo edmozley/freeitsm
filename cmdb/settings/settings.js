@@ -124,7 +124,7 @@ function renderClasses() {
     }
     tbody.innerHTML = classes.map(c => `
         <tr>
-            <td><strong>${escapeHtml(c.name)}</strong></td>
+            <td>${classIconHtml(c, 16)}<strong>${escapeHtml(c.name)}</strong></td>
             <td><span class="key-hint">${escapeHtml(c.class_key)}</span></td>
             <td style="color: #6b7280;">${escapeHtml(c.description || '')}</td>
             <td><span class="badge clickable" onclick="openPropsModal(${c.id})">${c.property_count} ${c.property_count === 1 ? escapeHtml(window.t('cmdb.settings.property')) : escapeHtml(window.t('cmdb.settings.properties'))}</span></td>
@@ -152,8 +152,56 @@ function openClassModal(id = null) {
     document.getElementById('classDescription').value = cls ? (cls.description || '') : '';
     document.getElementById('classDisplayOrder').value = cls ? cls.display_order : 0;
     document.getElementById('classIsActive').checked = cls ? cls.is_active : true;
+    document.getElementById('classIconId').value = cls && cls.icon_id ? cls.icon_id : '';
+    classIconRenderGrid();
     document.getElementById('classModal').classList.add('active');
     setTimeout(() => document.getElementById('className').focus(), 0);
+}
+
+// ---------- Class icon (GH #433) ----------
+// The icon a class's objects get on network diagrams unless a node picks its own.
+// Glyphs: the shared library (cmdb_icons rows, drawn by assets/js/network-mapper-icons.js)
+// that asset types use too, so a printer looks like a printer everywhere.
+
+/** The class's icon as inline SVG for the classes table; '' when it has none. */
+function classIconHtml(c, size) {
+    if (!c || !c.icon_key || !window.nmRenderIcon) return '';
+    return window.nmRenderIcon(c.icon_key, size || 16, 'class="ic-inline"');
+}
+
+/** Draws one tile per icon in the class modal's picker and marks the chosen one. */
+function classIconRenderGrid() {
+    const grid = document.getElementById('classIconGrid');
+    if (!grid) return;
+    // nmRenderIcon returns our own SVG markup from a fixed library, never user input.
+    grid.innerHTML = (window.cmdbClassIcons || []).map(i =>
+        `<button type="button" class="ic-tile" data-icon-id="${Number(i.id)}" title="${escapeHtml(i.label)}" onclick="classIconPick(${Number(i.id)})">
+            ${window.nmRenderIcon ? window.nmRenderIcon(i.icon_key, 22) : ''}
+        </button>`).join('');
+    classIconShowSelected();
+}
+
+/** Picks an icon for the class being edited. */
+function classIconPick(id) {
+    document.getElementById('classIconId').value = id;
+    classIconShowSelected();
+}
+
+/** Clears the class's icon. */
+function classIconClear() {
+    document.getElementById('classIconId').value = '';
+    classIconShowSelected();
+}
+
+/** Shows the chosen icon and its name above the grid, and highlights its tile. */
+function classIconShowSelected() {
+    const id = document.getElementById('classIconId').value;
+    const chosen = (window.cmdbClassIcons || []).find(i => String(i.id) === String(id));
+    document.getElementById('classIconPreview').innerHTML = chosen && window.nmRenderIcon ? window.nmRenderIcon(chosen.icon_key, 24) : '';
+    document.getElementById('classIconName').textContent = chosen ? chosen.label : window.t('cmdb.settings.class_icon_none');
+    document.querySelectorAll('#classIconGrid .ic-tile').forEach(t => {
+        t.classList.toggle('selected', t.dataset.iconId === String(id));
+    });
 }
 
 /** Closes the class modal. */
@@ -168,7 +216,8 @@ async function saveClass(ev) {
         class_key: document.getElementById('classKey').value,
         description: document.getElementById('classDescription').value,
         display_order: parseInt(document.getElementById('classDisplayOrder').value, 10) || 0,
-        is_active: document.getElementById('classIsActive').checked
+        is_active: document.getElementById('classIsActive').checked,
+        icon_id: document.getElementById('classIconId').value || null
     };
     try {
         const data = await postJson(API + 'save_class.php', payload);

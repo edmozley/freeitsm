@@ -119,13 +119,13 @@
     function person(c) {
         if (c.user_id) return '';
         return panel(T('view.person'), null,
-            '<p class="jml-muted" style="margin-top:0">' + esc(T('view.person_unlinked')) + '</p><div class="jml-search" id="jmlLinkPerson"></div>');
+            '<p class="jml-muted" style="margin-top:0">' + esc(T(c.kind === 'starter' ? 'view.person_unlinked' : 'view.person_unlinked_other')) + '</p><div class="jml-search" id="jmlLinkPerson"></div>');
     }
 
     function kit(c, can, links) {
         let body;
         if (!can.assets) body = '<p class="jml-muted">' + esc(T('view.kit_no_access')) + '</p>';
-        else if (!c.user_id) body = '<p class="jml-muted">' + esc(T('view.kit_needs_person')) + '</p>';
+        else if (!c.user_id) body = '<p class="jml-muted">' + esc(T(c.kind === 'starter' ? 'view.kit_needs_person' : 'view.kit_needs_person_other')) + '</p>';
         else {
             const items = c.kit.map(a => {
                 const name = a.hostname || [a.manufacturer, a.model].filter(Boolean).join(' ') || ('#' + a.id);

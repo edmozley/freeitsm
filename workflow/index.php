@@ -40,6 +40,16 @@ $translationNamespaces = ['common', 'workflow'];
         /* Full width (Ed, 2026-11-20). margin:0 + width:100% as well as max-width:none - the body is a flex
            column, where inbox.css's auto side margins would shrink the list to fit its content. */
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; width: 100%; margin: 0; box-sizing: border-box; padding: 24px 32px 40px; }
+        /* Discussion #304: Run order */
+        /* Read-only view of the order (one workflow, or not all of them yours); otherwise ReorderList draws it. */
+        .wf-order-list { list-style: none; margin: 0; padding: 0; counter-reset: wforder; }
+        .wf-order-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin-bottom: 6px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); counter-increment: wforder; }
+        .wf-order-row::before { content: counter(wforder) "."; min-width: 22px; color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
+        .wf-order-name { flex: 1; min-width: 0; font-weight: 600; color: var(--text, #333); }
+        #wfOrderList .rl-list { max-width: none; }
+        #wfOrderList .rl-label .status-badge, #wfOrderList .rl-label .wf-stop-pill { margin-left: 6px; }
+        .wf-order-note { margin-top: 10px; color: var(--text-muted, #666); font-size: var(--font-size-sm, 12px); }
+        .wf-stop-pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: var(--font-size-xs, 11px); font-weight: 600; background: var(--surface-2, #f1f3f5); color: var(--text-muted, #666); border: 1px solid var(--border, #ddd); white-space: nowrap; }
     </style>
     <!-- Mobile layer LAST, after this page's own stylesheet AND its inline
          <style> block, or a rule at equal specificity loses on document order
@@ -52,6 +62,7 @@ $translationNamespaces = ['common', 'workflow'];
              template, then New. */
           require_once __DIR__ . '/../includes/action_row.php';
           renderActionRow(t('workflow.list.page_title'), [
+              ['label' => t('workflow.order.btn'), 'onclick' => 'WF.openOrder()'],   // discussion #304
               ['label' => t('workflow.templates.btn'), 'onclick' => 'WF.openTemplates()'],
               actionRowNew('editor.php', t('workflow.list.new_tip'), true),
           ], ['accent' => 'wf']); ?>
@@ -75,6 +86,24 @@ $translationNamespaces = ['common', 'workflow'];
                     <tr><td colspan="6" style="text-align: center;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Discussion #304: the order the workflows on one trigger run in. -->
+    <div class="modal" id="wfOrderModal">
+        <div class="modal-content" style="max-width: 640px; width: 92%;">
+            <div class="modal-header"><?php echo htmlspecialchars(t('workflow.order.title')); ?></div>
+            <div class="modal-body">
+                <p style="margin: 0 0 14px; color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('workflow.order.intro')); ?></p>
+                <label for="wfOrderTrigger"><?php echo htmlspecialchars(t('workflow.order.trigger')); ?></label>
+                <select id="wfOrderTrigger" class="form-input" onchange="WF.showOrder()"></select>
+                <div id="wfOrderList" style="margin-top: 14px;"></div>
+                <div class="wf-order-note" id="wfOrderNote" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="WF.closeOrder()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="wfOrderSave" onclick="WF.saveOrder()"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
         </div>
     </div>
 
@@ -150,13 +179,14 @@ $translationNamespaces = ['common', 'workflow'];
                     tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-faint, #999);">' + esc(window.t('workflow.list.no_workflows')) + '</td></tr>';
                     return;
                 }
+                allWorkflows = d.workflows;   // discussion #304: the Run order dialog works from this
                 // GH #209. Which company each runs for, once there are companies.
                 const companyLine = w => !d.multi_company ? ''
                     : '<br><span style="color:var(--text-dim, #777); font-size: var(--font-size-sm, 12px);">'
                       + esc(w.company ? w.company.name : window.t('workflow.list.all_companies')) + '</span>';
                 tb.innerHTML = d.workflows.map(w => `
                     <tr>
-                        <td><strong><a href="editor.php?id=${w.id}" style="color: var(--text, #333); text-decoration: none;">${esc(w.name)}</a></strong>${w.description ? '<br><span style="color:var(--text-dim, #777); font-size: var(--font-size-sm, 12px);">' + esc(w.description) + '</span>' : ''}${companyLine(w)}</td>
+                        <td><strong><a href="editor.php?id=${w.id}" style="color: var(--text, #333); text-decoration: none;">${esc(w.name)}</a></strong>${+w.stop_after ? ' <span class="wf-stop-pill">' + esc(window.t('workflow.order.stops')) + '</span>' : ''}${w.description ? '<br><span style="color:var(--text-dim, #777); font-size: var(--font-size-sm, 12px);">' + esc(w.description) + '</span>' : ''}${companyLine(w)}</td>
                         <td><code style="font-size:var(--font-size-sm, 12px);">${esc(w.trigger_event)}</code></td>
                         <td style="color:var(--text-muted, #666);">${w.run_count} run${w.run_count == 1 ? '' : 's'}</td>
                         <td>${fmtDate(w.last_run_datetime)}</td>
@@ -169,6 +199,68 @@ $translationNamespaces = ['common', 'workflow'];
                 `).join('');
             } catch (e) {
                 tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger-text, #c33);">' + esc(e.message || 'Network error') + '</td></tr>';
+            }
+        }
+
+        // ---- Run order (discussion #304) ----------------------------------
+        // One trigger at a time: its workflows, top to bottom, dragged into order; Save sends
+        // the whole list (api/workflow/save_order.php numbers them 10, 20, 30...).
+        let allWorkflows = [];
+        function orderSort(a, b) {
+            // as the engine runs them: placed ones by their number, then the unplaced (0) oldest first
+            const pa = +a.run_order || 0, pb = +b.run_order || 0;
+            if ((pa === 0) !== (pb === 0)) return pa === 0 ? 1 : -1;
+            return pa - pb || a.id - b.id;
+        }
+        function openOrder() {
+            const counts = {};
+            allWorkflows.forEach(w => { counts[w.trigger_event] = (counts[w.trigger_event] || 0) + 1; });
+            const triggers = Object.keys(counts).sort((a, b) => (counts[b] > 1) - (counts[a] > 1) || a.localeCompare(b));
+            const sel = document.getElementById('wfOrderTrigger');
+            sel.innerHTML = triggers.map(t => `<option value="${esc(t)}">${esc(t)} (${counts[t]})</option>`).join('');
+            document.getElementById('wfOrderModal').classList.add('active');
+            showOrder();
+        }
+        function closeOrder() { document.getElementById('wfOrderModal').classList.remove('active'); }
+        function showOrder() {
+            const trig = document.getElementById('wfOrderTrigger').value;
+            const list = allWorkflows.filter(w => w.trigger_event === trig).sort(orderSort);
+            const box = document.getElementById('wfOrderList');
+            const note = document.getElementById('wfOrderNote');
+            const canAll = list.every(w => w.can_edit !== false);
+            const badges = w => (+w.is_active ? '' : `<span class="status-badge status-inactive">${esc(window.t('workflow.order.inactive'))}</span>`)
+                              + (+w.stop_after ? `<span class="wf-stop-pill">${esc(window.t('workflow.order.stops'))}</span>` : '');
+            if (canAll && list.length > 1) {
+                // The shared control: drag by the grip, the up/down buttons (phones), Alt+arrows (keyboard).
+                orderList = ReorderList.mount(box, {
+                    label: window.t('workflow.order.title'),
+                    items: list.map(w => ({ key: String(w.id), label: w.name, html: `<strong>${esc(w.name)}</strong>${badges(w)}` })),
+                });
+            } else {
+                orderList = null;
+                box.innerHTML = '<ol class="wf-order-list">' + list.map(w => `
+                    <li class="wf-order-row"><span class="wf-order-name">${esc(w.name)}</span>${badges(w)}</li>`).join('') + '</ol>';
+            }
+            const msg = list.length < 2 ? window.t('workflow.order.one_only') : (!canAll ? window.t('workflow.order.not_all_yours') : '');
+            note.hidden = !msg;
+            note.textContent = msg;
+            document.getElementById('wfOrderSave').disabled = list.length < 2 || !canAll;
+        }
+        let orderList = null;   // the ReorderList while the dialog shows an editable order
+        async function saveOrder() {
+            if (!orderList) return;
+            const trig = document.getElementById('wfOrderTrigger').value;
+            const ids = orderList.getOrder().map(Number);
+            try {
+                const r = await fetch(API + 'save_order.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ trigger_event: trig, ids }) });
+                const d = await r.json();
+                if (!d.success) throw new Error(d.error || '');
+                ids.forEach((id, i) => { const w = allWorkflows.find(x => +x.id === id); if (w) w.run_order = (i + 1) * 10; });
+                window.showToast(window.t('workflow.order.saved'), 'success');
+                closeOrder();
+            } catch (e) {
+                window.showToast(e.message || window.t('workflow.order.save_failed'), 'error');
             }
         }
 
@@ -299,9 +391,10 @@ $translationNamespaces = ['common', 'workflow'];
         }
 
         document.addEventListener('DOMContentLoaded', load);
-        window.WF = { del, openTemplates, closeTemplates, useTemplate, filterTemplates };
+        window.WF = { del, openTemplates, closeTemplates, useTemplate, filterTemplates, openOrder, closeOrder, showOrder, saveOrder };
     })();
     </script>
+    <script src="../assets/js/reorder-list.js?v=1"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

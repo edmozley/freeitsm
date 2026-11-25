@@ -28,6 +28,17 @@ $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';
 $path_prefix = '../../';
 $translationNamespaces = ['common', 'cmdb'];
+
+// GH #433: the shared icon library (cmdb_icons + assets/js/network-mapper-icons.js) for the
+// class icon picker - the icon a class's objects get on network diagrams by default.
+$cmdbClassIcons = [];
+try {
+    $cmdbClassIcons = connectToDatabase()->query(
+        "SELECT id, icon_key, label FROM cmdb_icons WHERE is_active = 1 ORDER BY display_order, label"
+    )->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    // No icon table on this install - the picker shows nothing to pick and the page still works.
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -209,6 +220,24 @@ $translationNamespaces = ['common', 'cmdb'];
         .ai-suggestion .sug-key { font-family: 'Consolas', 'Monaco', monospace; font-size: var(--font-size-sm, 12px); color: var(--text-muted,#6b7280); }
         .ai-suggestion .sug-why { color: var(--text-muted,#4b5563); font-size: var(--font-size-md, 13px); line-height: 1.4; margin-top: 4px; }
         .ai-suggestion .sug-meta { color: var(--text-muted,#6b7280); font-size: var(--font-size-sm, 12px); margin-top: 4px; }
+
+        /* GH #433: class icon picker - same look as the asset type one */
+        .ic-picked { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .ic-preview { display: inline-flex; width: 24px; height: 24px; color: var(--cmdb-accent, #be185d); }
+        .ic-name { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); flex: 1; }
+        .ic-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+            gap: 4px; max-height: 190px; overflow-y: auto;
+            border: 1px solid var(--border, #e0e0e0); border-radius: 6px; padding: 6px;
+        }
+        .ic-tile {
+            display: flex; align-items: center; justify-content: center;
+            height: 34px; border: 1px solid transparent; border-radius: 5px;
+            background: none; cursor: pointer; color: var(--text-muted, #666);
+        }
+        .ic-tile:hover { background: var(--surface-hover, #f0f0f0); color: var(--text, #333); }
+        .ic-tile.selected { border-color: var(--cmdb-accent, #be185d); color: var(--cmdb-accent, #be185d); }
+        .ic-inline { vertical-align: -3px; margin-right: 7px; color: var(--text-muted, #666); flex-shrink: 0; }
     </style>
     <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -426,6 +455,17 @@ $translationNamespaces = ['common', 'cmdb'];
                     <div class="form-group">
                         <label for="classDescription"><?php echo htmlspecialchars(t('cmdb.settings.class_description')); ?></label>
                         <textarea id="classDescription" rows="2" maxlength="500" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.class_description_placeholder')); ?>"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label><?php echo htmlspecialchars(t('cmdb.settings.class_icon')); ?></label>
+                        <input type="hidden" id="classIconId" value="">
+                        <div class="ic-picked">
+                            <span id="classIconPreview" class="ic-preview"></span>
+                            <span id="classIconName" class="ic-name"></span>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="classIconClear()"><?php echo htmlspecialchars(t('cmdb.settings.class_icon_clear')); ?></button>
+                        </div>
+                        <div class="ic-grid" id="classIconGrid"></div>
+                        <small><?php echo htmlspecialchars(t('cmdb.settings.class_icon_hint')); ?></small>
                     </div>
                     <div class="form-group">
                         <label for="classKey"><?php echo htmlspecialchars(t('cmdb.settings.class_key')); ?></label>
@@ -704,7 +744,9 @@ $translationNamespaces = ['common', 'cmdb'];
     <script src="../../assets/js/ai-settings.js?v=4"></script>
     <script src="../options-editor.js?v=3"></script>
     <script src="../../assets/js/cmdb-schema-preview.js?v=1"></script>
-    <script src="settings.js?v=13"></script>
+    <script>window.cmdbClassIcons = <?php echo json_encode($cmdbClassIcons, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
+    <script src="../../assets/js/network-mapper-icons.js?v=3"></script>
+    <script src="settings.js?v=14"></script>
     <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

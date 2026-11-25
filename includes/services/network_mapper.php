@@ -29,11 +29,12 @@
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../tenancy.php';   // CMDB objects on a diagram are company-scoped
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
+require_once __DIR__ . '/network_articles.php';   // GH #433: links to Knowledge articles
 
 class NetworkMapperService
 {
     const NODE_SIZES  = ['small' => 40, 'medium' => 56, 'large' => 80];
-    const LINE_STYLES = ['solid', 'dashed'];
+    const LINE_STYLES = ['solid', 'dashed', 'dotted'];
 
     // ======================================================================
     //  Diagrams
@@ -52,6 +53,10 @@ class NetworkMapperService
         }
         [$paperSize, $paperOrientation] = self::validatePaper($in, null);
 
+        // GH #433: which article links this save may keep (see NetworkArticleService::allowedForSave).
+        $articles = NetworkArticleService::allowedForSave($conn, (int)$ctx->actorId, 0, array_merge(
+            array_map(fn($x) => is_array($x) ? (int)($x['article_id'] ?? 0) : 0, is_array($in['nodes'] ?? null) ? $in['nodes'] : []),
+            array_map(fn($x) => is_array($x) ? (int)($x['article_id'] ?? 0) : 0, is_array($in['shapes'] ?? null) ? $in['shapes'] : [])));
         $conn->beginTransaction();
         try {
             $conn->prepare(
@@ -78,7 +83,13 @@ class NetworkMapperService
             $diagramId = (int)$conn->lastInsertId();
 
             if ((isset($in['nodes']) && is_array($in['nodes'])) || (isset($in['connectors']) && is_array($in['connectors']))) {
-                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
+                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? [], $articles);
+            }
+            if (isset($in['shapes']) && is_array($in['shapes'])) {
+                self::replaceShapes($conn, $diagramId, $in['shapes'], $articles);   // GH #433
+            }
+            if (isset($in['pages']) && is_array($in['pages'])) {
+                self::replacePages($conn, $diagramId, $in['pages'], $in['layers'] ?? []);
             }
             $conn->commit();
         } catch (Exception $e) {
@@ -109,6 +120,10 @@ class NetworkMapperService
         }
         [$paperSize, $paperOrientation] = self::validatePaper($in, $current);
 
+        // GH #433: which article links this save may keep (see NetworkArticleService::allowedForSave).
+        $articles = NetworkArticleService::allowedForSave($conn, (int)$ctx->actorId, $diagramId, array_merge(
+            array_map(fn($x) => is_array($x) ? (int)($x['article_id'] ?? 0) : 0, is_array($in['nodes'] ?? null) ? $in['nodes'] : []),
+            array_map(fn($x) => is_array($x) ? (int)($x['article_id'] ?? 0) : 0, is_array($in['shapes'] ?? null) ? $in['shapes'] : [])));
         $conn->beginTransaction();
         try {
             $conn->prepare(
@@ -138,7 +153,16 @@ class NetworkMapperService
             ]);
 
             if ((isset($in['nodes']) && is_array($in['nodes'])) || (isset($in['connectors']) && is_array($in['connectors']))) {
-                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
+                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? [], $articles);
+            }
+            // GH #433: shapes are replaced only when the caller sends them, so an API
+            // caller that only knows about nodes and connectors never wipes them.
+            if (isset($in['shapes']) && is_array($in['shapes'])) {
+                self::replaceShapes($conn, $diagramId, $in['shapes'], $articles);
+            }
+            // GH #433: pages and their layers, when the caller sends them.
+            if (isset($in['pages']) && is_array($in['pages'])) {
+                self::replacePages($conn, $diagramId, $in['pages'], is_array($in['layers'] ?? null) ? $in['layers'] : []);
             }
             $conn->commit();
         } catch (Exception $e) {
@@ -168,6 +192,9 @@ class NetworkMapperService
         try {
             $conn->prepare("DELETE FROM network_diagram_connectors WHERE diagram_id IN ($ph)")->execute($ids);
             $conn->prepare("DELETE FROM network_diagram_nodes WHERE diagram_id IN ($ph)")->execute($ids);
+            $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id IN ($ph)")->execute($ids);   // GH #433
+            $conn->prepare("DELETE FROM network_diagram_layers WHERE diagram_id IN ($ph)")->execute($ids);
+            $conn->prepare("DELETE FROM network_diagram_pages WHERE diagram_id IN ($ph)")->execute($ids);
             foreach (array_reverse($ids) as $id) {
                 $conn->prepare("DELETE FROM network_diagrams WHERE id = ?")->execute([$id]);
             }
@@ -181,7 +208,8 @@ class NetworkMapperService
     }
 
     /**
-     * Fork the leaf into a new version (clones nodes + connectors forward). Returns the new id.
+     * Fork the leaf into a new version (clones nodes, connectors, shapes, pages, layers and
+     * Knowledge links forward). Returns the new id.
      *
      * @param int $parentId  the current (leaf) version to copy forward
      * @param array $in  optional title, description and version_label for the new version; the rest is copied
@@ -221,24 +249,45 @@ class NetworkMapperService
             $nodes = $conn->prepare("SELECT * FROM network_diagram_nodes WHERE diagram_id = ? ORDER BY id");
             $nodes->execute([$parentId]);
             $insertNode = $conn->prepare(
-                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override) VALUES (?, ?, ?, ?, ?, ?)"
+                "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key, group_key, article_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             foreach ($nodes->fetchAll(PDO::FETCH_ASSOC) as $n) {
-                $insertNode->execute([$newId, (int)$n['cmdb_object_id'], (int)$n['x'], (int)$n['y'], $n['size'], $n['icon_override']]);
+                // GH #433: colour, box size, style, page and layer travel into the new version too.
+                $insertNode->execute([$newId, (int)$n['cmdb_object_id'], (int)$n['x'], (int)$n['y'], $n['size'], $n['icon_override'],
+                                      $n['colour_override'] ?? null, $n['w'] ?? null, $n['h'] ?? null, $n['style'] ?? null,
+                                      (int)($n['page_key'] ?? 0), (int)($n['layer_key'] ?? 0), $n['group_key'] ?? null,
+                                      isset($n['article_id']) ? (int)$n['article_id'] : null]);
                 $nodeMap[(int)$n['id']] = (int)$conn->lastInsertId();
             }
             $conns = $conn->prepare("SELECT * FROM network_diagram_connectors WHERE diagram_id = ? ORDER BY id");
             $conns->execute([$parentId]);
             $insertConn = $conn->prepare(
-                "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, cmdb_relationship_id, label, line_style) VALUES (?, ?, ?, ?, ?, ?)"
+                "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, from_shape_uid, to_shape_uid, cmdb_relationship_id, label, line_style, style)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             foreach ($conns->fetchAll(PDO::FETCH_ASSOC) as $k) {
+                // GH #433: either end may be a shape (uid, unchanged in the copy) instead of a node.
                 $insertConn->execute([
-                    $newId, $nodeMap[(int)$k['from_node_id']], $nodeMap[(int)$k['to_node_id']],
+                    $newId,
+                    $k['from_node_id'] !== null ? ($nodeMap[(int)$k['from_node_id']] ?? null) : null,
+                    $k['to_node_id'] !== null ? ($nodeMap[(int)$k['to_node_id']] ?? null) : null,
+                    $k['from_shape_uid'] ?? null, $k['to_shape_uid'] ?? null,
                     $k['cmdb_relationship_id'] !== null ? (int)$k['cmdb_relationship_id'] : null,
-                    $k['label'], $k['line_style'],
+                    $k['label'], $k['line_style'], $k['style'] ?? null,
                 ]);
             }
+            // GH #433: and the freestanding shapes.
+            $conn->prepare(
+                "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid, article_id)
+                 SELECT ?, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid, article_id FROM network_diagram_shapes WHERE diagram_id = ? ORDER BY id"
+            )->execute([$newId, $parentId]);
+            // ...and the pages and layers they sit on.
+            $conn->prepare("INSERT INTO network_diagram_pages (diagram_id, page_key, name, sort) SELECT ?, page_key, name, sort FROM network_diagram_pages WHERE diagram_id = ?")
+                 ->execute([$newId, $parentId]);
+            $conn->prepare("INSERT INTO network_diagram_layers (diagram_id, page_key, layer_key, name, sort, visible, locked)
+                            SELECT ?, page_key, layer_key, name, sort, visible, locked FROM network_diagram_layers WHERE diagram_id = ?")
+                 ->execute([$newId, $parentId]);
+            NetworkArticleService::copyRelated($conn, $parentId, $newId);   // GH #433: related articles
             $conn->commit();
         } catch (Exception $e) {
             if ($conn->inTransaction()) $conn->rollBack();
@@ -360,10 +409,10 @@ class NetworkMapperService
      * Full contents replace (delete + reinsert; ref-based connector wiring, strict validation).
      *
      * @param int $diagramId  the diagram whose nodes and connectors are replaced
-     * @param array $nodesIn  [{cmdb_object_id, x?, y?, size?, icon_override?, ref?}] - nodes with no x/y are placed automatically
-     * @param array $connectorsIn  [{from_ref | from_object_id, to_ref | to_object_id, cmdb_relationship_id?, label?, line_style?}]
+     * @param array $nodesIn  [{cmdb_object_id, x?, y?, size?, icon_override?, colour_override?, w?, h?, style?, page_key?, layer_key?, group_key?, article_id?, ref?}] - nodes with no x/y are placed automatically
+     * @param array $connectorsIn  [{from_ref | from_object_id | from_shape_uid, to_ref | to_object_id | to_shape_uid, cmdb_relationship_id?, label?, line_style?, style?}]
      */
-    private static function replaceContents(PDO $conn, ActorContext $ctx, int $diagramId, array $nodesIn, array $connectorsIn): void
+    private static function replaceContents(PDO $conn, ActorContext $ctx, int $diagramId, array $nodesIn, array $connectorsIn, array $articles = []): void
     {
         $conn->prepare("DELETE FROM network_diagram_connectors WHERE diagram_id = ?")->execute([$diagramId]);
         $conn->prepare("DELETE FROM network_diagram_nodes WHERE diagram_id = ?")->execute([$diagramId]);
@@ -372,13 +421,14 @@ class NetworkMapperService
         $refMap = [];
         $objectMap = [];
         $insertNode = $conn->prepare(
-            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override) VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_nodes (diagram_id, cmdb_object_id, x, y, size, icon_override, colour_override, w, h, style, page_key, layer_key, group_key, article_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         foreach (array_values($nodesIn) as $i => $n) {
             if (!is_array($n)) {
                 throw new ServiceError('validation', 'invalid_field', "nodes[{$i}] must be an object.");
             }
-            [$objectId, $x, $y, $size, $icon, $ref] = self::validateNodeInput($conn, $ctx, $n, $i);
+            [$objectId, $x, $y, $size, $icon, $ref, $colour, $w, $h] = self::validateNodeInput($conn, $ctx, $n, $i);
+            $style = self::sanitiseStyle($n['style'] ?? null);   // GH #433
             if ($x === null || $y === null) {
                 if ($place === null) {
                     $place = self::autoPlacer($conn, $diagramId);
@@ -387,7 +437,9 @@ class NetworkMapperService
                 $x = $x ?? $ax;
                 $y = $y ?? $ay;
             }
-            $insertNode->execute([$diagramId, $objectId, $x, $y, $size, $icon]);
+            $insertNode->execute([$diagramId, $objectId, $x, $y, $size, $icon, $colour, $w, $h, $style,
+                                  self::keyOf($n['page_key'] ?? 0), self::keyOf($n['layer_key'] ?? 0), self::groupOf($n['group_key'] ?? null),
+                                  isset($articles[(int)($n['article_id'] ?? 0)]) ? (int)$n['article_id'] : null]);   // GH #433
             $newId = (int)$conn->lastInsertId();
             if ($ref !== null) {
                 $refMap[$ref] = $newId;
@@ -396,12 +448,18 @@ class NetworkMapperService
         }
 
         $insertConn = $conn->prepare(
-            "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, cmdb_relationship_id, label, line_style) VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO network_diagram_connectors (diagram_id, from_node_id, to_node_id, from_shape_uid, to_shape_uid, cmdb_relationship_id, label, line_style, style)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         foreach (array_values($connectorsIn) as $i => $k) {
             if (!is_array($k)) {
                 throw new ServiceError('validation', 'invalid_field', "connectors[{$i}] must be an object.");
             }
+            // GH #433: an end may be a shape, named by its uid.
+            $uidOf = function (string $prefix) use ($k): ?string {
+                $u = isset($k["{$prefix}_shape_uid"]) ? trim((string)$k["{$prefix}_shape_uid"]) : '';
+                return preg_match('/^[A-Za-z0-9_-]{1,20}$/', $u) ? $u : null;
+            };
             $resolve = function (string $prefix) use ($k, $refMap, $objectMap, $i): int {
                 if (isset($k["{$prefix}_ref"]) && $k["{$prefix}_ref"] !== '') {
                     $ref = (string)$k["{$prefix}_ref"];
@@ -423,22 +481,215 @@ class NetworkMapperService
                 }
                 throw new ServiceError('validation', 'missing_field', "connectors[{$i}]: needs '{$prefix}_ref' or '{$prefix}_object_id'.");
             };
-            $fromId = $resolve('from');
-            $toId   = $resolve('to');
-            if ($fromId === $toId) {
-                throw new ServiceError('validation', 'invalid_field', "connectors[{$i}]: cannot connect a node to itself.");
+            $fromUid = $uidOf('from');
+            $toUid   = $uidOf('to');
+            $fromId = $fromUid === null ? $resolve('from') : null;
+            $toId   = $toUid === null ? $resolve('to') : null;
+            if (($fromId !== null && $fromId === $toId) || ($fromUid !== null && $fromUid === $toUid)) {
+                throw new ServiceError('validation', 'invalid_field', "connectors[{$i}]: cannot connect something to itself.");
             }
-            $relId = self::resolveRelationshipId($conn, $k['cmdb_relationship_id'] ?? null, $fromId, $toId);
+            // A CMDB relationship only ever stands between two nodes.
+            $relId = ($fromId !== null && $toId !== null) ? self::resolveRelationshipId($conn, $k['cmdb_relationship_id'] ?? null, $fromId, $toId) : null;
             $insertConn->execute([
-                $diagramId, $fromId, $toId, $relId,
+                $diagramId, $fromId, $toId, $fromUid, $toUid, $relId,
                 ($v = trim((string)($k['label'] ?? ''))) !== '' ? substr($v, 0, 255) : null,
                 self::validateLineStyle(trim((string)($k['line_style'] ?? 'solid')) ?: 'solid'),
+                self::sanitiseConnectorStyle($k['style'] ?? null),
             ]);
         }
     }
 
     /**
-     * Validate one node input row. Returns [objectId, x|null, y|null, size, icon, ref].
+     * GH #433: replaces a diagram's freestanding shapes. Each shape: shape_type (a key of the
+     * shape library - lower-case letters, digits and _; an unknown key draws as a rectangle),
+     * x, y, w, h, rotation, text, style (see sanitiseStyle), layer back|front, z.
+     *
+     * @param int $diagramId  the diagram whose shapes are replaced
+     * @param array $shapesIn  the new list (untrusted)
+     */
+    private static function replaceShapes(PDO $conn, int $diagramId, array $shapesIn, array $articles = []): void
+    {
+        $conn->prepare("DELETE FROM network_diagram_shapes WHERE diagram_id = ?")->execute([$diagramId]);
+        $insert = $conn->prepare(
+            "INSERT INTO network_diagram_shapes (diagram_id, shape_type, x, y, w, h, rotation, text, style, layer, z, icon_id, page_key, layer_key, group_key, uid, article_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        // icon_id must name an icon that exists - anything else saves as no icon.
+        $iconIds = array_values(array_unique(array_filter(array_map(fn($s) => is_array($s) ? (int)($s['icon_id'] ?? 0) : 0, $shapesIn))));
+        $knownIcons = [];
+        if ($iconIds) {
+            try {
+                $ph = implode(',', array_fill(0, count($iconIds), '?'));
+                $q = $conn->prepare("SELECT id FROM network_icon_library_icons WHERE id IN ($ph)");
+                $q->execute($iconIds);
+                $knownIcons = array_flip(array_map('intval', $q->fetchAll(PDO::FETCH_COLUMN)));
+            } catch (PDOException $e) {
+                $knownIcons = [];
+            }
+        }
+        $int = function ($v, int $min, int $max, int $default) {
+            if ($v === null || $v === '' || !is_numeric($v)) return $default;
+            return max($min, min($max, (int)round((float)$v)));
+        };
+        if (count($shapesIn) > 2000) {
+            throw new ServiceError('validation', 'invalid_field', 'A diagram can have at most 2000 shapes.');
+        }
+        foreach (array_values($shapesIn) as $i => $s) {
+            if (!is_array($s)) {
+                throw new ServiceError('validation', 'invalid_field', "shapes[{$i}] must be an object.");
+            }
+            $type = strtolower(trim((string)($s['shape_type'] ?? '')));
+            if (!preg_match('/^[a-z0-9_]{1,40}$/', $type)) {
+                throw new ServiceError('validation', 'invalid_field', "shapes[{$i}]: 'shape_type' is missing or not a shape key.");
+            }
+            $text = isset($s['text']) ? (string)$s['text'] : '';
+            $text = mb_substr(str_replace("\r\n", "\n", $text), 0, 4000);
+            $layer = (($s['layer'] ?? 'back') === 'front') ? 'front' : 'back';
+            $insert->execute([
+                $diagramId, $type,
+                $int($s['x'] ?? 0, -10000, 20000, 0),
+                $int($s['y'] ?? 0, -10000, 20000, 0),
+                $int($s['w'] ?? 120, 10, 5000, 120),
+                $int($s['h'] ?? 80, 10, 5000, 80),
+                $int($s['rotation'] ?? 0, -360, 360, 0),
+                trim($text) !== '' ? $text : null,
+                self::sanitiseStyle($s['style'] ?? null),
+                $layer,
+                $int($s['z'] ?? 0, -100000, 100000, 0),
+                isset($knownIcons[(int)($s['icon_id'] ?? 0)]) ? (int)$s['icon_id'] : null,
+                self::keyOf($s['page_key'] ?? 0),
+                self::keyOf($s['layer_key'] ?? 0),
+                self::groupOf($s['group_key'] ?? null),
+                (is_string($s['uid'] ?? null) && preg_match('/^[A-Za-z0-9_-]{1,20}$/', $s['uid'])) ? $s['uid'] : null,
+                isset($articles[(int)($s['article_id'] ?? 0)]) ? (int)$s['article_id'] : null,   // GH #433
+            ]);
+        }
+    }
+
+    /**
+     * GH #433: a connector's look - colour (#rrggbb), width (0.5-12), arrowStart / arrowEnd (none,
+     * arrow, open, diamond, circle) and routing (straight, elbow, curved). Unknown keys and bad
+     * values are dropped. Returns JSON, or null when nothing is left.
+     *
+     * @param mixed $in  an array, a JSON string, or null
+     */
+    public static function sanitiseConnectorStyle($in): ?string
+    {
+        if (is_string($in)) $in = json_decode($in, true);
+        if (!is_array($in)) return null;
+        $out = [];
+        if (isset($in['colour']) && is_string($in['colour']) && preg_match('/^#[0-9a-fA-F]{6}$/', $in['colour'])) $out['colour'] = strtolower($in['colour']);
+        if (isset($in['width']) && is_numeric($in['width']) && (float)$in['width'] >= 0.5 && (float)$in['width'] <= 12) $out['width'] = round((float)$in['width'], 1);
+        foreach (['arrowStart', 'arrowEnd'] as $k) {
+            if (isset($in[$k]) && in_array($in[$k], ['none', 'arrow', 'open', 'diamond', 'circle'], true)) $out[$k] = $in[$k];
+        }
+        if (isset($in['routing']) && in_array($in['routing'], ['straight', 'elbow', 'curved'], true)) $out['routing'] = $in['routing'];
+        return $out ? json_encode($out) : null;
+    }
+
+    /** GH #433: a group key - letters, digits, _ and -, up to 40; anything else is no group. */
+    public static function groupOf($v): ?string
+    {
+        $v = is_string($v) ? trim($v) : '';
+        return preg_match('/^[A-Za-z0-9_-]{1,40}$/', $v) ? $v : null;
+    }
+
+    /** GH #433: a page or layer key - a small whole number, 0 when missing or odd. */
+    public static function keyOf($v): int
+    {
+        return (is_numeric($v) && (int)$v >= 0 && (int)$v <= 100000) ? (int)$v : 0;
+    }
+
+    /**
+     * GH #433: replaces a diagram's pages and their layers. pages: [{page_key, name, sort}];
+     * layers: [{page_key, layer_key, name, sort, visible, locked}]. At least one page; a layer
+     * for a page that is not in the list is dropped. Names are trimmed to 100 characters.
+     *
+     * @param int $diagramId  the diagram
+     * @param array $pagesIn  the pages (untrusted)
+     * @param array $layersIn  the layers (untrusted)
+     */
+    private static function replacePages(PDO $conn, int $diagramId, array $pagesIn, array $layersIn): void
+    {
+        $pages = [];
+        foreach (array_values($pagesIn) as $i => $p) {
+            if (!is_array($p)) continue;
+            $key = self::keyOf($p['page_key'] ?? $i);
+            if (isset($pages[$key])) continue;
+            $name = mb_substr(trim((string)($p['name'] ?? '')), 0, 100);
+            $pages[$key] = [$name !== '' ? $name : 'Page ' . ($i + 1), (int)($p['sort'] ?? $i)];
+        }
+        if (!$pages) {
+            throw new ServiceError('validation', 'invalid_field', 'A diagram needs at least one page.');
+        }
+        if (count($pages) > 200) {
+            throw new ServiceError('validation', 'invalid_field', 'A diagram can have at most 200 pages.');
+        }
+        $conn->prepare("DELETE FROM network_diagram_layers WHERE diagram_id = ?")->execute([$diagramId]);
+        $conn->prepare("DELETE FROM network_diagram_pages WHERE diagram_id = ?")->execute([$diagramId]);
+        $insP = $conn->prepare("INSERT INTO network_diagram_pages (diagram_id, page_key, name, sort) VALUES (?, ?, ?, ?)");
+        foreach ($pages as $key => [$name, $sort]) {
+            $insP->execute([$diagramId, $key, $name, $sort]);
+        }
+        $insL = $conn->prepare("INSERT INTO network_diagram_layers (diagram_id, page_key, layer_key, name, sort, visible, locked) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $seen = [];
+        foreach (array_values($layersIn) as $i => $l) {
+            if (!is_array($l)) continue;
+            $pk = self::keyOf($l['page_key'] ?? 0);
+            $lk = self::keyOf($l['layer_key'] ?? 0);
+            if (!isset($pages[$pk]) || isset($seen["$pk:$lk"])) continue;
+            $seen["$pk:$lk"] = true;
+            $name = mb_substr(trim((string)($l['name'] ?? '')), 0, 100);
+            $insL->execute([$diagramId, $pk, $lk, $name !== '' ? $name : 'Layer ' . ($lk + 1), (int)($l['sort'] ?? $i),
+                            !isset($l['visible']) || $l['visible'] ? 1 : 0, !empty($l['locked']) ? 1 : 0]);
+        }
+    }
+
+    /**
+     * GH #433: the style JSON a node or shape may carry, reduced to known keys with sane values.
+     * Anything unknown or out of range is dropped rather than refused, so an old or hand-written
+     * style never blocks a save. Returns the JSON string, or null when nothing is left.
+     *
+     * @param mixed $in  an array, a JSON string, or null
+     */
+    public static function sanitiseStyle($in): ?string
+    {
+        if (is_string($in)) {
+            $in = json_decode($in, true);
+        }
+        if (!is_array($in)) return null;
+        $enums = [
+            'fill'        => ['none', 'solid', 'gradient'],
+            'gradientDir' => ['down', 'right', 'diag', 'radial'],
+            'stroke'      => ['none', 'solid', 'dashed', 'dotted'],
+            'font'        => ['sans', 'serif', 'mono', 'arial', 'verdana', 'tahoma', 'trebuchet', 'georgia', 'times', 'courier', 'comic'],
+            'align'       => ['left', 'center', 'right'],
+            'valign'      => ['top', 'middle', 'bottom'],
+        ];
+        $colours = ['fillColour', 'fillColour2', 'strokeColour', 'fontColour'];
+        $numbers = ['strokeWidth' => [0, 20], 'opacity' => [0, 100], 'rounded' => [0, 500], 'fontSize' => [6, 96]];
+        $bools = ['shadow', 'bold', 'italic', 'underline'];
+        $out = [];
+        foreach ($enums as $k => $allowed) {
+            if (isset($in[$k]) && in_array($in[$k], $allowed, true)) $out[$k] = $in[$k];
+        }
+        foreach ($colours as $k) {
+            if (isset($in[$k]) && is_string($in[$k]) && preg_match('/^#[0-9a-fA-F]{6}$/', $in[$k])) $out[$k] = strtolower($in[$k]);
+        }
+        foreach ($numbers as $k => [$min, $max]) {
+            if (isset($in[$k]) && is_numeric($in[$k])) {
+                $v = (float)$in[$k];
+                if ($v >= $min && $v <= $max) $out[$k] = $k === 'strokeWidth' ? round($v, 1) : (int)round($v);
+            }
+        }
+        foreach ($bools as $k) {
+            if (isset($in[$k]) && is_bool($in[$k])) $out[$k] = $in[$k];
+        }
+        return $out ? json_encode($out) : null;
+    }
+
+    /**
+     * Validate one node input row. Returns [objectId, x|null, y|null, size, icon, ref, colour|null, w|null, h|null].
      *
      * @param array $n  one node from the request
      * @param int $index  its position in the nodes list, for error messages
@@ -457,6 +708,22 @@ class NetworkMapperService
         }
         $hasX = array_key_exists('x', $n) && $n['x'] !== null && $n['x'] !== '';
         $hasY = array_key_exists('y', $n) && $n['y'] !== null && $n['y'] !== '';
+        // GH #433: a node's own colour and box size - all optional, NULL = the normal look.
+        $colour = null;
+        if (isset($n['colour_override']) && trim((string)$n['colour_override']) !== '') {
+            $colour = strtolower(trim((string)$n['colour_override']));
+            if (!preg_match('/^#[0-9a-f]{6}$/', $colour)) {
+                throw new ServiceError('validation', 'invalid_field', "nodes[{$index}]: 'colour_override' must be a colour like #2563eb.");
+            }
+        }
+        $dim = function (string $k) use ($n, $index): ?int {
+            if (!isset($n[$k]) || $n[$k] === '') return null;
+            $v = (int)$n[$k];
+            if ($v < 20 || $v > 2000) {
+                throw new ServiceError('validation', 'invalid_field', "nodes[{$index}]: '{$k}' must be between 20 and 2000.");
+            }
+            return $v;
+        };
         return [
             $objectId,
             $hasX ? (int)$n['x'] : null,
@@ -464,6 +731,9 @@ class NetworkMapperService
             $size,
             $icon,
             isset($n['ref']) ? (string)$n['ref'] : null,
+            $colour,
+            $dim('w'),
+            $dim('h'),
         ];
     }
 
@@ -578,7 +848,7 @@ class NetworkMapperService
     /**
      * Validates a connector line style against LINE_STYLES.
      *
-     * @param string $style  'solid' or 'dashed'
+     * @param string $style  'solid', 'dashed' or 'dotted'
      */
     private static function validateLineStyle(string $style): string
     {

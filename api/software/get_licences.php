@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/services/software.php';   // termReady()
 
 header('Content-Type: application/json');
 
@@ -24,6 +25,7 @@ try {
                 a.display_name AS app_name,
                 a.publisher AS app_publisher,
                 l.licence_type,
+                " . (SoftwareService::termReady($conn) ? "l.licence_term" : "NULL AS licence_term") . ",
                 l.licence_key,
                 l.quantity,
                 DATE_FORMAT(l.renewal_date, '%Y-%m-%d') AS renewal_date,

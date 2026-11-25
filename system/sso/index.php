@@ -600,6 +600,11 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
                          nobody in. */ ?>
                 </div><!-- /connection -->
                 <div class="sso-tab-panel" data-tab="signin">
+                <?php /* 5.11.0. OIDC only, like the portal's own tick: a directory has no button. */ ?>
+                <div class="checkbox-field" id="analystShowButtonField">
+                    <input type="checkbox" id="fAnalystShowButton" checked>
+                    <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_analyst_show_button')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_analyst_show_button_desc')); ?></span></div>
+                </div>
                 <!-- OIDC-only: LDAP has no email_verified claim to require. -->
                 <div class="checkbox-field" id="requireVerifiedField">
                     <input type="checkbox" id="fRequireVerified">
@@ -985,6 +990,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         $('analystFallbackField').style.display = (isOidc && !autoAnalysts) ? '' : 'none';
         $('profileSyncModeField').style.display = isOidc ? '' : 'none';
         $('portalRoutingFields').style.display = isOidc ? '' : 'none';   // GH #147
+        $('analystShowButtonField').style.display = isOidc ? '' : 'none';   // 5.11.0
         $('claimMappingFields').style.display = isOidc ? '' : 'none';   // SSO groups (3.5.0)
         ssoApplyTabs();
         // "Default module access for auto-created analysts" describes the
@@ -1246,6 +1252,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         ssoShowTab('connection');
         $('fPortalDomains').value = p ? (p.portal_email_domains || '') : '';
         $('fPortalShowButton').checked = p ? p.portal_show_button !== 0 : true;
+        $('fAnalystShowButton').checked = p ? p.analyst_show_button !== 0 : true;
         const tenantSel = document.getElementById('fTenant');
         if (tenantSel) tenantSel.value = (p && p.tenant_id) ? String(p.tenant_id) : '';
         const secret = document.getElementById('fClientSecret');
@@ -1476,6 +1483,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
             group_labels: ssoSeenCollect(),
             portal_email_domains: $('fPortalDomains').value,
             portal_show_button: $('fPortalShowButton').checked ? 1 : 0,
+            analyst_show_button: $('fAnalystShowButton').checked ? 1 : 0,
             tenant_id: (document.getElementById('fTenant') ? (document.getElementById('fTenant').value || null) : null)
         };
         if (isLdap) Object.assign(payload, ldapPayload(), { id: payload.id });

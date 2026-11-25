@@ -542,6 +542,13 @@ return [
         'press_run' => '“कमियाँ खोजें” दबाएं।',
         'none_to_read' => 'पिछले {days} दिनों में पढ़ने के लिए कोई बंद टिकट नहीं।',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'नेटवर्क डायग्राम',
+        'related' => 'डायग्राम से संबंधित',
+        'item'    => 'इसके किसी आइटम से लिंक किया गया',
+    ],
+
     'help' => [
         'guide' => 'गाइड',
         'topics_title' => 'विस्तार से',

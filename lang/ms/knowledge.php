@@ -543,6 +543,13 @@ Kerana kedua-dua senarai membawa maksud yang bertentangan, {people} yang disenar
         'press_run' => 'Tekan “Cari jurang”.',
         'none_to_read' => 'Tiada tiket ditutup dalam {days} hari lepas untuk dibaca.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Rajah rangkaian',
+        'related' => 'Berkaitan dengan rajah',
+        'item'    => 'Dipautkan daripada item di dalamnya',
+    ],
+
     'help' => [
         'guide' => 'Panduan',
         'topics_title' => 'Secara mendalam',

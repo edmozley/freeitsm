@@ -65,6 +65,7 @@ return [
         'no_match' => 'Tidak ada yang cocok dengan "{q}".',
         'open' => 'Buka',
         'open_location' => 'Buka lokasi berkas',
+        'open_separately' => 'Buka terpisah',
         'open_new' => 'Buka di jendela baru',
         'paste' => 'Tempel',
         'paste_into' => 'Tempel ke folder',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Selalu tampilkan',
         'navbar' => 'Bilah navigasi atas',
         'note' => 'Pilihan ini hanya milik Anda. Logo di desktop ditetapkan oleh administrator.',
+        'multi' => 'Membuka beberapa file',
+        'multi_viewer' => 'Dalam satu penampil - telusuri dengan tombol panah',
+        'multi_windows' => 'Di jendela terpisah - hingga 10; lebih dari itu dibuka dalam satu penampil',
     ],
     'props' => [
         'restore' => 'Pulihkan',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Keluar',
         'title' => 'Mulai',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Berkas ini tidak bisa memiliki gambar mini ({why}).',
         'why_too_large' => 'terlalu besar untuk diperkecil',
         'why_unsupported' => 'server ini tidak dapat membaca jenis gambar tersebut',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Arsip ini kosong.',
         'zoom_in' => 'Perbesar',
         'zoom_out' => 'Perkecil',
+        'previous' => 'Sebelumnya',
+        'next' => 'Berikutnya',
+        'slideshow' => 'Tayangan slide',
+        'slideshow_tip' => 'Menampilkan gambar satu per satu. Spasi menjeda, Escape menghentikan.',
+        'pause' => 'Jeda',
+        'play' => 'Putar',
+        'stop' => 'Hentikan',
     ],
     'wm' => [
         'close' => 'Tutup',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Setiap berkas yang dibuka dicatat di jejak audit, termasuk versi mana dan, untuk zip, berkas mana di dalamnya.',
             'p7' => 'Gambar atau PDF menyesuaikan ulang saat Anda mengubah ukuran atau memaksimalkan jendelanya, sampai Anda memperbesar atau memperkecil sendiri; **Sesuaikan** mengembalikannya. Penampil yang sama membuka gambar dan PDF yang dilampirkan pada tiket, di jendela di atas tiket.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Beberapa berkas sekaligus',
+            'title' => 'Beberapa berkas sekaligus',
+            'intro' => 'Telusuri sebuah folder, atau pilihan, dalam satu jendela.',
+            'p1' => 'Saat sebuah berkas terbuka, **Sebelumnya** dan **Berikutnya** di bilah alat penampil - atau tombol panah kiri dan kanan - berpindah ke berkas sebelum atau sesudahnya di folder, sesuai urutan folder diurutkan. Home dan End menuju yang pertama dan yang terakhir.',
+            'p2' => 'Pilih beberapa berkas lalu tekan **Enter**, atau klik kanan dan pilih **Buka**, untuk membuka berkas-berkas itu saja dalam satu penampil. Folder dalam pilihan dilewati. Agar setiap berkas punya jendelanya sendiri - untuk menaruh dua berdampingan - klik kanan dan pilih **Buka terpisah** (hingga 10 berkas), atau ubah **Membuka beberapa file** di **Personalisasi** agar Enter melakukannya. Lebih dari 10 berkas selalu dibuka dalam satu penampil.',
+            'p3' => '**Tayangan slide** menampilkan gambar di antaranya satu per satu, layar penuh bila peramban mengizinkan, beberapa detik masing-masing. **Spasi** menjedanya dan **Escape** menghentikannya. Ia diputar sekali, dari gambar yang sedang Anda lihat sampai yang terakhir, dan melewati apa pun yang bukan gambar.',
+            'p4' => 'Setiap berkas yang Anda tuju dibuka seolah-olah Anda membukanya sendiri: perlu **Lihat** pada foldernya, Hanya lihat dan tanda air berlaku, dan dicatat dalam jejak audit.',
+        ],
+        'thumbnails' => [
             'nav' => 'Gambar mini',
             'title' => 'Gambar mini',
             'intro' => 'Gambar dan PDF menampilkan isinya.',

@@ -281,6 +281,8 @@ function filesGetPrefs(PDO $conn, int $analystId): array
         'desktop_colour' => preg_match('/^#[0-9a-fA-F]{6}$/', $raw['files_desktop_colour'] ?? '') ? $raw['files_desktop_colour'] : '#1e3a5f',
         'navbar'         => in_array($raw['files_navbar'] ?? '', ['on', 'auto', 'off'], true) ? $raw['files_navbar'] : 'on',
         'view'           => in_array($raw['files_view'] ?? '', ['icons', 'thumbs', 'details'], true) ? $raw['files_view'] : 'icons',
+        // GH #424: Enter on several files - one viewer (default) or a window each.
+        'multi_open'     => ($raw['files_multi_open'] ?? '') === 'windows' ? 'windows' : 'viewer',
         'windows'        => is_array($windows) ? $windows : new stdClass(),
     ];
 }

@@ -249,6 +249,8 @@ return [
         'portal_email_domains'   => 'TEXT NULL',
         // DEFAULT 1 so an upgrade keeps every portal button where it was.
         'portal_show_button'     => 'TINYINT(1) NOT NULL DEFAULT 1',
+        // 5.11.0 - the same for the analyst login. DEFAULT 1 for the same reason.
+        'analyst_show_button'    => 'TINYINT(1) NOT NULL DEFAULT 1',
         'created_datetime'       => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'last_modified_datetime' => 'DATETIME NULL',
     ],
@@ -3223,6 +3225,7 @@ return [
         'section_id'        => 'INT NOT NULL',
         'display_order'     => 'INT NOT NULL DEFAULT 0',
         'is_visible'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'label'             => 'VARCHAR(100) NULL',   // GH #435: the field's own name; NULL = the standard one
     ],
 
     'changes' => [
@@ -4193,6 +4196,8 @@ return [
         'run_count'         => 'INT NOT NULL DEFAULT 0',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
         'tenant_id'         => 'INT NULL',   // GH #209: NULL = shared (every company); set = that company only
+        'run_order'         => 'INT NOT NULL DEFAULT 0',      // discussion #304: order on its trigger; 0 = not placed (runs after, oldest first)
+        'stop_after'        => 'TINYINT(1) NOT NULL DEFAULT 0',   // discussion #304: when it runs, later workflows for the event do not
     ],
 
     'webhook_deliveries' => [
@@ -4553,6 +4558,7 @@ return [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'app_id'            => 'INT NOT NULL',
         'licence_type'      => 'VARCHAR(50) NOT NULL',
+        'licence_term'      => 'VARCHAR(25) NULL',   // subscription | perpetual | perpetual_maintenance; NULL = not said (5.11.0)
         'licence_key'       => 'VARCHAR(500) NULL',
         'quantity'          => 'INT NULL',
         'renewal_date'      => 'DATE NULL',
@@ -5939,18 +5945,107 @@ return [
         'y'              => 'INT NOT NULL DEFAULT 0',
         'size'           => "VARCHAR(20) NOT NULL DEFAULT 'medium'",
         'icon_override'  => 'VARCHAR(100) NULL',
+        'colour_override' => 'VARCHAR(20) NULL',   // GH #433: #rrggbb, NULL = normal look
+        'w'              => 'INT NULL',            // GH #433: box size in canvas px, NULL = automatic
+        'h'              => 'INT NULL',
+        'style'          => 'TEXT NULL',           // GH #433: the node's own look, JSON (sanitiseStyle)
+        'page_key'       => 'INT NOT NULL DEFAULT 0',   // GH #433: page (network_diagram_pages.page_key)
+        'layer_key'      => 'INT NOT NULL DEFAULT 0',   // ...and layer on it
+        'group_key'      => 'VARCHAR(40) NULL',         // GH #433: Group / Ungroup
+        'article_id'     => 'INT NULL',                 // GH #433: a linked Knowledge article
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
     'network_diagram_connectors' => [
         'id'                   => 'INT NOT NULL AUTO_INCREMENT',
         'diagram_id'           => 'INT NOT NULL',
-        'from_node_id'         => 'INT NOT NULL',
-        'to_node_id'           => 'INT NOT NULL',
+        'from_node_id'         => 'INT NULL',          // GH #433: NULL when that end is a shape
+        'to_node_id'           => 'INT NULL',
+        'from_shape_uid'       => 'VARCHAR(20) NULL',  // GH #433: network_diagram_shapes.uid
+        'to_shape_uid'         => 'VARCHAR(20) NULL',
+        'style'                => 'TEXT NULL',         // GH #433: colour, width, arrows, routing (JSON)
         'cmdb_relationship_id' => 'INT NULL',
         'label'                => 'VARCHAR(255) NULL',
         'line_style'           => "VARCHAR(20) NULL DEFAULT 'solid'",
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+    ],
+
+    // GH #433: freestanding shapes (not CMDB objects) - see database/freeitsm.sql
+    'network_diagram_shapes' => [
+        'id'             => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'     => 'INT NOT NULL',
+        'shape_type'     => 'VARCHAR(40) NOT NULL',
+        'x'              => 'INT NOT NULL DEFAULT 0',
+        'y'              => 'INT NOT NULL DEFAULT 0',
+        'w'              => 'INT NOT NULL DEFAULT 120',
+        'h'              => 'INT NOT NULL DEFAULT 80',
+        'rotation'       => 'INT NOT NULL DEFAULT 0',
+        'text'           => 'TEXT NULL',
+        'style'          => 'TEXT NULL',
+        'layer'          => "VARCHAR(10) NOT NULL DEFAULT 'back'",
+        'z'              => 'INT NOT NULL DEFAULT 0',
+        'icon_id'        => 'INT NULL',            // an imported library icon (shape_type 'icon')
+        'page_key'       => 'INT NOT NULL DEFAULT 0',
+        'layer_key'      => 'INT NOT NULL DEFAULT 0',
+        'group_key'      => 'VARCHAR(40) NULL',
+        'uid'            => 'VARCHAR(20) NULL',    // GH #433: what connectors point at
+        'article_id'     => 'INT NULL',            // GH #433: a linked Knowledge article
+        'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+    ],
+
+    // GH #433: Knowledge articles related to a diagram (includes/services/network_articles.php)
+    'network_diagram_articles' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'            => 'INT NOT NULL',
+        'article_id'            => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // GH #433: pages (tabs) and their layers - see database/freeitsm.sql
+    'network_diagram_pages' => [
+        'id'          => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'  => 'INT NOT NULL',
+        'page_key'    => 'INT NOT NULL DEFAULT 0',
+        'name'        => 'VARCHAR(100) NOT NULL',
+        'sort'        => 'INT NOT NULL DEFAULT 0',
+    ],
+    'network_diagram_layers' => [
+        'id'          => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'  => 'INT NOT NULL',
+        'page_key'    => 'INT NOT NULL DEFAULT 0',
+        'layer_key'   => 'INT NOT NULL DEFAULT 0',
+        'name'        => 'VARCHAR(100) NOT NULL',
+        'sort'        => 'INT NOT NULL DEFAULT 0',
+        'visible'     => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'locked'      => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+
+    // GH #433: icon libraries imported from icons.diagrams.net (includes/services/network_icons.php)
+    'network_icon_libraries' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'slug'             => 'VARCHAR(120) NOT NULL',
+        'title'            => 'VARCHAR(255) NOT NULL',
+        'licence'          => 'VARCHAR(255) NULL',
+        'author'           => 'VARCHAR(255) NULL',
+        'author_url'       => 'VARCHAR(500) NULL',
+        'source'           => 'VARCHAR(500) NULL',
+        'icon_total'       => 'INT NOT NULL DEFAULT 0',
+        'icon_count'       => 'INT NOT NULL DEFAULT 0',
+        'status'           => "VARCHAR(20) NOT NULL DEFAULT 'importing'",
+        'created_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'network_icon_library_icons' => [
+        'id'          => 'INT NOT NULL AUTO_INCREMENT',
+        'library_id'  => 'INT NOT NULL',
+        'sort'        => 'INT NOT NULL DEFAULT 0',
+        'title'       => 'VARCHAR(255) NULL',
+        'tags'        => 'VARCHAR(1000) NULL',
+        'mime'        => 'VARCHAR(40) NOT NULL',
+        'data'        => 'MEDIUMBLOB NOT NULL',
+        'w'           => 'INT NOT NULL DEFAULT 64',
+        'h'           => 'INT NOT NULL DEFAULT 64',
+        'uploaded_by_analyst_id' => 'INT NULL',   // GH #433: who added a My images picture
     ],
 
     // Search corpus — one row per searchable unit (ticket subject, email body,

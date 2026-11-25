@@ -16,6 +16,19 @@ return [
         'title' => 'Organisationsdiagram',
         'subtitle' => 'Hvem refererer til hvem. Søg efter et navn, en stillingsbetegnelse eller en afdeling, eller åbn et team med pilen.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Nyansatte og fratrædende',
+        'subtitle' => 'De personer, der starter, skifter og stopper, og hvor langt IT er nået med hver enkelt. Kun til visning: spørg ejeren om alt her.',
+        'tab_open' => 'Åbne ({n})',
+        'tab_done' => 'Afsluttet for nylig ({n})',
+        'none_open' => 'Der er ingen åbne sager.',
+        'none_done' => 'Ingen sager er afsluttet inden for de sidste 60 dage.',
+        'load_failed' => 'Sagerne kunne ikke indlæses. Prøv igen.',
+        'progress' => '{done} af {total} trin udført',
+        'no_steps' => 'Ingen trin endnu',
+        'owner' => 'Ejer',
+    ],
     'approvals' => [
         'title' => 'Godkendelser',
         'subtitle' => 'Anmodninger, der venter på din godkendelse, som leder eller som ejer af et omkostningssted.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Viden',
         'equipment' => 'Mit udstyr',
         'org_chart' => 'Organisation',
+        'starters'    => 'Nyansatte og fratrædende',
         'training' => 'Undervisning',
         'help' => 'Hjælp',
         'menu' => 'Menu',

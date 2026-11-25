@@ -125,7 +125,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
         </div>
     </div>
 
-    <script src="../../assets/js/starters.js?v=2"></script>
+    <script src="../../assets/js/starters.js?v=3"></script>
     <script src="../../assets/js/starters-settings.js?v=7"></script>
     <script src="../../assets/js/mobile.js?v=87"></script>
 </body>

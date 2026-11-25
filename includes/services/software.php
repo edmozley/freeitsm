@@ -19,9 +19,16 @@
  * stamped on insert and never touched on update. created_at/updated_at keep the
  * table defaults on insert; updated_at is stamped UTC on update.
  *
- * Input keys are canonical snake_case (app_id, licence_type, licence_key,
+ * Input keys are canonical snake_case (app_id, licence_type, licence_term, licence_key,
  * quantity, renewal_date, notice_period_days, portal_url, cost, currency,
  * purchase_date, vendor_contact, notes, status). The UI already sends these.
+ *
+ * Two questions about a licence, kept apart (5.11.0):
+ *   licence_type  how it is COUNTED - Per User, Per Device, Site, Concurrent, Other
+ *   licence_term  how long it LASTS - subscription, perpetual, perpetual_maintenance
+ * A Microsoft volume licence is per device AND perpetual, which one list could not say.
+ * Before 5.11.0 "Subscription" was one of the types; sent that way it is still taken as
+ * the term (legacyTerm()), and migrateLegacyTerms() moves stored rows across.
  */
 
 require_once __DIR__ . '/../service_context.php';
@@ -31,6 +38,53 @@ require_once __DIR__ . '/../software_licence_calendar.php';   // renewals -> the
 
 class SoftwareService
 {
+    /** licence_term values. perpetual_maintenance = owned, with support / upgrades (e.g. Software Assurance) renewing. */
+    public const TERMS = ['subscription', 'perpetual', 'perpetual_maintenance'];
+
+    /** Whether software_licences.licence_term exists yet (Database Verification adds it). Cached per process. */
+    public static function termReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $conn->query("SELECT licence_term FROM software_licences LIMIT 0"); $ready = true; }
+            catch (PDOException $e) { $ready = false; }
+        }
+        return $ready;
+    }
+
+    /**
+     * The term a pre-5.11.0 licence TYPE meant, or null. "Subscription" was one of the
+     * types; "Perpetual" was typed in by hand on some installs (and in the demo data).
+     *
+     * @param string $type  a licence_type as stored or sent
+     */
+    public static function legacyTerm(string $type): ?string
+    {
+        $t = strtolower(trim($type));
+        return $t === 'subscription' ? 'subscription' : ($t === 'perpetual' ? 'perpetual' : null);
+    }
+
+    /**
+     * One-time move of the old types into licence_term (Database Verification runs it;
+     * safe to run again - it only touches rows with no term yet). The counted-by is not
+     * known for these, so it is left empty and the licence screen shows "Not set" until
+     * somebody picks one. A "Perpetual" with a renewal date was paying for maintenance.
+     * Returns the number of licences moved.
+     */
+    public static function migrateLegacyTerms(PDO $conn): int
+    {
+        try { $conn->query("SELECT licence_term FROM software_licences LIMIT 0"); }   // not cached: the column may have just been added
+        catch (PDOException $e) { return 0; }
+        return (int)$conn->exec(
+            "UPDATE software_licences
+                SET licence_term = CASE WHEN LOWER(TRIM(licence_type)) = 'subscription' THEN 'subscription'
+                                        WHEN renewal_date IS NULL THEN 'perpetual'
+                                        ELSE 'perpetual_maintenance' END,
+                    licence_type = ''
+              WHERE licence_term IS NULL AND LOWER(TRIM(licence_type)) IN ('subscription', 'perpetual')"
+        );
+    }
+
     /**
      * Create (no id) or update (id present) a licence.
      * Returns ['id' => int, 'created' => bool].
@@ -47,34 +101,36 @@ class SoftwareService
                 throw new ServiceError('validation', 'missing_field', 'No fields to update.');
             }
             $f = self::collectFields($conn, $in, $current);
+            $termSet = self::termReady($conn) ? ', licence_term=?' : '';
             // created_by is never touched on update — save_licence.php parity.
             $conn->prepare(
                 "UPDATE software_licences SET app_id=?, licence_type=?, licence_key=?, quantity=?,
                     renewal_date=?, notice_period_days=?, portal_url=?, cost=?, currency=?,
-                    purchase_date=?, vendor_contact=?, notes=?, status=?, updated_at=UTC_TIMESTAMP()
+                    purchase_date=?, vendor_contact=?, notes=?, status=?{$termSet}, updated_at=UTC_TIMESTAMP()
                  WHERE id=?"
-            )->execute([
+            )->execute(array_merge([
                 $f['app_id'], $f['licence_type'], $f['licence_key'], $f['quantity'], $f['renewal_date'],
                 $f['notice_period_days'], $f['portal_url'], $f['cost'], $f['currency'], $f['purchase_date'],
-                $f['vendor_contact'], $f['notes'], $f['status'], $id,
-            ]);
+                $f['vendor_contact'], $f['notes'], $f['status'],
+            ], $termSet ? [$f['licence_term']] : [], [$id]));
             WorkflowEngine::emitCrud('software_licence', 'updated', $id, $f['licence_type']);
             self::resyncRenewalCalendar($conn);
             return ['id' => $id, 'created' => false];
         }
 
         $f = self::collectFields($conn, $in);
+        $termOn = self::termReady($conn);
         $conn->prepare(
             "INSERT INTO software_licences
                 (app_id, licence_type, licence_key, quantity, renewal_date,
                  notice_period_days, portal_url, cost, currency, purchase_date,
-                 vendor_contact, notes, status, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        )->execute([
+                 vendor_contact, notes, status, created_by" . ($termOn ? ', licence_term' : '') . ")
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" . ($termOn ? ', ?' : '') . ")"
+        )->execute(array_merge([
             $f['app_id'], $f['licence_type'], $f['licence_key'], $f['quantity'], $f['renewal_date'],
             $f['notice_period_days'], $f['portal_url'], $f['cost'], $f['currency'], $f['purchase_date'],
             $f['vendor_contact'], $f['notes'], $f['status'], $ctx->actorId,
-        ]);
+        ], $termOn ? [$f['licence_term']] : []));
         $newId = (int)$conn->lastInsertId();
         WorkflowEngine::emitCrud('software_licence', 'created', $newId, $f['licence_type']);
         self::resyncRenewalCalendar($conn);
@@ -164,9 +220,21 @@ class SoftwareService
             throw new ServiceError('validation', 'invalid_field', "Unknown app id: {$f['app_id']}");
         }
         $f['licence_type'] = trim((string)($get('licence_type') ?? ''));
-        if ($f['licence_type'] === '') {
-            throw new ServiceError('validation', 'missing_field', "'licence_type' is required.");
+        $term = $get('licence_term');
+        $term = $term === null ? '' : strtolower(trim((string)$term));
+        if ($term !== '' && !in_array($term, self::TERMS, true)) {
+            throw new ServiceError('validation', 'invalid_field', "'licence_term' must be one of: " . implode(', ', self::TERMS) . '.');
         }
+        // Before 5.11.0 "Subscription" was a type. Sent that way it is the term, and the
+        // counted-by is unknown - unless a term was sent as well, which wins.
+        if (($legacy = self::legacyTerm($f['licence_type'])) !== null) {
+            if ($term === '') $term = $legacy;
+            $f['licence_type'] = '';
+        }
+        if ($f['licence_type'] === '' && $term === '') {
+            throw new ServiceError('validation', 'missing_field', "'licence_type' (how it is counted) or 'licence_term' is required.");
+        }
+        $f['licence_term'] = $term !== '' ? $term : null;
 
         $f['licence_key'] = ($v = trim((string)($get('licence_key') ?? ''))) !== '' ? $v : null;
         $f['quantity'] = null;
@@ -181,6 +249,17 @@ class SoftwareService
         $f['notice_period_days'] = null;
         if ($get('notice_period_days') !== null && $get('notice_period_days') !== '') {
             $f['notice_period_days'] = max(0, (int)$get('notice_period_days'));
+        }
+        // A perpetual licence never renews, so it has no renewal date or notice period to
+        // warn about (Watchtower, the calendar). With maintenance, the date is the
+        // maintenance renewal. A legacy "Perpetual" type sent with a date meant that.
+        if ($f['licence_term'] === 'perpetual' && $f['renewal_date'] !== null && self::legacyTerm((string)($in['licence_type'] ?? '')) === 'perpetual'
+            && !array_key_exists('licence_term', $in)) {
+            $f['licence_term'] = 'perpetual_maintenance';
+        }
+        if ($f['licence_term'] === 'perpetual') {
+            $f['renewal_date'] = null;
+            $f['notice_period_days'] = null;
         }
         $f['portal_url'] = ($v = trim((string)($get('portal_url') ?? ''))) !== '' ? $v : null;
         $f['cost'] = null;

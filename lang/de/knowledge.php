@@ -543,6 +543,13 @@ Weil die beiden Listen genau das Gegenteil bedeuten, werden die jetzt aufgeführ
         'press_run' => 'Klicken Sie auf „Lücken suchen“.',
         'none_to_read' => 'Keine geschlossenen Tickets aus den letzten {days} Tagen zum Lesen.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Netzwerkdiagramme',
+        'related' => 'Bezieht sich auf das Diagramm',
+        'item'    => 'Verknüpft von einem Element darin',
+    ],
+
     'help' => [
         'guide' => 'Leitfaden',
         'topics_title' => 'Im Detail',

@@ -35,7 +35,7 @@ const WFE = (() => {
 
     // ---- State ----
     let canvas, svg, detail;
-    let workflow = { id: 0, name: '', description: '', isActive: true };
+    let workflow = { id: 0, name: '', description: '', isActive: true, stopAfter: false };   // stopAfter: discussion #304
     let triggerEvent = '';
     let nodes = [];               // [{ id, kind, x, y, el, ... }]
     let selectedNodeId = null;
@@ -65,7 +65,7 @@ const WFE = (() => {
         } else {
             // Brand new workflow — seed a trigger + one log_message action
             // a sensible distance below.
-            workflow = { id: 0, name: '', description: '', isActive: true };
+            workflow = { id: 0, name: '', description: '', isActive: true, stopAfter: false };
             triggerEvent = Object.keys(window.WF_TRIGGERS)[0];
             nodes = [];
             addTriggerNode();
@@ -168,6 +168,7 @@ const WFE = (() => {
             workflow.name        = w.name || '';
             workflow.description = w.description || '';
             workflow.isActive    = !!parseInt(w.is_active, 10);
+            workflow.stopAfter   = !!parseInt(w.stop_after || 0, 10);
             triggerEvent         = w.trigger_event;
             nodes = [];
 
@@ -211,6 +212,7 @@ const WFE = (() => {
             document.getElementById('wfName').value = workflow.name;
             document.getElementById('wfDescription').value = workflow.description;
             document.getElementById('wfActive').checked = workflow.isActive;
+            document.getElementById('wfStopAfter').checked = workflow.stopAfter;
             showCompany(w.company);
 
             renderAll();
@@ -1488,6 +1490,10 @@ const WFE = (() => {
             workflow.isActive = document.getElementById('wfActive').checked;
             markDirty();
         });
+        document.getElementById('wfStopAfter').addEventListener('change', () => {
+            workflow.stopAfter = document.getElementById('wfStopAfter').checked;
+            markDirty();
+        });
         // GH #209. A new workflow starts in the default the page worked out.
         const company = document.getElementById('wfCompany');
         if (company) {
@@ -1627,6 +1633,7 @@ const WFE = (() => {
             trigger_event: triggerEvent,
             conditions, actions,
             is_active: workflow.isActive ? 1 : 0,
+            stop_after: workflow.stopAfter ? 1 : 0,   // discussion #304
         };
         // GH #209. Only on an install with companies; '' = shared.
         const company = document.getElementById('wfCompany');
@@ -2349,10 +2356,12 @@ const WFE = (() => {
         // shape, not the identity / state.
         const keepId       = workflow.id;
         const keepActive   = workflow.isActive;
+        const keepStop     = workflow.stopAfter;
         workflow.name        = w.name || workflow.name;
         workflow.description = w.description || workflow.description;
         workflow.id          = keepId;
         workflow.isActive    = keepActive;
+        workflow.stopAfter   = keepStop;
         triggerEvent         = w.trigger_event;
 
         // Replace nodes with the proposal — same auto-layout as a fresh load

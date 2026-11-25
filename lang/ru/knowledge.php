@@ -542,6 +542,13 @@ return [
         'press_run' => 'Нажмите «Найти пробелы».',
         'none_to_read' => 'За последние {days} дн. нет закрытых заявок для чтения.',
     ],
+    // GH #433: network diagrams that use an article
+    'diagrams' => [
+        'title'   => 'Схемы сети',
+        'related' => 'Относится ко всей схеме',
+        'item'    => 'Связана с элементом схемы',
+    ],
+
     'help' => [
         'guide' => 'Руководство',
         'topics_title' => 'Подробно',

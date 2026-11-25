@@ -32,6 +32,12 @@ step and prove the result is valid and accurate.
    ```
    php openapi_verify.php <read_key>  # aim for 0 failed (a few id-only endpoints may SKIP)
    ```
+   The run makes a few hundred requests in a minute, so give the temporary key a
+   high `rate_limit_per_minute` (e.g. 5000) - at the default of 60 the later
+   endpoints come back 429 and are only SKIPPED, which looks like a clean run.
+   An endpoint checked against an object with no data in the part you changed
+   (an empty list, a null) proves nothing about that part: point it at a row
+   that has it.
 5. Confirm the invariants (drift, refs, operationIds, responses, shape, nullable,
    catalogue):
    ```

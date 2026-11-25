@@ -65,6 +65,7 @@ return [
         'no_match' => 'Nada aqui corresponde a "{q}".',
         'open' => 'Abrir',
         'open_location' => 'Abrir local do arquivo',
+        'open_separately' => 'Abrir separadamente',
         'open_new' => 'Abrir em nova janela',
         'paste' => 'Colar',
         'paste_into' => 'Colar na pasta',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Sempre mostrar',
         'navbar' => 'Barra de navegação superior',
         'note' => 'Estas escolhas são só suas. O logotipo da área de trabalho é definido por um administrador.',
+        'multi' => 'Abrir vários arquivos',
+        'multi_viewer' => 'Em um só visualizador - percorra-os com as teclas de seta',
+        'multi_windows' => 'Em janelas separadas - até 10; mais que isso abrem em um só visualizador',
     ],
     'props' => [
         'restore' => 'Restaurar',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Sair',
         'title' => 'Iniciar',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Este arquivo não pode ter miniatura ({why}).',
         'why_too_large' => 'é grande demais para ser reduzido',
         'why_unsupported' => 'este servidor não consegue ler esse tipo de imagem',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Este arquivo compactado está vazio.',
         'zoom_in' => 'Aumentar zoom',
         'zoom_out' => 'Diminuir zoom',
+        'previous' => 'Anterior',
+        'next' => 'Próximo',
+        'slideshow' => 'Apresentação de slides',
+        'slideshow_tip' => 'Mostra as imagens uma após a outra. Espaço pausa, Esc para.',
+        'pause' => 'Pausar',
+        'play' => 'Reproduzir',
+        'stop' => 'Parar',
     ],
     'wm' => [
         'close' => 'Fechar',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Todo arquivo aberto é registrado na trilha de auditoria, incluindo qual versão e, no caso de um zip, qual arquivo dentro dele.',
             'p7' => 'Uma imagem ou PDF se ajusta de novo conforme você redimensiona ou maximiza a janela, até que você aplique zoom por conta própria; **Ajustar** devolve o ajuste. O mesmo visualizador abre imagens e PDFs anexados a tickets, em uma janela sobre o ticket.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Vários arquivos de uma vez',
+            'title' => 'Vários arquivos de uma vez',
+            'intro' => 'Percorra uma pasta, ou uma seleção, em uma só janela.',
+            'p1' => 'Com um arquivo aberto, **Anterior** e **Próximo** na barra de ferramentas do visualizador - ou as setas para a esquerda e para a direita - vão para o arquivo antes ou depois dele na pasta, na ordem em que a pasta está classificada. Home e End vão para o primeiro e o último.',
+            'p2' => 'Selecione vários arquivos e pressione **Enter**, ou clique com o botão direito e escolha **Abrir**, para abrir só esses em um visualizador. Pastas na seleção são deixadas de fora. Para ter cada arquivo em uma janela própria - para colocar dois lado a lado -, clique com o botão direito e escolha **Abrir separadamente** (até 10 arquivos), ou mude **Abrir vários arquivos** em **Personalizar** para que o Enter faça isso. Mais de 10 arquivos sempre abrem em um só visualizador.',
+            'p3' => '**Apresentação de slides** mostra as imagens entre eles uma após a outra, em tela cheia quando o navegador permite, alguns segundos cada. **Espaço** pausa e **Esc** para. Ela é exibida uma vez, da imagem em que você está até a última, e pula tudo o que não é imagem.',
+            'p4' => 'Cada arquivo para o qual você passa é aberto como se você mesmo o tivesse aberto: ele precisa de **Ver** na pasta, Somente visualização e a marca d\'água se aplicam, e ele é registrado na trilha de auditoria.',
+        ],
+        'thumbnails' => [
             'nav' => 'Miniaturas',
             'title' => 'Miniaturas',
             'intro' => 'Imagens e PDFs mostram o que têm dentro.',

@@ -65,6 +65,7 @@ return [
         'no_match' => 'Rien ici ne correspond à « {q} ».',
         'open' => 'Ouvrir',
         'open_location' => 'Ouvrir l\'emplacement du fichier',
+        'open_separately' => 'Ouvrir séparément',
         'open_new' => 'Ouvrir dans une nouvelle fenêtre',
         'paste' => 'Coller',
         'paste_into' => 'Coller dans le dossier',
@@ -135,6 +136,9 @@ return [
         'nav_on' => 'Toujours afficher',
         'navbar' => 'Barre de navigation supérieure',
         'note' => 'Ces choix vous sont propres. Le logo sur le bureau est défini par un administrateur.',
+        'multi' => 'Ouverture de plusieurs fichiers',
+        'multi_viewer' => 'Dans une seule visionneuse - parcourez-les avec les touches fléchées',
+        'multi_windows' => 'Dans des fenêtres séparées - jusqu\'à 10 ; au-delà, ils s\'ouvrent dans une seule visionneuse',
     ],
     'props' => [
         'restore' => 'Restaurer',
@@ -363,7 +367,7 @@ return [
         'sign_out' => 'Se déconnecter',
         'title' => 'Démarrer',
     ],
-    'thumb' => [   // GH #424
+    'thumb' => [
         'cannot' => 'Ce fichier ne peut pas avoir de vignette ({why}).',
         'why_too_large' => 'il est trop volumineux pour être réduit',
         'why_unsupported' => 'ce serveur ne sait pas lire ce type d\'image',
@@ -437,6 +441,13 @@ return [
         'zip_empty' => 'Cette archive est vide.',
         'zoom_in' => 'Zoom avant',
         'zoom_out' => 'Zoom arrière',
+        'previous' => 'Précédent',
+        'next' => 'Suivant',
+        'slideshow' => 'Diaporama',
+        'slideshow_tip' => 'Affiche les images l\'une après l\'autre. Espace met en pause, Échap arrête.',
+        'pause' => 'Pause',
+        'play' => 'Lire',
+        'stop' => 'Arrêter',
     ],
     'wm' => [
         'close' => 'Fermer',
@@ -539,7 +550,16 @@ return [
             'p6' => 'Chaque fichier ouvert est enregistré dans la piste d\'audit, avec la version et, pour un zip, le fichier concerné à l\'intérieur.',
             'p7' => 'Une image ou un PDF se réajuste quand vous redimensionnez ou agrandissez sa fenêtre, jusqu\'à ce que vous zoomiez vous-même ; **Ajuster** lui rend ce réglage. Le même visionneur ouvre les images et les PDF joints aux tickets, dans une fenêtre au-dessus du ticket.',
         ],
-        'thumbnails' => [   // GH #424
+        'gallery' => [
+            'nav' => 'Plusieurs fichiers à la fois',
+            'title' => 'Plusieurs fichiers à la fois',
+            'intro' => 'Parcourez un dossier, ou une sélection, dans une seule fenêtre.',
+            'p1' => 'Quand un fichier est ouvert, **Précédent** et **Suivant** dans la barre d\'outils de la visionneuse - ou les flèches gauche et droite - passent au fichier d\'avant ou d\'après dans le dossier, dans l\'ordre de tri du dossier. Début et Fin vont au premier et au dernier.',
+            'p2' => 'Sélectionnez plusieurs fichiers et appuyez sur **Entrée**, ou faites un clic droit et choisissez **Ouvrir**, pour ouvrir uniquement ceux-là dans une visionneuse. Les dossiers de la sélection sont ignorés. Pour que chaque fichier ait plutôt sa propre fenêtre - afin d\'en mettre deux côte à côte -, faites un clic droit et choisissez **Ouvrir séparément** (jusqu\'à 10 fichiers), ou changez **Ouverture de plusieurs fichiers** dans **Personnaliser** pour qu\'Entrée le fasse. Au-delà de 10 fichiers, ils s\'ouvrent toujours dans une seule visionneuse.',
+            'p3' => '**Diaporama** affiche les images qui s\'y trouvent l\'une après l\'autre, en plein écran si le navigateur le permet, quelques secondes chacune. **Espace** le met en pause et **Échap** l\'arrête. Il ne passe qu\'une fois, de l\'image affichée jusqu\'à la dernière, et saute tout ce qui n\'est pas une image.',
+            'p4' => 'Chaque fichier vers lequel vous passez est ouvert comme si vous l\'aviez ouvert vous-même : il faut **Voir** sur son dossier, Lecture seule et le filigrane s\'appliquent, et il est enregistré dans le journal d\'audit.',
+        ],
+        'thumbnails' => [
             'nav' => 'Vignettes',
             'title' => 'Vignettes',
             'intro' => 'Les images et les PDF montrent leur contenu.',
