@@ -5082,6 +5082,12 @@ body .tox-tinymce-aux {
 /* GH #308 */
 .req-change-link { margin-left: 8px; font-size: var(--font-size-sm, 12px); color: var(--accent); text-decoration: none; }
 .req-change-link:hover { text-decoration: underline; }
+/* GH #432: the Participants row in the ticket header (assets/js/ticket-participants.js). */
+.participant-chip { display: inline-flex; align-items: center; gap: 2px; margin-right: 8px; white-space: nowrap; }
+.participant-chip.is-left { opacity: .6; }
+.participant-left, .participant-none { color: var(--text-muted); font-size: var(--font-size-sm, 12px); }
+.participant-remove { border: 0; background: none; padding: 0 3px; cursor: pointer; color: var(--text-muted); font-size: 14px; line-height: 1; }
+.participant-remove:hover { color: var(--danger, #dc2626); }
 
 /* ── Modal polish (Ed, 16 Nov 2026: "Modern compact") ─────────────────────
    Tinted header and footer bands, rounder corners, a softer shadow and a focus

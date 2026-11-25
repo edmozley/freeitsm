@@ -64,7 +64,7 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=98">
     <link rel="stylesheet" href="../assets/css/address-suggest.css?v=1">   <!-- GH #307 -->
     <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
@@ -1224,6 +1224,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/inbox.js?v=223"></script>
     <script src="../assets/js/ticket-folders-pane.js?v=2"></script>   <!-- discussion #292 -->
     <script src="../assets/js/ticket-watchers.js?v=2"></script>
+    <script src="../assets/js/ticket-participants.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=5"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>
     <script src="../assets/js/mobile.js?v=87"></script>
