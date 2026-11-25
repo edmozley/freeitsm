@@ -7,6 +7,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/ticket_workspace.php';   // TicketWorkspaceMode (PR #211)
 require_once '../../includes/services/ticket_watchers.php';   // GH #277: the watched-events ticks
+require_once '../../includes/services/ticket_participants.php';   // GH #432: the participant-events ticks
 require_once '../../includes/ticket_list.php';        // TicketListExport (PR #213)
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
@@ -2266,6 +2267,22 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <option value="remove"><?php echo htmlspecialchars(t('tickets.settings.general.watch_inactive_remove')); ?></option>
                     </select>
                     <small style="display:block;margin-top:6px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.watch_inactive_help')); ?></small>
+                </div>
+
+                <!-- GH #432: which automatic emails copy a ticket's PARTICIPANTS (end users added
+                     on the ticket; Reply always pre-fills them). Nothing ticked when never saved:
+                     copying people on automatic emails is the install's choice, so an upgrade
+                     emails nobody new. TicketParticipants::EVENTS / events(). -->
+                <h3 style="margin-top: 34px;"><?php echo htmlspecialchars(t('tickets.settings.general.participant_heading')); ?></h3>
+                <div class="form-group" id="participantEventsGroup">
+                    <label style="font-weight:600;"><?php echo htmlspecialchars(t('tickets.settings.general.participant_events_label')); ?></label>
+                    <?php foreach (TicketParticipants::EVENTS as $__ev): ?>
+                    <label style="display:block;margin-top:6px;font-weight:400;">
+                        <input type="checkbox" class="participant-event" value="<?php echo htmlspecialchars($__ev); ?>">
+                        <?php echo htmlspecialchars(t('tickets.settings.general.participant_event_' . $__ev)); ?>
+                    </label>
+                    <?php endforeach; ?>
+                    <small style="display:block;margin-top:6px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.participant_events_help')); ?></small>
                 </div>
 
                 <!-- The two AI reading aids (#104, ideas 7 and 12).
@@ -7751,6 +7768,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         document.querySelectorAll('#watchEventsGroup .watch-event').forEach(cb => { cb.checked = on.includes(cb.value); });
                     }
                     document.getElementById('watchInactive').value = data.settings.ticket_watch_inactive === 'remove' ? 'remove' : 'stop';
+                    // GH #432: never saved = nothing ticked (TicketParticipants::events()) - the opposite of the watch events.
+                    const partEv = String(data.settings.ticket_participant_events || '').split(',').map(s => s.trim());
+                    document.querySelectorAll('#participantEventsGroup .participant-event').forEach(cb => { cb.checked = partEv.includes(cb.value); });
                     document.getElementById('groupShow').value = parseInt(data.settings.ticket_group_show, 10) || 6;
                     // ⚠️ '|| N' would turn a saved 0 into N, and 0 is the setting that
                     // means "never refresh by itself" — the one an administrator is most
@@ -8126,7 +8146,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 ticket_flag_duplicates:        document.getElementById('flagDuplicates').checked ? '1' : '0',
                 ticket_team_folders:           document.getElementById('teamFolders').value === 'mine' ? 'mine' : 'all',
                 ticket_watch_inactive:         document.getElementById('watchInactive').value === 'remove' ? 'remove' : 'stop',
-                ticket_watch_events:           Array.from(document.querySelectorAll('#watchEventsGroup .watch-event:checked')).map(cb => cb.value).join(',')
+                ticket_watch_events:           Array.from(document.querySelectorAll('#watchEventsGroup .watch-event:checked')).map(cb => cb.value).join(','),
+                ticket_participant_events:     Array.from(document.querySelectorAll('#participantEventsGroup .participant-event:checked')).map(cb => cb.value).join(',')
             };
 
             try {

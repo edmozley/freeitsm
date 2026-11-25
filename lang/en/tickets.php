@@ -2476,6 +2476,13 @@ return [
             'watch_event_ticket_assigned' => 'The ticket is reassigned',
             'watch_event_sla_warning' => 'It approaches its SLA target',
             'watch_event_sla_breached' => 'It breaches its SLA target',
+            // GH #432. Which automatic emails copy a ticket's participants.
+            'participant_heading' => 'Ticket participants',
+            'participant_events_label' => 'Participants are copied on',
+            'participant_event_ticket_assigned' => 'The email saying the ticket has been assigned',
+            'participant_event_ticket_closed' => 'The email saying the ticket is closed',
+            'participant_event_note_shared' => 'A note shared with the requester',
+            'participant_events_help' => 'Participants are people added on a ticket to be kept up to date. Reply always puts them in Cc; these automatic emails copy them only when ticked here. The satisfaction survey and the acknowledgement of a new ticket never do, and a confidential ticket has no participants.',
             'ai_heading' => 'AI reading aids',
             'ai_desc' => 'Optional, and off until you turn them on: unlike everything else on this page these use your own AI provider and cost money per use. The provider, model and API key are configured once on the Reply cleanup tab. Nothing an AI writes ever replaces the ticket — the conversation stays exactly where it is, in full.',
             'ai_summary_label' => 'Keep a short AI summary at the top of each ticket',

@@ -38,6 +38,34 @@ require_once __DIR__ . '/../ticket_sensitivity.php';
 
 class TicketParticipants
 {
+    /**
+     * The automatic emails that can copy participants (Tickets -> Settings -> General ->
+     * "Participants are copied on"). Not the acknowledgement of a new ticket (nobody can
+     * be a participant yet), the CSAT survey or its reminder (the requester's), or the
+     * email to the assigned analyst.
+     */
+    public const EVENTS = ['ticket_assigned', 'ticket_closed', 'note_shared'];
+
+    /**
+     * The events this install copies participants on. Never saved = none: copying people
+     * on automatic emails is something an install chooses, so an upgrade emails nobody new.
+     *
+     * @return list<string>
+     */
+    public static function events(PDO $conn): array
+    {
+        try {
+            $s = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'ticket_participant_events'");
+            $s->execute();
+            $v = $s->fetchColumn();
+        } catch (Throwable) {
+            return [];
+        }
+        if ($v === false || $v === null || trim((string)$v) === '') return [];
+        $on = array_map('trim', explode(',', (string)$v));
+        return array_values(array_filter(self::EVENTS, fn($e) => in_array($e, $on, true)));
+    }
+
     /** Is the table there yet (before Database Verify it is not)? Cached per request. */
     public static function ready(PDO $conn): bool
     {

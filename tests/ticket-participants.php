@@ -260,6 +260,40 @@ try {
         check("$f removes participants", str_contains((string)file_get_contents($f), 'ticket_participants'));
     }
 
+    // ── Task 6: automatic emails ─────────────────────────────────────────────
+    echo "\nAutomatic emails\n";
+    require_once 'includes/template_email.php';
+    $s = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'ticket_participant_events'"); $s->execute();
+    $made['settings']['ticket_participant_events'] = $s->fetchColumn();
+    $setEvents = fn(?string $v) => $v === null
+        ? $conn->exec("DELETE FROM system_settings WHERE setting_key = 'ticket_participant_events'")
+        : $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('ticket_participant_events', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$v]);
+    $te = $ticket('email', $req);
+    $add($te, $pA); $add($te, $pB);
+    $both = $mail('pa') . '; ' . $mail('pb');
+    $setEvents(null);
+    check('never saved: no event copies participants (nothing emailed for a switched-off event)', TicketParticipants::events($conn) === []
+        && templateParticipantCc($conn, $te, 'ticket_closed', $mail('req')) === '');
+    $setEvents('ticket_closed');
+    check('ticked "closed": closing copies both', templateParticipantCc($conn, $te, 'ticket_closed', $mail('req')) === $both, templateParticipantCc($conn, $te, 'ticket_closed', $mail('req')));
+    check('...a shared note still copies nobody', templateParticipantCc($conn, $te, 'note_shared', $mail('req')) === '');
+    $setEvents('ticket_closed,note_shared,ticket_assigned,csat_request,csat_reminder,analyst_assigned,new_ticket_email,bogus');
+    check('only the three events can be on, whatever is saved', TicketParticipants::events($conn) === ['ticket_assigned', 'ticket_closed', 'note_shared'], json_encode(TicketParticipants::events($conn)));
+    foreach (['csat_request', 'csat_reminder', 'analyst_assigned', 'new_ticket_email'] as $ev) {
+        check("$ev never copies participants", templateParticipantCc($conn, $te, $ev, $mail('req')) === '');
+    }
+    check('the To address is not repeated in Cc, whatever its case', templateParticipantCc($conn, $te, 'note_shared', strtoupper($mail('pa'))) === $mail('pb'));
+    $tce = $ticket('email-noreq', null);
+    $add($tce, $pA);
+    check('a ticket with no requester address: no empty entry', templateParticipantCc($conn, $tce, 'ticket_closed', '') === $mail('pa'));
+    $conn->prepare("UPDATE tickets SET sensitivity = 'confidential' WHERE id = ?")->execute([$tce]);
+    $conn->prepare("INSERT IGNORE INTO ticket_participants (ticket_id, user_id, added_by_id, source, added_datetime) VALUES (?, ?, NULL, 'analyst', UTC_TIMESTAMP())")->execute([$tce, $pA]);
+    check('a confidential ticket copies nobody', templateParticipantCc($conn, $tce, 'ticket_closed', '') === '');
+    $mbRow = $conn->query("SELECT * FROM target_mailboxes WHERE id = " . (int)$made['mailboxes'][0])->fetch(PDO::FETCH_ASSOC);
+    templateSaveSentEmail($conn, $te, $mbRow, $mail('req'), 'ZZ432 closed', '<p>Closed</p>', $both);
+    $s = $conn->prepare("SELECT cc_recipients FROM emails WHERE ticket_id = ? AND subject = 'ZZ432 closed'"); $s->execute([$te]);
+    check('the sent email keeps its Cc on the ticket (so the portal sees the requester was on it)', $s->fetchColumn() === $both);
+
     // ── Task 5: the browser endpoint and the REST API ────────────────────────
     if ($base === '') {
         echo "\n(skipped the HTTP checks: set FREEITSM_TEST_URL)\n";
@@ -356,6 +390,10 @@ try {
     }
     foreach ($made['mailboxes'] as $id) $conn->prepare("DELETE FROM target_mailboxes WHERE id = ?")->execute([$id]);
     foreach ($made['departments'] ?? [] as $id) $conn->prepare("DELETE FROM departments WHERE id = ?")->execute([$id]);
+    foreach ($made['settings'] as $k => $v) {
+        if ($v === false) $conn->prepare("DELETE FROM system_settings WHERE setting_key = ?")->execute([$k]);
+        else $conn->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = ?")->execute([$v, $k]);
+    }
     foreach ($made['keys'] as $id) { try { $conn->exec("DELETE FROM api_key_rate_limits WHERE api_key_id = $id"); } catch (Throwable) {} $conn->exec("DELETE FROM api_keys WHERE id = $id"); }
     foreach ($made['sessions'] as $f) @unlink($f);
 }

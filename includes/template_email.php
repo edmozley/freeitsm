@@ -34,6 +34,26 @@ function templateEventAudience(string $eventTrigger): string
 }
 
 /**
+ * Who an automatic email copies (GH #432): the ticket's participants, when this install
+ * copies them on this event (Tickets -> Settings -> General -> "Participants are copied
+ * on"), the email goes to the requester, and the ticket is not confidential. The To
+ * address is never repeated. '' when nobody - which is every event on an install that
+ * has not chosen any.
+ *
+ * @param string $toAddress  the address the email goes to
+ * @return string  addresses separated by '; ', or ''
+ */
+function templateParticipantCc(PDO $conn, int $ticketId, string $eventTrigger, string $toAddress): string
+{
+    require_once __DIR__ . '/services/ticket_participants.php';
+    if (templateEventAudience($eventTrigger) !== 'requester') return '';
+    if (!in_array($eventTrigger, TicketParticipants::events($conn), true)) return '';
+    $to = strtolower(trim($toAddress));
+    $cc = array_filter(TicketParticipants::ccAddresses($conn, $ticketId), fn($a) => $a !== '' && $a !== $to);
+    return implode('; ', $cc);
+}
+
+/**
  * Main entry point — send a template email for a ticket event.
  * Returns silently if no active template exists or no mailbox is found.
  * Never throws — errors go to error_log().
@@ -189,6 +209,10 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
 
         $ticketNumber = $mergeData['ticket_reference'] ?? '';
 
+        // GH #432: the ticket's participants, if this install copies them on this event.
+        // After the mute check above: a muted requester's ticket emails nobody.
+        $ccEmail = templateParticipantCc($conn, $ticketId, $eventTrigger, (string)$recipientEmail);
+
         // Build subject with SDREF for threading
         $fullSubject = "[SDREF:$ticketNumber] $subject";
 
@@ -197,10 +221,10 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
 
         // Send via appropriate API
         if ($provider === MailboxProvider::Imap) {
-            imapSmtpSend($mailbox, $recipientEmail, '', $fullSubject, $fullBody);
+            imapSmtpSend($mailbox, $recipientEmail, $ccEmail, $fullSubject, $fullBody);
         } elseif ($provider === MailboxProvider::Google) {
             $fromAddress = $mailbox['target_mailbox'] ?? '';
-            gmailSendEmail($accessToken, $recipientEmail, $fullSubject, $fullBody, $fromAddress);
+            gmailSendEmail($accessToken, $recipientEmail, $fullSubject, $fullBody, $fromAddress, $ccEmail);
         } else {
             $message = [
                 'message' => [
@@ -215,6 +239,10 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
                 ],
                 'saveToSentItems' => true
             ];
+            if ($ccEmail !== '') {
+                $message['message']['ccRecipients'] = array_map(
+                    fn($a) => ['emailAddress' => ['address' => $a]], explode('; ', $ccEmail));
+            }
             templateSendViaGraph($accessToken, $message, $graphBase);
         }
 
@@ -229,7 +257,7 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
         if (templateEventAudience($eventTrigger) === 'analyst') {
             templateNoteAnalystEmail($conn, $ticketId, (string)($mergeData['assigned_analyst_name'] ?? ''), $recipientEmail);
         } else {
-            templateSaveSentEmail($conn, $ticketId, $mailbox, $recipientEmail, $fullSubject, $body);
+            templateSaveSentEmail($conn, $ticketId, $mailbox, $recipientEmail, $fullSubject, $body, $ccEmail);
         }
 
     } catch (Exception $e) {
@@ -797,12 +825,14 @@ function templateNoteAnalystEmail(PDO $conn, int $ticketId, string $name, string
  * @param string $subject  the subject as sent
  * @param string $body  the HTML body as sent
  */
-function templateSaveSentEmail(PDO $conn, int $ticketId, array $mailbox, string $to, string $subject, string $body): void {
+function templateSaveSentEmail(PDO $conn, int $ticketId, array $mailbox, string $to, string $subject, string $body, string $cc = ''): void {
     try {
+        // cc_recipients (GH #432): participants copied on it - the portal's third-party
+        // rule reads it like any analyst reply's Cc.
         $sql = "INSERT INTO emails (
-            subject, from_address, from_name, to_recipients,
+            subject, from_address, from_name, to_recipients, cc_recipients,
             received_datetime, body_content, body_type, ticket_id, is_initial, direction, mailbox_id
-        ) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, 'html', ?, 0, 'Outbound', ?)";
+        ) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, 'html', ?, 0, 'Outbound', ?)";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([
@@ -810,6 +840,7 @@ function templateSaveSentEmail(PDO $conn, int $ticketId, array $mailbox, string 
             $mailbox['target_mailbox'] ?? '',
             $mailbox['name'] ?? 'Service Desk',
             $to,
+            $cc !== '' ? $cc : null,
             $body,
             $ticketId,
             $mailbox['id']
