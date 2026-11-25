@@ -426,6 +426,19 @@ try {
                     </ul>
                     <p class="help-note"><?php echo t('tickets.help.watch.note'); ?></p>
 
+                    <?php /* GH #432: participants - end users copied on a ticket's emails. */ ?>
+                    <h4 id="participants" style="margin-top: 24px;"><?php echo htmlspecialchars(t('tickets.help.participants.heading')); ?></h4>
+                    <p><?php echo t('tickets.help.participants.body'); ?></p>
+                    <ul>
+                        <li><?php echo t('tickets.help.participants.how'); ?></li>
+                        <li><?php echo t('tickets.help.participants.reply'); ?></li>
+                        <li><?php echo t('tickets.help.participants.auto'); ?></li>
+                        <li><?php echo t('tickets.help.participants.who'); ?></li>
+                        <li><?php echo t('tickets.help.participants.confidential'); ?></li>
+                    </ul>
+                    <p class="help-note"><?php echo t('tickets.help.participants.note'); ?></p>
+                    <p class="help-note"><?php echo t('tickets.help.participants.auto_reply'); ?></p>
+
                     <?php /* GH #272: forms on a ticket. */ ?>
                     <h4 id="ticket-forms" style="margin-top: 24px;"><?php echo htmlspecialchars(t('tickets.help.forms_on_ticket.heading')); ?></h4>
                     <p><?php echo t('tickets.help.forms_on_ticket.body'); ?></p>

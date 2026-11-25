@@ -294,6 +294,20 @@ try {
     $s = $conn->prepare("SELECT cc_recipients FROM emails WHERE ticket_id = ? AND subject = 'ZZ432 closed'"); $s->execute([$te]);
     check('the sent email keeps its Cc on the ticket (so the portal sees the requester was on it)', $s->fetchColumn() === $both);
 
+    // ── Task 8: the portal's third-party rule is unchanged ───────────────────
+    echo "\nThe portal\n";
+    require_once 'includes/portal_visibility.php';
+    $reqAddr = $mail('req');
+    $vis = fn(array $e) => portalEmailVisibility($e + ['channel' => 'email', 'direction' => 'Inbound'], $reqAddr, PORTAL_THIRD_PARTY_HIDE)['visible'];
+    check('a participant writing to the service desk without the requester stays hidden (no change for participants)',
+        $vis(['from_address' => $mail('pa'), 'to_recipients' => $mail('mbox'), 'cc_recipients' => '']) === false);
+    check('...the same message with the requester in Cc is visible (negative control)',
+        $vis(['from_address' => $mail('pa'), 'to_recipients' => $mail('mbox'), 'cc_recipients' => $reqAddr]) === true);
+    check('a Reply to a participant with the requester pre-filled in Cc is visible to the requester',
+        $vis(['direction' => 'Outbound', 'from_address' => $mail('mbox'), 'to_recipients' => $mail('pa'), 'cc_recipients' => $reqAddr . '; ' . $mail('pb')]) === true);
+    check('an automatic email to the requester copying participants is visible',
+        $vis(['direction' => 'Outbound', 'from_address' => $mail('mbox'), 'to_recipients' => $reqAddr, 'cc_recipients' => $both]) === true);
+
     // ── Task 5: the browser endpoint and the REST API ────────────────────────
     if ($base === '') {
         echo "\n(skipped the HTTP checks: set FREEITSM_TEST_URL)\n";
