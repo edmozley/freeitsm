@@ -129,6 +129,8 @@ try {
     check("an analyst's address (they are staff, not an end user)", errCode(fn() => TicketParticipants::add($conn, $ctx, $t, null, ' ' . strtoupper($mail('analyst')), true)) === 'analyst_address');
     $staffPerson = $person('analyst');
     check('...also as a person record with that address, by id', errCode(fn() => TicketParticipants::add($conn, $ctx, $t, $staffPerson, null, true)) === 'analyst_address');
+    $mbPerson = $person('mbowner', 'mbox');
+    check('a person one of whose LINKED addresses is a mailbox address, by id', errCode(fn() => TicketParticipants::add($conn, $ctx, $t, $mbPerson, null, true)) === 'mailbox_address');
     check('anyone, on a trashed ticket',errCode(fn() => TicketParticipants::add($conn, $ctx, $tTrash, $p2, null, true)) === 'trashed');
     check('anyone, on a confidential ticket', errCode(fn() => TicketParticipants::add($conn, $ctx, $tConf, $p2, null, true)) === 'confidential');
     check('anyone, without write access', errCode(fn() => TicketParticipants::add($conn, $ctx, $t, $p2, null, false)) === 'read_only');
@@ -138,6 +140,26 @@ try {
     check('adding to a ticket with no requester works', TicketParticipants::add($conn, $ctx, $tNoReq, $p2, null, true)['added'] === true);
     check('...and its Cc has no empty entry', TicketParticipants::ccAddresses($conn, $tNoReq) === [$mail('p2')], json_encode(TicketParticipants::ccAddresses($conn, $tNoReq)));
     check('other_company is false for a person in the same company', TicketParticipants::add($conn, $ctx, $t, $p2, null, true)['other_company'] === false);
+
+    echo "\nWho an Add would be (the dialog asks before Add)\n";
+    $pv = TicketParticipants::preview($conn, $ctx, $t, null, ' ' . strtoupper($mail('alt')));
+    check('a linked address names the person who has it, not a new person', $pv['user_id'] === $linked && $pv['new'] === false && $pv['name'] === 'ZZ main', json_encode($pv));
+    $pv = TicketParticipants::preview($conn, $ctx, $t, null, $mail('nobody-yet'));
+    check('an address nobody has: a new person', $pv['user_id'] === null && $pv['new'] === true, json_encode($pv));
+    $s = $conn->prepare("SELECT COUNT(*) FROM users WHERE email = ?"); $s->execute([$mail('nobody-yet')]);
+    check('...and asking creates nobody', (int)$s->fetchColumn() === 0);
+    $pv = TicketParticipants::preview($conn, $ctx, $t, $p2, null);
+    check('by id: the person, same company', $pv['user_id'] === $p2 && $pv['other_company'] === false, json_encode($pv));
+    check('a bad address is refused as Add would refuse it', errCode(fn() => TicketParticipants::preview($conn, $ctx, $t, null, 'nope')) === 'invalid_email');
+    if (isMultiTenant($conn)) {
+        $other = (int)$conn->query("SELECT id FROM tenants WHERE is_default = 0 ORDER BY id LIMIT 1")->fetchColumn();
+        $tOther = $ticket('othercompany', $req);
+        $conn->prepare("UPDATE tickets SET tenant_id = ? WHERE id = ?")->execute([$other, $tOther]);
+        $conn->prepare("UPDATE users SET tenant_id = NULL WHERE id = ?")->execute([$p2]);
+        check('a person with no company (the Default one) on another company\'s ticket is other_company', TicketParticipants::preview($conn, $ctx, $tOther, $p2, null)['other_company'] === true);
+    } else {
+        echo "  (single-company install: the other-company case is not reachable here)\n";
+    }
 
     echo "\nPeople who left, confidential, removing\n";
     $conn->prepare("INSERT INTO ticket_participants (ticket_id, user_id, added_by_id, source, added_datetime) VALUES (?, ?, NULL, 'analyst', UTC_TIMESTAMP())")->execute([$t, $left]);
@@ -358,6 +380,10 @@ try {
         check("the requester is refused with a code the page can show ($c)", $c === 400 && ($j['code'] ?? '') === 'is_requester', json_encode($j));
         [$c, $j] = $http('POST', ['action' => 'add', 'ticket_id' => $th, 'user_id' => $pC], '', false);
         check("no CSRF token: refused, nothing added ($c)", $c !== 200 && !in_array($pC, $rows($th), true), json_encode($j));
+        [$c, $j] = $http('GET', [], "?ticket_id=$th&preview=1&email=" . rawurlencode($mail('alt')));
+        check("preview a linked address: names its person ($c)", $c === 200 && ($j['user_id'] ?? 0) === $linked && ($j['new'] ?? null) === false, json_encode($j));
+        [$c, $j] = $http('GET', [], "?ticket_id=$th&preview=1&email=" . rawurlencode($mail('mbox')));
+        check("preview a mailbox address: refused with its code ($c)", $c === 400 && ($j['code'] ?? '') === 'mailbox_address', json_encode($j));
         [$c, $j] = $http('GET', [], '?ticket_id=999999999');
         check("a ticket that does not exist is 404 ($c)", $c === 404);
         [$c, $j] = $http('GET', [], "?ticket_id=$tConf");

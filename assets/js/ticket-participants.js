@@ -91,7 +91,6 @@
     function openAddParticipant() {
         if (!state.ticketId) return;
         const ticketId = state.ticketId;
-        const ticketCompany = (cur() && cur().tenant_id) ?? null;
         const wrap = document.createElement('div');
         wrap.className = 'modal active';
         wrap.innerHTML = `<div class="modal-content" style="max-width:520px">
@@ -110,16 +109,35 @@
         const close = () => wrap.remove();
         const search = wrap.querySelector('#tpSearch'), list = wrap.querySelector('#tpList'),
               note = wrap.querySelector('#tpNote'), save = wrap.querySelector('[data-tp="save"]');
-        let chosen = null, timer = null, results = [];
+        let chosen = null, timer = null, results = [], asked = 0;
         const say = (text) => { note.textContent = text || ''; note.hidden = !text; };
-        const pick = (c) => {
-            chosen = c;
-            save.disabled = !c;
+        /**
+         * Ask the server who an Add would put on the ticket (TicketParticipants::preview):
+         * the person behind a typed address - main or linked - or a new one, and whether
+         * they are in another company. The page never guesses either.
+         */
+        const pick = async (c) => {
+            const mine = ++asked;
+            chosen = null;
+            save.disabled = true;
             list.querySelectorAll('.tp-row').forEach(r => r.style.background = c && c.id && +r.dataset.id === c.id ? 'var(--accent-soft)' : '');
             if (!c) { say(''); return; }
-            if (c.email && !c.id) { say(T('new_person', { email: c.email })); return; }
-            const other = ticketCompany !== null && c.tenant_id !== undefined && c.tenant_id !== null && +c.tenant_id !== +ticketCompany;
-            say(other ? T('other_company', { company: c.tenant_name || '' }) : '');
+            let pv;
+            try {
+                pv = await call('GET', null, '?ticket_id=' + encodeURIComponent(ticketId) + '&preview=1'
+                    + (c.id ? '&user_id=' + encodeURIComponent(c.id) : '&email=' + encodeURIComponent(c.email)));
+            } catch (err) {
+                if (mine === asked) say(err.message);
+                return;
+            }
+            if (mine !== asked) return;   // typed on meanwhile
+            chosen = pv.user_id ? { id: pv.user_id } : { email: pv.email };
+            save.disabled = false;
+            const lines = [];
+            if (pv.new) lines.push(T('new_person', { email: pv.email }));
+            else if (!c.id) lines.push(T('existing_person', { name: pv.name || pv.email || '' }));
+            if (pv.other_company) lines.push(T('other_company', { company: pv.company_name || '' }));
+            say(lines.join(' '));
         };
         search.focus();
         search.addEventListener('input', () => {
@@ -133,15 +151,15 @@
                 list.innerHTML = results.length ? results.map(u => `<div class="tp-row" data-id="${+u.id}" style="padding:6px 8px;cursor:pointer;border-bottom:1px solid var(--border-soft)">
                     <strong>${esc(u.display_name || u.email || '')}</strong> <span style="color:var(--text-muted)">${esc(u.email || '')}</span></div>`).join('')
                     : `<div style="color:var(--text-muted);padding:6px">${esc(T('nobody_found'))}</div>`;
-                // A typed address nobody has: it can still be added - the person is created.
-                if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(q) && !results.some(u => norm(u.email) === norm(q))) pick({ email: q });
+                // A typed address: the server says whose it is (main or linked) or that it is new.
+                if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(q)) pick({ email: q });
             }, 200);
         });
         list.addEventListener('click', (e) => {
             const row = e.target.closest('.tp-row');
             if (!row) return;
             const u = results.find(x => +x.id === +row.dataset.id);
-            if (u) pick({ id: +u.id, tenant_id: u.tenant_id, tenant_name: u.tenant_name });
+            if (u) pick({ id: +u.id });
         });
         wrap.addEventListener('click', async (e) => {
             const b = e.target.closest('[data-tp]');

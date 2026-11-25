@@ -151,8 +151,10 @@ class TicketParticipants
             if ((int)$person['is_active'] !== 1) {
                 throw new ServiceError('validation', 'inactive', 'This person has left, so cannot be added.');
             }
-            if ($person['email'] !== null && self::isMailboxAddress($conn, (string)$person['email'])) {
-                throw new ServiceError('validation', 'mailbox_address', 'That is one of this service desk\'s own mailbox addresses.');
+            foreach (self::personAddresses($conn, $userId, $person['email']) as $a) {
+                if (self::isMailboxAddress($conn, $a)) {
+                    throw new ServiceError('validation', 'mailbox_address', 'That is one of this service desk\'s own mailbox addresses.');
+                }
             }
             if ($person['email'] !== null && self::isAnalystAddress($conn, (string)$person['email'])) {
                 throw new ServiceError('validation', 'analyst_address', 'That is an analyst\'s address. Analysts follow a ticket with Watch.');
@@ -174,6 +176,34 @@ class TicketParticipants
             if ($own && $conn->inTransaction()) $conn->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Who an Add would put on the ticket, without changing anything - for the Add dialog,
+     * so it can name the person behind a typed address (main or linked, #308) instead of
+     * promising a new one, and warn before Add when they are in another company. Refuses
+     * an address exactly as add() would (invalid, a mailbox's, an analyst's).
+     *
+     * @return array{user_id:?int, name:?string, email:?string, new:bool, other_company:bool, company_name:?string}
+     */
+    public static function preview(PDO $conn, ActorContext $ctx, int $ticketId, ?int $userId, ?string $email): array
+    {
+        self::assertReady($conn);
+        self::assertActorSees($conn, $ctx, $ticketId);
+        $ticket = self::ticketRow($conn, $ticketId);
+        $found = self::resolvePerson($conn, $ctx, $userId, $email, false);
+        if ($found === null) {
+            // Nobody has it: the company a new person would get, as add() would create them.
+            $norm = userEmailNorm($email);
+            $tenant = resolveTenantForNewUser($conn, $norm);
+            return ['user_id' => null, 'name' => null, 'email' => $norm, 'new' => true,
+                    'other_company' => self::otherCompany($conn, ['tenant_id' => $tenant], $ticket),
+                    'company_name' => self::companyName($conn, $tenant)];
+        }
+        $person = self::personRow($conn, $found);
+        return ['user_id' => $found, 'name' => (string)($person['display_name'] ?: $person['email']), 'email' => $person['email'],
+                'new' => false, 'other_company' => self::otherCompany($conn, $person, $ticket),
+                'company_name' => self::companyName($conn, $person['tenant_id'] !== null ? (int)$person['tenant_id'] : null)];
     }
 
     /**
@@ -342,8 +372,11 @@ class TicketParticipants
         return $r;
     }
 
-    /** The person to add: by id (must exist and be visible to the actor), or by address (found or created). */
-    private static function resolvePerson(PDO $conn, ActorContext $ctx, ?int $userId, ?string $email): int
+    /**
+     * The person to add: by id (must exist and be visible to the actor), or by address
+     * (found, or created when $create - otherwise null for "nobody has it yet").
+     */
+    private static function resolvePerson(PDO $conn, ActorContext $ctx, ?int $userId, ?string $email, bool $create = true): ?int
     {
         if ($userId !== null && $userId > 0) {
             self::personRow($conn, $userId);
@@ -372,6 +405,7 @@ class TicketParticipants
             }
             return $found;
         }
+        if (!$create) return null;
         // A new person, exactly as a new requester is created (TicketsService::create).
         $conn->prepare("INSERT INTO users (email, display_name, tenant_id, created_at) VALUES (?, '', ?, UTC_TIMESTAMP())")
              ->execute([$norm, resolveTenantForNewUser($conn, $norm)]);
@@ -412,6 +446,16 @@ class TicketParticipants
         $s = $conn->prepare("SELECT 1 FROM analysts WHERE email = ? AND is_active = 1 LIMIT 1");
         $s->execute([$e]);
         return (bool)$s->fetchColumn();
+    }
+
+    /** A company's name (the Default company's for null), or null when unknown / single-company. */
+    private static function companyName(PDO $conn, ?int $tenantId): ?string
+    {
+        if (!isMultiTenant($conn)) return null;
+        $s = $conn->prepare("SELECT name FROM tenants WHERE id = ?");
+        $s->execute([$tenantId ?? getDefaultTenantId($conn)]);
+        $n = $s->fetchColumn();
+        return $n === false ? null : (string)$n;
     }
 
     /** Is the person in another company than the ticket's? Never on a single-company install. */

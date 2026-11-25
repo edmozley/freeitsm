@@ -110,7 +110,7 @@ return [
         'same_as_identical' => 'Identical to the message from {time}',
         'same_as_near' => 'Nearly identical to the message from {time}',
         // GH #432: an out-of-office or other auto-responder.
-        'auto_reply' => 'Automatic reply - it did not reopen the ticket or notify anyone',
+        'auto_reply' => 'Automatic reply - it did not reopen or wake the ticket',
     ],
     'title' => 'Tickets',
 
@@ -339,6 +339,7 @@ return [
         'add_hint' => 'Participants are copied on Reply, and on the automatic emails Tickets → Settings → General ticks. An address nobody has yet adds a new person.',
         'nobody_found' => 'Nobody found.',
         'new_person' => 'Nobody has {email} yet - a new person will be created.',
+        'existing_person' => 'That address belongs to {name}.',
         'other_company' => 'This person is in another company ({company}). They will receive this ticket\'s emails.',
         'none' => 'Nobody',
         'left' => '(left)',

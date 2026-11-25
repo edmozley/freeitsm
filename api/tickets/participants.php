@@ -2,6 +2,8 @@
 /**
  * API: a ticket's participants - end users copied on its emails (GitHub #432).
  *
+ *   GET  ?ticket_id=N&preview=1&user_id=|email=        who an Add would put on the ticket (named, new,
+ *                                                      another company?) - changes nothing
  *   GET  ?ticket_id=N                                  the participants, whether I may change them,
  *                                                      whether the ticket is confidential (it then has none)
  *   POST {action: 'add',    ticket_id, user_id? | email?}
@@ -35,6 +37,12 @@ try {
         if (!TicketParticipants::ready($conn)) {
             // Before Database Verify: the feature is off - the page shows nothing, rather than "nobody".
             echo json_encode(['success' => true, 'ready' => false, 'participants' => [], 'can_edit' => false, 'confidential' => false]);
+            exit;
+        }
+        if (!empty($_GET['preview'])) {
+            $pUser = isset($_GET['user_id']) && (int)$_GET['user_id'] > 0 ? (int)$_GET['user_id'] : null;
+            $pMail = isset($_GET['email']) ? (string)$_GET['email'] : null;
+            echo json_encode(['success' => true] + TicketParticipants::preview($conn, $ctx, $ticketId, $pUser, $pMail));
             exit;
         }
         $list = TicketParticipants::list($conn, $ctx, $ticketId);   // 404 for a ticket I cannot see
