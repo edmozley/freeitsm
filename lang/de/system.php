@@ -1959,6 +1959,8 @@ return [
         'field_company_global' => 'Global (intern / alle)',
         'field_portal_domains' => 'E-Mail-Domänen',
         'field_portal_domains_hint' => 'Eine pro Zeile, z. B. company.com. Im Portal führt eine E-Mail-Adresse einer dieser Domänen direkt zu diesem Anbieter, auch beim ersten Mal. Das gilt auch für Personen, die sich heute mit Passwort anmelden. Alle anderen erhalten wie gewohnt das Passwortfeld. Eine Subdomain braucht eine eigene Zeile. Leer lassen, um niemanden weiterzuleiten.',
+        'cb_analyst_show_button' => 'Schaltfläche auf der Analysten-Anmeldung anzeigen',
+        'cb_analyst_show_button_desc' => 'Abwählen, um sie von der Anmeldeseite der Analysten fernzuhalten - etwa während einige Analysten einen neuen Anbieter ausprobieren. Ihm zugewiesene Analysten erreichen ihn weiterhin, indem sie ihre E-Mail-Adresse eingeben. Dort erscheint immer nur ein globaler Anbieter. Die Portal-Anmeldung ist nicht betroffen.',
         'cb_portal_show_button' => 'Schaltfläche auf der Portal-Anmeldung anzeigen',
         'cb_portal_show_button_desc' => 'Haken entfernen für eine Seite mit nur dem E-Mail-Feld. Personen in den obigen Domänen erreichen darüber weiterhin diesen Anbieter. Die Analysten-Anmeldung ist nicht betroffen.',
         'cancel' => 'Abbrechen',

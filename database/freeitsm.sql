@@ -267,6 +267,10 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     -- Whether the "Sign in with ..." button shows on the portal login. Off
     -- gives the email-box-only page; the analyst login is unaffected.
     `portal_show_button`     TINYINT(1) NOT NULL DEFAULT 1,
+    -- Whether the button shows on the ANALYST login (5.11.0). Off keeps a
+    -- provider a few analysts are trying off everyone else's page; the
+    -- analysts assigned to it still reach it through the email box.
+    `analyst_show_button`    TINYINT(1) NOT NULL DEFAULT 1,
     `created_datetime`       DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `last_modified_datetime` DATETIME NULL,
     PRIMARY KEY (`id`)

@@ -1954,6 +1954,8 @@ return [
         'field_company_global' => 'Globaal (intern / almal)',
         'field_portal_domains' => 'E-posdomeine',
         'field_portal_domains_hint' => 'Een per reël, bv. company.com. Op die portaal gaan \'n e-posadres op een van hierdie domeine reguit na hierdie verskaffer, selfs die eerste keer. Dit sluit mense in wat vandag met \'n wagwoord aanmeld. Almal anders kry die wagwoordblokkie soos gewoonlik. \'n Subdomein het sy eie reël nodig. Los leeg om niemand te stuur nie.',
+        'cb_analyst_show_button' => 'Wys die knoppie op die ontleder-aanmelding',
+        'cb_analyst_show_button_desc' => 'Ontmerk om dit van die ontleders se aanmeldbladsy af te hou - byvoorbeeld terwyl \'n paar ontleders \'n nuwe verskaffer probeer. Ontleders wat daaraan toegewys is, bereik dit steeds deur hul e-pos in te tik. Net \'n Globale verskaffer word ooit daar gewys. Die portaal-aanmelding word nie geraak nie.',
         'cb_portal_show_button' => 'Wys die knoppie op die portaalaanmelding',
         'cb_portal_show_button_desc' => 'Verwyder die merkie vir \'n bladsy met net die e-posblokkie. Mense op die domeine hierbo bereik steeds hierdie verskaffer daardeur. Die ontleder-aanmelding word nie geraak nie.',
         'cancel' => 'Kanselleer',

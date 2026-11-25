@@ -1959,6 +1959,8 @@ return [
         'field_company_global' => 'Global (interno / todas)',
         'field_portal_domains' => 'Dominios de correo',
         'field_portal_domains_hint' => 'Uno por línea, p. ej. company.com. En el portal, una dirección de correo de uno de estos dominios va directamente a este proveedor, incluso la primera vez. Eso incluye a las personas que hoy inician sesión con contraseña. El resto ve el cuadro de contraseña como de costumbre. Un subdominio necesita su propia línea. Déjelo en blanco para no dirigir a nadie.',
+        'cb_analyst_show_button' => 'Mostrar el botón en el inicio de sesión de analistas',
+        'cb_analyst_show_button_desc' => 'Desmárcalo para que no aparezca en la página de inicio de sesión de los analistas, por ejemplo mientras unos pocos analistas prueban un proveedor nuevo. Los analistas asignados a él siguen llegando escribiendo su correo electrónico. Allí solo aparece un proveedor Global. El inicio de sesión del portal no cambia.',
         'cb_portal_show_button' => 'Mostrar el botón en el inicio de sesión del portal',
         'cb_portal_show_button_desc' => 'Desmárquelo para una página con solo el cuadro de correo. Las personas de los dominios anteriores siguen llegando a este proveedor a través de él. El inicio de sesión de analista no se ve afectado.',
         'cancel' => 'Cancelar',

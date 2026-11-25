@@ -126,6 +126,22 @@ function ssoPortalRoutingColumnsReady(PDO $conn): bool {
 }
 
 /**
+ * Has Database Verification added auth_providers.analyst_show_button (5.11.0)?
+ * The analyst login and the provider list must keep working until it has.
+ */
+function ssoAnalystButtonColumnReady(PDO $conn): bool {
+    static $ready = null;
+    if ($ready === null) {
+        try {
+            $ready = (bool)$conn->query("SHOW COLUMNS FROM auth_providers LIKE 'analyst_show_button'")->fetch();
+        } catch (PDOException) {
+            $ready = false;
+        }
+    }
+    return $ready;
+}
+
+/**
  * Split what an admin typed into the "Email domains" box into clean domains.
  *
  * One per line (commas and semicolons are accepted too, because people paste

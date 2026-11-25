@@ -1959,6 +1959,8 @@ return [
         'field_company_global' => 'Globalne (wewnętrzne / wszystkie)',
         'field_portal_domains' => 'Domeny e-mail',
         'field_portal_domains_hint' => 'Po jednej w wierszu, np. company.com. W portalu adres e-mail w jednej z tych domen trafia prosto do tego dostawcy, nawet za pierwszym razem. Dotyczy to także osób, które dziś logują się hasłem. Pozostali dostają pole hasła jak zwykle. Subdomena wymaga własnego wiersza. Zostaw puste, aby nikogo nie kierować.',
+        'cb_analyst_show_button' => 'Pokaż przycisk na stronie logowania analityków',
+        'cb_analyst_show_button_desc' => 'Odznacz, aby nie pokazywać go na stronie logowania analityków - na przykład gdy kilku analityków testuje nowego dostawcę. Przypisani do niego analitycy nadal trafiają do niego, wpisując swój e-mail. Pojawia się tam tylko dostawca globalny. Logowanie do portalu się nie zmienia.',
         'cb_portal_show_button' => 'Pokaż przycisk na logowaniu do portalu',
         'cb_portal_show_button_desc' => 'Odznacz, aby strona miała tylko pole e-mail. Osoby z powyższych domen nadal trafią przez nie do tego dostawcy. Logowanie analityka nie jest zmieniane.',
         'cancel' => 'Anuluj',

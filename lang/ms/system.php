@@ -1954,6 +1954,8 @@ return [
         'field_company_global' => 'Global (dalaman / semua)',
         'field_portal_domains' => 'Domain e-mel',
         'field_portal_domains_hint' => 'Satu setiap baris, cth. company.com. Pada portal, alamat e-mel pada salah satu domain ini terus ke pembekal ini, walaupun kali pertama. Itu termasuk orang yang log masuk dengan kata laluan hari ini. Orang lain mendapat kotak kata laluan seperti biasa. Subdomain memerlukan barisnya sendiri. Biarkan kosong untuk tidak menghalakan sesiapa.',
+        'cb_analyst_show_button' => 'Tunjukkan butang pada log masuk analis',
+        'cb_analyst_show_button_desc' => 'Nyahtanda untuk menjauhkannya daripada halaman log masuk analis - contohnya semasa beberapa analis mencuba penyedia baharu. Analis yang ditugaskan kepadanya masih sampai kepadanya dengan menaip e-mel mereka. Hanya penyedia Global yang pernah dipaparkan di situ. Log masuk portal tidak terjejas.',
         'cb_portal_show_button' => 'Paparkan butang pada log masuk portal',
         'cb_portal_show_button_desc' => 'Nyahtanda untuk halaman yang hanya mempunyai kotak e-mel. Orang pada domain di atas masih sampai ke pembekal ini melaluinya. Log masuk penganalisis tidak terjejas.',
         'cancel' => 'Batal',

@@ -40,6 +40,7 @@ try {
     $portalCols = ssoPortalRoutingColumnsReady($conn)
         ? 'p.portal_email_domains, p.portal_show_button'
         : 'NULL AS portal_email_domains, 1 AS portal_show_button';
+    $portalCols .= ssoAnalystButtonColumnReady($conn) ? ', p.analyst_show_button' : ', 1 AS analyst_show_button';
 
     $stmt = $conn->query(
         "SELECT p.id, p.display_name, p.protocol, p.issuer_url, p.client_id, p.client_secret,
@@ -77,6 +78,7 @@ try {
             // GH #147: newline-separated, as stored; the dialog shows one per line.
             'portal_email_domains'   => $r['portal_email_domains'] ?? null,
             'portal_show_button'     => (int)($r['portal_show_button'] ?? 1),
+            'analyst_show_button'    => (int)($r['analyst_show_button'] ?? 1),
             'default_modules'   => $r['default_modules'],
             'jit_company_access'    => $r['jit_company_access'] ?: 'all',
             // SSO claim mapping (3.5.0) - see includes/sso_claims.php.

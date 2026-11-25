@@ -1954,6 +1954,8 @@ return [
         'field_company_global' => 'Algemeen (intern / alle)',
         'field_portal_domains' => 'E-maildomeinen',
         'field_portal_domains_hint' => 'Eén per regel, bv. company.com. In het portaal gaat een e-mailadres op een van deze domeinen direct naar deze provider, ook de eerste keer. Dat geldt ook voor mensen die zich nu met een wachtwoord aanmelden. Iedereen anders krijgt zoals gewoonlijk het wachtwoordvak. Een subdomein heeft een eigen regel nodig. Laat leeg om niemand door te sturen.',
+        'cb_analyst_show_button' => 'Toon de knop op de analisten-aanmelding',
+        'cb_analyst_show_button_desc' => 'Vink uit om hem van de aanmeldpagina van analisten te houden - bijvoorbeeld terwijl een paar analisten een nieuwe provider uitproberen. Analisten die eraan zijn toegewezen bereiken hem nog steeds door hun e-mailadres te typen. Alleen een Globale provider verschijnt daar ooit. De portaal-aanmelding verandert niet.',
         'cb_portal_show_button' => 'Toon de knop op de portaalaanmelding',
         'cb_portal_show_button_desc' => 'Haal het vinkje weg voor een pagina met alleen het e-mailvak. Mensen op de bovenstaande domeinen komen er nog steeds via bij deze provider. De analistenaanmelding blijft ongewijzigd.',
         'cancel' => 'Annuleren',

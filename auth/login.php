@@ -1013,7 +1013,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // protocol='oidc' ONLY: an LDAP provider has no button and nothing
                     // to redirect to — its users type their directory password into the
                     // ordinary form below, and login.php checks it by bind.
-                    $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'oidc' ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
+                    //
+                    // 5.11.0: a provider can keep its button off this page
+                    // (analyst_show_button = 0) - say a new one a few analysts are
+                    // trying. The analysts assigned to it still get there through
+                    // the email box (api/auth/resolve_login.php routes by that).
+                    require_once __DIR__ . '/../includes/sso_identity.php';
+                    $btnCol = ssoAnalystButtonColumnReady($ssoConn) ? 'analyst_show_button' : '1';
+                    $ssoAll = $ssoConn->query("SELECT id, display_name, $btnCol AS show_button FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'oidc' ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
+                    $ssoProviders = array_values(array_filter($ssoAll, fn($p) => (int)$p['show_button'] === 1));
+                    // TRAP: with every button hidden the email box must STILL show -
+                    // it is how the assigned analysts reach their provider. Hiding a
+                    // button must never switch the router off (as on the portal, GH #147).
+                    $ssoRouterNeeded = !empty($ssoAll);
                 }
                 // Is a directory configured? Directory users sign in through the
                 // username/password form, so calling it "a local account" would be a
@@ -1021,7 +1033,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // account at all.
                 $hasLdap = (int)$ssoConn->query("SELECT COUNT(*) FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'ldap'")->fetchColumn() > 0;
             } catch (Exception $e) { $ssoProviders = []; $hasLdap = false; }
-            $ssoActive = $ssoOn && !empty($ssoProviders);
+            $ssoActive = $ssoOn && !empty($ssoRouterNeeded);
             $localLinkLabel = !empty($hasLdap)
                 ? tr('reveal_local_ldap', 'Sign in with a username and password')
                 : tr('reveal_local_plain', 'Sign in with a local account');
@@ -1042,7 +1054,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="button" class="login-button" id="continueBtn"><?php echo htmlspecialchars(tr('continue', 'Continue')); ?></button>
                     <div class="error-message" id="routerError" style="display:none;margin-top:10px;"></div>
                 </div>
+                <?php if ($ssoProviders): ?>
                 <div style="<?php echo $divider; ?>"><span style="flex:1;height:1px;background:#ddd;"></span><?php echo htmlspecialchars(tr('or', 'or')); ?><span style="flex:1;height:1px;background:#ddd;"></span></div>
+                <?php endif; ?>
                 <?php foreach ($ssoProviders as $p): ?>
                     <a href="<?php echo htmlspecialchars(BASE_URL . 'api/auth/oidc_login.php?provider=' . (int)$p['id']); ?>"
                        style="display:block;text-align:center;padding:11px;margin-bottom:8px;border:1px solid #cfd8dc;border-radius:6px;color:#37474f;text-decoration:none;font-weight:600;font-size:var(--font-size-lg, 14px);background:#fff;">

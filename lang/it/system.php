@@ -1954,6 +1954,8 @@ return [
         'field_company_global' => 'Globale (interno / tutte)',
         'field_portal_domains' => 'Domini email',
         'field_portal_domains_hint' => 'Uno per riga, es. company.com. Nel portale, un indirizzo email di uno di questi domini va direttamente a questo provider, anche la prima volta. Questo include chi oggi accede con una password. Tutti gli altri vedono il campo password come al solito. Un sottodominio richiede una riga propria. Lascia vuoto per non indirizzare nessuno.',
+        'cb_analyst_show_button' => 'Mostra il pulsante nell\'accesso analisti',
+        'cb_analyst_show_button_desc' => 'Deseleziona per tenerlo fuori dalla pagina di accesso degli analisti - ad esempio mentre alcuni analisti provano un nuovo provider. Gli analisti assegnati a esso lo raggiungono comunque digitando la propria email. Lì compare solo un provider Globale. L\'accesso al portale non cambia.',
         'cb_portal_show_button' => 'Mostra il pulsante nell\'accesso al portale',
         'cb_portal_show_button_desc' => 'Deseleziona per avere una pagina con la sola casella email. Le persone dei domini qui sopra raggiungono comunque questo provider tramite essa. L\'accesso degli analisti non è interessato.',
         'cancel' => 'Annulla',

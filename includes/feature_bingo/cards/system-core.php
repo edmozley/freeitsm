@@ -434,6 +434,19 @@ return [
         'check'    => ['rows', 'auth_providers', "protocol = 'oidc' AND enabled = 1 AND portal_email_domains IS NOT NULL AND portal_email_domains <> ''"],
     ],
     [
+        // 5.11.0
+        'id'       => 'system.sso_analyst_button_hidden',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'security',
+        'title'    => 'Try a new sign-in provider with a few analysts',
+        'what'     => 'A provider can keep its button off the analyst login while the analysts assigned to it still reach it by typing their email.',
+        'why'      => 'Pilot a new identity provider with a handful of people without everyone else seeing a button they cannot use.',
+        'done'     => 'An enabled OIDC provider has Show the button on the analyst login unticked.',
+        'link'     => 'system/sso/',
+        'check'    => ['rows', 'auth_providers', "protocol = 'oidc' AND enabled = 1 AND tenant_id IS NULL AND analyst_show_button = 0"],
+    ],
+    [
         'id'       => 'system.sso_default_modules',
         'module'   => 'system',
         'tier'     => 'extra',

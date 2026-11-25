@@ -1959,6 +1959,8 @@ return [
         'field_company_global' => 'Global (internal / semua)',
         'field_portal_domains' => 'Domain email',
         'field_portal_domains_hint' => 'Satu per baris, mis. company.com. Di portal, alamat email pada salah satu domain ini langsung diarahkan ke penyedia ini, bahkan pada kali pertama. Itu termasuk orang yang saat ini masuk dengan kata sandi. Orang lain mendapat kolom kata sandi seperti biasa. Subdomain perlu barisnya sendiri. Biarkan kosong agar tidak ada yang diarahkan.',
+        'cb_analyst_show_button' => 'Tampilkan tombol di login analis',
+        'cb_analyst_show_button_desc' => 'Hapus centang agar tidak muncul di halaman masuk analis - misalnya saat beberapa analis mencoba penyedia baru. Analis yang ditugaskan ke penyedia ini tetap bisa mencapainya dengan mengetik email mereka. Hanya penyedia Global yang pernah tampil di sana. Login portal tidak terpengaruh.',
         'cb_portal_show_button' => 'Tampilkan tombol di login portal',
         'cb_portal_show_button_desc' => 'Hapus centang untuk halaman yang hanya berisi kolom email. Orang pada domain di atas tetap sampai ke penyedia ini melaluinya. Login analis tidak terpengaruh.',
         'cancel' => 'Batal',

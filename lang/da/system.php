@@ -1959,6 +1959,8 @@ return [
         'field_company_global' => 'Global (intern/alle)',
         'field_portal_domains' => 'E-maildomæner',
         'field_portal_domains_hint' => 'Ét pr. linje, fx company.com. I portalen går en e-mailadresse på et af disse domæner direkte til denne udbyder, også første gang. Det omfatter folk, der i dag logger ind med adgangskode. Alle andre får adgangskodefeltet som sædvanligt. Et underdomæne skal have sin egen linje. Lad feltet være tomt for ikke at route nogen.',
+        'cb_analyst_show_button' => 'Vis knappen på analytiker-login',
+        'cb_analyst_show_button_desc' => 'Fjern fluebenet for at holde den væk fra analytikernes login-side - f.eks. mens nogle få analytikere afprøver en ny udbyder. Analytikere, der er tildelt den, når den stadig ved at skrive deres e-mail. Kun en global udbyder vises nogensinde der. Portal-login påvirkes ikke.',
         'cb_portal_show_button' => 'Vis knappen på portalens login',
         'cb_portal_show_button_desc' => 'Fjern fluebenet for en side med kun e-mailfeltet. Folk på domænerne ovenfor når stadig denne udbyder igennem den. Medarbejderlogin påvirkes ikke.',
         'cancel' => 'Annullér',

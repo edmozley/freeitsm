@@ -1954,6 +1954,8 @@ return [
         'field_company_global' => 'Global (interno / todas)',
         'field_portal_domains' => 'Domínios de e-mail',
         'field_portal_domains_hint' => 'Um por linha, p. ex. company.com. No portal, um endereço de e-mail de um destes domínios vai direto para este provedor, mesmo na primeira vez. Isso inclui pessoas que hoje entram com senha. Todos os demais recebem o campo de senha como de costume. Um subdomínio precisa da sua própria linha. Deixe em branco para não direcionar ninguém.',
+        'cb_analyst_show_button' => 'Mostrar o botão no login de analistas',
+        'cb_analyst_show_button_desc' => 'Desmarque para deixá-lo fora da página de login dos analistas - por exemplo, enquanto alguns analistas testam um novo provedor. Os analistas atribuídos a ele continuam chegando lá digitando o e-mail. Só um provedor Global aparece ali. O login do portal não é afetado.',
         'cb_portal_show_button' => 'Mostrar o botão no login do portal',
         'cb_portal_show_button_desc' => 'Desmarque para uma página apenas com o campo de e-mail. As pessoas dos domínios acima ainda chegam a este provedor por ela. O login de analista não é afetado.',
         'cancel' => 'Cancelar',

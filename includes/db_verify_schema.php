@@ -249,6 +249,8 @@ return [
         'portal_email_domains'   => 'TEXT NULL',
         // DEFAULT 1 so an upgrade keeps every portal button where it was.
         'portal_show_button'     => 'TINYINT(1) NOT NULL DEFAULT 1',
+        // 5.11.0 - the same for the analyst login. DEFAULT 1 for the same reason.
+        'analyst_show_button'    => 'TINYINT(1) NOT NULL DEFAULT 1',
         'created_datetime'       => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'last_modified_datetime' => 'DATETIME NULL',
     ],

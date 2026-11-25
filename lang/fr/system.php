@@ -1959,6 +1959,8 @@ return [
         'field_company_global' => 'Global (interne / toutes)',
         'field_portal_domains' => 'Domaines e-mail',
         'field_portal_domains_hint' => 'Un par ligne, p. ex. company.com. Sur le portail, une adresse e-mail d\'un de ces domaines est envoyée directement à ce fournisseur, même la première fois. Cela inclut les personnes qui se connectent aujourd\'hui avec un mot de passe. Les autres obtiennent le champ de mot de passe comme d\'habitude. Un sous-domaine nécessite sa propre ligne. Laissez vide pour n\'orienter personne.',
+        'cb_analyst_show_button' => 'Afficher le bouton sur la connexion des analystes',
+        'cb_analyst_show_button_desc' => 'Décochez pour le retirer de la page de connexion des analystes - par exemple pendant que quelques analystes essaient un nouveau fournisseur. Les analystes qui lui sont affectés y accèdent toujours en saisissant leur e-mail. Seul un fournisseur Global y apparaît. La connexion au portail n\'est pas concernée.',
         'cb_portal_show_button' => 'Afficher le bouton sur la connexion du portail',
         'cb_portal_show_button_desc' => 'Décochez pour une page avec seulement le champ e-mail. Les personnes des domaines ci-dessus atteignent toujours ce fournisseur par ce biais. La connexion analyste n\'est pas concernée.',
         'cancel' => 'Annuler',

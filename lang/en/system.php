@@ -2160,6 +2160,9 @@ return [
         'fallback_mode_confirm'       => 'Warn and confirm before switching to Self-Service Portal',
         'fallback_mode_redirect'      => 'Automatically switch to Self-Service Portal',
         'fallback_mode_block'         => 'Block sign-in with access denied error',
+        // 5.11.0 - the analyst login's button, as the portal has its own
+        'cb_analyst_show_button'      => 'Show the button on the analyst login',
+        'cb_analyst_show_button_desc' => 'Untick to keep it off the analyst sign-in page - for example while a few analysts try a new provider. Analysts assigned to it still reach it by typing their email. Only a Global provider ever shows there. The portal login is not affected.',
         'cb_verified'      => 'Require a verified-email claim',
         'cb_verified_desc' => "Refuse sign-in unless the provider sends {claim}. Leave off for providers that omit the claim entirely (e.g. Okta's org server). An explicit {claim_false} is always refused regardless of this setting. Turn on only for IdPs where users can self-register with unverified addresses.",
         'field_profile_sync_mode'      => 'Profile attribute sync',

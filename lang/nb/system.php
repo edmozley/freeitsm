@@ -1954,6 +1954,8 @@ return [
         'field_company_global' => 'Global (intern / alle)',
         'field_portal_domains' => 'E-postdomener',
         'field_portal_domains_hint' => 'Ett per linje, f.eks. company.com. I portalen går en e-postadresse på ett av disse domenene rett til denne leverandøren, selv første gang. Det gjelder også folk som logger inn med passord i dag. Alle andre får passordfeltet som vanlig. Et underdomene trenger en egen linje. La stå tomt for å rute ingen.',
+        'cb_analyst_show_button' => 'Vis knappen på analytikerinnloggingen',
+        'cb_analyst_show_button_desc' => 'Fjern haken for å holde den borte fra analytikernes innloggingsside - for eksempel mens noen få analytikere prøver en ny leverandør. Analytikere som er tildelt den, når den fortsatt ved å skrive inn e-posten sin. Bare en global leverandør vises der. Portalinnloggingen påvirkes ikke.',
         'cb_portal_show_button' => 'Vis knappen på portalinnloggingen',
         'cb_portal_show_button_desc' => 'Fjern avkrysningen for en side med bare e-postfeltet. Folk på domenene ovenfor når fortsatt denne leverandøren gjennom den. Analytikerinnloggingen påvirkes ikke.',
         'cancel' => 'Avbryt',
