@@ -2938,6 +2938,8 @@ return [
         'org_chart_groups' => 'Alleen leden van gekozen groepen uit Personen',
         'org_chart_groups_label' => 'Groepen uit Personen die het mogen zien',
         'org_chart_no_groups' => 'Er zijn nog geen groepen uit Personen. Ze komen uit een directorysynchronisatie (Systeem → Single sign-on).',
+        'jml_label' => 'Starters & leavers: dossiers',
+        'jml_desc' => 'Voegt een pagina <strong>Starters & leavers</strong> toe voor HR: de open dossiers van het eigen bedrijf van de persoon en de dossiers die in de afgelopen 60 dagen zijn afgerond - wie, starter, mover of leaver, de datum, hoeveel stappen klaar zijn en wie de eigenaar is. Alleen-lezen, en niet de notities, de stappen of de uitrusting. Alleen voor groepen uit Personen die je kiest: het dossier van een leaver kan gevoelig zijn.',
         'load_failed' => 'De instellingen konden niet worden geladen. Er is niets gewijzigd.',
         'save_failed' => 'De instellingen konden niet worden opgeslagen.',
     ],

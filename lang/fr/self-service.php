@@ -16,6 +16,19 @@ return [
         'title' => 'Organigramme',
         'subtitle' => 'Qui rend compte à qui. Recherchez un nom, un poste ou un service, ou ouvrez une équipe avec la flèche.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Arrivées et départs',
+        'subtitle' => 'Les personnes qui arrivent, changent de poste et partent, et où en est l\'informatique pour chacune. Lecture seule : adressez-vous au propriétaire pour toute question.',
+        'tab_open' => 'Ouverts ({n})',
+        'tab_done' => 'Terminés récemment ({n})',
+        'none_open' => 'Il n\'y a aucun dossier ouvert.',
+        'none_done' => 'Aucun dossier n\'a été terminé au cours des 60 derniers jours.',
+        'load_failed' => 'Les dossiers n\'ont pas pu être chargés. Veuillez réessayer.',
+        'progress' => '{done} étapes terminées sur {total}',
+        'no_steps' => 'Pas encore d\'étapes',
+        'owner' => 'Propriétaire',
+    ],
     'approvals' => [
         'title' => 'Approbations',
         'subtitle' => 'Les demandes qui attendent votre approbation, en tant que responsable ou propriétaire d\'un centre de coûts.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Connaissances',
         'equipment' => 'Mon équipement',
         'org_chart' => 'Organisation',
+        'starters'    => 'Arrivées et départs',
         'training' => 'Formation',
         'help' => 'Aide',
         'menu' => 'Menu',

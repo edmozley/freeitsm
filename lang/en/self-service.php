@@ -26,6 +26,19 @@ return [
         'title'        => 'Organisation chart',
         'subtitle'     => 'Who reports to whom. Search for a name, job title or department, or open a team with the arrow.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title'       => 'Starters & leavers',
+        'subtitle'    => 'The people joining, moving and leaving, and how far IT has got with each. Read-only: ask the owner about anything here.',
+        'tab_open'    => 'Open ({n})',
+        'tab_done'    => 'Recently done ({n})',
+        'none_open'   => 'There are no open cases.',
+        'none_done'   => 'No cases have been finished in the last 60 days.',
+        'load_failed' => 'The cases could not be loaded. Please try again.',
+        'progress'    => '{done} of {total} steps done',
+        'no_steps'    => 'No steps yet',
+        'owner'       => 'Owner',
+    ],
     // ── Approvals (GH #160 Part C2): managers and cost centre owners ─────
     'approvals' => [
         'title'        => 'Approvals',
@@ -113,6 +126,7 @@ return [
         'help_centre' => 'Knowledge',
         'equipment'   => 'My equipment',
         'org_chart'   => 'Organisation',   // GH #414
+        'starters'    => 'Starters & leavers',   // 5.11.0, chosen People groups only
         'training'    => 'Training',
         'help'        => 'Help',
         // Screen-reader label for the phone nav drawer's toggle.

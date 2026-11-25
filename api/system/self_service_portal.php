@@ -161,6 +161,25 @@ try {
         $clean['self_service_org_chart_groups'] = implode(',', $ids);
     }
 
+    // 5.11.0: Starters & leavers cases - the same shape, without "everyone".
+    if (array_key_exists('jml_cases', $in)) {
+        if (!in_array($in['jml_cases'], SELF_SERVICE_JML_MODES, true)) {
+            echo json_encode(['success' => false, 'error' => 'Unknown Starters & leavers choice']);
+            exit;
+        }
+        $clean['self_service_jml_cases'] = $in['jml_cases'];
+    }
+    if (array_key_exists('jml_cases_groups', $in)) {
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array)$in['jml_cases_groups']))));
+        if ($ids) {
+            $st = $conn->prepare("SELECT id FROM directory_groups WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
+            $st->execute($ids);
+            $ids = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+            sort($ids);
+        }
+        $clean['self_service_jml_cases_groups'] = implode(',', $ids);
+    }
+
     if (!$clean) {
         echo json_encode(['success' => false, 'error' => 'Nothing to save']);
         exit;

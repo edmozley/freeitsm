@@ -2944,6 +2944,8 @@ return [
         'org_chart_groups' => 'Hanya anggota grup orang yang dipilih',
         'org_chart_groups_label' => 'Grup orang yang dapat melihatnya',
         'org_chart_no_groups' => 'Belum ada grup orang. Grup berasal dari sinkronisasi direktori (Sistem → Single sign-on).',
+        'jml_label' => 'Kasus Karyawan baru & keluar',
+        'jml_desc' => 'Menambahkan halaman <strong>Karyawan baru & keluar</strong> untuk HR: kasus terbuka di perusahaan orang itu sendiri dan yang selesai dalam 60 hari terakhir - siapa, karyawan baru, pindah, atau keluar, tanggalnya, berapa langkah yang selesai, dan siapa pemiliknya. Hanya-baca, dan tanpa catatan, langkah, atau perlengkapan. Hanya untuk grup orang yang Anda pilih: kasus karyawan keluar bisa bersifat sensitif.',
         'load_failed' => 'Tidak dapat memuat pengaturan. Tidak ada yang diubah.',
         'save_failed' => 'Tidak dapat menyimpan pengaturan.',
     ],

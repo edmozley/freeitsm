@@ -2944,6 +2944,8 @@ return [
         'org_chart_groups' => 'Seulement les membres des groupes de personnes choisis',
         'org_chart_groups_label' => 'Groupes de personnes qui peuvent le voir',
         'org_chart_no_groups' => 'Il n\'y a pas encore de groupes de personnes. Ils proviennent d\'une synchronisation d\'annuaire (Système → Authentification unique).',
+        'jml_label' => 'Arrivées et départs : dossiers',
+        'jml_desc' => 'Ajoute une page <strong>Arrivées et départs</strong> pour les RH : les dossiers ouverts de la propre entreprise de la personne et ceux terminés au cours des 60 derniers jours - qui, arrivée, mobilité ou départ, la date, combien d\'étapes sont terminées et qui en est le propriétaire. En lecture seule, et sans les notes, les étapes ni l\'équipement. Seulement pour les groupes de personnes que vous choisissez : le dossier d\'un départ peut être sensible.',
         'load_failed' => 'Impossible de charger les paramètres. Rien n\'a été modifié.',
         'save_failed' => 'Impossible d\'enregistrer les paramètres.',
         'logo_placeholder' => 'uploads/branding/portal-logo.png',

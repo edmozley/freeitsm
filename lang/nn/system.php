@@ -2938,6 +2938,8 @@ return [
         'org_chart_groups' => 'Berre medlemmer av valde personargrupper',
         'org_chart_groups_label' => 'Personargrupper som kan sjå han',
         'org_chart_no_groups' => 'Det finst ingen personargrupper enno. Dei kjem frå ei katalogsynkronisering (System → Single sign-on).',
+        'jml_label' => 'Nytilsette og sluttarar: case',
+        'jml_desc' => 'Legg til ei <strong>Nytilsette og sluttarar</strong>-side for HR: dei opne casane i personen sitt eige selskap og dei som vart fullførte dei siste 60 dagane - kven, nytilsett, omplassering eller sluttar, datoen, kor mange steg som er ferdige og kven som eig casen. Berre lesetilgang, og ikkje notata, stega eller utstyret. Berre for personargrupper du vel: casen til ein sluttar kan vere sensitiv.',
         'load_failed' => 'Kunne ikkje laste innstillingane. Ingenting er endra.',
         'save_failed' => 'Kunne ikkje lagre innstillingane.',
         'logo_placeholder' => 'uploads/branding/portal-logo.png',

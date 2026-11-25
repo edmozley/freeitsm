@@ -16,6 +16,19 @@ return [
         'title' => 'Schemat organizacyjny',
         'subtitle' => 'Kto komu podlega. Wyszukaj imię i nazwisko, stanowisko lub dział albo rozwiń zespół strzałką.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Nowi i odchodzący',
+        'subtitle' => 'Osoby, które dołączają, przenoszą się i odchodzą, oraz jak daleko dział IT jest z każdą z nich. Tylko do odczytu: o wszystko tutaj pytaj właściciela.',
+        'tab_open' => 'Otwarte ({n})',
+        'tab_done' => 'Ostatnio zakończone ({n})',
+        'none_open' => 'Brak otwartych spraw.',
+        'none_done' => 'W ciągu ostatnich 60 dni nie zakończono żadnej sprawy.',
+        'load_failed' => 'Nie udało się wczytać spraw. Spróbuj ponownie.',
+        'progress' => 'Gotowe kroki: {done} z {total}',
+        'no_steps' => 'Na razie brak kroków',
+        'owner' => 'Właściciel',
+    ],
     'approvals' => [
         'title' => 'Zatwierdzenia',
         'subtitle' => 'Prośby czekające na Twoje zatwierdzenie - jako przełożonego lub właściciela centrum kosztów.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Baza wiedzy',
         'equipment' => 'Mój sprzęt',
         'org_chart' => 'Organizacja',
+        'starters'    => 'Nowi i odchodzący',
         'training' => 'Szkolenia',
         'help' => 'Pomoc',
         'menu' => 'Menu',

@@ -2938,6 +2938,8 @@ return [
         'org_chart_groups' => 'Slegs lede van gekose Mense-groepe',
         'org_chart_groups_label' => 'Mense-groepe wat dit kan sien',
         'org_chart_no_groups' => 'Daar is nog geen Mense-groepe nie. Hulle kom van \'n gidssinkronisering (Stelsel → Enkelaanmelding).',
+        'jml_label' => 'Intreders en vertrekkers-sake',
+        'jml_desc' => 'Voeg \'n <strong>Intreders en vertrekkers</strong>-bladsy vir MH by: die oop sake van die persoon se eie maatskappy en dié wat in die laaste 60 dae afgehandel is - wie, intreder, oorplasing of vertrekker, die datum, hoeveel stappe klaar is en wie dit besit. Slegs lees, en nie die notas, die stappe of die toerusting nie. Slegs vir Mense-groepe wat jy kies: \'n vertrekker se saak kan sensitief wees.',
         'load_failed' => 'Kon nie die instellings laai nie. Niks is verander nie.',
         'save_failed' => 'Kon nie die instellings stoor nie.',
     ],

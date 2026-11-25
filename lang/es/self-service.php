@@ -16,6 +16,19 @@ return [
         'title' => 'Organigrama',
         'subtitle' => 'Quién depende de quién. Busca un nombre, un puesto o un departamento, o abre un equipo con la flecha.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Incorporaciones y bajas',
+        'subtitle' => 'Las personas que se incorporan, se trasladan y se marchan, y hasta dónde ha llegado TI con cada una. Solo lectura: pregunte al responsable sobre cualquier cosa de aquí.',
+        'tab_open' => 'Abiertos ({n})',
+        'tab_done' => 'Hechos recientemente ({n})',
+        'none_open' => 'No hay casos abiertos.',
+        'none_done' => 'No se ha terminado ningún caso en los últimos 60 días.',
+        'load_failed' => 'No se pudieron cargar los casos. Inténtelo de nuevo.',
+        'progress' => '{done} de {total} pasos hechos',
+        'no_steps' => 'Todavía sin pasos',
+        'owner' => 'Responsable',
+    ],
     'approvals' => [
         'title' => 'Aprobaciones',
         'subtitle' => 'Solicitudes que esperan su aprobación, como superior o como responsable de un centro de coste.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Conocimiento',
         'equipment' => 'Mi equipo',
         'org_chart' => 'Organización',
+        'starters'    => 'Incorporaciones y bajas',
         'training' => 'Formación',
         'help' => 'Ayuda',
         'menu' => 'Menú',

@@ -16,6 +16,19 @@ return [
         'title' => 'Organograma',
         'subtitle' => 'Quem se reporta a quem. Pesquise por nome, cargo ou departamento, ou abra uma equipe com a seta.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Admissões e desligamentos',
+        'subtitle' => 'As pessoas que estão entrando, sendo transferidas e saindo, e até onde a TI chegou com cada uma. Somente leitura: pergunte ao responsável sobre qualquer coisa aqui.',
+        'tab_open' => 'Abertos ({n})',
+        'tab_done' => 'Concluídos recentemente ({n})',
+        'none_open' => 'Não há casos abertos.',
+        'none_done' => 'Nenhum caso foi concluído nos últimos 60 dias.',
+        'load_failed' => 'Não foi possível carregar os casos. Tente novamente.',
+        'progress' => '{done} de {total} etapas concluídas',
+        'no_steps' => 'Ainda sem etapas',
+        'owner' => 'Responsável',
+    ],
     'approvals' => [
         'title' => 'Aprovações',
         'subtitle' => 'Solicitações aguardando sua aprovação, como gestor ou como responsável por um centro de custo.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Conhecimento',
         'equipment' => 'Meus equipamentos',
         'org_chart' => 'Organização',
+        'starters'    => 'Admissões e desligamentos',
         'training' => 'Treinamento',
         'help' => 'Ajuda',
         'menu' => 'Menu',

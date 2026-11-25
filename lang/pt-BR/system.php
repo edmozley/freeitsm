@@ -2938,6 +2938,8 @@ return [
         'org_chart_groups' => 'Somente membros de grupos de Pessoas escolhidos',
         'org_chart_groups_label' => 'Grupos de Pessoas que podem ver',
         'org_chart_no_groups' => 'Ainda não há grupos de Pessoas. Eles vêm de uma sincronização de diretório (Sistema → Single sign-on).',
+        'jml_label' => 'Admissões e desligamentos: casos',
+        'jml_desc' => 'Adiciona uma página <strong>Admissões e desligamentos</strong> para o RH: os casos abertos da própria empresa da pessoa e os concluídos nos últimos 60 dias - quem, admissão, transferência ou desligamento, a data, quantas etapas foram concluídas e quem é o responsável. Somente leitura, e sem as notas, as etapas ou o kit. Somente para os grupos de Pessoas que você escolher: o caso de um desligamento pode ser sensível.',
         'load_failed' => 'Não foi possível carregar as configurações. Nada foi alterado.',
         'save_failed' => 'Não foi possível salvar as configurações.',
         'logo_placeholder' => 'uploads/branding/portal-logo.png',

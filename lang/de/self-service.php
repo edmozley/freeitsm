@@ -16,6 +16,19 @@ return [
         'title' => 'Organigramm',
         'subtitle' => 'Wer an wen berichtet. Suchen Sie nach einem Namen, einer Position oder einer Abteilung, oder öffnen Sie ein Team mit dem Pfeil.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Ein- und Austritte',
+        'subtitle' => 'Die Personen, die eintreten, wechseln und ausscheiden, und wie weit die IT jeweils ist. Nur lesend: Fragen Sie bei allem hier den Eigentümer.',
+        'tab_open' => 'Offen ({n})',
+        'tab_done' => 'Kürzlich erledigt ({n})',
+        'none_open' => 'Es gibt keine offenen Fälle.',
+        'none_done' => 'In den letzten 60 Tagen wurden keine Fälle abgeschlossen.',
+        'load_failed' => 'Die Fälle konnten nicht geladen werden. Bitte versuchen Sie es erneut.',
+        'progress' => '{done} von {total} Schritten erledigt',
+        'no_steps' => 'Noch keine Schritte',
+        'owner' => 'Eigentümer',
+    ],
     'approvals' => [
         'title' => 'Genehmigungen',
         'subtitle' => 'Anforderungen, die auf Ihre Genehmigung warten - als vorgesetzte Person oder als Verantwortliche einer Kostenstelle.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Wissensdatenbank',
         'equipment' => 'Meine Geräte',
         'org_chart' => 'Organisation',
+        'starters'    => 'Ein- und Austritte',
         'training' => 'Schulung',
         'help' => 'Hilfe',
         'menu' => 'Menü',

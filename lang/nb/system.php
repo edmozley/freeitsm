@@ -2938,6 +2938,8 @@ return [
         'org_chart_groups' => 'Bare medlemmer av valgte persongrupper',
         'org_chart_groups_label' => 'Persongrupper som kan se det',
         'org_chart_no_groups' => 'Det finnes ingen persongrupper ennå. De kommer fra en katalogsynkronisering (System → Single sign-on).',
+        'jml_label' => 'Nyansatte og sluttende: forløp',
+        'jml_desc' => 'Legger til en <strong>Nyansatte og sluttende</strong>-side for HR: de åpne forløpene i personens eget selskap og de som ble fullført de siste 60 dagene - hvem, nyansatt, omplassert eller sluttende, datoen, hvor mange trinn som er ferdige og hvem som eier forløpet. Bare lesetilgang, og ikke notatene, trinnene eller utstyret. Bare for persongrupper du velger: forløpet til en som slutter, kan være sensitivt.',
         'load_failed' => 'Kunne ikke laste innstillingene. Ingenting er endret.',
         'save_failed' => 'Kunne ikke lagre innstillingene.',
         'logo_placeholder' => 'uploads/branding/portal-logo.png',

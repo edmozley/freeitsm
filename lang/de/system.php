@@ -2944,6 +2944,8 @@ return [
         'org_chart_groups' => 'Nur Mitglieder ausgewählter Personengruppen',
         'org_chart_groups_label' => 'Personengruppen, die es sehen dürfen',
         'org_chart_no_groups' => 'Es gibt noch keine Personengruppen. Sie stammen aus einer Verzeichnissynchronisierung (System → Single Sign-on).',
+        'jml_label' => 'Ein- und Austritte: Fälle',
+        'jml_desc' => 'Fügt eine Seite <strong>Ein- und Austritte</strong> für die Personalabteilung hinzu: die offenen Fälle des eigenen Unternehmens der Person und die in den letzten 60 Tagen abgeschlossenen - wer, Eintritt, Wechsel oder Austritt, das Datum, wie viele Schritte erledigt sind und wem der Fall gehört. Nur lesend, und ohne Notizen, Schritte oder Ausstattung. Nur für Personengruppen, die Sie auswählen: der Fall eines Austritts kann vertraulich sein.',
         'load_failed' => 'Die Einstellungen konnten nicht geladen werden. Es wurde nichts geändert.',
         'save_failed' => 'Die Einstellungen konnten nicht gespeichert werden.',
     ],

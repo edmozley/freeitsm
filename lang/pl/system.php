@@ -2944,6 +2944,8 @@ return [
         'org_chart_groups' => 'Tylko członkowie wybranych grup osób',
         'org_chart_groups_label' => 'Grupy osób, które mogą to widzieć',
         'org_chart_no_groups' => 'Nie ma jeszcze grup osób. Pochodzą z synchronizacji katalogu (System → Logowanie jednokrotne).',
+        'jml_label' => 'Nowi i odchodzący: sprawy',
+        'jml_desc' => 'Dodaje stronę <strong>Nowi i odchodzący</strong> dla działu HR: otwarte sprawy we własnej firmie danej osoby oraz sprawy zakończone w ciągu ostatnich 60 dni - kto, nowy pracownik, przeniesienie czy odchodzący, data, ile kroków jest gotowych i kto jest właścicielem. Tylko do odczytu, bez notatek, kroków i sprzętu. Tylko dla grup osób, które wybierzesz: sprawa osoby odchodzącej może być poufna.',
         'load_failed' => 'Nie udało się wczytać ustawień. Nic nie zostało zmienione.',
         'save_failed' => 'Nie udało się zapisać ustawień.',
         'logo_placeholder' => 'uploads/branding/portal-logo.png',

@@ -2938,6 +2938,8 @@ return [
         'org_chart_groups' => 'केवल चुने हुए People समूहों के सदस्य',
         'org_chart_groups_label' => 'इसे देख सकने वाले People समूह',
         'org_chart_no_groups' => 'अभी कोई People समूह नहीं है। वे डायरेक्टरी सिंक (System → Single sign-on) से आते हैं।',
+        'jml_label' => 'Starters & leavers केस',
+        'jml_desc' => 'HR के लिए एक <strong>Starters & leavers</strong> पेज जोड़ता है: व्यक्ति की अपनी कंपनी के खुले केस और पिछले 60 दिनों में पूरे हुए केस - कौन, स्टार्टर, मूवर या लीवर, तिथि, कितने स्टेप पूरे हुए और इसका स्वामी कौन है। केवल पढ़ने के लिए, और टिप्पणियाँ, स्टेप या किट नहीं। केवल आपके चुने हुए People समूहों के लिए: किसी लीवर का केस संवेदनशील हो सकता है।',
         'load_failed' => 'सेटिंग्स लोड नहीं हो सकीं। कुछ भी नहीं बदला गया है।',
         'save_failed' => 'सेटिंग्स सेव नहीं हो सकीं।',
         'logo_placeholder' => 'uploads/branding/portal-logo.png',

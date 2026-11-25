@@ -2938,6 +2938,8 @@ return [
         'org_chart_groups' => 'Hanya ahli kumpulan Orang yang dipilih',
         'org_chart_groups_label' => 'Kumpulan Orang yang boleh melihatnya',
         'org_chart_no_groups' => 'Belum ada kumpulan Orang. Ia datang daripada penyegerakan direktori (Sistem → Log masuk tunggal).',
+        'jml_label' => 'Kes Pekerja baharu & berhenti',
+        'jml_desc' => 'Menambah halaman <strong>Pekerja baharu & berhenti</strong> untuk HR: kes terbuka syarikat orang itu sendiri dan yang selesai dalam 60 hari lepas - siapa, pekerja baharu, pertukaran atau pekerja berhenti, tarikhnya, berapa langkah telah selesai dan siapa pemiliknya. Baca sahaja, dan bukan nota, langkah atau peralatan. Hanya untuk kumpulan Orang yang anda pilih: kes pekerja berhenti boleh jadi sensitif.',
         'load_failed' => 'Tidak dapat memuatkan tetapan. Tiada apa-apa yang diubah.',
         'save_failed' => 'Tidak dapat menyimpan tetapan.',
         'logo_placeholder' => 'uploads/branding/portal-logo.png',

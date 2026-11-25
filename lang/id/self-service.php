@@ -16,6 +16,19 @@ return [
         'title' => 'Bagan organisasi',
         'subtitle' => 'Siapa melapor kepada siapa. Cari nama, jabatan, atau departemen, atau buka tim dengan tanda panah.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Karyawan baru & keluar',
+        'subtitle' => 'Orang-orang yang bergabung, pindah, dan keluar, dan sejauh mana TI menangani masing-masing. Hanya-baca: tanyakan kepada pemilik tentang apa pun di sini.',
+        'tab_open' => 'Terbuka ({n})',
+        'tab_done' => 'Baru selesai ({n})',
+        'none_open' => 'Tidak ada kasus terbuka.',
+        'none_done' => 'Tidak ada kasus yang selesai dalam 60 hari terakhir.',
+        'load_failed' => 'Kasus tidak dapat dimuat. Silakan coba lagi.',
+        'progress' => '{done} dari {total} langkah selesai',
+        'no_steps' => 'Belum ada langkah',
+        'owner' => 'Pemilik',
+    ],
     'approvals' => [
         'title' => 'Persetujuan',
         'subtitle' => 'Permintaan yang menunggu persetujuan Anda, sebagai manajer atau sebagai pemilik pusat biaya.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Pengetahuan',
         'equipment' => 'Peralatan saya',
         'org_chart' => 'Organisasi',
+        'starters'    => 'Karyawan baru & keluar',
         'training' => 'Pelatihan',
         'help' => 'Bantuan',
         'menu' => 'Menu',

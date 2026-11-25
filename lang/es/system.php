@@ -2944,6 +2944,8 @@ return [
         'org_chart_groups' => 'Solo miembros de los grupos de personas elegidos',
         'org_chart_groups_label' => 'Grupos de personas que pueden verlo',
         'org_chart_no_groups' => 'Todavía no hay grupos de personas. Proceden de una sincronización de directorio (Sistema → Inicio de sesión único).',
+        'jml_label' => 'Incorporaciones y bajas: casos',
+        'jml_desc' => 'Añade una página <strong>Incorporaciones y bajas</strong> para RR. HH.: los casos abiertos de la propia empresa de la persona y los terminados en los últimos 60 días - quién, incorporación, traslado o baja, la fecha, cuántos pasos están hechos y quién es el responsable. Solo lectura, y sin las notas, los pasos ni el equipamiento. Solo para los grupos de personas que elija: el caso de una baja puede ser delicado.',
         'load_failed' => 'No se han podido cargar los ajustes. No se ha cambiado nada.',
         'save_failed' => 'No se han podido guardar los ajustes.',
     ],

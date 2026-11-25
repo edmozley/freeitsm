@@ -2944,6 +2944,8 @@ return [
         'org_chart_groups' => 'Kun medlemmer af valgte persongrupper',
         'org_chart_groups_label' => 'Persongrupper, der kan se det',
         'org_chart_no_groups' => 'Der er endnu ingen persongrupper. De kommer fra en katalogsynkronisering (System → Single sign-on).',
+        'jml_label' => 'Nyansatte og fratrædende: sager',
+        'jml_desc' => 'Tilføjer en <strong>Nyansatte og fratrædende</strong>-side til HR: de åbne sager i personens egen virksomhed og dem, der er afsluttet inden for de sidste 60 dage - hvem, nyansat, skifter eller fratrædende, datoen, hvor mange trin der er udført, og hvem der ejer sagen. Kun til visning, og ikke noterne, trinnene eller udstyret. Kun for persongrupper, du vælger: en fratrædendes sag kan være følsom.',
         'load_failed' => 'Kunne ikke indlæse indstillingerne. Intet er blevet ændret.',
         'save_failed' => 'Kunne ikke gemme indstillingerne.',
         'logo_placeholder' => 'uploads/branding/portal-logo.png',

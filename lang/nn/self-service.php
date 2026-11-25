@@ -16,6 +16,19 @@ return [
         'title' => 'Organisasjonskart',
         'subtitle' => 'Kven som rapporterer til kven. Søk etter eit namn, ei stilling eller ei avdeling, eller opne eit team med pila.',
     ],
+    // 5.11.0: Starters & leavers cases, for HR (self-service/starters.php).
+    'starters' => [
+        'title' => 'Nytilsette og sluttarar',
+        'subtitle' => 'Dei som byrjar, flyttar og sluttar, og kor langt IT har kome med kvar av dei. Berre lesetilgang: spør eigaren om alt her.',
+        'tab_open' => 'Opne ({n})',
+        'tab_done' => 'Nyleg ferdige ({n})',
+        'none_open' => 'Det er ingen opne case.',
+        'none_done' => 'Ingen case er fullførte dei siste 60 dagane.',
+        'load_failed' => 'Klarte ikkje å laste casane. Prøv igjen.',
+        'progress' => '{done} av {total} steg ferdige',
+        'no_steps' => 'Ingen steg enno',
+        'owner' => 'Eigar',
+    ],
     'approvals' => [
         'title' => 'Godkjenningar',
         'subtitle' => 'Førespurnader som ventar på at du godkjenner dei, som leiar eller som eigar av ein kostnadsstad.',
@@ -95,6 +108,7 @@ return [
         'help_centre' => 'Kunnskap',
         'equipment' => 'Utstyret mitt',
         'org_chart' => 'Organisasjon',
+        'starters'    => 'Nytilsette og sluttarar',
         'training' => 'Opplæring',
         'help' => 'Hjelp',
         'menu' => 'Meny',

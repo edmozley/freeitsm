@@ -3315,6 +3315,9 @@ return [
         'org_chart_groups' => 'Only members of chosen People groups',
         'org_chart_groups_label' => 'People groups who can see it',
         'org_chart_no_groups' => 'There are no People groups yet. They come from a directory sync (System → Single sign-on).',
+        // 5.11.0: Starters & leavers cases on the portal
+        'jml_label' => 'Starters & leavers cases',
+        'jml_desc'  => 'Adds a <strong>Starters & leavers</strong> page for HR: the open cases of the person\'s own company and those finished in the last 60 days - who, starter, mover or leaver, the date, how many steps are done and who owns it. Read-only, and not the notes, the steps or the kit. Only for People groups you choose: a leaver\'s case can be sensitive.',
 
         'load_failed' => 'Could not load the settings. Nothing has been changed.',
         'save_failed' => 'Could not save the settings.',

@@ -2938,6 +2938,8 @@ return [
         'org_chart_groups' => 'Solo i membri dei gruppi di Persone scelti',
         'org_chart_groups_label' => 'Gruppi di Persone che possono vederlo',
         'org_chart_no_groups' => 'Non ci sono ancora gruppi di Persone. Provengono da una sincronizzazione della directory (Sistema → Single sign-on).',
+        'jml_label' => 'Nuovi arrivi e uscite: pratiche',
+        'jml_desc' => 'Aggiunge una pagina <strong>Nuovi arrivi e uscite</strong> per le risorse umane: le pratiche aperte dell\'azienda della persona e quelle completate negli ultimi 60 giorni - chi, nuovo arrivo, trasferimento o uscita, la data, quanti passaggi sono completati e chi ne è il proprietario. Sola lettura, e senza note, passaggi o dotazione. Solo per i gruppi di Persone che scegli: la pratica di un\'uscita può essere riservata.',
         'load_failed' => 'Impossibile caricare le impostazioni. Non è stato modificato nulla.',
         'save_failed' => 'Impossibile salvare le impostazioni.',
     ],
