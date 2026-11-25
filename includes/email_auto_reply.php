@@ -85,6 +85,34 @@ function emailHeaderMapFromList(?array $list): array
 }
 
 /**
+ * Whether an inbound message, as a provider returned it, is an automatic reply:
+ * the 'auto_reply' flag Basic IMAP and Gmail set, or Microsoft Graph's
+ * internetMessageHeaders.
+ */
+function inboundIsAutoReply(array $email): bool
+{
+    if (!empty($email['auto_reply'])) return true;
+    return emailIsAutoReply(emailHeaderMapFromList(is_array($email['internetMessageHeaders'] ?? null) ? $email['internetMessageHeaders'] : null));
+}
+
+/**
+ * Whether emails.is_auto_reply exists yet. It arrives with Database Verify, and
+ * mail collection must keep working on an install that has not run it - so the
+ * importer only writes the column once it is there.
+ */
+function emailAutoReplyReady(PDO $conn): bool
+{
+    static $ready = null;
+    if ($ready !== null) return $ready;
+    try {
+        $ready = (bool)$conn->query("SHOW COLUMNS FROM emails LIKE 'is_auto_reply'")->fetch();
+    } catch (Throwable) {
+        $ready = false;
+    }
+    return $ready;
+}
+
+/**
  * Whether the importer sends the new-ticket acknowledgement: only for a new ticket,
  * and never to an automatic reply (it would answer the auto-responder, which may
  * answer back).

@@ -14,6 +14,7 @@ require_once '../../includes/ticket_reply.php';
 require_once '../../includes/ticket_snooze.php';
 require_once '../../includes/mailbox_graph.php';
 require_once '../../includes/uploads.php';   // uploadStoreBytes() — see F1
+require_once '../../includes/email_auto_reply.php';   // GH #432
 
 header('Content-Type: application/json');
 
@@ -214,6 +215,9 @@ try {
     $activityEntries = [];
 
     foreach ($emails as $email) {
+        // GH #432: an out-of-office or other auto-responder. Stored like any email,
+        // but never acknowledged and never sent the oversize auto-reply.
+        $isAutoReply = inboundIsAutoReply($email);
         $fromAddress = strtolower(trim($email['from']['emailAddress']['address'] ?? ''));
         $fromName = $email['from']['emailAddress']['name'] ?? '';
         $subject = $email['subject'] ?? '(No Subject)';
@@ -285,7 +289,7 @@ try {
                 $postAction['error'] = $delEx->getMessage();
             }
             $processingLog['steps'][] = $postAction;
-            foreach (oversizeNotify($conn, $mailbox, $oversizeRules, $fromAddress, $fromName, $subject, $sizeAtts, $sizePlan, 'rejected') as $s) {
+            foreach (oversizeNotify($conn, $mailbox, $oversizeRules, $fromAddress, $fromName, $subject, $sizeAtts, $sizePlan, 'rejected', null, $isAutoReply) as $s) {
                 $processingLog['steps'][] = $s;
             }
             $rejectedCount++;
@@ -355,8 +359,9 @@ try {
             }
             $processingLog['steps'][] = $postAction;
 
-            // Send template email for new tickets
-            if ($isNewTicket && $ticketId) {
+            // Send template email for new tickets - never to an automatic reply (GH #432):
+            // it would answer the auto-responder, which may answer back.
+            if (inboundShouldAcknowledge((bool)$isNewTicket, $isAutoReply) && $ticketId) {
                 $templateStep = ['step' => 'template_email', 'event' => 'new_ticket_email'];
                 try {
                     require_once dirname(dirname(__DIR__)) . '/includes/template_email.php';
@@ -373,7 +378,7 @@ try {
             // record it on the log row so it is findable without opening it.
             $sizeReason = null;
             if ($sizePlan && $sizePlan['over'] && !$alreadyImported) {
-                foreach (oversizeNotify($conn, $mailbox, $oversizeRules, $fromAddress, $fromName, $subject, $sizeAtts, $sizePlan, 'stripped', $ticketId ? (int)$ticketId : null) as $s) {
+                foreach (oversizeNotify($conn, $mailbox, $oversizeRules, $fromAddress, $fromName, $subject, $sizeAtts, $sizePlan, 'stripped', $ticketId ? (int)$ticketId : null, $isAutoReply) as $s) {
                     $processingLog['steps'][] = $s;
                 }
                 $sizeReason = mb_substr('Attachments removed (too large): ' . oversizeSummary($sizeAtts, $sizePlan), 0, 255);
@@ -1161,6 +1166,9 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
     $hasAttachments = $email['hasAttachments'] ?? false;
     $importance = $email['importance'] ?? 'normal';
     $isRead = $email['isRead'] ?? false;
+    // GH #432: an automatic reply is kept, but never acts as the requester coming back.
+    require_once __DIR__ . '/../../includes/email_auto_reply.php';
+    $isAutoReply = inboundIsAutoReply($email);
 
     // Extract recipients
     $toRecipients = [];
@@ -1208,21 +1216,25 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
     }
     if ($ticketId) {
         $isInitial = 0;
-        $updateTicketSql = "UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?";
-        $updateTicketStmt = $conn->prepare($updateTicketSql);
-        $updateTicketStmt->execute([$ticketId]);
+        // An automatic reply (GH #432) is not the requester coming back: the ticket's
+        // last update, its status and its snooze are left alone.
+        if (!$isAutoReply) {
+            $updateTicketSql = "UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?";
+            $updateTicketStmt = $conn->prepare($updateTicketSql);
+            $updateTicketStmt->execute([$ticketId]);
 
-        // The requester has come back. If the ticket was finished, reopen it
-        // (Tickets → Settings → General) — the notification email they were
-        // replying to says "just reply to this email and it will be reopened",
-        // and until now nothing honoured that. Shared with the self-service
-        // portal so both doors behave identically; non-fatal by design, so a
-        // reopen problem can never cost us the inbound message.
-        reopenTicketForCustomerReply($conn, (int)$ticketId);
+            // The requester has come back. If the ticket was finished, reopen it
+            // (Tickets → Settings → General) — the notification email they were
+            // replying to says "just reply to this email and it will be reopened",
+            // and until now nothing honoured that. Shared with the self-service
+            // portal so both doors behave identically; non-fatal by design, so a
+            // reopen problem can never cost us the inbound message.
+            reopenTicketForCustomerReply($conn, (int)$ticketId);
 
-        // …and if it was asleep, wake it. A snooze is nearly always "waiting on
-        // them", so their reply is the very event it was waiting for.
-        wakeSnoozedTicketOnCustomerReply($conn, (int)$ticketId);
+            // …and if it was asleep, wake it. A snooze is nearly always "waiting on
+            // them", so their reply is the very event it was waiting for.
+            wakeSnoozedTicketOnCustomerReply($conn, (int)$ticketId);
+        }
 
         // For replies to existing tickets, strip the quoted thread
         // Look for our reply marker and store only the new content above it
@@ -1309,12 +1321,14 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
     // Insert email. GH #120: thread_key only once Database Verify has added the
     // column - collection must not stop on an install that has not run it yet.
     $withThread = emailThreadingReady($conn);
+    // GH #432: likewise is_auto_reply.
+    $withAuto = emailAutoReplyReady($conn);
     $sql = "INSERT INTO emails (
         exchange_message_id, subject, from_address, from_name, to_recipients,
         cc_recipients, received_datetime, body_preview, body_content, body_type,
         has_attachments, importance, is_read, processed_datetime, ticket_id,
-        is_initial, direction, mailbox_id" . ($withThread ? ", thread_key" : "") . "
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'Inbound', ?" . ($withThread ? ", ?" : "") . ")";
+        is_initial, direction, mailbox_id" . ($withThread ? ", thread_key" : "") . ($withAuto ? ", is_auto_reply" : "") . "
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'Inbound', ?" . ($withThread ? ", ?" : "") . ($withAuto ? ", ?" : "") . ")";
 
     $params = [
         $emailId, $subject, $fromAddress, $fromName, $toRecipientsStr,
@@ -1323,6 +1337,7 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         $isInitial, $mailboxId
     ];
     if ($withThread) $params[] = $threadKey;
+    if ($withAuto) $params[] = $isAutoReply ? 1 : 0;
 
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
@@ -1357,7 +1372,8 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         ticketDispatchCreated($conn, (int)$ticketId, null, $fromAddress);
     }
 
-    if ($isInitial != 1 && $ticketId) {
+    // Not for an automatic reply (GH #432): nobody answered, so nobody is told.
+    if ($isInitial != 1 && $ticketId && !$isAutoReply) {
         try {
             require_once __DIR__ . '/../../workflow/includes/engine.php';
             // ⚠️ requester_email is NOT a column on tickets — it lives on the user.
@@ -1493,7 +1509,7 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         'attachments' => $attachmentInfo
     ]);
 
-    return ['ticket_id' => $ticketId, 'is_new_ticket' => ($isInitial == 1)];
+    return ['ticket_id' => $ticketId, 'is_new_ticket' => ($isInitial == 1), 'auto_reply' => $isAutoReply];
 }
 
 /**

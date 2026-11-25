@@ -109,6 +109,8 @@ return [
         'hide_older' => 'Hide older messages',
         'same_as_identical' => 'Identical to the message from {time}',
         'same_as_near' => 'Nearly identical to the message from {time}',
+        // GH #432: an out-of-office or other auto-responder.
+        'auto_reply' => 'Automatic reply - it did not reopen the ticket or notify anyone',
     ],
     'title' => 'Tickets',
 

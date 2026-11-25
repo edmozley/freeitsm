@@ -1221,7 +1221,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
         } catch (Throwable $e) { $__linkStatus = null; }
     } ?>
     <script>window.TICKET_LINK_STATUS = <?php echo json_encode($__linkStatus, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
-    <script src="../assets/js/inbox.js?v=222"></script>
+    <script src="../assets/js/inbox.js?v=223"></script>
     <script src="../assets/js/ticket-folders-pane.js?v=2"></script>   <!-- discussion #292 -->
     <script src="../assets/js/ticket-watchers.js?v=2"></script>
     <script src="../assets/js/ticket-forms.js?v=5"></script>

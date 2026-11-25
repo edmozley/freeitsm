@@ -4983,7 +4983,8 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                         e.same_kind === 'identical'
                             ? t('tickets.reading.same_as_identical').replace('{time}', formatFullDateTime(e.same_as_time))
                             : t('tickets.reading.same_as_near').replace('{time}', formatFullDateTime(e.same_as_time)))}</div>` : ''}
-                    ${emailBodyHost(e.body_content, 'thread-message-body' + (e.same_kind && MC.flag_duplicates ? ' mc-force' : ''), e.body_type)}
+                    ${+e.is_auto_reply ? `<div class="dup-note">${escapeHtml(t('tickets.reading.auto_reply'))}</div>` : ''}
+                    ${emailBodyHost(e.body_content, 'thread-message-body' + ((e.same_kind && MC.flag_duplicates) || +e.is_auto_reply ? ' mc-force' : ''), e.body_type)}
                 `;
             }).join('');
             // Isolate each thread body in a shadow root (see emailBodyHost).

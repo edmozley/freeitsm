@@ -1551,6 +1551,8 @@ return [
         // GH #120: the conversation an inbound message belongs to (Graph conversationId,
         // Gmail threadId, IMAP References root) - see includes/email_threading.php.
         'thread_key'              => 'VARCHAR(255) NULL',
+        // GH #432: an automatic reply (out-of-office) - see includes/email_auto_reply.php.
+        'is_auto_reply'           => 'TINYINT(1) NOT NULL DEFAULT 0',
         // Which channel this message arrived/left on. 'email' (default) leaves every
         // existing row and the email pipeline untouched; 'whatsapp' reuses this table.
         'channel'                 => 'VARCHAR(20) NOT NULL DEFAULT \'email\'',

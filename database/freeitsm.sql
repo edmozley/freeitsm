@@ -2196,6 +2196,9 @@ CREATE TABLE IF NOT EXISTS `emails` (
     -- Gmail's threadId, or a Basic IMAP message's References root. A reply without
     -- [SDREF] can join the ticket its conversation already belongs to.
     `thread_key`            VARCHAR(255) NULL,
+    -- GH #432: an automatic reply (out-of-office, auto-responder), recognised by its
+    -- headers. Kept on the ticket, but it never reopens, wakes or notifies.
+    `is_auto_reply`         TINYINT(1) NOT NULL DEFAULT 0,
     -- Which channel this message arrived/left on. 'email' (default) keeps every
     -- existing row and the email pipeline unchanged; 'whatsapp' reuses this same
     -- table so the reading-pane thread, threading and attachments work for free.

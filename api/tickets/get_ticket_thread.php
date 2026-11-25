@@ -9,6 +9,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/ticket_numbering.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/messaging/messaging.php';
+require_once '../../includes/email_auto_reply.php';
 
 header('Content-Type: application/json');
 
@@ -36,8 +37,10 @@ try {
 
     // body_type matters to the renderer: chat channels store the sender's message
     // verbatim as 'text', so it must be ESCAPED rather than parsed as markup.
+    // GH #432: is_auto_reply once Database Verify has added it (0 until then).
     $sql = "SELECT id, from_address, from_name, to_recipients, received_datetime, subject,
-                   body_content, body_type, direction, channel
+                   body_content, body_type, direction, channel, "
+                   . (emailAutoReplyReady($conn) ? "is_auto_reply" : "0 AS is_auto_reply") . "
             FROM emails
             WHERE ticket_id = ?
             ORDER BY received_datetime ASC";
