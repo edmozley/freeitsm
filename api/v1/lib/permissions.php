@@ -40,6 +40,15 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Take an analyst off a ticket\'s watchers',
             ],
         ],
+        // GH #432. Participants are end users copied on a ticket's emails (Reply pre-fills them in Cc).
+        'ticket_participants' => [
+            'label'   => 'Ticket participants',
+            'actions' => [
+                'read'   => 'List the people copied on a ticket\'s emails',
+                'create' => 'Add a person (by id or address) to a ticket\'s participants',
+                'delete' => 'Take a person off a ticket\'s participants',
+            ],
+        ],
         // GH #272. Reading the ANSWERS follows the in-app rule: the key's analyst needs Forms
         // access or "Read the form answers on tickets you can see".
         'ticket_forms' => [

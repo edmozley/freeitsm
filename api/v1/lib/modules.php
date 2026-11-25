@@ -23,6 +23,7 @@ const API_V1_RESOURCE_MODULES = [
     'tickets' => ['tickets'], 'ticket_notes' => ['tickets'], 'ticket_thread' => ['tickets'],
     'ticket_attachments' => ['tickets'],   // GH #328
     'ticket_watchers' => ['tickets'],   // GH #277
+    'ticket_participants' => ['tickets'],   // GH #432
     'ticket_forms' => ['tickets', 'forms'],   // GH #272
     'ticket_checklists' => ['tickets', 'checklists'],   // GH #273: refused while Checklists is switched off
     // A Tickets feature with its own switch (slice 2) is listed beside Tickets.

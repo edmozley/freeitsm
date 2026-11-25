@@ -39,7 +39,7 @@ return array (
       'properties' => [
         'counts' => ['type' => 'object', 'properties' => [
           'notes' => ['type' => 'integer'], 'messages' => ['type' => 'integer'], 'attachments' => ['type' => 'integer'], 'forms' => ['type' => 'integer'],
-          'checklists' => ['type' => 'integer'], 'watchers' => ['type' => 'integer'], 'time_entries' => ['type' => 'integer'],
+          'checklists' => ['type' => 'integer'], 'watchers' => ['type' => 'integer'], 'participants' => ['type' => 'integer'], 'time_entries' => ['type' => 'integer'],
         ]],
         'links' => ['type' => 'array', 'items' => ['type' => 'object', 'required' => ['type'], 'properties' => [
           'type' => ['type' => 'string', 'enum' => ['task', 'problem', 'change', 'project', 'asset', 'cmdb_object', 'ticket', 'external_issue']],
@@ -12460,6 +12460,104 @@ return array (
         ),
       ),
     ),
+    'TicketParticipant' => 
+    array (
+      'type' => 'object',
+      'description' => 'An end user copied on the emails of a ticket (GH #432).',
+      'properties' => 
+      array (
+        'person' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+            'email' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'is_active' => 
+            array (
+              'type' => 'boolean',
+            ),
+          ),
+        ),
+        'company' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'added_by' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'source' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'analyst',
+            1 => 'api',
+          ),
+        ),
+        'added_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'TicketParticipantRemoved' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'ticket_id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'user_id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'removed' => 
+        array (
+          'type' => 'boolean',
+        ),
+      ),
+    ),
     'TicketNote' => 
     array (
       'type' => 'object',
@@ -17594,6 +17692,22 @@ return array (
     'DELETE /tickets/{id}/watchers/{analyst_id}' => 
     array (
       '$ref' => '#/components/schemas/TicketWatcherRemoved',
+    ),
+    'GET /tickets/{id}/participants' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/TicketParticipant',
+      ),
+    ),
+    'POST /tickets/{id}/participants' => 
+    array (
+      '$ref' => '#/components/schemas/TicketParticipant',
+    ),
+    'DELETE /tickets/{id}/participants/{user_id}' => 
+    array (
+      '$ref' => '#/components/schemas/TicketParticipantRemoved',
     ),
     'GET /tickets/{id}/notes' => 
     array (

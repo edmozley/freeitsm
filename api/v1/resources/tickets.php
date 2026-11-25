@@ -478,6 +478,60 @@ function apiTicketWatchersRemove(PDO $conn, array $apiKey, array $params, array 
 }
 
 // ---------------------------------------------------------------------------
+// Participants (GH #432) - end users copied on the ticket's emails
+// ---------------------------------------------------------------------------
+
+/** One participant as the API returns it. */
+function apiTicketParticipantShape(array $p): array {
+    return [
+        'person'    => ['id' => $p['user_id'], 'name' => $p['name'], 'email' => $p['email'], 'is_active' => $p['is_active']],
+        'company'   => $p['company_id'] !== null ? ['id' => $p['company_id'], 'name' => $p['company_name']] : null,
+        'added_by'  => $p['added_by'] !== null ? ['id' => $p['added_by'], 'name' => $p['added_by_name']] : null,
+        'source'    => $p['source'],
+        'added_at'  => apiIsoDate($p['added_at']),
+    ];
+}
+
+/** GET /tickets/{id}/participants */
+function apiTicketParticipantsList(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, (int)$params[0]);
+    require_once __DIR__ . '/../../../includes/services/ticket_participants.php';
+    try {
+        $list = TicketParticipants::list($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond(array_map('apiTicketParticipantShape', $list));
+}
+
+/**
+ * POST /tickets/{id}/participants - { "user_id": 12 } or { "email": "sam@example.com" }.
+ * 201 when added, 200 when they already were. An unknown address creates the person.
+ */
+function apiTicketParticipantsAdd(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, (int)$params[0]);
+    require_once __DIR__ . '/../../../includes/services/ticket_participants.php';
+    $ctx = ActorContext::fromApiKey($apiKey);
+    try {
+        // The key's ticket_participants.create permission is the write access here.
+        $r = TicketParticipants::add($conn, $ctx, (int)$params[0],
+            isset($body['user_id']) ? (int)$body['user_id'] : null,
+            isset($body['email']) ? (string)$body['email'] : null, true, 'api');
+        $mine = array_values(array_filter(TicketParticipants::list($conn, $ctx, (int)$params[0]), fn($p) => $p['user_id'] === $r['user_id']));
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond($mine ? apiTicketParticipantShape($mine[0]) : null, $r['added'] ? 201 : 200);
+}
+
+/** DELETE /tickets/{id}/participants/{user_id} - 404 when they were not a participant. */
+function apiTicketParticipantsRemove(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, (int)$params[0]);
+    require_once __DIR__ . '/../../../includes/services/ticket_participants.php';
+    try {
+        $r = TicketParticipants::remove($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], (int)$params[1], true);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    if (!$r['removed']) apiError(404, 'not_found', 'That person is not a participant on this ticket.');
+    apiRespond(['ticket_id' => (int)$params[0], 'user_id' => (int)$params[1], 'removed' => true]);
+}
+
+// ---------------------------------------------------------------------------
 // Forms a ticket needs (GH #272) - the ticket twin of /tasks/{id}/forms
 // ---------------------------------------------------------------------------
 

@@ -260,6 +260,83 @@ try {
         check("$f removes participants", str_contains((string)file_get_contents($f), 'ticket_participants'));
     }
 
+    // ── Task 5: the browser endpoint and the REST API ────────────────────────
+    if ($base === '') {
+        echo "\n(skipped the HTTP checks: set FREEITSM_TEST_URL)\n";
+    } else {
+        echo "\nThe browser endpoint\n";
+        $sessDir = rtrim((string)(getenv('FREEITSM_SESS_DIR') ?: sys_get_temp_dir()), '/');
+        $sid = $tag . 'sess';
+        $actorName = (string)$conn->query("SELECT username FROM analysts WHERE id = $actorId")->fetchColumn();
+        file_put_contents("$sessDir/sess_$sid", 'analyst_id|i:' . $actorId . ';analyst_username|s:' . strlen($actorName) . ':"' . $actorName . '";analyst_name|s:2:"ZZ";csrf_token|s:1:"x";');
+        $made['sessions'][] = "$sessDir/sess_$sid";
+        $http = function (string $method, array $body = [], string $q = '', bool $csrf = true) use ($base, $sid): array {
+            $ch = curl_init("$base/api/tickets/participants.php$q");
+            $h = ['Content-Type: application/json', 'Cookie: PHPSESSID=' . $sid];
+            if ($csrf) $h[] = 'X-CSRF-Token: x';
+            $o = [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30, CURLOPT_HTTPHEADER => $h];
+            if ($method === 'POST') { $o[CURLOPT_POST] = true; $o[CURLOPT_POSTFIELDS] = json_encode($body); }
+            curl_setopt_array($ch, $o);
+            $raw = (string)curl_exec($ch);
+            return [(int)curl_getinfo($ch, CURLINFO_HTTP_CODE), json_decode($raw, true) ?: ['raw' => substr($raw, 0, 300)]];
+        };
+        $th = $ticket('http', $req);
+        [$c, $j] = $http('POST', ['action' => 'add', 'ticket_id' => $th, 'user_id' => $pA]);
+        check("POST add ($c)", $c === 200 && ($j['added'] ?? null) === true && ($j['user_id'] ?? 0) === $pA, json_encode($j));
+        [$c, $j] = $http('POST', ['action' => 'add', 'ticket_id' => $th, 'email' => $mail('pb')]);
+        check("POST add by address ($c)", $c === 200 && ($j['user_id'] ?? 0) === $pB, json_encode($j));
+        [$c, $j] = $http('GET', [], "?ticket_id=$th");
+        check("GET lists them, ready, can edit, not confidential ($c)", $c === 200 && ($j['ready'] ?? null) === true && ($j['can_edit'] ?? null) === true
+            && ($j['confidential'] ?? null) === false && array_column($j['participants'] ?? [], 'user_id') === [$pA, $pB], json_encode($j));
+        [$c, $j] = $http('POST', ['action' => 'remove', 'ticket_id' => $th, 'user_id' => $pA]);
+        check("POST remove ($c)", $c === 200 && ($j['removed'] ?? null) === true && $rows($th) === [$pB], json_encode($j));
+        [$c, $j] = $http('POST', ['action' => 'add', 'ticket_id' => $th, 'user_id' => $req]);
+        check("the requester is refused with a code the page can show ($c)", $c === 400 && ($j['code'] ?? '') === 'is_requester', json_encode($j));
+        [$c, $j] = $http('POST', ['action' => 'add', 'ticket_id' => $th, 'user_id' => $pC], '', false);
+        check("no CSRF token: refused, nothing added ($c)", $c !== 200 && !in_array($pC, $rows($th), true), json_encode($j));
+        [$c, $j] = $http('GET', [], '?ticket_id=999999999');
+        check("a ticket that does not exist is 404 ($c)", $c === 404);
+        [$c, $j] = $http('GET', [], "?ticket_id=$tConf");
+        check("a confidential ticket says so ($c)", $c === 200 && ($j['confidential'] ?? null) === true, json_encode($j));
+
+        echo "\nThe REST API\n";
+        $keys = [];
+        foreach (['rw' => ['ticket_participants' => ['read', 'create', 'delete'], 'tickets' => ['read']], 'ro' => ['ticket_participants' => ['read'], 'tickets' => ['read']]] as $k => $perm) {
+            $keys[$k] = 'fitsm_' . bin2hex(random_bytes(24));
+            $conn->prepare('INSERT INTO api_keys (name, key_prefix, key_hash, analyst_id, permissions) VALUES (?, ?, ?, ?, ?)')
+                 ->execute([$tag . $k, substr($keys[$k], 0, 12), hash('sha256', $keys[$k]), $actorId, json_encode($perm)]);
+            $made['keys'][] = (int)$conn->lastInsertId();
+        }
+        $api = function (string $method, string $path, string $key, ?array $body = null) use ($base): array {
+            $ch = curl_init($base . '/api/v1/index.php?path=' . rawurlencode($path));
+            $o = [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30, CURLOPT_CUSTOMREQUEST => $method,
+                  CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $key, 'Content-Type: application/json']];
+            if ($body !== null) $o[CURLOPT_POSTFIELDS] = json_encode($body);
+            curl_setopt_array($ch, $o);
+            $raw = (string)curl_exec($ch);
+            return [(int)curl_getinfo($ch, CURLINFO_HTTP_CODE), json_decode($raw, true) ?: ['raw' => substr($raw, 0, 300)]];
+        };
+        $tr2 = $ticket('rest', $req);
+        [$c, $j] = $api('POST', "/tickets/$tr2/participants", $keys['rw'], ['email' => $mail('pc')]);
+        check("POST by address: 201 ($c)", $c === 201 && ($j['data']['person']['id'] ?? 0) === $pC, json_encode($j));
+        $s = $conn->prepare("SELECT source FROM ticket_participants WHERE ticket_id = ? AND user_id = ?"); $s->execute([$tr2, $pC]);
+        check('...recorded as added through the API', $s->fetchColumn() === 'api');
+        [$c, $j] = $api('POST', "/tickets/$tr2/participants", $keys['rw'], ['user_id' => $pC]);
+        check("again: 200 ($c)", $c === 200, json_encode($j));
+        [$c, $j] = $api('GET', "/tickets/$tr2/participants", $keys['ro']);
+        check("GET with a read-only key ($c)", $c === 200 && count($j['data'] ?? []) === 1 && ($j['data'][0]['person']['email'] ?? '') === $mail('pc'), json_encode($j));
+        [$c, $j] = $api('POST', "/tickets/$tr2/participants", $keys['ro'], ['user_id' => $pA]);
+        check("a key without ticket_participants.create is refused ($c)", $c === 403);
+        [$c, $j] = $api('POST', "/tickets/$tConf/participants", $keys['rw'], ['user_id' => $pA]);
+        check("a confidential ticket is refused ($c)", in_array($c, [400, 422], true) && ($j['error']['code'] ?? $j['error'] ?? '') !== '' , json_encode($j));
+        [$c, $j] = $api('GET', "/tickets/$tr2", $keys['rw']);
+        check("the ticket's related counts include participants ($c)", ($j['data']['related']['counts']['participants'] ?? null) === 1, json_encode($j['data']['related'] ?? $j));
+        [$c, $j] = $api('DELETE', "/tickets/$tr2/participants/$pC", $keys['rw']);
+        check("DELETE ($c)", $c === 200 && ($j['data']['removed'] ?? null) === true && $rows($tr2) === [], json_encode($j));
+        [$c, $j] = $api('DELETE', "/tickets/$tr2/participants/$pC", $keys['rw']);
+        check("DELETE someone not there: 404 ($c)", $c === 404);
+    }
+
     echo "\n$pass passed, $fail failed\n";
 } finally {
     foreach ($made['tickets'] as $id) {
@@ -279,5 +356,7 @@ try {
     }
     foreach ($made['mailboxes'] as $id) $conn->prepare("DELETE FROM target_mailboxes WHERE id = ?")->execute([$id]);
     foreach ($made['departments'] ?? [] as $id) $conn->prepare("DELETE FROM departments WHERE id = ?")->execute([$id]);
+    foreach ($made['keys'] as $id) { try { $conn->exec("DELETE FROM api_key_rate_limits WHERE api_key_id = $id"); } catch (Throwable) {} $conn->exec("DELETE FROM api_keys WHERE id = $id"); }
+    foreach ($made['sessions'] as $f) @unlink($f);
 }
 exit($fail ? 1 : 0);
