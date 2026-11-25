@@ -44,6 +44,8 @@ try {
             'participants' => $list,
             'can_edit'     => $canWrite,
             'confidential' => ticketIsConfidential($conn, $ticketId),
+            // Every address of the requester, so Reply knows they are in To under any of them.
+            'requester_addresses' => TicketParticipants::requesterAddresses($conn, $ticketId),
         ]);
         exit;
     }

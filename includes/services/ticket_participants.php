@@ -79,8 +79,11 @@ class TicketParticipants
     /**
      * A ticket's participants, oldest first - people who have left too, so they show as left.
      *
-     * @return list<array{user_id:int, name:string, email:?string, is_active:bool, company_id:?int, company_name:?string,
-     *                    added_by:?int, added_by_name:?string, added_at:string, source:string}>
+     * addresses: every address of the person (main and linked #308), lower case - so Reply
+     * can tell they are already in To under another of their addresses.
+     *
+     * @return list<array{user_id:int, name:string, email:?string, addresses:list<string>, is_active:bool, company_id:?int,
+     *                    company_name:?string, added_by:?int, added_by_name:?string, added_at:string, source:string}>
      */
     public static function list(PDO $conn, ActorContext $ctx, int $ticketId): array
     {
@@ -100,6 +103,7 @@ class TicketParticipants
             'user_id'       => (int)$r['user_id'],
             'name'          => (string)($r['display_name'] ?: $r['email']),
             'email'         => $r['email'] !== null && $r['email'] !== '' ? (string)$r['email'] : null,
+            'addresses'     => self::personAddresses($conn, (int)$r['user_id'], $r['email']),
             'is_active'     => (int)$r['is_active'] === 1,
             'company_id'    => $r['tenant_id'] !== null ? (int)$r['tenant_id'] : null,
             'company_name'  => $r['company_name'] !== null ? (string)$r['company_name'] : null,
@@ -420,20 +424,25 @@ class TicketParticipants
         return $t !== null && $p !== $t;
     }
 
-    /** Every address of the ticket's requester, main and linked, lower case. */
-    private static function requesterAddresses(PDO $conn, int $ticketId): array
+    /** Every address of the ticket's requester, main and linked, lower case ([] when there is none). */
+    public static function requesterAddresses(PDO $conn, int $ticketId): array
     {
         $s = $conn->prepare("SELECT u.id, u.email FROM tickets t JOIN users u ON u.id = t.user_id WHERE t.id = ?");
         $s->execute([$ticketId]);
         $r = $s->fetch(PDO::FETCH_ASSOC);
-        if (!$r) return [];
-        $out = $r['email'] !== null && trim($r['email']) !== '' ? [userEmailNorm($r['email'])] : [];
+        return $r ? self::personAddresses($conn, (int)$r['id'], $r['email']) : [];
+    }
+
+    /** A person's main address and linked ones (#308), lower case, once each. */
+    private static function personAddresses(PDO $conn, int $userId, ?string $main): array
+    {
+        $out = $main !== null && trim($main) !== '' ? [userEmailNorm($main)] : [];
         if (userEmailsReady($conn)) {
             $l = $conn->prepare("SELECT email FROM user_email_addresses WHERE user_id = ?");
-            $l->execute([(int)$r['id']]);
+            $l->execute([$userId]);
             foreach ($l->fetchAll(PDO::FETCH_COLUMN) as $a) $out[] = userEmailNorm($a);
         }
-        return $out;
+        return array_values(array_unique(array_filter($out, fn($a) => $a !== '')));
     }
 
     /** "Name <address>" for the history. */

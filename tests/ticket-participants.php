@@ -107,6 +107,9 @@ try {
     sort($cc);
     $want = [$mail('main'), $mail('p2')]; sort($want);
     check('Cc: each participant once, by their main address', $cc === $want, json_encode($cc));
+    $byId = array_column(TicketParticipants::list($conn, $ctx, $t), null, 'user_id');
+    check('the list carries every address of a person, so Reply can tell they are in To', ($byId[$linked]['addresses'] ?? []) === [$mail('main'), $mail('alt')], json_encode($byId[$linked]['addresses'] ?? null));
+    check("...and the requester's addresses are known too", TicketParticipants::requesterAddresses($conn, $t) === [$mail('req'), $mail('req-alt')]);
 
     $r = TicketParticipants::add($conn, $ctx, $t, null, $mail('new'), true);
     $s = $conn->prepare("SELECT id FROM users WHERE email = ?"); $s->execute([$mail('new')]);

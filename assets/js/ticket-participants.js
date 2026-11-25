@@ -21,6 +21,7 @@
 
     let state = { ticketId: null, list: [], canEdit: false, ready: false, confidential: false };
     window.currentTicketParticipants = [];
+    window.currentTicketRequesterAddresses = [];
 
     async function call(method, body, query) {
         const res = await fetch(API() + (query || ''), method === 'GET' ? {} : {
@@ -39,11 +40,13 @@
     async function loadTicketParticipants(ticketId) {
         state = { ticketId, list: [], canEdit: false, ready: false, confidential: false };
         window.currentTicketParticipants = [];
+        window.currentTicketRequesterAddresses = [];
         try {
             const d = await call('GET', null, '?ticket_id=' + encodeURIComponent(ticketId));
             if (state.ticketId !== ticketId) return;   // another ticket opened meanwhile
             state = { ticketId, list: d.participants || [], canEdit: !!d.can_edit, ready: d.ready !== false, confidential: !!d.confidential };
-            window.currentTicketParticipants = state.list.slice();
+            window.currentTicketParticipants = state.confidential ? [] : state.list.slice();
+            window.currentTicketRequesterAddresses = d.requester_addresses || [];
         } catch (e) { /* the row stays hidden; Reply simply pre-fills nobody */ }
         render();
     }
@@ -158,25 +161,30 @@
     }
 
     /**
-     * The Cc a Reply starts with: the active participants' addresses, once each, none
-     * already in To. When the ticket has participants and To is not the requester (a
-     * reply to a participant's own message, GH #306), the requester goes in Cc first so
-     * they are never left out. No participants: '' - Reply as it always was.
+     * The Cc a Reply starts with: the active participants' main addresses, once each, and
+     * nobody who is already in To under any of their addresses (#308). When the ticket has
+     * participants and the requester is not in To (a reply to a participant's own message,
+     * GH #306), the requester goes in Cc first so they are never left out. No participants,
+     * or a confidential ticket: '' - Reply as it always was.
      *
      * @param {string} toValue  what the To box holds
-     * @param {?string} requesterEmail  the ticket requester's address
+     * @param {?string} requesterEmail  the ticket requester's main address
      */
     function participantReplyCc(toValue, requesterEmail) {
+        const ticket = cur();
+        if (state.confidential || (ticket && ticket.sensitivity === 'confidential')) return '';
         const active = (window.currentTicketParticipants || []).filter(p => p.is_active && p.email);
         if (!active.length) return '';
         const inTo = new Set(String(toValue || '').split(/[;,]/).map(s => {
             const m = s.match(/<([^>]+)>/);
             return norm(m ? m[1] : s);
         }).filter(Boolean));
+        const present = (addrs) => addrs.some(a => inTo.has(norm(a)));
         const out = [];
         const push = (a) => { const n = norm(a); if (n && !inTo.has(n) && !out.includes(n)) out.push(n); };
-        if (requesterEmail) push(requesterEmail);
-        active.forEach(p => push(p.email));
+        const reqAll = [requesterEmail].concat(window.currentTicketRequesterAddresses || []).filter(Boolean);
+        if (requesterEmail && !present(reqAll)) push(requesterEmail);
+        active.forEach(p => { if (!present([p.email].concat(p.addresses || []))) push(p.email); });
         return out.join('; ');
     }
 

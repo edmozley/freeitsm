@@ -5363,6 +5363,8 @@ async function assignDepartment() {
                     sensSel.value = data.sensitivity;
                     sensSel.classList.toggle('is-confidential', data.sensitivity === 'confidential');
                 }
+                // GH #432: becoming confidential removed the participants server-side.
+                if (typeof loadTicketParticipants === 'function') loadTicketParticipants(currentEmail.ticket_id);
             }
             updatePropertiesSummary();
             loadFolderCounts();
