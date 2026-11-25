@@ -8,9 +8,12 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   FREEITSM_TEST_DATABASE=<throwaway db> FREEITSM_TEST_URL=http://localhost/<that install> php tests/ticket-participants.php
  *
  * Runs Database Verify first. Makes ZZ people (requester, participants, one who has
- * left), ZZ tickets (normal, confidential, trashed), a ZZ mailbox, ZZ analysts and
- * keys; all removed in `finally`, with every setting changed put back. Nothing is
- * emailed: automatic emails are checked through the function that builds their Cc.
+ * left), ZZ tickets (normal, confidential, trashed), a ZZ company, a ZZ mailbox, ZZ
+ * analysts and keys, and a ZZ Starters & leavers case; all removed in `finally`, with
+ * every setting changed put back. Nothing is emailed: automatic emails are checked
+ * through the function that builds their Cc, and the one real send is to a muted
+ * requester. "Before Database Verification" renames ticket_participants away for a
+ * moment (put back in `finally` whatever happens), so use a throwaway database.
  */
 
 chdir(__DIR__ . '/..');
@@ -38,11 +41,60 @@ require_once 'includes/services/ticket_participants.php';
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 if ($conn->query('SELECT DATABASE()')->fetchColumn() !== $expected) { echo "(skipped: config.php does not use $expected)\n"; exit(0); }
+
+// The "Before Database Verification" section runs this file again with the table renamed
+// away: ready() answers once per process, so it needs a process of its own. It must not
+// run Database Verify (that would put the table back). Prints one JSON line of checks.
+if (($argv[1] ?? '') === '--before-verify') {
+    $in = json_decode((string)($argv[2] ?? ''), true);
+    $out = [];
+    $c = function (string $what, bool $ok, $detail = '') use (&$out) { $out[] = [$what, $ok, is_string($detail) ? $detail : json_encode($detail)]; };
+    try {
+        require_once 'includes/services/tickets.php';
+        require_once 'includes/ticket_sensitivity.php';
+        require_once 'includes/ticket_merge.php';
+        require_once 'includes/user_emails.php';
+        require_once 'includes/users.php';
+        require_once 'includes/template_email.php';
+        $ctx = new ActorContext((int)$in['actor'], null, 'ui', 'en', 'ZZ actor');
+        $col = function (string $sql, int $id) use ($conn) { $s = $conn->prepare($sql); $s->execute([$id]); return $s->fetchColumn(); };
+        $c('the service says not ready', TicketParticipants::ready($conn) === false);
+        $codes = [
+            errCode(fn() => TicketParticipants::list($conn, $ctx, $in['conf'])),
+            errCode(fn() => TicketParticipants::add($conn, $ctx, $in['conf'], $in['p'], null, true)),
+            errCode(fn() => TicketParticipants::preview($conn, $ctx, $in['conf'], $in['p'], null)),
+            errCode(fn() => TicketParticipants::remove($conn, $ctx, $in['conf'], $in['p'], true)),
+        ];
+        $c('list, add, preview and remove refuse with not_ready', $codes === ['not_ready', 'not_ready', 'not_ready', 'not_ready'], $codes);
+        $c('an automatic email copies nobody', TicketParticipants::ccAddresses($conn, $in['conf']) === []
+            && templateParticipantCc($conn, $in['conf'], 'ticket_closed', 'zz@example.test') === '');
+        TicketsService::updateTicket($conn, $ctx, $in['conf'], ['sensitivity' => 'confidential'], true);
+        $c('marking a ticket confidential by hand still works', $col("SELECT sensitivity FROM tickets WHERE id = ?", $in['conf']) === 'confidential');
+        TicketsService::updateTicket($conn, $ctx, $in['reqchg'], ['user_id' => $in['p']], true);
+        $c('changing the requester still works', (int)$col("SELECT user_id FROM tickets WHERE id = ?", $in['reqchg']) === $in['p']);
+        ticketSensitivityRaise($conn, $in['raise'], 'ZZ test rule');
+        $c('a sensitivity rule still raises a ticket', $col("SELECT sensitivity FROM tickets WHERE id = ?", $in['raise']) === 'confidential');
+        mergeTickets($conn, (int)$in['actor'], [$in['src']], $in['tgt']);
+        $c('merging tickets still works', (int)$col("SELECT merged_into_id FROM tickets WHERE id = ?", $in['src']) === $in['tgt']);
+        userDeletePerson($conn, $in['gone']);
+        $c('deleting a person still works', (int)$col("SELECT COUNT(*) FROM users WHERE id = ?", $in['gone']) === 0);
+        TicketParticipants::deleteForTickets($conn, [$in['src']]);
+        TicketParticipants::moveForUserMerge($conn, $in['p'], $in['req']);
+        TicketParticipants::removeIfRequester($conn, $in['reqchg'], (int)$in['actor']);
+        $c('the lifecycle hooks do nothing, without an error', TicketParticipants::clearForConfidential($conn, [$in['raise']], (int)$in['actor']) === 0);
+    } catch (Throwable $e) {
+        $c('runs without an error', false, get_class($e) . ': ' . $e->getMessage());
+    }
+    echo json_encode($out), "\n";
+    exit(0);
+}
+
 exec(escapeshellarg(PHP_BINARY) . ' scripts/db_verify_cli.php --apply 2>&1', $o, $code);
 if ($code !== 0) { check('Database Verify ran', false); exit(1); }
 
 $tag = 'zz432' . bin2hex(random_bytes(3));
-$made = ['users' => [], 'tickets' => [], 'mailboxes' => [], 'analysts' => [], 'keys' => [], 'sessions' => [], 'settings' => []];
+$made = ['users' => [], 'tickets' => [], 'mailboxes' => [], 'analysts' => [], 'keys' => [], 'sessions' => [], 'settings' => [], 'tenants' => [], 'jml_cases' => []];
+$away = $tag . '_tp';   // where "Before Database Verification" puts the table for a moment
 $mail = fn(string $who) => "$tag-$who@example.test";
 
 /** A ZZ person: main address, optional linked address, active or left. */
@@ -74,8 +126,12 @@ $rows = function (int $ticketId) use ($conn): array {
 };
 
 try {
-    $actorId = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 ORDER BY id LIMIT 1")->fetchColumn();
+    $actorId = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 ORDER BY can_access_all_tenants DESC, id LIMIT 1")->fetchColumn();
     $ctx = new ActorContext($actorId, null, 'ui', 'en', 'ZZ actor');
+    // A second company before anything asks (isMultiTenant() is cached per process), so
+    // the company cases run on a single-company install too.
+    $conn->prepare("INSERT INTO tenants (name, is_default, is_active) VALUES (?, 0, 1)")->execute(["ZZ $tag company"]);
+    $zzTenant = $made['tenants'][] = (int)$conn->lastInsertId();
 
     $req    = $person('req', 'req-alt');
     $linked = $person('main', 'alt');
@@ -151,15 +207,33 @@ try {
     $pv = TicketParticipants::preview($conn, $ctx, $t, $p2, null);
     check('by id: the person, same company', $pv['user_id'] === $p2 && $pv['other_company'] === false, json_encode($pv));
     check('a bad address is refused as Add would refuse it', errCode(fn() => TicketParticipants::preview($conn, $ctx, $t, null, 'nope')) === 'invalid_email');
-    if (isMultiTenant($conn)) {
-        $other = (int)$conn->query("SELECT id FROM tenants WHERE is_default = 0 ORDER BY id LIMIT 1")->fetchColumn();
-        $tOther = $ticket('othercompany', $req);
-        $conn->prepare("UPDATE tickets SET tenant_id = ? WHERE id = ?")->execute([$other, $tOther]);
-        $conn->prepare("UPDATE users SET tenant_id = NULL WHERE id = ?")->execute([$p2]);
-        check('a person with no company (the Default one) on another company\'s ticket is other_company', TicketParticipants::preview($conn, $ctx, $tOther, $p2, null)['other_company'] === true);
-    } else {
-        echo "  (single-company install: the other-company case is not reachable here)\n";
-    }
+    $tOther = $ticket('othercompany', $req);
+    $conn->prepare("UPDATE tickets SET tenant_id = ? WHERE id = ?")->execute([$zzTenant, $tOther]);
+    $conn->prepare("UPDATE users SET tenant_id = NULL WHERE id = ?")->execute([$p2]);
+    check('a person with no company (the Default one) on another company\'s ticket is other_company', TicketParticipants::preview($conn, $ctx, $tOther, $p2, null)['other_company'] === true);
+
+    echo "\nCompany scope: only people the analyst can see\n";
+    $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, is_admin, can_access_all_modules, can_access_all_tenants) VALUES (?, '!', 'ZZ scoped', ?, 1, 0, 0, 0)")
+         ->execute(["{$tag}scoped", "$tag-scoped@example.invalid"]);
+    $scopedId = $made['analysts'][] = (int)$conn->lastInsertId();
+    $defaultTenant = getDefaultTenantId($conn);
+    $conn->prepare("INSERT INTO analyst_tenant_access (analyst_id, tenant_id) VALUES (?, ?)")->execute([$scopedId, $defaultTenant]);
+    $scoped = new ActorContext($scopedId, null, 'ui', 'en', 'ZZ scoped');
+    $tScope = $ticket('scope', $req);
+    $conn->prepare("UPDATE tickets SET tenant_id = ? WHERE id = ?")->execute([$defaultTenant, $tScope]);
+    $outsider = $person('outsider');
+    $conn->prepare("UPDATE users SET tenant_id = ? WHERE id = ?")->execute([$zzTenant, $outsider]);
+    check('an analyst of the Default company only sees the ticket (control)', errCode(fn() => TicketParticipants::list($conn, $scoped, $tScope)) === 'ok');
+    check('...cannot add a person of a company they cannot see, by id', errCode(fn() => TicketParticipants::add($conn, $scoped, $tScope, $outsider, null, true)) === 'not_found');
+    check('...nor by their address', errCode(fn() => TicketParticipants::add($conn, $scoped, $tScope, null, $mail('outsider'), true)) === 'not_found');
+    $s = $conn->prepare("SELECT COUNT(*) FROM users WHERE email = ?"); $s->execute([$mail('outsider')]);
+    check('...and the address does not create a second person', (int)$s->fetchColumn() === 1);
+    check('...nor learn who they are from the preview', errCode(fn() => TicketParticipants::preview($conn, $scoped, $tScope, $outsider, null)) === 'not_found'
+        && errCode(fn() => TicketParticipants::preview($conn, $scoped, $tScope, null, $mail('outsider'))) === 'not_found');
+    check('...nobody was added', $rows($tScope) === []);
+    check('...while a person of their own company is added (control)', TicketParticipants::add($conn, $scoped, $tScope, $p2, null, true)['added'] === true);
+    check('an analyst who sees every company can add the other company\'s person', TicketParticipants::add($conn, $ctx, $tScope, $outsider, null, true)['other_company'] === true
+        && $rows($tScope) === [$p2, $outsider]);
 
     echo "\nPeople who left, confidential, removing\n";
     $conn->prepare("INSERT INTO ticket_participants (ticket_id, user_id, added_by_id, source, added_datetime) VALUES (?, ?, NULL, 'analyst', UTC_TIMESTAMP())")->execute([$t, $left]);
@@ -266,6 +340,21 @@ try {
     unmergeTicket($conn, $actorId, (int)$m->fetchColumn());
     check('...and undoing the normal source gives it back all its participants', $rows($mA) === [$pA, $pB], json_encode($rows($mA)));
 
+    echo "\nSplit\n";
+    require_once 'includes/ticket_split.php';
+    $ts = $ticket('split', $req);
+    $add($ts, $pA); $add($ts, $pB);
+    $em = $conn->prepare("INSERT INTO emails (ticket_id, subject, from_name, from_address, to_recipients, direction, received_datetime) VALUES (?, ?, 'ZZ req', ?, ?, 'Inbound', ?)");
+    $em->execute([$ts, 'ZZ432 first problem', $mail('req'), $mail('mbox'), gmdate('Y-m-d H:i:s', time() - 120)]);
+    $em->execute([$ts, 'ZZ432 second problem', $mail('req'), $mail('mbox'), gmdate('Y-m-d H:i:s', time() - 60)]);
+    $second = (int)$conn->lastInsertId();
+    $_SESSION['analyst_id'] = $actorId;   // splitTicket() reads the actor from the session
+    $split = splitTicket($conn, $actorId, $ts, $second, false);
+    $newTicket = $made['tickets'][] = (int)$split['new_ticket_id'];
+    check('split: the original keeps its participants', $rows($ts) === [$pA, $pB], json_encode($rows($ts)));
+    check('...the new ticket starts with none', $newTicket > 0 && $rows($newTicket) === [], json_encode($rows($newTicket)));
+    check('...and nothing about participants is written to either history', count($audits($ts)) === 2 && $audits($newTicket) === []);
+
     echo "\nRequester, people, delete\n";
     $tq = $ticket('req', $req);
     $add($tq, $pA);
@@ -331,6 +420,20 @@ try {
     templateSaveSentEmail($conn, $te, $mbRow, $mail('req'), 'ZZ432 closed', '<p>Closed</p>', $both);
     $s = $conn->prepare("SELECT cc_recipients FROM emails WHERE ticket_id = ? AND subject = 'ZZ432 closed'"); $s->execute([$te]);
     check('the sent email keeps its Cc on the ticket (so the portal sees the requester was on it)', $s->fetchColumn() === $both);
+
+    // GH #316: a Starters & leavers case that mutes the requester mutes their participants too.
+    $tMute = $ticket('muted', $req);
+    $add($tMute, $pA); $add($tMute, $pB);
+    check('control: unmuted, "closed" would copy both participants', templateParticipantCc($conn, $tMute, 'ticket_closed', $mail('req')) === $both);
+    $conn->prepare("INSERT INTO jml_cases (kind, person_name, effective_date) VALUES ('starter', ?, UTC_DATE())")->execute(["ZZ $tag"]);
+    $caseId = $made['jml_cases'][] = (int)$conn->lastInsertId();
+    $conn->prepare("INSERT INTO jml_case_tickets (case_id, ticket_id, mute_requester) VALUES (?, ?, 1)")->execute([$caseId, $tMute]);
+    sendTemplateEmail($conn, $tMute, 'ticket_closed');
+    $s = $conn->prepare("SELECT status, to_address FROM email_send_log WHERE ticket_id = ? ORDER BY id"); $s->execute([$tMute]);
+    $log = $s->fetchAll(PDO::FETCH_ASSOC);
+    check('muted requester: the closed email is logged as skipped, once, for the requester', count($log) === 1 && $log[0]['status'] === 'skipped' && $log[0]['to_address'] === $mail('req'), json_encode($log));
+    $s = $conn->prepare("SELECT COUNT(*) FROM emails WHERE ticket_id = ?"); $s->execute([$tMute]);
+    check('...and nothing is sent to anyone, participants included', (int)$s->fetchColumn() === 0);
 
     // ── Task 8: the portal's third-party rule is unchanged ───────────────────
     echo "\nThe portal\n";
@@ -427,9 +530,37 @@ try {
         check("DELETE someone not there: 404 ($c)", $c === 404);
     }
 
+    // An install that has the new code but has not run Database Verification yet: the
+    // table is renamed away for a moment, and a second process (ready() is per process)
+    // does what the app does - which must all keep working, with no participants.
+    echo "\nBefore Database Verification (no ticket_participants table)\n";
+    $gone2 = $person('nr-gone');
+    $nr = ['actor' => $actorId, 'req' => $req, 'p' => $pA, 'gone' => $gone2,
+           'conf' => $ticket('nr-conf', $req), 'reqchg' => $ticket('nr-reqchg', $req), 'raise' => $ticket('nr-raise', $req),
+           'src' => $ticket('nr-src', $req), 'tgt' => $ticket('nr-tgt', $pC)];
+    $conn->exec("RENAME TABLE ticket_participants TO `$away`");
+    $childOut = [];
+    try {
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --before-verify ' . escapeshellarg(json_encode($nr)) . ' 2>&1', $childOut);
+    } finally {
+        $conn->exec("RENAME TABLE `$away` TO ticket_participants");
+    }
+    $childChecks = json_decode((string)end($childOut), true);
+    if (!is_array($childChecks) || !$childChecks) check('the second process ran', false, implode("\n", array_slice($childOut, -10)));
+    else foreach ($childChecks as [$what, $ok, $detail]) check($what, (bool)$ok, (string)$detail);
+    check('...and the table is back afterwards', TicketParticipants::ready($conn) && (bool)$conn->query("SHOW TABLES LIKE 'ticket_participants'")->fetchColumn());
+
     echo "\n$pass passed, $fail failed\n";
 } finally {
+    // Never leave the table renamed away, whatever failed.
+    try {
+        if (!$conn->query("SHOW TABLES LIKE 'ticket_participants'")->fetchColumn() && $conn->query("SHOW TABLES LIKE " . $conn->quote($away))->fetchColumn()) {
+            $conn->exec("RENAME TABLE `$away` TO ticket_participants");
+        }
+    } catch (Throwable) {}
     foreach ($made['tickets'] as $id) {
+        try { $conn->prepare("DELETE FROM ticket_splits WHERE source_ticket_id = ? OR new_ticket_id = ?")->execute([$id, $id]); } catch (Throwable) {}
+        try { $conn->prepare("DELETE FROM email_send_log WHERE ticket_id = ?")->execute([$id]); } catch (Throwable) {}
         try { $conn->prepare("DELETE FROM ticket_participants WHERE ticket_id = ?")->execute([$id]); } catch (Throwable) {}
         try { $conn->prepare("DELETE FROM ticket_merges WHERE source_ticket_id = ? OR target_ticket_id = ?")->execute([$id, $id]); } catch (Throwable) {}
         try { $conn->prepare("DELETE FROM ticket_links WHERE source_ticket_id = ? OR target_ticket_id = ?")->execute([$id, $id]); } catch (Throwable) {}
@@ -450,7 +581,12 @@ try {
         if ($v === false) $conn->prepare("DELETE FROM system_settings WHERE setting_key = ?")->execute([$k]);
         else $conn->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = ?")->execute([$v, $k]);
     }
-    foreach ($made['analysts'] as $id) $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$id]);
+    foreach ($made['jml_cases'] as $id) $conn->prepare("DELETE FROM jml_cases WHERE id = ?")->execute([$id]);
+    foreach ($made['analysts'] as $id) {
+        $conn->prepare("DELETE FROM analyst_tenant_access WHERE analyst_id = ?")->execute([$id]);
+        $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$id]);
+    }
+    foreach ($made['tenants'] as $id) $conn->prepare("DELETE FROM tenants WHERE id = ?")->execute([$id]);
     foreach ($made['keys'] as $id) { try { $conn->exec("DELETE FROM api_key_rate_limits WHERE api_key_id = $id"); } catch (Throwable) {} $conn->exec("DELETE FROM api_keys WHERE id = $id"); }
     foreach ($made['sessions'] as $f) @unlink($f);
 }
