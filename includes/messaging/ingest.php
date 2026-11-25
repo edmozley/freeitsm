@@ -735,6 +735,9 @@ function messagingTelegramLinkPhone(PDO $conn, array $channel, string $chatId, i
                 $in = implode(',', array_fill(0, count($moved), '?'));
                 $conn->prepare("UPDATE tickets SET user_id = ? WHERE user_id = ? AND id IN ($in)")
                      ->execute(array_merge([$matchedId, $placeholderId], $moved));
+                // GH #432: the requester is never also a participant.
+                require_once __DIR__ . '/../services/ticket_participants.php';
+                foreach ($moved as $mt) TicketParticipants::removeIfRequester($conn, $mt, null);
             }
 
             // Retire the placeholder only when nothing at all still points at it:

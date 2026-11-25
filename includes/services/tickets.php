@@ -43,6 +43,7 @@ require_once __DIR__ . '/checklists.php';              // mandatory SOP steps at
 require_once __DIR__ . '/mandatory_fields.php';        // mandatory ticket fields at closure
 require_once __DIR__ . '/ticket_fields.php';           // custom ticket fields (#179)
 require_once __DIR__ . '/../ticket_sensitivity.php';   // Normal / Confidential (discussion #62)
+require_once __DIR__ . '/ticket_participants.php';     // GH #432
 require_once __DIR__ . '/../ticket_priorities.php';
 require_once __DIR__ . '/../ticket_workspace.php';
 
@@ -784,6 +785,7 @@ class TicketsService
                 $updates[] = 'sensitivity = ?';
                 $args[]    = $newSens;
                 $audits[]  = ['Sensitivity', ucfirst($oldSens), ucfirst($newSens)];
+                $becameConfidential = $newSens === 'confidential';
             }
         }
 
@@ -859,6 +861,15 @@ class TicketsService
             // and cannot log a change it does not know the server made.
             if ($departmentChanged) {
                 ticketSensitivityApplyDefaults($conn, $ticketId);
+            }
+            // GH #432: no participants on a confidential ticket, and the requester is
+            // never also a participant. Both write their own history rows, whatever
+            // $writeAudit says - the UI cannot log a removal it did not ask for.
+            if (!empty($becameConfidential)) {
+                TicketParticipants::clearForConfidential($conn, [$ticketId], $actorId > 0 ? $actorId : null);
+            }
+            if (in_array('user_id = ?', $updates, true)) {
+                TicketParticipants::removeIfRequester($conn, $ticketId, $actorId > 0 ? $actorId : null);
             }
             if ($ownWorkspaceTransaction) $conn->commit();
         } catch (Throwable $e) {

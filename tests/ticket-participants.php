@@ -169,18 +169,115 @@ try {
     TicketParticipants::deleteForTickets($conn, [$t]);
     check('deleteForTickets empties the ticket', $rows($t) === []);
 
+    // ── Task 4: lifecycle ────────────────────────────────────────────────────
+    require_once 'includes/services/tickets.php';
+    require_once 'includes/ticket_sensitivity.php';
+    require_once 'includes/ticket_merge.php';
+    require_once 'includes/user_emails.php';
+    require_once 'includes/users.php';
+    $add = fn(int $ticketId, int $userId) => TicketParticipants::add($conn, $ctx, $ticketId, $userId, null, true);
+    $sens = function (int $ticketId) use ($conn): string {
+        $s = $conn->prepare("SELECT sensitivity FROM tickets WHERE id = ?"); $s->execute([$ticketId]);
+        return (string)$s->fetchColumn();
+    };
+    $pA = $person('pa'); $pB = $person('pb'); $pC = $person('pc');
+
+    echo "\nBecoming confidential\n";
+    $tm = $ticket('manual', $req);
+    $add($tm, $pA); $add($tm, $pB);
+    $before = count($audits($tm));
+    TicketsService::updateTicket($conn, $ctx, $tm, ['sensitivity' => 'confidential'], true);
+    $a = $audits($tm);
+    check('marked confidential by hand: participants removed', $sens($tm) === 'confidential' && $rows($tm) === [], json_encode($rows($tm)));
+    check('...one history row each', count($a) === $before + 2 && str_contains(end($a)['new_value'], 'confidential'), json_encode($a));
+    $tn = $ticket('none', $req);
+    TicketsService::updateTicket($conn, $ctx, $tn, ['sensitivity' => 'confidential'], true);
+    check('a ticket with no participants still becomes confidential, with no Participants rows (negative control)', $sens($tn) === 'confidential' && $audits($tn) === []);
+
+    $conn->prepare("INSERT INTO departments (name, default_sensitivity) VALUES (?, 'confidential')")->execute(["$tag dept"]);
+    $deptId = $made['departments'][] = (int)$conn->lastInsertId();
+    $td = $ticket('dept', $req);
+    $add($td, $pA);
+    TicketsService::updateTicket($conn, $ctx, $td, ['department_id' => $deptId], true);
+    check('moved to a confidential department: participants removed', $sens($td) === 'confidential' && $rows($td) === [], json_encode([$sens($td), $rows($td)]));
+    $tr = $ticket('raise', $req);
+    $add($tr, $pA);
+    ticketSensitivityRaise($conn, $tr, 'ZZ test rule');
+    check('raised by any rule (department default in bulk, the requester, a split): participants removed', $rows($tr) === []);
+
+    echo "\nMerge\n";
+    $src = $ticket('src', $req); $tgt = $ticket('tgt', $pC);
+    $add($src, $pA); $add($src, $pB);
+    $conn->prepare("INSERT INTO ticket_participants (ticket_id, user_id, added_by_id, source, added_datetime) VALUES (?, ?, NULL, 'analyst', UTC_TIMESTAMP())")->execute([$src, $pC]);
+    $add($tgt, $pB);
+    mergeTickets($conn, $actorId, [$src], $tgt);
+    check('merge: the survivor has each participant once, and never its own requester', $rows($tgt) === [$pA, $pB], json_encode($rows($tgt)));
+    check('...the merged-away ticket has none', $rows($src) === []);
+    $m = $conn->prepare("SELECT id FROM ticket_merges WHERE source_ticket_id = ? ORDER BY id DESC LIMIT 1"); $m->execute([$src]);
+    $mergeId = (int)$m->fetchColumn();
+    unmergeTicket($conn, $actorId, $mergeId);
+    check('Undo merge: the ticket that came back has all its participants again', $rows($src) === [$pA, $pB, $pC], json_encode($rows($src)));
+    check('...and the survivor keeps its own', $rows($tgt) === [$pB], json_encode($rows($tgt)));
+
+    $cSrc = $ticket('csrc', $req, 'confidential'); $nTgt = $ticket('ntgt', $pC);
+    $add($nTgt, $pA);
+    mergeTickets($conn, $actorId, [$cSrc], $nTgt);
+    check('a confidential ticket merged into a normal one: the survivor is confidential with no participants', $sens($nTgt) === 'confidential' && $rows($nTgt) === [], json_encode([$sens($nTgt), $rows($nTgt)]));
+    $nSrc = $ticket('nsrc', $req); $cTgt = $ticket('ctgt', $pC, 'confidential');
+    $add($nSrc, $pA);
+    mergeTickets($conn, $actorId, [$nSrc], $cTgt);
+    check("a normal ticket merged into a confidential one: its participants do not arrive", $rows($cTgt) === [], json_encode($rows($cTgt)));
+
+    echo "\nRequester, people, delete\n";
+    $tq = $ticket('req', $req);
+    $add($tq, $pA);
+    TicketsService::updateTicket($conn, $ctx, $tq, ['user_id' => $pA], true);
+    $a = $audits($tq);
+    check('the requester changes to a participant: taken off the list, with a history row', $rows($tq) === [] && str_contains(end($a)['new_value'], 'requester'), json_encode($a));
+
+    $dup = $person('dup'); $keep = $person('keep');
+    $tp = $ticket('pm', $req);
+    $add($tp, $dup);
+    $made['users'] = array_values(array_diff($made['users'], [$dup]));   // the merge deletes them
+    $res = userMergeInto($conn, $actorId, $dup, $keep);
+    check('a person merge moves their participations to the person kept', $rows($tp) === [$keep], json_encode($rows($tp)));
+    check('...and deletes the duplicate rather than switching them off', ($res['outcome'] ?? '') === 'deleted', json_encode($res['outcome'] ?? null));
+
+    $gone = $person('gone');
+    $tg = $ticket('gone', $req);
+    $add($tg, $gone);
+    check('participations do not stop a person being deleted', !userDeleteBlockedByRecords($conn, $gone));
+    userDeletePerson($conn, $gone);
+    $made['users'] = array_values(array_diff($made['users'], [$gone]));
+    check('...and the delete removes them', $rows($tg) === []);
+
+    $tx = $ticket('perm', $req);
+    $add($tx, $pA);
+    TicketParticipants::deleteForTickets($conn, [$tx]);
+    $s = $conn->prepare("SELECT COUNT(*) FROM ticket_participants WHERE ticket_id = ?"); $s->execute([$tx]);
+    check('a permanent delete removes the ticket\'s participants', (int)$s->fetchColumn() === 0);
+    foreach (['api/tickets/permanently_delete_ticket.php', 'api/tickets/empty_trash.php', 'api/system/debug-tools/D002_delete_ticket.php'] as $f) {
+        check("$f removes participants", str_contains((string)file_get_contents($f), 'ticket_participants'));
+    }
+
     echo "\n$pass passed, $fail failed\n";
 } finally {
     foreach ($made['tickets'] as $id) {
         try { $conn->prepare("DELETE FROM ticket_participants WHERE ticket_id = ?")->execute([$id]); } catch (Throwable) {}
+        try { $conn->prepare("DELETE FROM ticket_merges WHERE source_ticket_id = ? OR target_ticket_id = ?")->execute([$id, $id]); } catch (Throwable) {}
+        try { $conn->prepare("DELETE FROM ticket_links WHERE source_ticket_id = ? OR target_ticket_id = ?")->execute([$id, $id]); } catch (Throwable) {}
+        try { $conn->prepare("DELETE FROM email_attachments WHERE email_id IN (SELECT id FROM emails WHERE ticket_id = ?)")->execute([$id]); } catch (Throwable) {}
+        $conn->prepare("DELETE FROM emails WHERE ticket_id = ?")->execute([$id]);
         $conn->prepare("DELETE FROM ticket_audit WHERE ticket_id = ?")->execute([$id]);
         $conn->prepare("DELETE FROM tickets WHERE id = ?")->execute([$id]);
     }
     foreach ($made['users'] as $id) {
         try { $conn->prepare("DELETE FROM ticket_participants WHERE user_id = ?")->execute([$id]); } catch (Throwable) {}
         $conn->prepare("DELETE FROM user_email_addresses WHERE user_id = ?")->execute([$id]);
+        try { $conn->prepare("DELETE FROM user_audit WHERE user_id = ?")->execute([$id]); } catch (Throwable) {}
         $conn->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
     }
     foreach ($made['mailboxes'] as $id) $conn->prepare("DELETE FROM target_mailboxes WHERE id = ?")->execute([$id]);
+    foreach ($made['departments'] ?? [] as $id) $conn->prepare("DELETE FROM departments WHERE id = ?")->execute([$id]);
 }
 exit($fail ? 1 : 0);

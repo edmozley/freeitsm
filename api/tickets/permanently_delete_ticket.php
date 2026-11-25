@@ -109,6 +109,9 @@ try {
     // 6b. Watchers (GH #277) - no foreign key either. Tolerant: no table before Database Verify.
     try { $conn->prepare("DELETE FROM ticket_watchers WHERE ticket_id = ?")->execute([$ticketId]); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
 
+    // 6b2. Participants (GH #432) - no foreign key to the ticket. Tolerant: no table before Database Verify.
+    try { $conn->prepare("DELETE FROM ticket_participants WHERE ticket_id = ?")->execute([$ticketId]); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
+
     // 6c. Its Starters & leavers case link (GH #316) - also cascades, removed here in case an install lacks the key.
     try { $conn->prepare("DELETE FROM jml_case_tickets WHERE ticket_id = ?")->execute([$ticketId]); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
 

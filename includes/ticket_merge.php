@@ -51,7 +51,8 @@
  *   MOVE   emails (attachments follow by email_id), ticket_notes, ticket_time_entries,
  *          ticket_recordings, ticket_cmdb_objects, ticket_assets, tasks,
  *          problem_tickets, change_tickets, form_submissions, webchat_conversations,
- *          ticket_watchers (GH #277), ticket_forms (GH #272)
+ *          ticket_watchers (GH #277), ticket_forms (GH #272), ticket_participants (GH #432 -
+ *          once each, never the survivor's requester, none at all onto a confidential ticket)
  *
  *   STAY   ticket_audit          the source's own history. Moving it would rewrite
  *                                the past and make the source look like it never had one.
@@ -86,6 +87,7 @@ const MERGE_MOVE_DEDUPE = [
     'change_tickets'      => 'change_id',
     'ticket_watchers'     => 'analyst_id',   // GH #277: watchers follow the conversation, once each
     'ticket_forms'        => 'form_id',      // GH #272: forms the work needs, once each (the survivor's own wins)
+    'ticket_participants' => 'user_id',      // GH #432: end users copied on the emails, once each
 ];
 
 /**
@@ -565,6 +567,25 @@ function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, a
     // in moved_related['_dropped'] first, and unmergeTicket() puts them back. Merges made
     // before 5.1.0 have no such record and cannot get those rows back.
     $droppedRows = [];
+
+    // GH #432: participants who must not arrive on the survivor - its requester (nobody
+    // twice), and every one of them when the survivor is confidential or this ticket is
+    // (the survivor then becomes confidential, which allows none). Kept in _dropped
+    // like the duplicates below, so Undo merge puts them back.
+    require_once __DIR__ . '/services/ticket_participants.php';
+    if (TicketParticipants::ready($conn)) {
+        $dropAll = ticketIsConfidential($conn, $targetId) || ticketIsConfidential($conn, $sourceId);
+        $pq = $conn->prepare($dropAll
+            ? "SELECT * FROM ticket_participants WHERE ticket_id = ?"
+            : "SELECT p.* FROM ticket_participants p JOIN tickets t ON t.id = ? AND t.user_id = p.user_id WHERE p.ticket_id = ?");
+        $pq->execute($dropAll ? [$sourceId] : [$targetId, $sourceId]);
+        if ($pRows = $pq->fetchAll(PDO::FETCH_ASSOC)) {
+            $droppedRows['ticket_participants'] = $pRows;
+            $pIds = array_map(fn($r) => (int)$r['id'], $pRows);
+            $conn->prepare("DELETE FROM ticket_participants WHERE id IN (" . implode(',', array_fill(0, count($pIds), '?')) . ")")->execute($pIds);
+        }
+    }
+
     foreach (MERGE_MOVE_DEDUPE as $table => $col) {
         try {
             $dq = $conn->prepare(
@@ -574,7 +595,7 @@ function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, a
             );
             $dq->execute([$sourceId, $targetId]);
             $dupes = $dq->fetchAll(PDO::FETCH_ASSOC);
-            if ($dupes) $droppedRows[$table] = $dupes;
+            if ($dupes) $droppedRows[$table] = array_merge($droppedRows[$table] ?? [], $dupes);
 
             // Note the ordering: the de-dupe DELETE runs first, so what is recorded
             // afterwards is exactly the set that actually moves. Recording before the
