@@ -256,8 +256,8 @@ function phpUploadLimits(): array
  * an automated sender (no-reply, mailer-daemon, postmaster, bounce...), never to
  * the mailbox itself, and at most once an hour to the same sender from the same
  * mailbox - checked against the inbound log, which already records every reply.
- * Nor to an automatic reply ($autoReply, GH #432): an out-of-office answering an
- * auto-reply is exactly that loop.
+ * Nor to automated mail ($autoReply, GH #432: an out-of-office, a system
+ * notification): a machine answering an auto-reply is exactly that loop.
  */
 function oversizeNotify(PDO $conn, array $mailbox, array $rules, string $fromAddress, string $fromName, string $subject,
                         array $atts, array $plan, string $outcome, ?int $ticketId = null, bool $autoReply = false): array

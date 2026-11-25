@@ -388,6 +388,7 @@ function gmailGetMessage(string $accessToken, string $messageId): ?array {
         'thread_key' => (string)($msg['threadId'] ?? '') !== '' ? (string)$msg['threadId'] : null,
         // GH #432: an out-of-office or other auto-responder - stored, never treated as a reply.
         'auto_reply' => emailIsAutoReply($headers),
+        'automated' => emailIsAutomated($headers),
     ];
 }
 

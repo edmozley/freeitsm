@@ -158,6 +158,7 @@ function imapNormaliseMessage(ImapClient $client, int $uid, array $mailbox): ?ar
         'in_reply_to' => preg_match('/<[^<>\s]+>/', $inReplyTo, $irt) ? $irt[0] : null,
         // GH #432: an out-of-office or other auto-responder - stored, never treated as a reply.
         'auto_reply' => emailIsAutoReply(emailImapHeaderMap($item)),
+        'automated' => emailIsAutomated(emailImapHeaderMap($item)),
         // Distinct, globally-unique key used for de-duplication / exchange_message_id.
         'internet_message_id' => $dedupId,
         'subject' => $subject,

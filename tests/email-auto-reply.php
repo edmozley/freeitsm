@@ -34,8 +34,10 @@ function check(string $what, bool $ok, string $detail = ''): void
 echo "Which headers mean an automatic reply\n";
 foreach ([
     [['auto-submitted' => 'auto-replied'], true, 'Auto-Submitted: auto-replied (an out-of-office)'],
-    [['auto-submitted' => 'Auto-Generated'], true, 'Auto-Submitted: auto-generated, any case'],
-    [['auto-submitted' => 'auto-notified'], true, 'Auto-Submitted: auto-notified'],
+    [['auto-submitted' => 'Auto-Replied; reason=vacation'], true, 'Auto-Submitted: auto-replied with parameters, any case'],
+    [['auto-submitted' => 'auto-generated'], false, 'Auto-Submitted: auto-generated is NOT an auto-reply (ticketing systems stamp it on what a person wrote)'],
+    [['auto-submitted' => 'auto-notified'], false, 'Auto-Submitted: auto-notified is not an auto-reply either'],
+    [['auto-submitted' => 'no (written by a person)'], false, 'Auto-Submitted: no with a comment is a person'],
     [['x-autoreply' => 'yes'], true, 'X-Autoreply'],
     [['x-autorespond' => 'x'], true, 'X-Autorespond'],
     [['precedence' => 'auto_reply'], true, 'Precedence: auto_reply'],
@@ -49,6 +51,19 @@ foreach ([
     [['x-autoreply' => ''], false, 'an empty X-Autoreply is not counted'],
 ] as [$h, $want, $what]) {
     check($what, emailIsAutoReply($h) === $want, json_encode($h));
+}
+
+echo "\nWhich headers mean automated mail - never acknowledged, never sent the oversize auto-reply\n";
+foreach ([
+    [['auto-submitted' => 'auto-generated'], true, 'Auto-Submitted: auto-generated'],
+    [['auto-submitted' => 'auto-replied'], true, 'Auto-Submitted: auto-replied'],
+    [['x-autoreply' => 'yes'], true, 'X-Autoreply'],
+    [['auto-submitted' => 'no'], false, 'Auto-Submitted: no'],
+    [['auto-submitted' => 'No; x=1'], false, 'Auto-Submitted: no with parameters'],
+    [['precedence' => 'bulk'], false, 'Precedence: bulk'],
+    [[], false, 'nothing'],
+] as [$h, $want, $what]) {
+    check($what, emailIsAutomated($h) === $want, json_encode($h));
 }
 
 echo "\nHeader maps\n";
@@ -72,6 +87,9 @@ check('a reply on an existing ticket is never acknowledged', inboundShouldAcknow
 
 check('the importer reads Graph headers too', inboundIsAutoReply(['internetMessageHeaders' => [['name' => 'Auto-Submitted', 'value' => 'auto-replied']]]));
 check('...or the provider flag', inboundIsAutoReply(['auto_reply' => true]) && !inboundIsAutoReply(['auto_reply' => false]) && !inboundIsAutoReply([]));
+$gen = ['internetMessageHeaders' => [['name' => 'Auto-Submitted', 'value' => 'auto-generated']]];
+check('a Graph auto-generated message is automated but not an auto-reply', inboundIsAutomated($gen) && !inboundIsAutoReply($gen));
+check('...and the provider flag for automated mail', inboundIsAutomated(['automated' => true]) && inboundIsAutomated(['auto_reply' => true]) && !inboundIsAutomated([]));
 
 $expected = getenv('FREEITSM_TEST_DATABASE');
 if ($expected) {
@@ -173,6 +191,12 @@ if ($expected) {
             check('...and reopens the closed ticket (negative control)', (int)$after['status_id'] !== $closedId, json_encode($after));
             check('...and bumps its last update', $after['updated_datetime'] !== '2020-01-01 00:00:00');
             check('a reply from someone not on the ticket still joins it by [SDREF], as before', (int)($e['ticket_id'] ?? 0) === $t3);
+
+            [$t4, $n4] = $ticket('d');
+            [$r, $e] = $import($n4, 'd', ['internetMessageHeaders' => [['name' => 'Auto-Submitted', 'value' => 'auto-generated']]]);
+            check("a ticketing system's auto-generated message (what a person wrote) is not flagged", (int)($e['is_auto_reply'] ?? 1) === 0);
+            check('...and reopens the closed ticket like any reply', (int)$row($t4)['status_id'] !== $closedId, json_encode($row($t4)));
+            check('...but the importer marks it automated, so it is never acknowledged', !empty($r['automated']), json_encode($r));
         } finally {
             foreach ($made['emails'] as $id) $conn->prepare("DELETE FROM emails WHERE id = ?")->execute([$id]);
             foreach ($made['tickets'] as $id) {

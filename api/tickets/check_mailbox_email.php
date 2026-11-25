@@ -215,9 +215,9 @@ try {
     $activityEntries = [];
 
     foreach ($emails as $email) {
-        // GH #432: an out-of-office or other auto-responder. Stored like any email,
-        // but never acknowledged and never sent the oversize auto-reply.
-        $isAutoReply = inboundIsAutoReply($email);
+        // GH #432: mail sent by a machine (an out-of-office, a system notification).
+        // Stored like any email, but never acknowledged and never sent the oversize auto-reply.
+        $isAutomated = inboundIsAutomated($email);
         $fromAddress = strtolower(trim($email['from']['emailAddress']['address'] ?? ''));
         $fromName = $email['from']['emailAddress']['name'] ?? '';
         $subject = $email['subject'] ?? '(No Subject)';
@@ -289,7 +289,7 @@ try {
                 $postAction['error'] = $delEx->getMessage();
             }
             $processingLog['steps'][] = $postAction;
-            foreach (oversizeNotify($conn, $mailbox, $oversizeRules, $fromAddress, $fromName, $subject, $sizeAtts, $sizePlan, 'rejected', null, $isAutoReply) as $s) {
+            foreach (oversizeNotify($conn, $mailbox, $oversizeRules, $fromAddress, $fromName, $subject, $sizeAtts, $sizePlan, 'rejected', null, $isAutomated) as $s) {
                 $processingLog['steps'][] = $s;
             }
             $rejectedCount++;
@@ -359,9 +359,9 @@ try {
             }
             $processingLog['steps'][] = $postAction;
 
-            // Send template email for new tickets - never to an automatic reply (GH #432):
-            // it would answer the auto-responder, which may answer back.
-            if (inboundShouldAcknowledge((bool)$isNewTicket, $isAutoReply) && $ticketId) {
+            // Send template email for new tickets - never to automated mail (GH #432):
+            // it would answer the machine, which may answer back.
+            if (inboundShouldAcknowledge((bool)$isNewTicket, $isAutomated) && $ticketId) {
                 $templateStep = ['step' => 'template_email', 'event' => 'new_ticket_email'];
                 try {
                     require_once dirname(dirname(__DIR__)) . '/includes/template_email.php';
@@ -378,7 +378,7 @@ try {
             // record it on the log row so it is findable without opening it.
             $sizeReason = null;
             if ($sizePlan && $sizePlan['over'] && !$alreadyImported) {
-                foreach (oversizeNotify($conn, $mailbox, $oversizeRules, $fromAddress, $fromName, $subject, $sizeAtts, $sizePlan, 'stripped', $ticketId ? (int)$ticketId : null, $isAutoReply) as $s) {
+                foreach (oversizeNotify($conn, $mailbox, $oversizeRules, $fromAddress, $fromName, $subject, $sizeAtts, $sizePlan, 'stripped', $ticketId ? (int)$ticketId : null, $isAutomated) as $s) {
                     $processingLog['steps'][] = $s;
                 }
                 $sizeReason = mb_substr('Attachments removed (too large): ' . oversizeSummary($sizeAtts, $sizePlan), 0, 255);
@@ -1509,7 +1509,8 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         'attachments' => $attachmentInfo
     ]);
 
-    return ['ticket_id' => $ticketId, 'is_new_ticket' => ($isInitial == 1), 'auto_reply' => $isAutoReply];
+    return ['ticket_id' => $ticketId, 'is_new_ticket' => ($isInitial == 1), 'auto_reply' => $isAutoReply,
+            'automated' => inboundIsAutomated($email)];
 }
 
 /**
