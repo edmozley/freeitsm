@@ -260,6 +260,7 @@ function analystReferenceRegistry(): array {
         ['task_comments', 'analyst_id', 'history'],
         ['task_collaborators', 'added_by_id', 'history'],
         ['ticket_watchers', 'added_by_id', 'history'],
+        ['ticket_participants', 'added_by_id', 'history'],   // GH #432
         ['task_recurrences', 'created_by_id', 'history'],
         ['task_dependencies', 'created_by_id', 'history'],
         ['task_checklists', 'created_by_id', 'history'],

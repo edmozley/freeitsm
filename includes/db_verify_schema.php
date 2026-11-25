@@ -2075,6 +2075,15 @@ return [
         'added_by_id'      => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL',
     ],
+    // GH #432: end users copied on a ticket's emails (unique per ticket + person - db_verify_indexes.php).
+    'ticket_participants' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'ticket_id'        => 'INT NOT NULL',
+        'user_id'          => 'INT NOT NULL',
+        'added_by_id'      => 'INT NULL',
+        'source'           => "VARCHAR(20) NOT NULL DEFAULT 'analyst'",
+        'added_datetime'   => 'DATETIME NOT NULL',
+    ],
 
     'csat_queue' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',

@@ -222,6 +222,8 @@ return [
     ['ticket_csat_responses', 'ix_ticket_csat_channel', 'key', '(`channel_id`,`channel_from`)'],
     ['ticket_watchers', 'uq_ticket_watchers', 'unique', '(`ticket_id`,`analyst_id`)'],
     ['ticket_watchers', 'ix_ticket_watchers_analyst', 'key', '(`analyst_id`)'],
+    ['ticket_participants', 'uq_ticket_participants', 'unique', '(`ticket_id`,`user_id`)'],
+    ['ticket_participants', 'ix_ticket_participants_user', 'key', '(`user_id`)'],
     ['csat_queue', 'uq_csat_queue_ticket', 'unique', '(`ticket_id`)'],
     ['csat_queue', 'ix_csat_queue_due', 'key', '(`due_datetime`)'],
     ['rota_locations', 'uq_rota_locations_name', 'unique', '(`name`)'],

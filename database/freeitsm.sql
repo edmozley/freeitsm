@@ -3529,6 +3529,25 @@ CREATE TABLE IF NOT EXISTS `ticket_watchers` (
     KEY `ix_ticket_watchers_analyst` (`analyst_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- GH #432: end users copied on a ticket's emails (PARTICIPANTS). Reply pre-fills them in
+-- Cc; Tickets -> Settings -> General chooses which automatic emails copy them. Never the
+-- requester, never on a confidential ticket. A person's participations go with them
+-- when they are deleted (USER_DELETE_CASCADE in includes/users.php).
+CREATE TABLE IF NOT EXISTS `ticket_participants` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `ticket_id`        INT NOT NULL,
+    `user_id`          INT NOT NULL,
+    -- who added them; NULL = the API with no analyst
+    `added_by_id`      INT NULL,
+    -- 'analyst' (the ticket page) | 'api' (REST)
+    `source`           VARCHAR(20) NOT NULL DEFAULT 'analyst',
+    `added_datetime`   DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ticket_participants` (`ticket_id`, `user_id`),
+    KEY `ix_ticket_participants_user` (`user_id`),
+    CONSTRAINT `fk_ticket_participants_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `csat_queue` (
     `id`               INT NOT NULL AUTO_INCREMENT,
     `ticket_id`        INT NOT NULL,
