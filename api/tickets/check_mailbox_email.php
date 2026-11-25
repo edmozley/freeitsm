@@ -659,7 +659,8 @@ function getEmails($accessToken, $mailbox) {
     $params = [
         '$top' => $mailbox['max_emails_per_check'],
         // conversationId (GH #120): the thread a message belongs to, so a reply without [SDREF] can find its ticket.
-        '$select' => 'id,subject,from,toRecipients,ccRecipients,receivedDateTime,bodyPreview,body,hasAttachments,importance,isRead,conversationId',
+        // internetMessageHeaders (GH #432): Graph returns them only when selected; they mark an automatic reply.
+        '$select' => 'id,subject,from,toRecipients,ccRecipients,receivedDateTime,bodyPreview,body,hasAttachments,importance,isRead,conversationId,internetMessageHeaders',
         '$orderby' => 'receivedDateTime DESC',
         '$filter' => 'isRead eq false'
     ];

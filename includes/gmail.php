@@ -302,6 +302,7 @@ function gmailGetEmails(string $accessToken, array $mailbox): array {
  * @param string $messageId    the Gmail message id, from messages.list
  */
 function gmailGetMessage(string $accessToken, string $messageId): ?array {
+    require_once __DIR__ . '/email_auto_reply.php';
     $url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/' . $messageId . '?format=full';
 
     $ch = curl_init();
@@ -385,6 +386,8 @@ function gmailGetMessage(string $accessToken, string $messageId): ?array {
         // GH #120: Gmail's own conversation id - a reply to a requester's first
         // email shares it, so it can join that email's ticket without [SDREF].
         'thread_key' => (string)($msg['threadId'] ?? '') !== '' ? (string)$msg['threadId'] : null,
+        // GH #432: an out-of-office or other auto-responder - stored, never treated as a reply.
+        'auto_reply' => emailIsAutoReply($headers),
     ];
 }
 
