@@ -2,6 +2,7 @@
 /** Knowledge migration capabilities, built on the same writes and visibility as the UI. */
 require_once dirname(__DIR__, 3) . '/includes/services/knowledge_transfer.php';
 require_once dirname(__DIR__, 3) . '/includes/services/knowledge_images.php';
+require_once dirname(__DIR__, 3) . '/includes/services/api_uploads.php';   // GH #416 / #417: upload_id
 
 function apiKnowledgeValidateFields(array $body, array $allowed): void
 {
@@ -159,9 +160,18 @@ function apiKnowledgeImagesConstraints(PDO $conn, array $apiKey, array $params, 
 function apiKnowledgeImagesCreate(PDO $conn, array $apiKey, array $params, array $body): void
 {
     try {
-        apiKnowledgeValidateFields($body, ['filename', 'content_base64', 'client_reference']);
+        apiKnowledgeValidateFields($body, ['filename', 'content_base64', 'client_reference', 'upload_id']);
         $ctx = ActorContext::fromApiKey($apiKey);
-        $result = KnowledgeImageService::create($conn, $ctx, (int)$params[0], $body);
+        // GH #416 / #417: a picture sent in pieces (POST /uploads) instead of base64.
+        $upload = null;
+        if (array_key_exists('upload_id', $body)) {
+            if (array_key_exists('content_base64', $body)) apiError(422, 'invalid_image', 'Send content_base64 or upload_id, not both.');
+            if (!is_string($body['upload_id'])) apiError(422, 'invalid_field', 'upload_id must be a string.');
+            // Access to the article first, as for base64 - an upload id never gets round it.
+            KnowledgeTransferService::object($conn, $ctx, 'article', (int)$params[0], true);
+            $upload = ApiUploadService::forHandOver($conn, (int)$apiKey['id'], $body['upload_id'], 'knowledge_image');
+        }
+        $result = KnowledgeImageService::create($conn, $ctx, (int)$params[0], $body, $upload);
         $row = KnowledgeImageService::load($conn, KnowledgeTransferService::requireActor($conn, $ctx, false), $result['id'], 'any');
         KnowledgeImageService::path($row); // An interrupted/removed file is not a successful replay.
         $out = KnowledgeImageService::describe($row) + ['replayed' => $result['replayed']];

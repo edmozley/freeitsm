@@ -105,7 +105,7 @@ class DocumentsService
     /**
      * The file-or-link part of a new document, checked but not yet written anywhere.
      *
-     * @param array $in  file (a $_FILES entry) OR external_url; title, description
+     * @param array $in  file (a $_FILES entry), local_file ([path, name] of a REST upload) OR external_url; title, description
      * @return array{file:?array, external_url:string, title:string, description:string}
      * @throws ServiceError validation - neither, or both
      */
@@ -113,12 +113,17 @@ class DocumentsService
     {
         $file        = $in['file'] ?? null;
         $hasFile     = is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+        // GH #416 / #417: a REST upload assembled in uploads/api-incoming - ['path', 'name'].
+        $local       = $in['local_file'] ?? null;
+        $hasLocal    = is_array($local) && isset($local['path'], $local['name']);
         $externalUrl = trim((string)($in['external_url'] ?? ''));
 
-        if (!$hasFile && $externalUrl === '') throw new ServiceError('validation', 'missing_field', 'Attach a file, or give a link to one.');
-        if ($hasFile && $externalUrl !== '')  throw new ServiceError('validation', 'invalid_field', 'Give a file or a link, not both.');
+        $sources = (int)$hasFile + (int)$hasLocal + (int)($externalUrl !== '');
+        if ($sources === 0) throw new ServiceError('validation', 'missing_field', 'Attach a file, or give a link to one.');
+        if ($sources > 1)   throw new ServiceError('validation', 'invalid_field', 'Give a file or a link, not both.');
         return [
             'file'         => $hasFile ? $file : null,
+            'local_file'   => $hasLocal ? $local : null,
             'external_url' => $externalUrl,
             'title'        => trim((string)($in['title'] ?? '')),
             'description'  => trim((string)($in['description'] ?? '')),
@@ -137,7 +142,7 @@ class DocumentsService
      * the file, and access checked after a file is written stops the row, not the
      * write (see the top of this class).
      *
-     * @param array $in  file (a $_FILES entry) OR external_url; title, description
+     * @param array $in  file (a $_FILES entry), local_file ([path, name] of a REST upload) OR external_url; title, description
      * @return array{doc:array, description:string, stored:?array}  pass to insert() and indexAdded(); discard() on failure
      * @throws ServiceError validation (missing_field, invalid_field, invalid_file)
      */
@@ -155,9 +160,12 @@ class DocumentsService
     {
         $title  = $input['title'];
         $stored = null;
-        if ($input['file'] !== null) {
+        if ($input['file'] !== null || $input['local_file'] !== null) {
+            $dir = dirname(__DIR__, 2) . '/uploads/' . DOCUMENT_STORAGE_DIR;
             try {
-                $stored = uploadStoreFile($input['file'], dirname(__DIR__, 2) . '/uploads/' . DOCUMENT_STORAGE_DIR, attachmentAllowedTypes($conn));
+                $stored = $input['file'] !== null
+                    ? uploadStoreFile($input['file'], $dir, attachmentAllowedTypes($conn))
+                    : uploadStoreLocalFile($input['local_file']['path'], $input['local_file']['name'], $dir, attachmentAllowedTypes($conn));
             } catch (Exception $e) {
                 throw new ServiceError('validation', 'invalid_file', $e->getMessage());
             }

@@ -215,6 +215,61 @@ function uploadStoreFile(array $file, string $destDir, array $allowed = UPLOAD_T
 }
 
 /**
+ * uploadStoreFile() for a file that is already on this server: a REST API upload
+ * assembled from pieces in uploads/api-incoming/ (GH #416, #417). The same three
+ * gates - an extension we named, contents that match it, a name on disk that is
+ * ours - and the same limit, checked NOW (an administrator may have lowered it since
+ * the upload started). The file is COPIED, so the source survives a hand-over whose
+ * database write then fails; the caller removes it after the commit.
+ *
+ * TRAP: $sourcePath must be a path FreeITSM chose (the upload store), never one a
+ * request named - that is what is_uploaded_file() guards in uploadStoreFile().
+ *
+ * @param string $sourcePath    absolute path of the assembled file
+ * @param string $originalName  the name the client gave the upload - untrusted; cleaned, only its extension is used
+ * @param string $destDir       absolute directory; created (and protected) if absent
+ * @param array  $allowed       ext => [mime, ...]
+ * @param ?int   $maxBytes      null = the configured limit (attachmentMaxBytes())
+ * @return array ['stored_name'=>…, 'original_name'=>…, 'size'=>int, 'mime'=>string, 'path'=>absolute]
+ * @throws Exception with a message safe to show a user
+ */
+function uploadStoreLocalFile(string $sourcePath, string $originalName, string $destDir, array $allowed = UPLOAD_TYPES_ATTACHMENT, ?int $maxBytes = null): array
+{
+    $maxBytes = $maxBytes ?? attachmentMaxBytes();
+    clearstatcache(true, $sourcePath);
+    if (!is_file($sourcePath)) throw new Exception('The upload could not be found.');
+    $size = (int)filesize($sourcePath);
+    if ($size <= 0)        throw new Exception('That file is empty.');
+    if ($size > $maxBytes) throw new Exception('That file is too large (maximum ' . uploadFormatBytes($maxBytes) . ').');
+
+    $original = uploadCleanName($originalName);
+    $ext      = strtolower(pathinfo($original, PATHINFO_EXTENSION));
+    if ($ext === '' || !isset($allowed[$ext])) {
+        throw new Exception('That file type is not allowed. Accepted: ' . implode(', ', array_keys($allowed)) . '.');
+    }
+    // Gate 2 fails closed, as in uploadStoreFile(): a server that cannot tell refuses.
+    $mime = uploadDetectMime($sourcePath);
+    if ($mime === null) {
+        error_log('uploads: refusing an upload because this server cannot inspect file contents '
+                  . '— enable the fileinfo extension in php.ini');
+        throw new Exception('This server cannot check what is inside uploaded files, so the upload '
+                          . 'was refused. Ask an administrator to enable the PHP "fileinfo" extension.');
+    }
+    if (!in_array($mime, $allowed[$ext], true)) {
+        throw new Exception('That file\'s contents do not match its ' . $ext . ' extension.');
+    }
+
+    uploadPrepareDir($destDir);
+    $stored = bin2hex(random_bytes(16)) . '.' . $ext;
+    $path   = rtrim($destDir, '/\\') . DIRECTORY_SEPARATOR . $stored;
+    if (!copy($sourcePath, $path)) {
+        throw new Exception('The file could not be saved.');
+    }
+    @chmod($path, 0644);
+    return ['stored_name' => $stored, 'original_name' => $original, 'size' => $size, 'mime' => $mime, 'path' => $path];
+}
+
+/**
  * Create an upload directory and drop execution protection into it.
  *
  * 🔑 Called on every store, not only on create — so a directory that already

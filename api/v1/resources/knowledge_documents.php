@@ -74,7 +74,7 @@ function apiKnowledgeDocumentOut(PDO $conn, ActorContext $ctx, int $articleId, i
 function apiKnowledgeDocumentFields(array $in, array $allowed, bool $form = false): array {
     $unknown = array_diff(array_keys($in), $allowed);
     if ($unknown) apiError(422, 'unknown_field', 'Unsupported fields: ' . implode(', ', $unknown) . '. Check the documented request fields.');
-    foreach (['title', 'external_url', 'client_reference', 'expected_revision'] as $f) {
+    foreach (['title', 'external_url', 'upload_id', 'client_reference', 'expected_revision'] as $f) {
         if (array_key_exists($f, $in) && !is_string($in[$f])) apiError(422, 'invalid_field', "$f must be a string.");
     }
     if (array_key_exists('description', $in) && $in['description'] !== null && !is_string($in['description'])) {
@@ -106,22 +106,31 @@ function apiKnowledgeDocumentsList(PDO $conn, array $apiKey, array $params, arra
 
 /**
  * POST /knowledge/articles/{id}/documents - multipart `file` (+ title, description,
- * client_reference, show_in_help_centre, expected_revision), or JSON with external_url
- * for a link. 201 new; 200 a retry with the same client_reference and the same request;
- * 409 a reference used for something else.
+ * client_reference, show_in_help_centre, expected_revision), JSON with upload_id for a
+ * file sent in pieces (POST /uploads, GH #417), or JSON with external_url for a link.
+ * 201 new; 200 a retry with the same client_reference and the same request; 409 a
+ * reference used for something else.
  */
 function apiKnowledgeDocumentsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
     $articleId = (int)$params[0];
     $isFile = isset($_FILES['file']);
-    $fields = ['title', 'description', 'external_url', 'client_reference', 'show_in_help_centre', 'expected_revision'];
+    $fields = ['title', 'description', 'external_url', 'upload_id', 'client_reference', 'show_in_help_centre', 'expected_revision'];
     $in = apiKnowledgeDocumentFields($isFile ? $_POST : $body, $fields, $isFile);
-    if (!$isFile && empty($in['external_url'])) {
-        apiError(422, 'missing_file', 'Send a multipart/form-data file part named file, or JSON with external_url for a link.');
+    if (!$isFile && empty($in['external_url']) && empty($in['upload_id'])) {
+        apiError(422, 'missing_file', 'Send a multipart/form-data file part named file, JSON with upload_id for a file sent in pieces, or JSON with external_url for a link.');
     }
     if (array_key_exists('description', $in) && $in['description'] === null) unset($in['description']);
     $ctx = ActorContext::fromApiKey($apiKey);
     try {
-        $result = KnowledgeDocumentService::create($conn, $ctx, $articleId, $in, $isFile ? $_FILES['file'] : null);
+        $upload = null;
+        if (isset($in['upload_id'])) {
+            if ($isFile) apiError(422, 'invalid_field', 'Give a file or an upload_id, not both.');
+            // Access to the article first - an upload id never gets round it.
+            KnowledgeDocumentService::article($conn, $ctx, $articleId, true);
+            $upload = ApiUploadService::forHandOver($conn, (int)$apiKey['id'], $in['upload_id'], 'knowledge_document');
+        }
+        unset($in['upload_id']);
+        $result = KnowledgeDocumentService::create($conn, $ctx, $articleId, $in, $isFile ? $_FILES['file'] : null, $upload);
         $out = apiKnowledgeDocumentOut($conn, $ctx, $articleId, $result['id']) + ['replayed' => $result['replayed']];
     } catch (ServiceError $e) { apiFailFromService($e); }
     if ($result['replayed']) apiRespond($out, 200);

@@ -218,6 +218,14 @@ function apiV1BuildOperation(array $ep, string $section, array $extras, array $e
             'required' => $ep['m'] === 'POST',
             'content'  => [($schemas['requestContentTypes'][$key] ?? 'application/json') => $content],
         ];
+    } elseif ($ep['m'] === 'PUT') {
+        // GH #416 / #417: a piece of an upload - raw bytes, never JSON.
+        $op['requestBody'] = [
+            'required' => true,
+            'content'  => [($schemas['requestContentTypes'][$key] ?? 'application/octet-stream') => [
+                'schema' => $schemas['requestBodies'][$key] ?? ['type' => 'string', 'format' => 'binary'],
+            ]],
+        ];
     }
 
     // --- Permissions (discussion #319) -------------------------------------
@@ -233,6 +241,10 @@ function apiV1BuildOperation(array $ep, string $section, array $extras, array $e
         $op['x-permission'] = $routePerm;
         $also = array_values(array_diff(apiV1HandlerExtraPermissions()[$handler] ?? [], [$routePerm]));
         if ($also) $op['x-permissions-also'] = $also;
+    } elseif ($handler !== null && !empty(apiV1HandlerExtraPermissions()[$handler])) {
+        // GH #416 / #417: a route with no permission of its own whose handler checks one
+        // by what is asked for (an upload needs its purpose's create permission).
+        $op['x-permissions-also'] = apiV1HandlerExtraPermissions()[$handler];
     }
 
     // --- Responses --------------------------------------------------------

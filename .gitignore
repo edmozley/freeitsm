@@ -114,6 +114,11 @@ uploads/documents/*
 uploads/api-log-archive/*
 !uploads/api-log-archive/.htaccess
 !uploads/api-log-archive/web.config
+# GH #416 / #417: REST API uploads in progress - same shape, so a fresh clone ships the guards.
+!uploads/api-incoming/
+uploads/api-incoming/*
+!uploads/api-incoming/.htaccess
+!uploads/api-incoming/web.config
 !uploads/asset-imports/
 uploads/asset-imports/*
 !uploads/asset-imports/.htaccess

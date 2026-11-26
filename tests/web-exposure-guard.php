@@ -222,6 +222,12 @@ check('uploads/knowledge ships an IIS guard', is_file($root . '/uploads/knowledg
 check('nginx denies the parent uploads directory', (bool)preg_match('#location\s+\^~\s+/uploads/\s*\{\s*return\s+404#', $ngx));
 check('D009 probes Knowledge image storage', strpos($d009, "'uploads/knowledge'") !== false);
 
+echo "\nREST API uploads in progress are never served directly (GH #416, #417)\n";
+$upGuard = (string)@file_get_contents($root . '/uploads/api-incoming/.htaccess');
+check('uploads/api-incoming denies direct reads on Apache', stripos($upGuard, 'Require all denied') !== false);
+check('uploads/api-incoming ships an IIS guard', is_file($root . '/uploads/api-incoming/web.config'));
+check('D009 probes the REST upload store', (bool)preg_match("#'uploads/api-incoming'\s*=>\s*\[[^\]]*'deny'\s*\]#", $d009));
+
 /* ---- CONTROLS — this checker must be able to fail ------------------------
    Every assertion above is pattern matching, and pattern matching that only
    ever passes is not evidence. These exercise the matcher itself. */

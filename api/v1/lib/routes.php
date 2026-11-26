@@ -127,6 +127,13 @@ return [
     ['PATCH',  '#^/knowledge/articles/(\d+)/documents/(\d+)$#',         ['knowledge_documents', 'create'], 'apiKnowledgeDocumentsUpdate'],
     ['GET',    '#^/knowledge/articles/(\d+)/documents/(\d+)/content$#', ['knowledge_documents', 'read'],   'apiKnowledgeDocumentContent'],
     ['DELETE', '#^/knowledge/articles/(\d+)/documents/(\d+)$#',         ['knowledge_documents', 'delete'], 'apiKnowledgeDocumentsDelete'],
+    // GH #416 / #417: a file in pieces. No permission of their own (Ed, 21 Nov 2026): each
+    // handler checks its PURPOSE's create permission and module. /uploads/limits before {upload_id}.
+    ['GET',    '#^/uploads/limits$#', null, 'apiUploadsLimits'],
+    ['POST',   '#^/uploads$#',        null, 'apiUploadsStart'],
+    ['PUT',    '#^/uploads/(\w+)$#',  null, 'apiUploadsPut'],
+    ['GET',    '#^/uploads/(\w+)$#',  null, 'apiUploadsGet'],
+    ['DELETE', '#^/uploads/(\w+)$#',  null, 'apiUploadsDelete'],
 
     ['GET',    '#^/knowledge/articles$#',                  ['knowledge', 'read'],             'apiKnowledgeArticlesList'],
     ['POST',   '#^/knowledge/articles$#',                  ['knowledge', 'create'],           'apiKnowledgeArticlesCreate'],

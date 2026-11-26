@@ -42,6 +42,7 @@
 
 require_once __DIR__ . '/knowledge_transfer.php';
 require_once __DIR__ . '/documents.php';
+require_once __DIR__ . '/api_uploads.php';
 require_once __DIR__ . '/../documents.php';
 require_once __DIR__ . '/../knowledge/audit.php';
 require_once __DIR__ . '/../service_context.php';   // throws ServiceError itself (tests/service-error-loaded.php)
@@ -70,15 +71,20 @@ class KnowledgeDocumentService
     }
 
     /**
-     * Add a new document - a file or a link - to an article.
+     * Add a new document - a file, a REST upload, or a link - to an article.
      *
-     * @param array  $in    title, description, external_url, client_reference, show_in_help_centre (bool),
-     *                      expected_revision; already type-checked by the caller
-     * @param ?array $file  the $_FILES entry, or null for a link
+     * A file sent as a multipart form and the same bytes sent as an upload are the same
+     * request for client_reference: both are identified by their name and their bytes'
+     * hash, so a client may switch to pieces and still retry safely.
+     *
+     * @param array  $in      title, description, external_url, client_reference, show_in_help_centre (bool),
+     *                        expected_revision; already type-checked by the caller
+     * @param ?array $file    the $_FILES entry, or null
+     * @param ?array $upload  an upload row from ApiUploadService::forHandOver() (purpose knowledge_document), or null
      * @return array{id:int, replayed:bool}
-     * @throws ServiceError not_found, forbidden, conflict (archived, reference_conflict, revision_conflict), validation
+     * @throws ServiceError not_found, forbidden, conflict (archived, reference_conflict, revision_conflict, upload_used), validation
      */
-    public static function create(PDO $conn, ActorContext $ctx, int $articleId, array $in, ?array $file): array
+    public static function create(PDO $conn, ActorContext $ctx, int $articleId, array $in, ?array $file, ?array $upload = null): array
     {
         // 1. ACCESS FIRST, before a byte of the file is written (DocumentsService's rule).
         $article = self::article($conn, $ctx, $articleId, true);
@@ -86,54 +92,65 @@ class KnowledgeDocumentService
         $show = (bool)($in['show_in_help_centre'] ?? false);
         $title = (string)($in['title'] ?? '');
         $description = (string)($in['description'] ?? '');
+        $reference = $in['client_reference'] ?? null;
         self::checkText($title, $description);
 
-        // 2. The file's checks and storage - or the link's - exactly as the Documents panel.
-        $prepared = DocumentsService::prepare($conn, [
-            'file'         => $file,
-            'external_url' => (string)($in['external_url'] ?? ''),   // both = "a file or a link, not both"
-            'title'        => $title,
-            'description'  => $description,
-        ]);
-        $doc = $prepared['doc'];
+        // 3 (for every path). What identifies this request for a retry: what was asked
+        //    for, with a file as its name and its bytes' hash. expected_revision is a
+        //    precondition, not content: a retry carries the revision from before its
+        //    first attempt.
+        $identity = ['title' => trim($title), 'description' => trim($description), 'show_in_help_centre' => $show];
+        if ($reference !== null) $identity['client_reference'] = $reference;
 
-        // 3. What identifies this request for a retry: what was asked for, with a file
-        //    as its name and its bytes' hash. expected_revision is a precondition, not
-        //    content: a retry carries the revision from before its first attempt.
-        $identity = [
-            'kind'                => $doc['kind'],
-            'title'               => trim($title),
-            'description'         => trim($description),
-            'show_in_help_centre' => $show,
-            'client_reference'    => $in['client_reference'] ?? null,
-        ];
-        if ($doc['kind'] === DOCUMENT_KIND_FILE) {
-            $identity['filename'] = $doc['original_name'];
-            $identity['sha256']   = $doc['content_hash'];
+        $prepared = null;
+        if ($upload !== null && $upload['used_datetime'] !== null) {
+            // A used upload is never stored again. Only the retry of its own hand-over -
+            // same article, same client_reference - gets an answer, from createOnce below.
+            if (!ApiUploadService::isRetryOf($upload, $articleId, $reference)) throw ApiUploadService::usedError();
+            $identity += ['kind' => DOCUMENT_KIND_FILE, 'filename' => uploadCleanName((string)$upload['filename']), 'sha256' => $upload['sha256']];
         } else {
-            $identity['external_url'] = $doc['external_url'];
+            // 2. The file's checks and storage - or the link's - exactly as the Documents
+            //    panel. An upload is checked now, against the limit and types in force now.
+            $prepared = DocumentsService::prepare($conn, [
+                'file'         => $file,
+                'local_file'   => $upload === null ? null : ['path' => ApiUploadService::path($upload), 'name' => (string)$upload['filename']],
+                'external_url' => (string)($in['external_url'] ?? ''),   // two sources = "a file or a link, not both"
+                'title'        => $title,
+                'description'  => $description,
+            ]);
+            $doc = $prepared['doc'];
+            $identity['kind'] = $doc['kind'];
+            if ($doc['kind'] === DOCUMENT_KIND_FILE) {
+                $identity['filename'] = $doc['original_name'];
+                $identity['sha256']   = $doc['content_hash'];
+            } else {
+                $identity['external_url'] = $doc['external_url'];
+            }
         }
-        if ($identity['client_reference'] === null) unset($identity['client_reference']);
 
         try {
             $result = KnowledgeTransferService::createOnce($conn, $ctx, self::OPERATION, $articleId, $identity,
-                static function () use ($conn, $ctx, $articleId, $in, $prepared, $show) {
+                static function () use ($conn, $ctx, $articleId, $in, $prepared, $show, $upload, $reference) {
+                    // Reached only when the reference names nothing yet: a used upload has nothing to add.
+                    if ($prepared === null) throw ApiUploadService::usedError();
                     // Lock the article: document changes serialize with article saves.
                     $article = self::article($conn, $ctx, $articleId, true);
                     if ((int)$article['is_archived']) throw self::archived();
                     self::checkExpectedRevision($conn, $articleId, $in);
                     $tenantId = $article['tenant_id'] === null ? null : (int)$article['tenant_id'];
                     $id = DocumentsService::insert($conn, $ctx->actorId, self::PARENT_TYPE, $articleId, $prepared, $tenantId, null, $show);
+                    // The receipt in the same transaction: the upload is used exactly when the document exists.
+                    if ($upload !== null) ApiUploadService::markUsed($conn, $upload, $articleId, $id, $reference);
                     knowledgeAuditLog($conn, 'article', $articleId, 'edit', $ctx->actorId, ['document_added' => $id]);
                     return ['id' => $id];
                 });
         } catch (Throwable $e) {
-            DocumentsService::discard($prepared);   // nothing points at it
+            if ($prepared !== null) DocumentsService::discard($prepared);   // nothing points at it
             throw $e;
         }
 
         if ($result['replayed']) {
-            DocumentsService::discard($prepared);   // the copy just written is not needed
+            if ($prepared !== null) DocumentsService::discard($prepared);   // the copy just written is not needed
             // TRAP: removed since is removed. Answering with the old id would hand back a
             // document that is no longer on the article; attaching it again would undo
             // somebody's deliberate removal. Same as a deleted picture.
@@ -142,7 +159,8 @@ class KnowledgeDocumentService
             }
             return $result;
         }
-        // After the commit: findable by title at once, the text queued.
+        // After the commit: the upload's pieces are not needed; findable by title at once, the text queued.
+        if ($upload !== null) ApiUploadService::afterUse($upload);
         DocumentsService::indexAdded($conn, $result['id'], $prepared);
         return $result;
     }

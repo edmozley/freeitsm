@@ -21,7 +21,7 @@ require_once __DIR__ . '/modules.php';   // module availability, GH #217
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Api-Key');
-header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('X-FreeITSM-Api-Version: 1');
 
 // CORS preflight — answer before any auth.

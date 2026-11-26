@@ -29,6 +29,7 @@ const STORAGE_UPLOADS_KNOWN = [
     'asset-imports'    => 'asset_imports',
     'report-downloads' => 'report_downloads',
     'api-log-archive'  => 'api_log_archive',
+    'api-incoming'     => 'api_incoming',
 ];
 
 /** storagePersistenceDirectories()' folders, by path relative to the app, to their i18n key. */

@@ -5220,7 +5220,7 @@
                     "p": "\/knowledge\/articles\/{id}\/images",
                     "perm": "knowledge_images.create",
                     "s": "Upload a protected inline image",
-                    "d": "JSON upload. The largest decoded image is chosen by an administrator in Knowledge > Settings > Images (5, 10, 20, 25 or 50 MiB; 10 MiB unless changed) - read it, and the accepted formats, from GET \/knowledge\/images\/constraints rather than hard-coding it. base64 makes the request about a third larger than the image. PHP memory_limit and any web server or proxy body limit (nginx defaults to 1 MB) also apply, and a request over PHP post_max_size makes PHP warn on every upload; FreeITSM reports PHP's limits but never changes them. Uses the shared image extension\/content whitelist (PNG, JPEG, GIF, WebP, BMP, HEIC\/HEIF; no SVG), random storage names and the existing protected uploads volume. The parent article must exist and be writable before any file is stored. No unattached\/public uploads. Reuse the returned url in HTML; it re-checks article access on every read for signed-in analysts and portal users; nobody signed in gets 404, even for a public article. API clients use \/knowledge\/images\/{id}\/content with their key. Each image belongs to one article; copying content to another article requires its own upload. Original images linked from thumbnails can be uploaded separately.",
+                    "d": "JSON upload. The largest decoded image is chosen by an administrator in Knowledge > Settings > Images (5, 10, 20, 25 or 50 MiB; 10 MiB unless changed) - read it, and the accepted formats, from GET \/knowledge\/images\/constraints rather than hard-coding it. base64 makes the request about a third larger than the image. PHP memory_limit and any web server or proxy body limit (nginx defaults to 1 MB) also apply, and a request over PHP post_max_size makes PHP warn on every upload; FreeITSM reports PHP's limits but never changes them. Uses the shared image extension\/content whitelist (PNG, JPEG, GIF, WebP, BMP, HEIC\/HEIF; no SVG), random storage names and the existing protected uploads volume. The parent article must exist and be writable before any file is stored. No unattached\/public uploads. Reuse the returned url in HTML; it re-checks article access on every read for signed-in analysts and portal users; nobody signed in gets 404, even for a public article. API clients use \/knowledge\/images\/{id}\/content with their key. Each image belongs to one article; copying content to another article requires its own upload. Original images linked from thumbnails can be uploaded separately. GH #417: a picture larger than a request comfortably carries goes up in pieces instead (POST \/uploads with purpose knowledge_image) and is handed over here with upload_id in place of content_base64 - the same checks then run on it, against the limit in force at the hand-over. A retry sends the same upload_id and client_reference.",
                     "params": [
                         {
                             "name": "id",
@@ -5231,19 +5231,25 @@
                         {
                             "name": "filename",
                             "in": "body",
-                            "desc": "Original image filename with supported extension.",
-                            "req": true
+                            "desc": "Original image filename with supported extension. Required with content_base64; with upload_id it defaults to the upload's.",
+                            "req": false
                         },
                         {
                             "name": "content_base64",
                             "in": "body",
-                            "desc": "Strict base64-encoded image bytes, at most max_bytes decoded (GET \/knowledge\/images\/constraints); upstream HTTP\/PHP body limits also apply.",
-                            "req": true
+                            "desc": "Strict base64-encoded image bytes, at most max_bytes decoded (GET \/knowledge\/images\/constraints); upstream HTTP\/PHP body limits also apply. Or send upload_id instead.",
+                            "req": false
                         },
                         {
                             "name": "client_reference",
                             "in": "body",
                             "desc": "Optional stable source reference, at most 191 bytes, without surrounding whitespace or control characters; use a source namespace prefix; scope is this analyst and operation (images also the parent article), so key rotation preserves it. Retry the same JSON values to receive the existing ID with HTTP 200 and replayed=true. Object key order does not matter; changed payload returns 409 reference_conflict. A deleted object returns 404 and is never recreated. Current access is checked on every replay. References are retained until the owning analyst is deleted; keep a durable client-side source-to-target mapping.",
+                            "req": false
+                        },
+                        {
+                            "name": "upload_id",
+                            "in": "body",
+                            "desc": "GH #417: a finished upload with purpose knowledge_image, in place of content_base64",
                             "req": false
                         }
                     ],
@@ -5265,6 +5271,21 @@
                                 "code": 413,
                                 "slug": "image_too_large",
                                 "when": "image_too_large: the decoded image (or its base64) is over the install's limit; error.details gives max_bytes and max_base64_length. A web server or proxy in front of PHP may also answer 413 itself, with its own body."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "upload_used",
+                                "when": "The upload was handed over already. Only a retry of that hand-over - the same article and the same client_reference - gets its answer (200, replayed); anything else needs a new upload."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "upload_incomplete",
+                                "when": "Not every byte has arrived; error.details gives received and size."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "upload_purpose",
+                                "when": "The upload was started for another purpose."
                             }
                         ]
                     }
@@ -5363,7 +5384,7 @@
                     "p": "\/knowledge\/articles\/{id}\/documents",
                     "perm": "knowledge_documents.create",
                     "s": "Add a file or a link to an article",
-                    "d": "GH #416. Send multipart\/form-data with a file part named file (and optional title, description, client_reference, show_in_help_centre, expected_revision), or JSON with external_url (and the same optional fields) for a link. The same checks and storage as the Documents panel: the article must exist and be writable by the key before any file is stored; the install's allowed file types and size limit (System > Attachments); links must be http or https. PHP's upload_max_filesize and post_max_size and any proxy body limit (nginx defaults to 1 MB) also apply to the request. Returns 201 with the document and the article's new article_revision. show_in_help_centre is false unless sent as true, and is written with the link - a restricted draft can be staged without its documents ever reaching the Help Centre; customers see a shown document only once the article is published, customer-facing and theirs. Side effects: the title is searchable at once and the text of a PDF or Office file is extracted in the background (search shows it only to people who can see the article); no AI provider sees it and the article's embedding does not change; no workflow or notification runs; the article's history records it and its revision changes. Archived articles take no new documents (409 archived). For uploads use a multipart client rather than the JSON request editor.",
+                    "d": "GH #416. Send multipart\/form-data with a file part named file (and optional title, description, client_reference, show_in_help_centre, expected_revision), JSON with upload_id for a file sent in pieces (POST \/uploads with purpose knowledge_document - any size up to the limit, past PHP's and a proxy's request limits), or JSON with external_url (and the same optional fields) for a link. A file sent either way is identified for client_reference by its name and its bytes, so a client can switch to pieces and still retry safely. The same checks and storage as the Documents panel: the article must exist and be writable by the key before any file is stored; the install's allowed file types and size limit (System > Attachments); links must be http or https. PHP's upload_max_filesize and post_max_size and any proxy body limit (nginx defaults to 1 MB) also apply to the request. Returns 201 with the document and the article's new article_revision. show_in_help_centre is false unless sent as true, and is written with the link - a restricted draft can be staged without its documents ever reaching the Help Centre; customers see a shown document only once the article is published, customer-facing and theirs. Side effects: the title is searchable at once and the text of a PDF or Office file is extracted in the background (search shows it only to people who can see the article); no AI provider sees it and the article's embedding does not change; no workflow or notification runs; the article's history records it and its revision changes. Archived articles take no new documents (409 archived). For uploads use a multipart client rather than the JSON request editor.",
                     "params": [
                         {
                             "name": "id",
@@ -5381,6 +5402,12 @@
                             "name": "external_url",
                             "in": "body",
                             "desc": "http(s) URL (a link document)",
+                            "req": false
+                        },
+                        {
+                            "name": "upload_id",
+                            "in": "body",
+                            "desc": "GH #417: a finished upload with purpose knowledge_document (a file document)",
                             "req": false
                         },
                         {
@@ -5479,6 +5506,21 @@
                                 "code": 404,
                                 "slug": "not_found",
                                 "when": "No such article, or the key cannot read it (its company scope, the article's audience or access list); or the document is not on this article - even one the key could reach through another record."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "upload_used",
+                                "when": "The upload was handed over already. Only a retry of that hand-over - the same article and the same client_reference - gets its answer (200, replayed); anything else needs a new upload."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "upload_incomplete",
+                                "when": "Not every byte has arrived; error.details gives received and size."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "upload_purpose",
+                                "when": "The upload was started for another purpose."
                             }
                         ]
                     }
@@ -5734,6 +5776,233 @@
                                 "code": 404,
                                 "slug": "not_found",
                                 "when": "No such article, or the key cannot read it (its company scope, the article's audience or access list); or the document is not on this article - even one the key could reach through another record."
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "section": "Uploads",
+            "items": [
+                {
+                    "m": "GET",
+                    "p": "\/uploads\/limits",
+                    "perm": "none",
+                    "s": "Upload limits for every purpose",
+                    "d": "GH #417. Everything a client needs so it hard-codes nothing: chunk_bytes (the largest piece this server takes - 4 MiB, or less where PHP's post_max_size is smaller; a client behind a stricter proxy simply sends smaller pieces), max_unfinished (uploads one key may have that are not handed over yet, finished or not), expires_after_hours, and for each purpose its max_bytes and accepted formats (extension and MIME types). knowledge_image follows Knowledge > Settings > Images (as GET \/knowledge\/images\/constraints); knowledge_document follows System > Attachments. Any valid key may read it.",
+                    "params": [],
+                    "section": "Uploads",
+                    "slug": "get-uploads-limits"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/uploads",
+                    "perm": "knowledge_images.create \/ knowledge_documents.create",
+                    "s": "Start an upload",
+                    "d": "GH #416 \/ #417. A file of any size up to its purpose's limit goes up in pieces that fit under PHP's upload_max_filesize and post_max_size and under a proxy's body limit, resumes after a dropped connection, and never sits whole in the server's memory. Start it here, send the pieces with PUT \/uploads\/{upload_id}?offset=N, then hand the finished upload to the record that wants it with upload_id - POST \/knowledge\/articles\/{id}\/images (purpose knowledge_image) or POST \/knowledge\/articles\/{id}\/documents (purpose knowledge_document). No permission of its own: the key needs the purpose's create permission (knowledge_images.create or knowledge_documents.create), and its analyst must be able to change Knowledge. The size and the extension are checked now, before a byte is sent; the content's real type, the limit then in force and the record's access are checked again at the hand-over. At most max_unfinished (10) uploads per key that are not handed over yet - a finished upload waiting for its hand-over counts. An upload expires 24 hours after its last piece; expired ones are deleted when the next upload starts and by the nightly API tidy-up. Returns 201 with upload_id, chunk_bytes and expires_at.",
+                    "params": [
+                        {
+                            "name": "purpose",
+                            "in": "body",
+                            "desc": "knowledge_image or knowledge_document",
+                            "req": true
+                        },
+                        {
+                            "name": "filename",
+                            "in": "body",
+                            "desc": "The file's name, with its extension (1 to 255 characters)",
+                            "req": true
+                        },
+                        {
+                            "name": "size",
+                            "in": "body",
+                            "desc": "The whole file's size in bytes",
+                            "req": true
+                        },
+                        {
+                            "name": "sha256",
+                            "in": "body",
+                            "desc": "Optional. The file's SHA-256 (64 hexadecimal characters): the assembled file must match it, or the upload is discarded at its last piece (422 sha256_mismatch)",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "purpose": "knowledge_document",
+                        "filename": "Network runbook.pdf",
+                        "size": 48318921
+                    },
+                    "section": "Uploads",
+                    "slug": "post-uploads",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "invalid_purpose",
+                                "when": "purpose is missing or not one of knowledge_image, knowledge_document."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_type",
+                                "when": "The extension is not accepted for that purpose (GET \/uploads\/limits)."
+                            },
+                            {
+                                "code": 413,
+                                "slug": "too_large",
+                                "when": "size is over the purpose's limit; error.details.max_bytes gives it."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "filename, size or sha256 is missing or malformed."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "too_many_uploads",
+                                "when": "The key already has max_unfinished uploads not handed over. Hand one over, DELETE one, or let one expire."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key lacks the create permission of the upload's purpose: knowledge_images.create or knowledge_documents.create."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "PUT",
+                    "p": "\/uploads\/{upload_id}",
+                    "perm": "knowledge_images.create \/ knowledge_documents.create",
+                    "s": "Send the next piece",
+                    "d": "The piece is the raw request body (Content-Type: application\/octet-stream) - not multipart and not base64, so upload_max_filesize never applies and nothing is encoded. It is streamed straight to disk. Pieces go in order: offset must equal what has arrived so far, or the answer is 409 offset_mismatch with received (and size) in error.details - a client that lost track asks GET \/uploads\/{upload_id}, or simply carries on from received. A piece is never written twice. Any size up to chunk_bytes is fine. The last piece brings received to size and the reply says complete: true (with the file's sha256); if a sha256 was given at the start and the file does not match it, the upload is discarded (422 sha256_mismatch). Each piece counts against the key's rate limit like any other request, and moves expires_at to 24 hours ahead. For clients that can only send GET and POST, POST with X-HTTP-Method-Override: PUT works too.",
+                    "params": [
+                        {
+                            "name": "upload_id",
+                            "in": "path",
+                            "desc": "The upload_id POST \/uploads returned (u_ and 32 hexadecimal characters).",
+                            "req": true
+                        },
+                        {
+                            "name": "offset",
+                            "in": "query",
+                            "desc": "Bytes already received - where this piece starts",
+                            "req": true
+                        }
+                    ],
+                    "section": "Uploads",
+                    "slug": "put-uploads-upload-id",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "offset_mismatch",
+                                "when": "offset is not what has arrived so far; error.details.received says where to continue."
+                            },
+                            {
+                                "code": 413,
+                                "slug": "piece_too_large",
+                                "when": "The piece is larger than chunk_bytes (error.details.chunk_bytes). A web server or proxy in front of PHP may also answer 413 itself."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "size_exceeded",
+                                "when": "The piece goes past the size given at the start."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "empty_piece",
+                                "when": "The request body was empty."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "sha256_mismatch",
+                                "when": "The assembled file does not match the sha256 given at the start; the upload was discarded."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "upload_complete",
+                                "when": "Every byte has arrived already. Hand the upload over."
+                            },
+                            {
+                                "code": 400,
+                                "slug": "invalid_parameter",
+                                "when": "offset is missing or not a whole number."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such upload for THIS key: another key's (even one acting as the same analyst), an unknown id, or one that has expired (24 hours after its last piece)."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key lacks the create permission of the upload's purpose: knowledge_images.create or knowledge_documents.create."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/uploads\/{upload_id}",
+                    "perm": "knowledge_images.create \/ knowledge_documents.create",
+                    "s": "How far an upload has got",
+                    "d": "received, size, complete, sha256 (once complete) and expires_at - after a dropped connection, send from received. Once handed over, used says what it became (parent_id: the article, object_id: the picture or document) until it expires 24 hours after the hand-over.",
+                    "params": [
+                        {
+                            "name": "upload_id",
+                            "in": "path",
+                            "desc": "The upload_id POST \/uploads returned (u_ and 32 hexadecimal characters).",
+                            "req": true
+                        }
+                    ],
+                    "section": "Uploads",
+                    "slug": "get-uploads-upload-id",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such upload for THIS key: another key's (even one acting as the same analyst), an unknown id, or one that has expired (24 hours after its last piece)."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key lacks the create permission of the upload's purpose: knowledge_images.create or knowledge_documents.create."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/uploads\/{upload_id}",
+                    "perm": "knowledge_images.create \/ knowledge_documents.create",
+                    "s": "Give up an upload",
+                    "d": "Throws the pieces away and frees the slot in max_unfinished. On a used upload it removes only the receipt: what it became stays, and a retry of its hand-over then answers 404.",
+                    "params": [
+                        {
+                            "name": "upload_id",
+                            "in": "path",
+                            "desc": "The upload_id POST \/uploads returned (u_ and 32 hexadecimal characters).",
+                            "req": true
+                        }
+                    ],
+                    "section": "Uploads",
+                    "slug": "delete-uploads-upload-id",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such upload for THIS key: another key's (even one acting as the same analyst), an unknown id, or one that has expired (24 hours after its last piece)."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key lacks the create permission of the upload's purpose: knowledge_images.create or knowledge_documents.create."
                             }
                         ]
                     }

@@ -6703,6 +6703,40 @@ return array (
         'changed' => ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['title', 'description', 'show_in_help_centre']], 'description' => 'On PATCH: what changed.'],
       ],
     ],
+    // GH #416 / #417: a file sent in pieces, waiting for its hand-over.
+    'Upload' => [
+      'type' => 'object', 'required' => ['upload_id', 'purpose', 'filename', 'size', 'received', 'complete', 'chunk_bytes', 'expires_at'],
+      'properties' => [
+        'upload_id' => ['type' => 'string', 'pattern' => '^u_[0-9a-f]{32}$'],
+        'purpose' => ['type' => 'string', 'enum' => ['knowledge_image', 'knowledge_document']],
+        'filename' => ['type' => 'string'], 'size' => ['type' => 'integer'],
+        'received' => ['type' => 'integer', 'description' => 'Bytes arrived so far: the offset of the next piece.'],
+        'complete' => ['type' => 'boolean'],
+        'sha256' => ['type' => 'string', 'nullable' => true, 'description' => 'The assembled file\'s, once complete.'],
+        'chunk_bytes' => ['type' => 'integer', 'description' => 'The largest piece this server takes.'],
+        'expires_at' => ['type' => 'string', 'format' => 'date-time', 'description' => '24 hours after the last piece - or after the hand-over, once used.'],
+        'used' => ['type' => 'object', 'nullable' => true, 'description' => 'What the upload became, once handed over.', 'properties' => [
+          'parent_id' => ['type' => 'integer', 'description' => 'The article it was handed to.'],
+          'object_id' => ['type' => 'integer', 'description' => 'The picture or document it became.'],
+          'at' => ['type' => 'string', 'format' => 'date-time']]],
+      ],
+    ],
+    'UploadLimits' => [
+      'type' => 'object', 'required' => ['chunk_bytes', 'max_unfinished', 'expires_after_hours', 'purposes'],
+      'properties' => [
+        'chunk_bytes' => ['type' => 'integer', 'description' => '4 MiB, or less where PHP\'s post_max_size is smaller. Any piece up to this size is fine.'],
+        'max_unfinished' => ['type' => 'integer', 'description' => 'Uploads one key may have that are not handed over yet, finished or not.'],
+        'expires_after_hours' => ['type' => 'integer'],
+        'purposes' => ['type' => 'object', 'additionalProperties' => ['type' => 'object', 'required' => ['max_bytes', 'formats'], 'properties' => [
+          'max_bytes' => ['type' => 'integer'],
+          'formats' => ['type' => 'array', 'items' => ['type' => 'object', 'required' => ['extension', 'mime_types'], 'properties' => [
+            'extension' => ['type' => 'string'], 'mime_types' => ['type' => 'array', 'items' => ['type' => 'string']]]]]]]],
+      ],
+    ],
+    'UploadDeleted' => [
+      'type' => 'object', 'required' => ['upload_id', 'deleted'],
+      'properties' => ['upload_id' => ['type' => 'string'], 'deleted' => ['type' => 'boolean']],
+    ],
     'KnowledgeDocumentRemoved' => [
       'type' => 'object', 'required' => ['id', 'article_id', 'removed', 'document_deleted', 'article_revision'],
       'properties' => [
@@ -16018,6 +16052,11 @@ return array (
     'POST /knowledge/articles/{id}/documents/{document_id}/link' => ['$ref' => '#/components/schemas/KnowledgeDocument'],
     'PATCH /knowledge/articles/{id}/documents/{document_id}' => ['$ref' => '#/components/schemas/KnowledgeDocument'],
     'DELETE /knowledge/articles/{id}/documents/{document_id}' => ['$ref' => '#/components/schemas/KnowledgeDocumentRemoved'],
+    'GET /uploads/limits' => ['$ref' => '#/components/schemas/UploadLimits'],
+    'POST /uploads' => ['$ref' => '#/components/schemas/Upload'],
+    'PUT /uploads/{upload_id}' => ['$ref' => '#/components/schemas/Upload'],
+    'GET /uploads/{upload_id}' => ['$ref' => '#/components/schemas/Upload'],
+    'DELETE /uploads/{upload_id}' => ['$ref' => '#/components/schemas/UploadDeleted'],
     'GET /knowledge/articles/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
     'GET /knowledge/folders/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
     'PATCH /knowledge/articles/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
@@ -18217,6 +18256,7 @@ return array (
     // GH #416. A file goes as multipart/form-data with a part named file and the same fields as text.
     'POST /knowledge/articles/{id}/documents' => ['type' => 'object', 'additionalProperties' => false, 'properties' => [
       'external_url' => ['type' => 'string', 'maxLength' => 2048, 'description' => 'http(s) URL - a link document. A file is sent as multipart/form-data instead.'],
+      'upload_id' => ['type' => 'string', 'pattern' => '^u_[0-9a-f]{32}$', 'description' => 'GH #417: a finished upload with purpose knowledge_document - a file of any size up to the limit.'],
       'title' => ['type' => 'string', 'maxLength' => 255], 'description' => ['type' => 'string', 'nullable' => true],
       'show_in_help_centre' => ['type' => 'boolean', 'default' => false],
       'client_reference' => ['type' => 'string', 'maxLength' => 191],
@@ -18236,9 +18276,18 @@ return array (
       'access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
       'client_reference' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 191],
     ]],
-    'POST /knowledge/articles/{id}/images' => ['type' => 'object', 'required' => ['filename', 'content_base64'], 'additionalProperties' => false,
+    'POST /knowledge/articles/{id}/images' => ['type' => 'object', 'additionalProperties' => false,
+      // GH #416 / #417: the picture as base64, or as a finished upload (POST /uploads) - one or the other.
+      'oneOf' => [['required' => ['filename', 'content_base64']], ['required' => ['upload_id']]],
       'properties' => ['filename' => ['type' => 'string'], 'content_base64' => ['type' => 'string', 'format' => 'byte', 'maxLength' => 13981016],
+        'upload_id' => ['type' => 'string', 'pattern' => '^u_[0-9a-f]{32}$', 'description' => 'A finished upload with purpose knowledge_image. filename then defaults to the upload\'s.'],
         'client_reference' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 191]]],
+    'POST /uploads' => ['type' => 'object', 'required' => ['purpose', 'filename', 'size'], 'additionalProperties' => false, 'properties' => [
+      'purpose' => ['type' => 'string', 'enum' => ['knowledge_image', 'knowledge_document']],
+      'filename' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
+      'size' => ['type' => 'integer', 'minimum' => 1],
+      'sha256' => ['type' => 'string', 'pattern' => '^[0-9a-fA-F]{64}$', 'description' => 'Optional: the assembled file must match it.'],
+    ]],
     'PATCH /knowledge/articles/{id}/access' => ['type' => 'object', 'required' => ['access', 'expected_revision'], 'additionalProperties' => false, 'properties' => ['access' => ['$ref' => '#/components/schemas/KnowledgeAccess'], 'expected_revision' => ['type' => 'string', 'pattern' => '^[0-9a-f]{64}$']]],
     'PATCH /knowledge/folders/{id}/access' => ['type' => 'object', 'required' => ['access', 'expected_revision'], 'additionalProperties' => false, 'properties' => ['access' => ['$ref' => '#/components/schemas/KnowledgeAccess'], 'expected_revision' => ['type' => 'string', 'pattern' => '^[0-9a-f]{64}$']]],
     // GH #279: companies. Only the fields sent change on a PATCH or an upsert that finds one.

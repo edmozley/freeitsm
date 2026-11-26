@@ -25,6 +25,7 @@ require_once __DIR__ . '/resources/changes.php';
 require_once __DIR__ . '/resources/knowledge.php';
 require_once __DIR__ . '/resources/knowledge_transfer.php';
 require_once __DIR__ . '/resources/knowledge_documents.php';   // GH #416
+require_once __DIR__ . '/resources/uploads.php';               // GH #416 / #417
 require_once __DIR__ . '/resources/tasks.php';
 require_once __DIR__ . '/resources/checklists.php';   // GH #273 - needs tickets.php and tasks.php
 require_once __DIR__ . '/resources/cmdb.php';
@@ -58,13 +59,18 @@ $path = '/' . trim($path, '/');
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 // Method override for clients that can only send GET/POST.
 $override = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? '';
-if ($method === 'POST' && in_array(strtoupper($override), ['PATCH', 'DELETE'], true)) {
+if ($method === 'POST' && in_array(strtoupper($override), ['PUT', 'PATCH', 'DELETE'], true)) {
     $method = strtoupper($override);
 }
 
 // --- Route table -----------------------------------------------------------
 // [method, pattern, [resource, action] | null, handler]
 $routes = require __DIR__ . '/lib/routes.php';
+
+// GH #416 / #417: handlers whose body is raw bytes they stream themselves (an upload's
+// piece). TRAP: the router must not read it - apiJsonBody() would load a 4 MB piece into
+// memory and then refuse it as "not JSON".
+const API_V1_RAW_BODY_HANDLERS = ['apiUploadsPut'];
 
 // GH #287: one row in the API activity log for this call, however it ends.
 require_once __DIR__ . '/../../includes/api_security.php';
@@ -98,7 +104,8 @@ foreach ($routes as [$routeMethod, $pattern, $permission, $handler]) {
     try {
         // Ids arrive as ints. A route whose pattern allows a name (the inventory source,
         // #194) gets it as the string its pattern already validated.
-        $handler($conn, $apiKey, array_map(fn($m) => ctype_digit($m) ? (int)$m : $m, $matches), apiJsonBody());
+        $handler($conn, $apiKey, array_map(fn($m) => ctype_digit($m) ? (int)$m : $m, $matches),
+                 in_array($handler, API_V1_RAW_BODY_HANDLERS, true) ? [] : apiJsonBody());
     } catch (Exception $e) {
         error_log('API v1 handler error [' . $method . ' ' . $path . ']: ' . $e->getMessage());
         apiError(500, 'server_error', 'An unexpected server error occurred.');

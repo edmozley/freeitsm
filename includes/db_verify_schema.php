@@ -4663,6 +4663,27 @@ return [
         'window_start'  => 'DATETIME NOT NULL',
     ],
 
+    // GH #416 / #417: files sent to the REST API in pieces, waiting for their hand-over.
+    'api_uploads' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'upload_id'             => 'CHAR(34) CHARACTER SET ascii COLLATE ascii_bin NOT NULL',
+        'api_key_id'            => 'INT NOT NULL',
+        'purpose'               => 'VARCHAR(32) NOT NULL',
+        'filename'              => 'VARCHAR(255) NOT NULL',
+        'size_bytes'            => 'BIGINT NOT NULL',
+        'received_bytes'        => 'BIGINT NOT NULL DEFAULT 0',
+        'expected_sha256'       => 'CHAR(64) NULL',
+        'sha256'                => 'CHAR(64) NULL',
+        'stored_name'           => 'VARCHAR(64) NOT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'completed_datetime'    => 'DATETIME NULL',
+        'expires_datetime'      => 'DATETIME NOT NULL',
+        'used_datetime'         => 'DATETIME NULL',
+        'used_parent_id'        => 'INT NULL',
+        'used_object_id'        => 'INT NULL',
+        'used_client_reference' => 'VARCHAR(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL',
+    ],
+
     'task_statuses' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'name'              => 'VARCHAR(50) NOT NULL',
