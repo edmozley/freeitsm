@@ -120,6 +120,13 @@ return [
     ['DELETE', '#^/knowledge/articles/(\d+)/images/(\d+)$#', ['knowledge_images', 'delete'], 'apiKnowledgeImagesDelete'],
     ['GET', '#^/knowledge/images/(\d+)/content$#', ['knowledge_images', 'read'], 'apiKnowledgeImagesGet'],
     ['GET', '#^/knowledge/images/constraints$#', ['knowledge_images', 'read'], 'apiKnowledgeImagesConstraints'],   // GH #417
+    // GH #416: an article's documents. The content route ALSO needs documents.download (checked in the handler).
+    ['GET',    '#^/knowledge/articles/(\d+)/documents$#',                ['knowledge_documents', 'read'],   'apiKnowledgeDocumentsList'],
+    ['POST',   '#^/knowledge/articles/(\d+)/documents$#',                ['knowledge_documents', 'create'], 'apiKnowledgeDocumentsCreate'],
+    ['POST',   '#^/knowledge/articles/(\d+)/documents/(\d+)/link$#',    ['knowledge_documents', 'create'], 'apiKnowledgeDocumentsLink'],
+    ['PATCH',  '#^/knowledge/articles/(\d+)/documents/(\d+)$#',         ['knowledge_documents', 'create'], 'apiKnowledgeDocumentsUpdate'],
+    ['GET',    '#^/knowledge/articles/(\d+)/documents/(\d+)/content$#', ['knowledge_documents', 'read'],   'apiKnowledgeDocumentContent'],
+    ['DELETE', '#^/knowledge/articles/(\d+)/documents/(\d+)$#',         ['knowledge_documents', 'delete'], 'apiKnowledgeDocumentsDelete'],
 
     ['GET',    '#^/knowledge/articles$#',                  ['knowledge', 'read'],             'apiKnowledgeArticlesList'],
     ['POST',   '#^/knowledge/articles$#',                  ['knowledge', 'create'],           'apiKnowledgeArticlesCreate'],

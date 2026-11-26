@@ -15,6 +15,14 @@
  * Change management learned this the hard way: checking after move_uploaded_file()
  * stopped the database row, not the write.
  *
+ * GH #416: add(), attach() and detach() are also offered in their parts - prepare(),
+ * insert() and indexAdded(); link(); unlink() and afterUnlink() - for a caller that
+ * checks access by its own rule and writes inside its own transaction: the Knowledge
+ * REST API, which answers to the API key's company scope (KnowledgeViewer::forApiKey)
+ * rather than the analyst's header switcher, and records its retry reference in the
+ * same transaction as the document. The parts run the same checks and writes as the
+ * whole; only the access check is the caller's.
+ *
  * @wiki Project-Documents-API-Design
  */
 
@@ -50,25 +58,106 @@ class DocumentsService
             throw new ServiceError('forbidden', 'forbidden', 'You do not have access to that record.');
         }
 
-        $file        = $in['file'] ?? null;
-        $hasFile     = is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
-        $externalUrl = trim((string)($in['external_url'] ?? ''));
-        $title       = trim((string)($in['title'] ?? ''));
-        $description = trim((string)($in['description'] ?? ''));
-        $reference   = isset($in['client_reference']) && $in['client_reference'] !== '' ? (string)$in['client_reference'] : null;
-
-        if (!$hasFile && $externalUrl === '') throw new ServiceError('validation', 'missing_field', 'Attach a file, or give a link to one.');
-        if ($hasFile && $externalUrl !== '')  throw new ServiceError('validation', 'invalid_field', 'Give a file or a link, not both.');
+        $input     = self::input($in);
+        $reference = isset($in['client_reference']) && $in['client_reference'] !== '' ? (string)$in['client_reference'] : null;
         if ($reference !== null && !preg_match(self::REFERENCE_PATTERN, $reference)) {
             throw new ServiceError('validation', 'invalid_field', 'client_reference must be 1-128 ASCII letters, digits, dots, underscores, colons or hyphens.');
         }
         if ($reference !== null && !self::referenceReady($conn)) $reference = null;   // before Database Verification
 
-        // 2. Build the document row.
+        // 2. Build the document row (and store the file).
+        $prepared = self::build($conn, $input);
+        $doc = $prepared['doc'];
+
+        // 3. A retry: the same reference from the same person returns what it made
+        //    the first time - provided it is the same thing, or it is a conflict.
+        if ($reference !== null) {
+            $find = $conn->prepare("SELECT d.id, d.kind, d.original_name, d.content_hash, d.external_url,
+                                           EXISTS (SELECT 1 FROM document_links dl WHERE dl.document_id = d.id AND dl.parent_type = ? AND dl.parent_id = ?) AS here
+                                      FROM documents d WHERE d.uploaded_by_id = ? AND d.client_reference = ? AND d.deleted_datetime IS NULL");
+            $find->execute([$parentType, $parentId, $analystId, $reference]);
+            if ($existing = $find->fetch(PDO::FETCH_ASSOC)) {
+                $same = (int)$existing['here'] === 1 && $existing['kind'] === $doc['kind']
+                    && ($doc['kind'] === DOCUMENT_KIND_FILE
+                        ? ($existing['original_name'] === $doc['original_name'] && $existing['content_hash'] === $doc['content_hash'])
+                        : $existing['external_url'] === $doc['external_url']);
+                self::discard($prepared);   // the copy just written is not needed
+                if (!$same) throw new ServiceError('conflict', 'reference_conflict', 'This client_reference already names a different document.');
+                return ['id' => (int)$existing['id'], 'replayed' => true];
+            }
+        }
+
+        // 4. Write the document and its first link, together.
+        $tenantId = array_key_exists('tenant_id', $in) ? ($in['tenant_id'] !== null ? (int)$in['tenant_id'] : null) : (getActiveTenantId($conn, $analystId) ?: null);
+        try {
+            $documentId = self::insert($conn, $analystId, $parentType, $parentId, $prepared, $tenantId, $reference);
+        } catch (Throwable $e) {
+            // The row failed, so the file on disk is now an orphan nothing points at.
+            self::discard($prepared);
+            throw $e;
+        }
+
+        // 5. Index what we have now (findable by title at once), queue the text.
+        self::indexAdded($conn, $documentId, $prepared);
+        return ['id' => $documentId, 'replayed' => false];
+    }
+
+    /**
+     * The file-or-link part of a new document, checked but not yet written anywhere.
+     *
+     * @param array $in  file (a $_FILES entry) OR external_url; title, description
+     * @return array{file:?array, external_url:string, title:string, description:string}
+     * @throws ServiceError validation - neither, or both
+     */
+    private static function input(array $in): array
+    {
+        $file        = $in['file'] ?? null;
+        $hasFile     = is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+        $externalUrl = trim((string)($in['external_url'] ?? ''));
+
+        if (!$hasFile && $externalUrl === '') throw new ServiceError('validation', 'missing_field', 'Attach a file, or give a link to one.');
+        if ($hasFile && $externalUrl !== '')  throw new ServiceError('validation', 'invalid_field', 'Give a file or a link, not both.');
+        return [
+            'file'         => $hasFile ? $file : null,
+            'external_url' => $externalUrl,
+            'title'        => trim((string)($in['title'] ?? '')),
+            'description'  => trim((string)($in['description'] ?? '')),
+        ];
+    }
+
+    /**
+     * Check a new document and store its file, without writing any row (GH #416).
+     *
+     * For a caller that writes the rows itself, inside a transaction of its own - the
+     * Knowledge REST API, which records its retry reference in the same transaction.
+     * It runs the same checks add() does: the install's allowed types and size limit
+     * for a file, http(s) only for a link.
+     *
+     * TRAP: the caller MUST have checked write access to the record first. This stores
+     * the file, and access checked after a file is written stops the row, not the
+     * write (see the top of this class).
+     *
+     * @param array $in  file (a $_FILES entry) OR external_url; title, description
+     * @return array{doc:array, description:string, stored:?array}  pass to insert() and indexAdded(); discard() on failure
+     * @throws ServiceError validation (missing_field, invalid_field, invalid_file)
+     */
+    public static function prepare(PDO $conn, array $in): array
+    {
+        return self::build($conn, self::input($in));
+    }
+
+    /**
+     * The document row for input(), storing the file when there is one.
+     *
+     * @param array $input  what input() returned
+     */
+    private static function build(PDO $conn, array $input): array
+    {
+        $title  = $input['title'];
         $stored = null;
-        if ($hasFile) {
+        if ($input['file'] !== null) {
             try {
-                $stored = uploadStoreFile($file, dirname(__DIR__, 2) . '/uploads/' . DOCUMENT_STORAGE_DIR, attachmentAllowedTypes($conn));
+                $stored = uploadStoreFile($input['file'], dirname(__DIR__, 2) . '/uploads/' . DOCUMENT_STORAGE_DIR, attachmentAllowedTypes($conn));
             } catch (Exception $e) {
                 throw new ServiceError('validation', 'invalid_file', $e->getMessage());
             }
@@ -84,6 +173,7 @@ class DocumentsService
                 'external_url'  => null,
             ];
         } else {
+            $externalUrl = $input['external_url'];
             // Only http(s). A javascript: or file: "link" is not a document, and this
             // string ends up in an href.
             if (!preg_match('#^https?://#i', $externalUrl)) throw new ServiceError('validation', 'invalid_field', 'A link must start with http:// or https://');
@@ -93,28 +183,25 @@ class DocumentsService
                 'original_name' => null, 'mime_type' => null, 'size_bytes' => null, 'content_hash' => null, 'external_url' => $externalUrl,
             ];
         }
+        return ['doc' => $doc, 'description' => $input['description'], 'stored' => $stored];
+    }
 
-        // 3. A retry: the same reference from the same person returns what it made
-        //    the first time - provided it is the same thing, or it is a conflict.
-        if ($reference !== null) {
-            $find = $conn->prepare("SELECT d.id, d.kind, d.original_name, d.content_hash, d.external_url,
-                                           EXISTS (SELECT 1 FROM document_links dl WHERE dl.document_id = d.id AND dl.parent_type = ? AND dl.parent_id = ?) AS here
-                                      FROM documents d WHERE d.uploaded_by_id = ? AND d.client_reference = ? AND d.deleted_datetime IS NULL");
-            $find->execute([$parentType, $parentId, $analystId, $reference]);
-            if ($existing = $find->fetch(PDO::FETCH_ASSOC)) {
-                $same = (int)$existing['here'] === 1 && $existing['kind'] === $doc['kind']
-                    && ($doc['kind'] === DOCUMENT_KIND_FILE
-                        ? ($existing['original_name'] === $doc['original_name'] && $existing['content_hash'] === $doc['content_hash'])
-                        : $existing['external_url'] === $doc['external_url']);
-                if ($stored && is_file($stored['path'])) @unlink($stored['path']);   // the copy just written is not needed
-                if (!$same) throw new ServiceError('conflict', 'reference_conflict', 'This client_reference already names a different document.');
-                return ['id' => (int)$existing['id'], 'replayed' => true];
-            }
-        }
-
-        // 4. Write the document and its first link, together.
-        $tenantId = array_key_exists('tenant_id', $in) ? ($in['tenant_id'] !== null ? (int)$in['tenant_id'] : null) : (getActiveTenantId($conn, $analystId) ?: null);
-        $conn->beginTransaction();
+    /**
+     * Write a prepared document and its first link. Owns the transaction, or joins the
+     * caller's (GH #416) - in which case the caller rolls back and calls discard().
+     *
+     * @param array   $prepared         what prepare() returned
+     * @param ?int    $tenantId         the document's company
+     * @param ?string $reference        documents.client_reference (the Documents panel and project API's retry key)
+     * @param ?bool   $showInHelpCentre the link's Help Centre setting; null = the default for the record type
+     * @return int the new documents.id
+     */
+    public static function insert(PDO $conn, int $analystId, string $parentType, int $parentId, array $prepared, ?int $tenantId, ?string $reference = null, ?bool $showInHelpCentre = null): int
+    {
+        $doc   = $prepared['doc'];
+        $description = $prepared['description'];
+        $owns  = !$conn->inTransaction();
+        if ($owns) $conn->beginTransaction();
         try {
             $cols = 'kind, title, description, storage_key, original_name, mime_type, size_bytes, content_hash, external_url, tenant_id, uploaded_by_id';
             $vals = [
@@ -126,19 +213,35 @@ class DocumentsService
             $conn->prepare("INSERT INTO documents ($cols) VALUES (" . implode(',', array_fill(0, count($vals), '?')) . ")")->execute($vals);
             $documentId = (int)$conn->lastInsertId();
             // documentInsertLink() also sets the Help Centre flag for an article (#177).
-            documentInsertLink($conn, $documentId, $parentType, $parentId, $analystId);
-            $conn->commit();
+            documentInsertLink($conn, $documentId, $parentType, $parentId, $analystId, false, $showInHelpCentre);
+            if ($owns) $conn->commit();
         } catch (Throwable $e) {
-            if ($conn->inTransaction()) $conn->rollBack();
-            // The row failed, so the file on disk is now an orphan nothing points at.
-            if ($stored && is_file($stored['path'])) @unlink($stored['path']);
+            if ($owns && $conn->inTransaction()) $conn->rollBack();
             throw $e;
         }
+        return $documentId;
+    }
 
-        // 5. Index what we have now (findable by title at once), queue the text.
+    /** Remove the file prepare() stored, when its row was never written (or a retry made it unnecessary). */
+    public static function discard(array $prepared): void
+    {
+        $stored = $prepared['stored'] ?? null;
+        if ($stored && is_file($stored['path'])) @unlink($stored['path']);
+    }
+
+    /**
+     * Index a new document: findable by title at once, its text queued for extraction.
+     * Call it AFTER the commit - never inside a transaction, which it would hold open
+     * for up to four seconds of text extraction.
+     *
+     * @param int   $documentId  the new documents.id
+     * @param array $prepared    what prepare() returned for it
+     */
+    public static function indexAdded(PDO $conn, int $documentId, array $prepared): void
+    {
         try {
             require_once __DIR__ . '/../search/documents_index.php';
-            documentTextEnqueue($conn, $documentId, $doc['kind'], $doc['original_name']);
+            documentTextEnqueue($conn, $documentId, $prepared['doc']['kind'], $prepared['doc']['original_name']);
             searchIndexDocument($conn, $documentId);
             // Opportunistic: a little extraction now, bounded, so a quiet install
             // with no cron still ends up searchable.
@@ -146,7 +249,6 @@ class DocumentsService
         } catch (Throwable $e) {
             error_log('[DocumentsService::add] indexing: ' . $e->getMessage());   // never fail the upload
         }
-        return ['id' => $documentId, 'replayed' => false];
     }
 
     /**
@@ -168,9 +270,34 @@ class DocumentsService
         if (!documentCanView($conn, $analystId, $allowed, $documentId)) {
             throw new ServiceError('not_found', 'not_found', 'Not found.');
         }
-        documentInsertLink($conn, $documentId, $parentType, $parentId, $analystId, true);
-        // The corpus row's VISIBILITY just changed - resolved live by the search
-        // clause - but reindex to keep source_datetime and title honest.
+        self::link($conn, $documentId, $parentType, $parentId, $analystId);
+        self::reindex($conn, $documentId);
+    }
+
+    /**
+     * Link a document to one more record - attach() without its checks, for a caller that
+     * has made them itself and may be inside its own transaction (GH #416). A link that is
+     * already there is left exactly as it is, Help Centre setting included.
+     *
+     * TRAP: the caller MUST have checked that it may write to the record AND see the
+     * document (documentCanView), as attach() does - otherwise attaching launders a
+     * document into somewhere its reader could not see it before.
+     *
+     * @param ?bool $showInHelpCentre  the new link's Help Centre setting; null = the default for the record type
+     * @return bool true when a new link was made; false when it was already there
+     */
+    public static function link(PDO $conn, int $documentId, string $parentType, int $parentId, int $analystId, ?bool $showInHelpCentre = null): bool
+    {
+        return documentInsertLink($conn, $documentId, $parentType, $parentId, $analystId, true, $showInHelpCentre);
+    }
+
+    /**
+     * Refresh a document's search entry after a link was added or its details changed.
+     * The corpus row's VISIBILITY is resolved live by the search clause, but reindexing
+     * keeps source_datetime and title honest.
+     */
+    public static function reindex(PDO $conn, int $documentId): void
+    {
         try {
             require_once __DIR__ . '/../search/documents_index.php';
             searchIndexDocument($conn, $documentId);
@@ -199,24 +326,53 @@ class DocumentsService
 
         $conn->beginTransaction();
         try {
-            $conn->prepare("DELETE FROM document_links WHERE document_id = ? AND parent_type = ? AND parent_id = ?")
-                 ->execute([$documentId, $parentType, $parentId]);
-            $st = $conn->prepare("SELECT COUNT(*) FROM document_links WHERE document_id = ?");
-            $st->execute([$documentId]);
-            $orphaned = (int)$st->fetchColumn() === 0;
-            $keyToRemove = null;
-            if ($orphaned) {
-                $st = $conn->prepare("SELECT storage_key FROM documents WHERE id = ?");
-                $st->execute([$documentId]);
-                $keyToRemove = $st->fetchColumn() ?: null;
-                $conn->prepare("UPDATE documents SET deleted_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$documentId]);
-            }
+            $removed = self::unlink($conn, $documentId, $parentType, $parentId);
             $conn->commit();
         } catch (Throwable $e) {
             if ($conn->inTransaction()) $conn->rollBack();
             throw $e;
         }
+        self::afterUnlink($conn, $documentId, $removed);
+        return $removed['orphaned'];
+    }
 
+    /**
+     * Take a document off one record - detach() without its checks, inside the caller's
+     * transaction (GH #416). Its last link soft-deletes it; nothing on disk is touched
+     * here. Call afterUnlink() with the result once the transaction has committed.
+     *
+     * TRAP: the caller MUST have checked that it may write to the record and that the
+     * document is on it, as detach() does.
+     *
+     * @return array{orphaned:bool, storage_key:?string}  orphaned = that was its last link
+     */
+    public static function unlink(PDO $conn, int $documentId, string $parentType, int $parentId): array
+    {
+        $conn->prepare("DELETE FROM document_links WHERE document_id = ? AND parent_type = ? AND parent_id = ?")
+             ->execute([$documentId, $parentType, $parentId]);
+        $st = $conn->prepare("SELECT COUNT(*) FROM document_links WHERE document_id = ?");
+        $st->execute([$documentId]);
+        $orphaned = (int)$st->fetchColumn() === 0;
+        $keyToRemove = null;
+        if ($orphaned) {
+            $st = $conn->prepare("SELECT storage_key FROM documents WHERE id = ?");
+            $st->execute([$documentId]);
+            $keyToRemove = $st->fetchColumn() ?: null;
+            $conn->prepare("UPDATE documents SET deleted_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$documentId]);
+        }
+        return ['orphaned' => $orphaned, 'storage_key' => $keyToRemove];
+    }
+
+    /**
+     * What follows unlink() once its transaction has committed: an orphan's file and its
+     * search entry go.
+     *
+     * @param array $removed  what unlink() returned
+     */
+    public static function afterUnlink(PDO $conn, int $documentId, array $removed): void
+    {
+        $orphaned    = $removed['orphaned'];
+        $keyToRemove = $removed['storage_key'];
         // Only touch the disk AFTER the transaction committed. A file deleted inside a
         // transaction that then rolls back leaves a row pointing at nothing.
         if ($orphaned && $keyToRemove) {
@@ -235,7 +391,6 @@ class DocumentsService
                 searchUnindexDocument($conn, $documentId);
             } catch (Throwable $e) { error_log('[DocumentsService::detach] ' . $e->getMessage()); }
         }
-        return $orphaned;
     }
 
     /**
@@ -272,9 +427,20 @@ class DocumentsService
            ORDER BY d.created_datetime DESC, d.id DESC
               LIMIT " . max(1, min(200, $limit)) . " OFFSET " . max(0, $offset));
         $st->execute($args);
-        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-        // GH #303: a file in Files - its name and a way in only for someone who can open
-        // its folder (Files' "hidden means not found"); for anyone else, that one exists.
+        return ['total' => $total, 'rows' => self::filesView($conn, $analystId, $st->fetchAll(PDO::FETCH_ASSOC))];
+    }
+
+    /**
+     * GH #303: a file in Files - its name and a way in only for someone who can open
+     * its folder (Files' "hidden means not found"); for anyone else, that one exists.
+     * Applied to every list of a record's documents (listFor(), and the Knowledge REST
+     * API's list, GH #416).
+     *
+     * @param array $rows  document rows with kind, title, description and files_item_id
+     * @return array the rows, a Files document's name blanked where this analyst cannot open its folder
+     */
+    public static function filesView(PDO $conn, int $analystId, array $rows): array
+    {
         foreach ($rows as &$r) {
             if ($r['kind'] !== DOCUMENT_KIND_FILES) continue;
             require_once __DIR__ . '/files_attach.php';
@@ -286,7 +452,7 @@ class DocumentsService
             unset($r['files_item_id']);
         }
         unset($r);
-        return ['total' => $total, 'rows' => $rows];
+        return $rows;
     }
 
     /** True once Database Verification has added documents.files_item_id (GH #303). */

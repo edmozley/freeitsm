@@ -6682,6 +6682,35 @@ return array (
         'filename' => ['type' => 'string'], 'mime_type' => ['type' => 'string'], 'size_bytes' => ['type' => 'integer'],
         'sha256' => ['type' => 'string'], 'url' => ['type' => 'string'], 'replayed' => ['type' => 'boolean']],
     ],
+    // GH #416: a document on a Knowledge article - metadata only; the bytes come from content_url (documents.download).
+    'KnowledgeDocument' => [
+      'type' => 'object', 'required' => ['id', 'article_id', 'kind', 'title', 'show_in_help_centre', 'content_url'],
+      'properties' => [
+        'id' => ['type' => 'integer'], 'article_id' => ['type' => 'integer'],
+        'kind' => ['type' => 'string', 'enum' => ['file', 'link', 'files'], 'description' => 'file = a file FreeITSM holds; link = an external URL; files = a file kept in Files, opened through Files.'],
+        'title' => ['type' => 'string'], 'description' => ['type' => 'string', 'nullable' => true],
+        'filename' => ['type' => 'string', 'nullable' => true], 'mime_type' => ['type' => 'string', 'nullable' => true],
+        'size_bytes' => ['type' => 'integer', 'nullable' => true], 'sha256' => ['type' => 'string', 'nullable' => true],
+        'external_url' => ['type' => 'string', 'nullable' => true],
+        'show_in_help_centre' => ['type' => 'boolean', 'description' => 'Offered to customers in the Help Centre on THIS article (once it is published, customer-facing and theirs).'],
+        'client_reference' => ['type' => 'string', 'nullable' => true, 'description' => 'The key\'s analyst\'s own reference that added it to this article; null otherwise.'],
+        'uploaded_by' => ['type' => 'object', 'nullable' => true, 'properties' => ['id' => ['type' => 'integer'], 'name' => ['type' => 'string', 'nullable' => true]]],
+        'uploaded_at' => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
+        'url' => ['type' => 'string', 'nullable' => true, 'description' => 'For the article\'s HTML: re-checks the signed-in analyst or portal user against this article on every request. Null for a link or a file in Files.'],
+        'content_url' => ['type' => 'string'],
+        'article_revision' => ['type' => 'string', 'description' => 'On a write: the article\'s revision after it.'],
+        'replayed' => ['type' => 'boolean', 'description' => 'On POST: true when client_reference returned an earlier upload.'],
+        'changed' => ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['title', 'description', 'show_in_help_centre']], 'description' => 'On PATCH: what changed.'],
+      ],
+    ],
+    'KnowledgeDocumentRemoved' => [
+      'type' => 'object', 'required' => ['id', 'article_id', 'removed', 'document_deleted', 'article_revision'],
+      'properties' => [
+        'id' => ['type' => 'integer'], 'article_id' => ['type' => 'integer'], 'removed' => ['type' => 'boolean'],
+        'document_deleted' => ['type' => 'boolean', 'description' => 'True when that was its last link, so the document is deleted as in the app.'],
+        'article_revision' => ['type' => 'string'],
+      ],
+    ],
     'KnowledgeImageConstraints' => [
       'type' => 'object', 'description' => 'GH #417: the image size limit and formats in force on this install.',
       'required' => ['max_bytes', 'default_max_bytes', 'max_base64_length', 'encoding', 'formats', 'request_max_bytes', 'within_server_limits'],
@@ -15984,6 +16013,11 @@ return array (
     'GET /knowledge/articles/{id}/images' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/KnowledgeImage']],
     'POST /knowledge/articles/{id}/images' => ['$ref' => '#/components/schemas/KnowledgeImage'],
     'GET /knowledge/images/constraints' => ['$ref' => '#/components/schemas/KnowledgeImageConstraints'],
+    'GET /knowledge/articles/{id}/documents' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/KnowledgeDocument']],
+    'POST /knowledge/articles/{id}/documents' => ['$ref' => '#/components/schemas/KnowledgeDocument'],
+    'POST /knowledge/articles/{id}/documents/{document_id}/link' => ['$ref' => '#/components/schemas/KnowledgeDocument'],
+    'PATCH /knowledge/articles/{id}/documents/{document_id}' => ['$ref' => '#/components/schemas/KnowledgeDocument'],
+    'DELETE /knowledge/articles/{id}/documents/{document_id}' => ['$ref' => '#/components/schemas/KnowledgeDocumentRemoved'],
     'GET /knowledge/articles/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
     'GET /knowledge/folders/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
     'PATCH /knowledge/articles/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
@@ -18180,7 +18214,22 @@ return array (
   array (
     'POST /knowledge/articles' => ['allOf' => [['$ref' => '#/components/schemas/KnowledgeArticleWrite'], ['type' => 'object', 'required' => ['title']]]],
     'PATCH /knowledge/articles/{id}' => ['$ref' => '#/components/schemas/KnowledgeArticleWrite'],
-    'POST /knowledge/folders' => ['type' => 'object', 'required' => ['name'], 'additionalProperties' => false, 'properties' => [
+    // GH #416. A file goes as multipart/form-data with a part named file and the same fields as text.
+    'POST /knowledge/articles/{id}/documents' => ['type' => 'object', 'additionalProperties' => false, 'properties' => [
+      'external_url' => ['type' => 'string', 'maxLength' => 2048, 'description' => 'http(s) URL - a link document. A file is sent as multipart/form-data instead.'],
+      'title' => ['type' => 'string', 'maxLength' => 255], 'description' => ['type' => 'string', 'nullable' => true],
+      'show_in_help_centre' => ['type' => 'boolean', 'default' => false],
+      'client_reference' => ['type' => 'string', 'maxLength' => 191],
+      'expected_revision' => ['type' => 'string'],
+    ]],
+    'POST /knowledge/articles/{id}/documents/{document_id}/link' => ['type' => 'object', 'additionalProperties' => false, 'properties' => [
+      'show_in_help_centre' => ['type' => 'boolean', 'default' => false], 'expected_revision' => ['type' => 'string'],
+    ]],
+    'PATCH /knowledge/articles/{id}/documents/{document_id}' => ['type' => 'object', 'additionalProperties' => false, 'properties' => [
+      'title' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255], 'description' => ['type' => 'string', 'nullable' => true],
+      'show_in_help_centre' => ['type' => 'boolean'], 'expected_revision' => ['type' => 'string'],
+    ]],
+    'POST /knowledge/folders' =>['type' => 'object', 'required' => ['name'], 'additionalProperties' => false, 'properties' => [
       'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
       'parent_id' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1],
       'tenant_id' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1],
@@ -18278,6 +18327,12 @@ return array (
   'requestContentTypes' => ['POST /changes/{id}/attachments'=>'multipart/form-data'],
   'responseContents' => [
     'GET /knowledge/images/{id}/content' => ['image/*' => ['schema' => ['type' => 'string', 'format' => 'binary']]],
+    // GH #416: the file - or, for a link, where it lives.
+    'GET /knowledge/articles/{id}/documents/{document_id}/content' => [
+      'application/octet-stream' => ['schema' => ['type' => 'string', 'format' => 'binary']],
+      'application/json' => ['schema' => ['type' => 'object', 'properties' => ['data' => ['type' => 'object', 'properties' => [
+        'kind' => ['type' => 'string', 'enum' => ['link']], 'external_url' => ['type' => 'string']]]]]],
+    ],
     'GET /changes/{id}/attachments/{attachment_id}/content'=>[
       'application/octet-stream'=>['schema'=>['type'=>'string','format'=>'binary']],
     ],

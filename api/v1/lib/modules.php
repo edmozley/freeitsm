@@ -45,6 +45,7 @@ const API_V1_RESOURCE_MODULES = [
     'knowledge' => ['knowledge'], 'knowledge_versions' => ['knowledge'],
     'knowledge_folders' => ['knowledge'], 'knowledge_access' => ['knowledge'],
     'knowledge_images' => ['knowledge'], 'knowledge_imports' => ['knowledge'],
+    'knowledge_documents' => ['knowledge'],   // GH #416
     // Tasks
     'tasks' => ['tasks'], 'task_comments' => ['tasks'], 'task_forms' => ['tasks', 'forms'],
     'task_checklists' => ['tasks', 'checklists'],   // GH #273

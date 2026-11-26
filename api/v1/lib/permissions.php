@@ -238,6 +238,16 @@ function apiV1PermissionCatalog(): array {
             'label' => 'Knowledge images',
             'actions' => ['read' => 'Read images through article permissions', 'create' => 'Upload article images', 'delete' => 'Delete article images'],
         ],
+        // GH #416: the documents in an article's Documents panel. Downloading their bytes
+        // also needs documents.download; showing one in the Help Centre is a create.
+        'knowledge_documents' => [
+            'label' => 'Knowledge documents',
+            'actions' => [
+                'read'   => 'List the documents on articles the key can read, with their details (downloading the contents also needs Document contents - Download)',
+                'create' => 'Add a file or a link to an article, attach a document that exists, and change a document\'s title, description or Help Centre setting on that article',
+                'delete' => 'Take a document off an article (a document still attached elsewhere stays there)',
+            ],
+        ],
         'knowledge_imports' => [
             'label' => 'Knowledge import processing',
             'actions' => ['manage' => 'Explicitly select normal or suppressed AI/workflow processing on article saves'],
@@ -363,7 +373,7 @@ function apiV1PermissionCatalog(): array {
         'documents' => [
             'label'   => 'Document contents',
             'actions' => [
-                'download' => 'Download the contents of documents on records the key can read (project documents today) - every download is logged and counted against the key\'s download limits',
+                'download' => 'Download the contents of documents on records the key can read (project and Knowledge article documents) - every download is logged and counted against the key\'s download limits',
             ],
         ],
         'contract_terms' => [
