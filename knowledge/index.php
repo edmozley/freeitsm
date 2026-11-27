@@ -580,7 +580,8 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/safe-html.js?v=4"></script>   <!-- article bodies are cleaned before display -->
-    <script src="../assets/js/knowledge.js?v=75"></script>
+    <script src="../assets/js/kb-article-link-picker.js?v=1"></script>
+    <script src="../assets/js/knowledge.js?v=76"></script>
     <!-- Prism.js for code syntax highlighting when viewing articles -->
     <script src="../assets/js/vendor/prism.min.js?v=1.30.0"></script>
     <script src="../assets/js/vendor/prism-powershell.min.js"></script>
