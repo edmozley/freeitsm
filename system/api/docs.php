@@ -88,6 +88,7 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         .m-badge { flex: none; width: 44px; text-align: center; padding: 2px 0; border-radius: 4px; font-size: var(--font-size-xs, 11px); font-weight: 700; color: #fff; font-family: Consolas, Monaco, monospace; }
         .m-badge.GET { background: #2e7d32; } .m-badge.POST { background: #1565c0; }
         .m-badge.PATCH { background: #e65100; } .m-badge.DELETE { background: #c62828; }
+        .m-badge.PUT { background: #6a1b9a; }
         .nav-empty { padding: 16px 14px; font-size: var(--font-size-md, 13px); color: var(--text-faint, #999); }
 
         /* ---- Middle: the endpoint document ---------------------------------- */
@@ -95,6 +96,7 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         .ep-title .method { flex: none; padding: 5px 12px; border-radius: 5px; font-size: var(--font-size-sm, 12px); font-weight: 700; color: #fff; font-family: Consolas, Monaco, monospace; }
         .method.GET { background: #2e7d32; } .method.POST { background: #1565c0; }
         .method.PATCH { background: #e65100; } .method.DELETE { background: #c62828; }
+        .method.PUT { background: #6a1b9a; }
         .ep-title code { font-size: var(--font-size-2xl, 18px); color: var(--text, #263238); font-family: Consolas, Monaco, monospace; font-weight: 600; }
         .ep-meta { display: flex; align-items: center; gap: 10px; margin: 8px 0 16px; flex-wrap: wrap; }
         .ep-perm { font-size: var(--font-size-sm, 12px); background: #e3f2fd; color: #1565c0; border-radius: 10px; padding: 3px 10px; }
@@ -516,7 +518,8 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
                 c += 'var body = new StringContent(@"\n' + body.replace(/"/g, '""') + '",\n    Encoding.UTF8, "application/json");\n\n';
             }
             const call = {GET: 'GetAsync("' + url + '")', DELETE: 'DeleteAsync("' + url + '")',
-                          POST: 'PostAsync("' + url + '", body)', PATCH: 'PatchAsync("' + url + '", body)'}[m];
+                          POST: 'PostAsync("' + url + '", body)', PATCH: 'PatchAsync("' + url + '", body)',
+                          PUT: 'PutAsync("' + url + '", new ByteArrayContent(piece))'}[m];   // PUT: an upload's raw bytes
             c += 'var response = await client.' + call + ';\n'
                + 'Console.WriteLine(await response.Content.ReadAsStringAsync());';
             return c;

@@ -1219,6 +1219,7 @@ return [
             'asset_imports'        => 'Asset imports',
             'report_downloads'     => 'Report download links',
             'api_log_archive'      => 'Archived API logs',
+            'api_incoming'         => 'API uploads in progress',
             'files'                => 'Files',
             'recordings'           => 'Recordings',
             'lms'                  => 'Learning (LMS) content',

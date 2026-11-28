@@ -21,6 +21,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/encryption.php';   // decryptValue() for the token
 require_once __DIR__ . '/../includes/api_security.php';
+require_once __DIR__ . '/../includes/services/api_uploads.php';   // GH #416 / #417: expired uploads go too
 require_once __DIR__ . '/../includes/job_runs.php';     // run history (#182)
 
 $isCli = (PHP_SAPI === 'cli');
@@ -51,10 +52,13 @@ try {
     if (!JobRun::lock($conn, 'api_log_tidy', $trigger)) exit;
     $runId = JobRun::start($conn, 'api_log_tidy', $trigger);
     $r = apiLogTidy($conn);
+    // GH #416 / #417: REST uploads past their expiry - the same sweep POST /uploads runs.
+    $expiredUploads = ApiUploadService::expire($conn);
     $summary = $r['days']
         ? "Tidied {$r['days']} day(s): {$r['rows']} row(s) removed" . ($r['files'] ? ", {$r['archived']} archived to " . count($r['files']) . ' zip(s)' : '') . '.'
         : 'Nothing older than the days kept.';
-    JobRun::finish($conn, $runId, null, ['days' => $r['days'], 'rows' => $r['rows'], 'archived' => $r['archived']], $summary);
+    if ($expiredUploads) $summary .= " Removed {$expiredUploads} expired upload(s).";
+    JobRun::finish($conn, $runId, null, ['days' => $r['days'], 'rows' => $r['rows'], 'archived' => $r['archived'], 'uploads_expired' => $expiredUploads], $summary);
     echo "API log tidy: $summary\n";
 
 } catch (Throwable $e) {

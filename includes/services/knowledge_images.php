@@ -184,10 +184,11 @@ class KnowledgeImageService
         return dirname(__DIR__, 2) . '/uploads/knowledge';
     }
 
-    public static function create(PDO $conn, ActorContext $ctx, int $articleId, array $in): array
+    public static function create(PDO $conn, ActorContext $ctx, int $articleId, array $in, ?array $upload = null): array
     {
         $article = KnowledgeTransferService::object($conn, $ctx, 'article', $articleId, true);
         if ((int)$article['is_archived']) throw new ServiceError('conflict', 'archived', 'Restore the article before uploading images.');
+        if ($upload !== null) return self::createFromUpload($conn, $ctx, $articleId, $in, $upload);
         // GH #417: the ceiling is the administrator's choice (default 10 MiB), and a
         // too-large image gets its own stable code that states the limit.
         $max = self::maxBytes($conn);
@@ -227,6 +228,66 @@ class KnowledgeImageService
             if ($stored && $stored['path'] && is_file($stored['path'])) unlink($stored['path']);
             throw $e;
         }
+    }
+
+    /**
+     * GH #416 / #417: a picture from a REST upload (upload_id) instead of base64 - any size
+     * up to the limit, without the base64 request's memory and body limits.
+     *
+     * Checked now, as the base64 route checks: the limit in force now, an image extension,
+     * contents that really are that image (never SVG). The request itself is the
+     * client_reference identity, as for base64 - so a retry sends the same upload_id; a used
+     * upload answers only the retry of its own hand-over (same article, same reference).
+     *
+     * @param array $in      upload_id, filename (default: the upload's), client_reference
+     * @param array $upload  a row from ApiUploadService::forHandOver() (purpose knowledge_image)
+     */
+    private static function createFromUpload(PDO $conn, ActorContext $ctx, int $articleId, array $in, array $upload): array
+    {
+        require_once __DIR__ . '/api_uploads.php';
+        $reference = $in['client_reference'] ?? null;
+        if ($upload['used_datetime'] !== null && !ApiUploadService::isRetryOf($upload, $articleId, $reference)) {
+            throw ApiUploadService::usedError();
+        }
+        $max = self::maxBytes($conn);
+        if ($upload['used_datetime'] === null && (int)$upload['size_bytes'] > $max) {
+            throw new ServiceError('validation', 'image_too_large', self::tooLargeMessage($max));
+        }
+        if (array_key_exists('filename', $in) && !is_string($in['filename'])) throw new ServiceError('validation', 'invalid_image', 'filename must be a string.');
+        $filename = (string)($in['filename'] ?? $upload['filename']);
+        $stored = null;
+        // TRAP: a replay is "same reference, same BYTES" (design §3), as for documents
+        // (filename + sha256) - never the request body, whose upload_id is new each
+        // time a client re-sends the same picture after its first upload expired.
+        // Keyed on $in, that retry was a 409 reference_conflict (found reviewing PR #447).
+        $identity = ['filename' => $filename, 'sha256' => (string)$upload['sha256']]
+                  + ($reference !== null ? ['client_reference' => $reference] : []);
+        try {
+            $result = KnowledgeTransferService::createOnce($conn, $ctx, 'image', $articleId, $identity,
+                static function () use ($conn, $ctx, $articleId, $upload, $filename, $max, $reference, &$stored) {
+                    // Reached only when the reference names nothing yet: a used upload has nothing to add.
+                    if ($upload['used_datetime'] !== null) throw ApiUploadService::usedError();
+                    // Lock the parent, serializing image changes with article finalization.
+                    $article = KnowledgeTransferService::object($conn, $ctx, 'article', $articleId, true);
+                    if ((int)$article['is_archived']) throw new ServiceError('conflict', 'archived', 'Restore the article before uploading images.');
+                    try {
+                        $stored = uploadStoreLocalFile(ApiUploadService::path($upload), $filename, self::directory(), UPLOAD_TYPES_IMAGE, $max);
+                    } catch (Exception $e) {
+                        throw new ServiceError('validation', 'invalid_image', 'Image refused: ' . $e->getMessage());
+                    }
+                    $conn->prepare('INSERT INTO knowledge_images (article_id, stored_name, original_name, mime_type, size_bytes, sha256, created_by_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
+                        ->execute([$articleId, $stored['stored_name'], $stored['original_name'], $stored['mime'], $stored['size'], hash_file('sha256', $stored['path']), $ctx->actorId]);
+                    $id = (int)$conn->lastInsertId();
+                    ApiUploadService::markUsed($conn, $upload, $articleId, $id, $reference);
+                    knowledgeAuditLog($conn, 'article', $articleId, 'edit', $ctx->actorId, ['image_added' => $id]);
+                    return ['id' => $id];
+                });
+        } catch (Throwable $e) {
+            if ($stored && $stored['path'] && is_file($stored['path'])) unlink($stored['path']);
+            throw $e;
+        }
+        if (!$result['replayed']) ApiUploadService::afterUse($upload);
+        return $result;
     }
 
     public static function load(PDO $conn, KnowledgeViewer $viewer, int $id, string $lifecycle = 'live'): array

@@ -6245,6 +6245,36 @@ CREATE TABLE IF NOT EXISTS `api_key_rate_limits` (
     CONSTRAINT `fk_api_key_rate_limits_key` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- GH #416 / #417: a file sent to the REST API in pieces (POST /uploads, PUT pieces),
+-- waiting to be handed to the record that wants it. The pieces collect in
+-- uploads/api-incoming/<stored_name>, never served. An upload belongs to the key that
+-- started it. expires_datetime is 24 hours after its last piece - or, once used, after
+-- the hand-over, so a retry of the hand-over still finds what it became (used_*).
+CREATE TABLE IF NOT EXISTS `api_uploads` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `upload_id`             CHAR(34) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,   -- 'u_' + 32 random hex
+    `api_key_id`            INT NOT NULL,
+    `purpose`               VARCHAR(32) NOT NULL,          -- knowledge_image | knowledge_document
+    `filename`              VARCHAR(255) NOT NULL,
+    `size_bytes`            BIGINT NOT NULL,
+    `received_bytes`        BIGINT NOT NULL DEFAULT 0,
+    `expected_sha256`       CHAR(64) NULL,
+    `sha256`                CHAR(64) NULL,                 -- the assembled file's, once complete
+    `stored_name`           VARCHAR(64) NOT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `completed_datetime`    DATETIME NULL,
+    `expires_datetime`      DATETIME NOT NULL,
+    `used_datetime`         DATETIME NULL,
+    `used_parent_id`        INT NULL,                      -- the article it was handed to
+    `used_object_id`        INT NULL,                      -- the picture or document it became
+    `used_client_reference` VARCHAR(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_api_uploads_upload_id` (`upload_id`),
+    KEY `idx_api_uploads_key` (`api_key_id`, `used_datetime`),
+    KEY `idx_api_uploads_expires` (`expires_datetime`),
+    CONSTRAINT `fk_api_uploads_key` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ----------------------------------------------------------
 -- Tasks
 -- ----------------------------------------------------------

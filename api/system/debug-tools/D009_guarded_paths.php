@@ -195,6 +195,8 @@ $guarded = [
     'script-library'               => ['_d009probe.txt', 'API script library',        'deny'],
     // GH #287: zipped API activity log, read only through an administrator endpoint.
     'uploads/api-log-archive'      => ['_d009probe.txt', 'API log archives',          'deny'],
+    // GH #416 / #417: REST API uploads in progress, only ever read by their hand-over.
+    'uploads/api-incoming'         => ['_d009probe.txt', 'REST API uploads in progress', 'deny'],
     'lms/content'                  => ['_d009probe.php', 'Course content (no-exec)',  'noexec'],
     'system/uploads/branding'      => ['_d009probe.php', 'Branding uploads (no-exec)','noexec'],
 ];

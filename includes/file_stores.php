@@ -34,6 +34,7 @@ const FILE_STORES = [
     'knowledge-images'   => ['folder' => 'uploads/knowledge'],
     'report-downloads'   => ['folder' => 'uploads/report-downloads'],
     'api-log-archive'    => ['folder' => 'uploads/api-log-archive'],
+    'api-incoming'       => ['folder' => 'uploads/api-incoming'],   // GH #416 / #417: REST uploads in progress
     'asset-imports'      => ['folder' => 'uploads/asset-imports'],
     'recordings'         => ['folder' => 'recordings'],
     'rfp-uploads'        => ['folder' => 'contracts/rfp-builder/uploads'],

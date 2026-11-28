@@ -157,7 +157,9 @@ function jobRegistry(): array
         'api_log_tidy' => [
             'command' => 'php cron/api_log_tidy.php', 'web' => true,
             'interval' => 1440, 'grace' => 360, 'max_runtime' => 30,
-            'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM api_request_log LIMIT 1"),
+            // GH #416 / #417: it also deletes expired REST uploads, so an upload is reason enough.
+            'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM api_request_log LIMIT 1")
+                                     || jobNeedOne($c, "SELECT 1 FROM api_uploads LIMIT 1"),
         ],
         'task_recurrence' => [
             'command' => 'php cron/task_recurrence.php', 'web' => true,

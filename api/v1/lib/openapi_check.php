@@ -95,7 +95,7 @@ if ($bareNullable) $fail++;
 // spec.json is the single source read by both the docs page and this generator,
 // so a malformed entry would break both. Check each item and every extras key.
 $catErrs = [];
-$validMethods = ['GET', 'POST', 'PATCH', 'DELETE'];
+$validMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];   // PUT: an upload's pieces (GH #416, #417)
 $specKeys = [];
 foreach ($spec['spec'] as $si => $sec) {
     if (!isset($sec['section']) || !isset($sec['items']) || !is_array($sec['items'])) { $catErrs[] = "section[$si] missing 'section' or 'items'"; continue; }
@@ -113,7 +113,7 @@ foreach ($spec['spec'] as $si => $sec) {
     }
 }
 foreach (array_keys($spec['extras'] ?? []) as $k) {
-    if (!preg_match('/^(GET|POST|PATCH|DELETE) \//', $k)) { $catErrs[] = "extras key '$k' is not \"METHOD /path\""; continue; }
+    if (!preg_match('/^(GET|POST|PUT|PATCH|DELETE) \//', $k)) { $catErrs[] = "extras key '$k' is not \"METHOD /path\""; continue; }
     if (!isset($specKeys[$k])) $catErrs[] = "extras key '$k' has no matching endpoint in the catalogue";
 }
 $line(!$catErrs, "catalogue: " . count($specKeys) . " endpoints well-formed" . ($catErrs ? " — " . count($catErrs) . " problem(s): " . implode('; ', array_slice($catErrs, 0, 5)) : ", extras keys all resolve"));
