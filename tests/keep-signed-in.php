@@ -152,6 +152,62 @@ try {
     [$ok, , $d] = $opens(['fitsm_keep' => $k]);
     check('...so the cookie no longer signs in', !$ok, $d);
 
+    echo "\nSigned-in devices\n";
+    if ($conn->query("SHOW TABLES LIKE 'analyst_sessions'")->fetchColumn()) {
+        // The sessions the steps above left behind are not part of this: start clean.
+        $conn->prepare("DELETE FROM analyst_sessions WHERE analyst_id = ?")->execute([$analystId]);
+        $conn->prepare("DELETE FROM analyst_login_tokens WHERE analyst_id = ?")->execute([$analystId]);
+        // Two browsers: A (kept signed in) and B (not). Each opens a page once so it is recorded.
+        [, , $jarA] = $signIn(true);
+        [, , $jarB] = $signIn(false);
+        [, , $pageA] = req('GET', "$base/tickets/", $jarA);
+        req('GET', "$base/tickets/", $jarB);
+        preg_match('/name="csrf-token" content="([^"]+)"/', $pageA, $m);
+        $csrf = $m[1] ?? '';
+        $api = function (string $method, array $jar, ?array $body = null) use ($base, $csrf): array {
+            $ch = curl_init("$base/api/myaccount/sessions.php");
+            $h = ['Cookie: ' . implode('; ', array_map(fn($k, $v) => "$k=$v", array_keys($jar), $jar)), 'Content-Type: application/json', 'X-CSRF-Token: ' . $csrf];
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_HTTPHEADER => $h] + ($body !== null ? [CURLOPT_POSTFIELDS => json_encode($body)] : []));
+            $r = (string)curl_exec($ch);
+            return [(int)curl_getinfo($ch, CURLINFO_HTTP_CODE), json_decode($r, true) ?: []];
+        };
+        [$c, $j] = $api('GET', $jarA);
+        $devs = $j['devices'] ?? [];
+        $thisOne = array_values(array_filter($devs, fn($d) => $d['this_device']));
+        $other = array_values(array_filter($devs, fn($d) => !$d['this_device']));
+        check('the list has both browsers, A marked as this device and kept signed in', $c === 200 && count($devs) >= 2 && count($thisOne) === 1 && $thisOne[0]['kept_until'] !== null, json_encode($j));
+        check('...each with its IP, browser and times', isset($devs[0]['ip_address'], $devs[0]['user_agent'], $devs[0]['signed_in'], $devs[0]['last_seen']));
+        [$okB] = $opens($jarB);
+        check('CONTROL: browser B opens pages before it is signed out', $okB);
+        $bRow = null;
+        foreach ($other as $d) { if ($d['kept_until'] === null) $bRow = $d['id']; }
+        [$c, $j] = $api('POST', $jarA, ['action' => 'sign_out', 'id' => $bRow]);
+        check('A signs B out', $c === 200 && ($j['signed_out'] ?? 0) === 1, "$c " . json_encode($j));
+        [$okB, , $d] = $opens($jarB);
+        check('...and B is refused at its next click', !$okB, $d);
+        [$okA] = $opens($jarA);
+        check('...while A carries on', $okA);
+        // A third browser, kept signed in, then "sign out of all other devices" from A.
+        [, , $jarC] = $signIn(true);
+        req('GET', "$base/tickets/", $jarC);
+        $keepC = $jarC['fitsm_keep'] ?? '';
+        [$c, $j] = $api('POST', $jarA, ['action' => 'sign_out_others']);
+        check('Sign out of all other devices', $c === 200 && ($j['signed_out'] ?? 0) >= 1, json_encode($j));
+        [$okC, , $d] = $opens($jarC);
+        check('...C is refused', !$okC, $d);
+        [$okC, , $d] = $opens(['fitsm_keep' => $keepC]);
+        check('...and its Keep me signed in cookie no longer signs it back in', !$okC, $d);
+        [$okA] = $opens($jarA);
+        check('...while A is still signed in', $okA);
+        $n = $conn->prepare("SELECT COUNT(*) FROM analyst_login_tokens WHERE analyst_id = ?"); $n->execute([$analystId]);
+        check('...and A keeps its own Keep me signed in token', (int)$n->fetchColumn() === 1);
+        [$c, $j] = $api('POST', $jarA, ['action' => 'sign_out', 'id' => $thisOne[0]['id']]);
+        check('this device cannot sign itself out here (that is Sign out)', ($j['signed_out'] ?? 1) === 0);
+        $conn->prepare("DELETE FROM analyst_sessions WHERE analyst_id = ?")->execute([$analystId]);
+    } else {
+        echo "  SKIP: no analyst_sessions table - run Database Verification\n";
+    }
+
     echo "\nWithout the tick\n";
     [, , $jar] = $signIn(false);
     check('signing in without the tick sets no cookie', !isset($jar['fitsm_keep']));
@@ -160,6 +216,7 @@ try {
 } finally {
     if ($analystId) {
         $conn->prepare("DELETE FROM analyst_login_tokens WHERE analyst_id = ?")->execute([$analystId]);
+        try { $conn->prepare("DELETE FROM analyst_sessions WHERE analyst_id = ?")->execute([$analystId]); } catch (Throwable $e) {}
         foreach (['login_attempts', 'audit_log'] as $t) { try { $conn->prepare("DELETE FROM $t WHERE analyst_id = ?")->execute([$analystId]); } catch (Throwable $e) {} }
         $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$analystId]);
     }

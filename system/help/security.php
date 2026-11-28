@@ -73,7 +73,7 @@ require __DIR__ . '/_top.php';
     <ul>
         <li><strong>It ends</strong> when the period is up, when they sign out, when their password changes (by them or an administrator), when they are deactivated or locked, and when you turn this off.</li>
         <li><strong>Two-factor:</strong> they type the code once, when they tick the box. After that, the browser counts as having passed it.</li>
-        <li><strong>Their avatar menu &rarr; Kept signed in</strong> lists the browsers they are kept signed in on, with <strong>Remove</strong> and <strong>Remove all</strong>.</li>
+        <li><strong>Avatar menu &rarr; Signed-in devices</strong> lists every browser an analyst is signed in on - kept signed in or not - with its IP address, when it signed in and when it was last active. <strong>Sign out</strong> on any of them, or <strong>Sign out of all other devices</strong>, takes effect at that browser's next click and ends its Keep me signed in too.</li>
         <li>A copied cookie that is used after the owner's is spotted, and every browser of that analyst is signed out.</li>
     </ul>
     <div class="help-note"><strong>Choosing a value:</strong> 14 days suits most desks where each analyst has their own computer. On shared or public computers, analysts should simply not tick it. Not for single sign-on (the identity provider decides how long that lasts) or the self-service portal.</div>

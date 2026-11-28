@@ -14,6 +14,12 @@ $ssoIdToken    = $_SESSION['sso_id_token'] ?? null;
 // GH #443: this browser stops being kept signed in - FIRST, or the next page would
 // sign straight back in from the cookie.
 try { keepSignedInForget(connectToDatabase()); } catch (Throwable $e) { keepSignedInSetCookie(''); }
+// ...and drops off Signed-in devices.
+try {
+    if (!empty($_SESSION['session_row_id']) && analystSessionsReady($c = connectToDatabase())) {
+        $c->prepare("UPDATE analyst_sessions SET revoked_datetime = UTC_TIMESTAMP() WHERE id = ? AND revoked_datetime IS NULL")->execute([(int)$_SESSION['session_row_id']]);
+    }
+} catch (Throwable $e) {}
 
 // Unset all session variables
 $_SESSION = array();

@@ -59,6 +59,8 @@ require_once __DIR__ . '/analyst_active_gate.php';
 // "Keep me signed in" (GH #443). Its auto-restore runs at the END of this file, once
 // every function it calls (getAnalystAllowedModules() is below) is defined.
 require_once __DIR__ . '/keep_signed_in.php';
+// Signed-in devices (GH #443): its tracker also runs at the end of this file.
+require_once __DIR__ . '/analyst_sessions.php';
 
 // ⚠️ Stop announcing the exact PHP build on every single response.
 //
@@ -730,4 +732,6 @@ function oauthTokenErrorMessage($response, int $httpCode): string
 // GH #443: no analyst session, but a "Keep me signed in" cookie - sign back in now,
 // before the page or endpoint checks $_SESSION['analyst_id']. See keep_signed_in.php.
 keepSignedInAutoRestore();
+// ...then record this session, or end it if it was signed out from another device.
+analystSessionTrack();
 ?>

@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3211 | System            | Feature     | Signed-in devices (avatar menu): every browser an analyst is signed in on - browser, IP address, signed in, last active, kept signed in until - with Sign out on each and Sign out of all other devices, taking effect at that browser's next click and ending its Keep me signed in too (GH #443). |
 | 3210 | System            | Improvement | System -> Security help and the Trusted Device card now say plainly that a trusted device only skips the one-time code - the password is still asked - and point to Keep me signed in (GH #443). |
 | 3209 | System            | Feature     | Keep me signed in: System -> Security -> Keep analysts signed in (Off, 1, 7, 14 or 30 days) puts a tick on the analyst sign-in page; the browser stays signed in through idle time, a closed browser and a server restart, ending on sign out, a password change, deactivation or lock, or the setting changing; avatar menu -> Kept signed in lists and removes browsers (GH #443). |
 | 3208 | Tickets           | Improvement | Tickets help explains when to make someone a participant (they follow the whole ticket) and when to type them into the reply's Cc (this one email is all they need); the reply box's Cc note links to it. |

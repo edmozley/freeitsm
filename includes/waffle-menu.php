@@ -1925,6 +1925,9 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         .kept-intro { margin: 0 0 12px; color: var(--text-muted); font-size: var(--font-size-md, 13px); }
         .kept-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
         .kept-row:last-child { border-bottom: none; }
+        .devices-box { max-width: 560px; }
+        /* An account-modal rule makes strong white (it is the header's); the device name is body text. */
+        .kept-row strong { color: var(--text); font-size: var(--font-size-lg, 14px); }
         .kept-meta { color: var(--text-muted); font-size: var(--font-size-sm, 12px); margin-top: 2px; }
 
         .account-modal-footer {
@@ -2106,15 +2109,11 @@ function renderHeaderRight($analyst_name, $path_prefix) {
                 <span><?php echo htmlspecialchars(t('common.account.trusted_device')); ?></span>
                 <span class="mfa-badge disabled" id="trustBadgeMenu"><?php echo htmlspecialchars(t('common.account.badge_off')); ?></span>
             </button>
-            <?php /* GH #443: the browsers this analyst is kept signed in on - only while the setting is on. */
-            $__keepDays = 0;
-            try { $__kc = connectToDatabase(); if (keepSignedInReady($__kc)) $__keepDays = keepSignedInDays($__kc); } catch (Throwable $e) { $__keepDays = 0; }
-            if ($__keepDays > 0): ?>
-            <button class="user-menu-item" onclick="openKeptSignedIn()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                <span><?php echo htmlspecialchars(t('common.account.kept_signed_in')); ?></span>
+            <?php /* GH #443: Signed-in devices - every browser this analyst is signed in on, like Netflix's. */ ?>
+            <button class="user-menu-item" onclick="openSignedInDevices()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="10" rx="2"></rect><rect x="17" y="8" width="5" height="12" rx="1"></rect><line x1="6" y1="18" x2="12" y2="18"></line></svg>
+                <span><?php echo htmlspecialchars(t('common.account.devices')); ?></span>
             </button>
-            <?php endif; ?>
             <?php /* Switch to the portal (#81). Shown only when this analyst has a portal
                      account they could actually sign in to — see $__portalAccount above.
                      New tab on purpose: the analyst keeps whatever they were working on,
@@ -2192,19 +2191,20 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         </div>
     </div>
 
-    <?php /* GH #443: Kept signed in - filled by openKeptSignedIn() */ ?>
-    <div class="account-modal" id="keptModal">
-        <div class="account-modal-box">
-            <div class="account-modal-header"><?php echo htmlspecialchars(t('common.account.kept_title')); ?></div>
+    <?php /* GH #443: Signed-in devices - filled by openSignedInDevices() */ ?>
+    <div class="account-modal" id="devicesModal">
+        <div class="account-modal-box devices-box">
+            <div class="account-modal-header"><?php echo htmlspecialchars(t('common.account.devices_title')); ?></div>
             <div class="account-modal-body">
-                <p class="kept-intro"><?php echo htmlspecialchars(t('common.account.kept_intro')); ?></p>
-                <div id="keptList"><?php echo htmlspecialchars(t('common.loading')); ?></div>
+                <p class="kept-intro"><?php echo htmlspecialchars(t('common.account.devices_intro')); ?></p>
+                <div id="devicesList"><?php echo htmlspecialchars(t('common.loading')); ?></div>
             </div>
             <div class="account-modal-footer">
-                <button class="acct-btn acct-btn-secondary" id="keptRemoveAll" onclick="keptRemoveAll()"><?php echo htmlspecialchars(t('common.account.kept_remove_all')); ?></button>
-                <button class="acct-btn acct-btn-secondary" onclick="document.getElementById('keptModal').classList.remove('active')"><?php echo htmlspecialchars(t('common.close')); ?></button>
+                <button class="acct-btn acct-btn-secondary" id="devicesOthers" onclick="devicesSignOutOthers()"><?php echo htmlspecialchars(t('common.account.devices_sign_out_others')); ?></button>
+                <button class="acct-btn acct-btn-secondary" onclick="document.getElementById('devicesModal').classList.remove('active')"><?php echo htmlspecialchars(t('common.close')); ?></button>
             </div>
         </div>
+    </div>
     </div>
 
     <script src="<?php echo BASE_URL; ?>assets/js/vendor/qrcode.js?v=2.0.4"></script>
@@ -2364,8 +2364,8 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         } catch (e) {}
     }
 
-    /* --- Kept signed in (GH #443) --- */
-    // The browsers this analyst is kept signed in on, newest use first, each with Remove.
+    /* --- Signed-in devices (GH #443) --- */
+    // Every browser this analyst is signed in on, newest activity first; Sign out on each.
     function keptEsc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
     function keptBrowser(ua) {
         // A readable name for a user agent: browser on system. The full string is the title.
@@ -2373,37 +2373,42 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         const o = /Windows/.test(ua) ? 'Windows' : /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iOS' : /Mac OS X/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : '';
         return (b && o) ? window.t('common.account.kept_browser_on', { browser: b, os: o }) : (b || o || window.t('common.account.kept_unknown'));
     }
-    async function openKeptSignedIn() {
+    const devWhen = (utc) => utc ? waffleTrailFull(String(utc).replace(' ', 'T') + 'Z') : '';
+    async function openSignedInDevices() {
         closeUserMenu();
-        document.getElementById('keptModal').classList.add('active');
-        const box = document.getElementById('keptList');
+        document.getElementById('devicesModal').classList.add('active');
+        const box = document.getElementById('devicesList');
         box.textContent = window.t('common.loading');
         try {
-            const d = await fetch(_pathPrefix + 'api/myaccount/keep_signed_in.php', { credentials: 'same-origin' }).then(r => r.json());
+            const d = await fetch(_pathPrefix + 'api/myaccount/sessions.php', { credentials: 'same-origin' }).then(r => r.json());
             if (!d.success) throw new Error(d.error || '');
-            document.getElementById('keptRemoveAll').hidden = !d.devices.length;
+            document.getElementById('devicesOthers').hidden = !d.devices.some(x => !x.this_device);
             box.innerHTML = d.devices.length ? d.devices.map(x => `<div class="kept-row">
-                    <div><strong title="${keptEsc(x.user_agent)}">${keptEsc(keptBrowser(x.user_agent))}</strong>${x.this_device ? ' <span class="mfa-badge enabled">' + keptEsc(window.t('common.account.kept_this')) + '</span>' : ''}
-                        <div class="kept-meta">${keptEsc(window.t('common.account.kept_meta', { used: waffleTrailFull(String(x.last_used).replace(' ', 'T') + 'Z'), ip: x.ip_address || '-', until: waffleTrailFull(String(x.expires).replace(' ', 'T') + 'Z') }))}</div></div>
-                    <button class="acct-btn acct-btn-secondary" onclick="keptRemove(${+x.id})">${keptEsc(window.t('common.remove'))}</button></div>`).join('')
-                : '<p class="kept-meta">' + keptEsc(window.t('common.account.kept_none')) + '</p>';
+                    <div><strong title="${keptEsc(x.user_agent)}">${keptEsc(keptBrowser(x.user_agent))}</strong>
+                        ${x.this_device ? ' <span class="mfa-badge enabled">' + keptEsc(window.t('common.account.kept_this')) + '</span>' : ''}
+                        ${x.kept_until ? ' <span class="mfa-badge disabled" title="' + keptEsc(window.t('common.account.devices_kept_title')) + '">' + keptEsc(window.t('common.account.devices_kept', { until: devWhen(x.kept_until) })) + '</span>' : ''}
+                        <div class="kept-meta">${keptEsc(window.t('common.account.devices_meta', { ip: x.ip_address || '-', signed_in: devWhen(x.signed_in), last_seen: devWhen(x.last_seen) }))}</div></div>
+                    ${x.this_device ? '' : `<button class="acct-btn acct-btn-secondary" onclick="devicesSignOut(${+x.id})">${keptEsc(window.t('common.account.devices_sign_out'))}</button>`}</div>`).join('')
+                : '<p class="kept-meta">' + keptEsc(window.t('common.account.devices_none')) + '</p>';
         } catch (e) {
             box.textContent = window.t('common.account.kept_failed');
         }
     }
-    async function keptPost(body) {
-        const d = await fetch(_pathPrefix + 'api/myaccount/keep_signed_in.php', {
+    async function devicesPost(body) {
+        const d = await fetch(_pathPrefix + 'api/myaccount/sessions.php', {
             method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
         }).then(r => r.json()).catch(() => ({ success: false }));
-        if (!d.success && typeof showToast === 'function') showToast(window.t('common.account.kept_failed'), 'error');
-        openKeptSignedIn();
+        if (typeof showToast === 'function') {
+            showToast(d.success ? window.t('common.account.devices_done') : window.t('common.account.kept_failed'), d.success ? 'success' : 'error');
+        }
+        openSignedInDevices();
     }
-    function keptRemove(id) { keptPost({ action: 'remove', id }); }
-    async function keptRemoveAll() {
+    function devicesSignOut(id) { devicesPost({ action: 'sign_out', id }); }
+    async function devicesSignOutOthers() {
         const ok = typeof window.showConfirm === 'function'
-            ? await window.showConfirm({ title: window.t('common.account.kept_remove_all_title'), message: window.t('common.account.kept_remove_all_msg'), okLabel: window.t('common.remove'), okClass: 'danger' })
-            : window.confirm(window.t('common.account.kept_remove_all_msg'));
-        if (ok) keptPost({ action: 'remove_all' });
+            ? await window.showConfirm({ title: window.t('common.account.devices_others_title'), message: window.t('common.account.devices_others_msg'), okLabel: window.t('common.account.devices_sign_out'), okClass: 'danger' })
+            : window.confirm(window.t('common.account.devices_others_msg'));
+        if (ok) devicesPost({ action: 'sign_out_others' });
     }
 
     /* --- MFA Modal --- */

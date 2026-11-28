@@ -97,6 +97,9 @@ function keepSignedInIssue(PDO $conn, int $analystId): void
                     VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))")
          ->execute([$analystId, $selector, hash('sha256', $validator),
                     substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 500), substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45), $days]);
+    // Signed-in devices ties this session's row to the token, so signing the device out
+    // ends both (includes/analyst_sessions.php).
+    $_SESSION['kept_token_id'] = (int)$conn->lastInsertId();
     keepSignedInSetCookie($selector . ':' . bin2hex($validator), time() + $days * 86400);
     // Expired ones of this analyst go while we are here.
     $conn->prepare("DELETE FROM analyst_login_tokens WHERE analyst_id = ? AND expires_datetime < UTC_TIMESTAMP()")->execute([$analystId]);
@@ -171,6 +174,7 @@ function keepSignedInRestore(PDO $conn): bool
     $_SESSION['analyst_email']    = $row['email'];
     $_SESSION['allowed_modules']  = getAnalystAllowedModules($conn, (int)$row['analyst_id']);
     $_SESSION['kept_signed_in']   = true;
+    $_SESSION['kept_token_id']    = (int)$row['id'];   // see analyst_sessions.php
 
     if ($justRotated) return true;   // the request racing the one that rotated it
 

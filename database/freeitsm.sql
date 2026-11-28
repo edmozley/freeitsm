@@ -8251,6 +8251,24 @@ CREATE TABLE IF NOT EXISTS `analyst_login_tokens` (
     KEY `idx_analyst_login_tokens_analyst` (`analyst_id`, `expires_datetime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Signed-in devices (GH #443, includes/analyst_sessions.php): one row per signed-in
+-- session. revoked_datetime = signed out from another device (or by Sign out); the
+-- session ends on its next request. kept_token_id = its Keep me signed in token.
+CREATE TABLE IF NOT EXISTS `analyst_sessions` (
+    `id`                 INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`         INT NOT NULL,
+    `ip_address`         VARCHAR(45) NULL,
+    `user_agent`         VARCHAR(500) NULL,
+    `signed_in_how`      VARCHAR(16) NOT NULL DEFAULT 'sign_in',   -- sign_in | sso | kept
+    `kept_token_id`      INT NULL,
+    `signed_in_datetime` DATETIME NOT NULL,
+    `last_seen_datetime` DATETIME NOT NULL,
+    `revoked_datetime`   DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_analyst_sessions_analyst` (`analyst_id`, `last_seen_datetime`),
+    KEY `idx_analyst_sessions_token` (`kept_token_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `analyst_id`        INT NOT NULL,

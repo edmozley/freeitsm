@@ -2023,7 +2023,7 @@ return [
 
         // GH #443: "Keep me signed in"
         'keep_heading'  => 'Keep me signed in',
-        'keep_desc'     => 'Offers "Keep me signed in" on the analyst sign-in page. Ticked, the analyst stays signed in on that browser through idle time, closing the browser and a server restart, until the period ends or they sign out. Changing their password, being deactivated or locked, or turning this off ends it. Analysts can see and remove the browsers they are kept signed in on from their avatar menu. Not for single sign-on or the self-service portal.',
+        'keep_desc'     => 'Offers "Keep me signed in" on the analyst sign-in page. Ticked, the analyst stays signed in on that browser through idle time, closing the browser and a server restart, until the period ends or they sign out. Changing their password, being deactivated or locked, or turning this off ends it. Analysts can see every browser they are signed in on, and sign any of them out, from avatar menu -> Signed-in devices. Not for single sign-on or the self-service portal.',
         'keep_label'    => 'Keep analysts signed in',
         'keep_hint'     => 'How long one sign-in lasts when "Keep me signed in" is ticked. Shortening it applies to browsers already kept signed in.',
         'keep_off'      => 'Off',

@@ -3897,6 +3897,19 @@ return [
         'expires_datetime'   => 'DATETIME NOT NULL',
     ],
 
+    // Signed-in devices (GH #443) - includes/analyst_sessions.php
+    'analyst_sessions' => [
+        'id'                 => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'         => 'INT NOT NULL',
+        'ip_address'         => 'VARCHAR(45) NULL',
+        'user_agent'         => 'VARCHAR(500) NULL',
+        'signed_in_how'      => "VARCHAR(16) NOT NULL DEFAULT 'sign_in'",
+        'kept_token_id'      => 'INT NULL',
+        'signed_in_datetime' => 'DATETIME NOT NULL',
+        'last_seen_datetime' => 'DATETIME NOT NULL',
+        'revoked_datetime'   => 'DATETIME NULL',
+    ],
+
     'password_reset_tokens' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'analyst_id'        => 'INT NOT NULL',

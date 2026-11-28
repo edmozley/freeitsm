@@ -299,6 +299,18 @@ return [
         'check'    => ['sql', "SELECT COUNT(*) FROM system_settings WHERE setting_key = 'keep_signed_in_days' AND CAST(setting_value AS UNSIGNED) > 0"],
     ],
     [
+        'id'       => 'system.signed_in_devices',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'security',
+        'title'    => 'Signed-in devices',
+        'what'     => 'Avatar menu -> Signed-in devices: every browser you are signed in on, with its IP address and when it was last active, and Sign out beside each.',
+        'why'      => 'A laptop left signed in at home, or a shared PC someone forgot to sign out of, can be signed out from where you are - it is asked to sign in again at its next click.',
+        'done'     => 'Sessions are being recorded (Database Verification has run since 5.12.0).',
+        'link'     => 'index.php',
+        'check'    => ['rows', 'analyst_sessions'],
+    ],
+    [
         'id'       => 'system.password_expiry',
         'module'   => 'system',
         'tier'     => 'extra',
