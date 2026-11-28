@@ -13,10 +13,23 @@
  * Errors a caller must tell apart:
  *   StorageNotFound    the object is not there (a 410 to the person asking)
  *   StorageUnavailable the store cannot be reached or refused us (a 503: try later)
+ *   StorageRefused     the store answered and said no to this request (still a 503)
  */
 
 /** The store cannot be reached, timed out, refused our credentials, or failed (5xx). */
 class StorageUnavailable extends RuntimeException {}
+
+/**
+ * The store answered and refused this request - a bucket policy that forbids
+ * deleting, say (a 4xx other than 404, 408 and 429, and not a credentials error).
+ *
+ * TRAP: a subclass of StorageUnavailable on purpose. Every caller that only knows
+ * "unavailable" still catches it and still answers 503; only the recycle bin's
+ * purge queue asks the difference, because retrying a refusal every hour for ever
+ * achieves nothing (PR #431). Bad credentials stay plain StorageUnavailable: they
+ * are an outage of the whole store, and once fixed every key must go at once.
+ */
+class StorageRefused extends StorageUnavailable {}
 
 /** The object does not exist in the store. */
 class StorageNotFound extends RuntimeException {}

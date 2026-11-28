@@ -10,6 +10,7 @@
  *   emptyBin()      purge every entry this person may purge
  *   purgeExpired()  the retention job: entries older than files_recycle_bin_days
  *   retryPendingBytes()  bytes whose deletion failed because storage was down
+ *                        (or refused: those, after PURGE_MAX_REFUSALS tries, once a day)
  *
  * WHAT IS AN ENTRY: a folder or file whose own row is deleted while everything above
  * it is live. Things inside a deleted folder are not entries of their own - they go
@@ -87,6 +88,15 @@ final class FilesRecycleService
     /** How long one purge spends deleting stored bytes before leaving the rest to the job. */
     public const PURGE_BYTES_SECONDS = 20;
 
+    /**
+     * How often storage may REFUSE to delete a stored file (it answered, and said no -
+     * a 403, say) before the job stops asking every hour and asks once a day
+     * (PURGE_REFUSED_RETRY_HOURS). A day of hourly runs. Storage that cannot be reached
+     * is not a refusal: those keys are asked every run until it answers.
+     */
+    public const PURGE_MAX_REFUSALS = 24;
+    public const PURGE_REFUSED_RETRY_HOURS = 24;
+
     const DEFAULT_DAYS = 30;
     const MAX_DAYS = 3650;
 
@@ -151,9 +161,11 @@ final class FilesRecycleService
         $days = self::retentionDays($conn);
         $u = self::binUsage($conn);
         // null = unknown (the table arrives with Database Verification): never a false 0.
-        $pending = null;
+        $pending = $refused = null;
         try {
-            $pending = (int)$conn->query("SELECT COUNT(*) FROM files_purge_pending")->fetchColumn();
+            $st = $conn->prepare("SELECT COALESCE(SUM(attempts < ?), 0), COALESCE(SUM(attempts >= ?), 0) FROM files_purge_pending");
+            $st->execute([self::PURGE_MAX_REFUSALS, self::PURGE_MAX_REFUSALS]);
+            [$pending, $refused] = array_map('intval', $st->fetch(PDO::FETCH_NUM));
         } catch (PDOException $e) {
             if (!self::missingTable($e)) throw $e;
         }
@@ -177,6 +189,8 @@ final class FilesRecycleService
             'bin_files'     => $u['files'],
             'bin_bytes'     => $u['bytes'],
             'pending_bytes' => $pending,
+            // Storage kept refusing these (not unreachable): now asked once a day.
+            'refused_bytes' => $refused,
             'held'          => $days ? count(array_filter(self::heldEntries($conn), fn($h) => $h['due'])) : 0,
             'max_days'      => self::MAX_DAYS,
         ];
@@ -194,23 +208,24 @@ final class FilesRecycleService
      */
     public static function binUsage(PDO $conn): array
     {
-        $tree = FilesAcl::tree($conn);
-        $rows = $conn->query("SELECT v.storage_path, v.size_bytes, i.folder_id, i.deleted_datetime
-                                FROM files_versions v JOIN files_items i ON i.id = v.item_id")->fetchAll(PDO::FETCH_ASSOC);
-        $live = []; $size = [];
-        foreach ($rows as $r) {
-            $p = $r['storage_path'];
-            $isLive = $r['deleted_datetime'] === null && isset($tree[(int)$r['folder_id']]);
-            $live[$p] = ($live[$p] ?? false) || $isLive;
-            $size[$p] = max($size[$p] ?? 0, (int)$r['size_bytes']);
-        }
-        $n = 0; $bytes = 0;
-        foreach ($live as $p => $l) {
-            if ($l) continue;
-            $n++;
-            $bytes += $size[$p];
-        }
-        return ['files' => $n, 'bytes' => $bytes];
+        // Worked out by the database: the Storage and Recycle bin tabs ask on every
+        // load, and reading every version into PHP grows with the whole of Files.
+        // A folder is live when it and every folder above it are (as FilesAcl::tree()).
+        $r = $conn->query("WITH RECURSIVE live_folders (id) AS (
+                               SELECT id FROM files_folders WHERE parent_id IS NULL AND deleted_datetime IS NULL
+                               UNION ALL
+                               SELECT f.id FROM files_folders f JOIN live_folders l ON f.parent_id = l.id
+                                WHERE f.deleted_datetime IS NULL
+                           )
+                           SELECT COUNT(*), COALESCE(SUM(size_bytes), 0) FROM (
+                               SELECT MAX(v.size_bytes) AS size_bytes
+                                 FROM files_versions v
+                                 JOIN files_items i ON i.id = v.item_id
+                                 LEFT JOIN live_folders lf ON lf.id = i.folder_id
+                                GROUP BY v.storage_path
+                               HAVING MAX(i.deleted_datetime IS NULL AND lf.id IS NOT NULL) = 0
+                           ) binned")->fetch(PDO::FETCH_NUM);
+        return ['files' => (int)$r[0], 'bytes' => (int)$r[1]];
     }
 
     /**
@@ -913,6 +928,7 @@ final class FilesRecycleService
     /**
      * Deletes one stored object if nothing uses it (filesPurgeBytesIfUnused); a failure is
      * queued in files_purge_pending for the job, a success or "in use" clears the queue.
+     * attempts counts refusals only ('failed'): an outage says nothing about the key.
      *
      * @return string as filesPurgeBytesIfUnused(): in_use | deleted | unavailable | failed
      */
@@ -920,6 +936,9 @@ final class FilesRecycleService
     {
         try {
             $res = filesPurgeBytesIfUnused($conn, $key);
+        } catch (StorageRefused $e) {      // before StorageUnavailable: it is one
+            error_log("files: storage refused to delete stored bytes {$key}: " . $e->getMessage());
+            $res = 'failed';
         } catch (StorageUnavailable $e) {
             error_log("files: could not delete stored bytes {$key}: " . $e->getMessage());
             $res = 'unavailable';
@@ -931,10 +950,19 @@ final class FilesRecycleService
             if ($res === 'deleted' || $res === 'in_use') {
                 $conn->prepare("DELETE FROM files_purge_pending WHERE storage_path = ?")->execute([$key]);
             } else {
+                $refusal = $res === 'failed' ? 1 : 0;
                 $conn->prepare("INSERT INTO files_purge_pending (storage_path, attempts, last_error, created_datetime, updated_datetime)
-                                VALUES (?, 0, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
-                                ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_error = VALUES(last_error), updated_datetime = UTC_TIMESTAMP()")
-                     ->execute([$key, $res === 'unavailable' ? 'Storage could not be reached (see the server log).' : 'Storage refused the delete (see the server log).']);
+                                VALUES (?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+                                ON DUPLICATE KEY UPDATE attempts = attempts + VALUES(attempts), last_error = VALUES(last_error), updated_datetime = UTC_TIMESTAMP()")
+                     ->execute([$key, $refusal, $refusal ? 'Storage refused the delete (see the server log).' : 'Storage could not be reached (see the server log).']);
+                if ($refusal) {
+                    $st = $conn->prepare("SELECT attempts FROM files_purge_pending WHERE storage_path = ?");
+                    $st->execute([$key]);
+                    if ((int)$st->fetchColumn() === self::PURGE_MAX_REFUSALS) {
+                        error_log("files: storage refused to delete stored bytes {$key} " . self::PURGE_MAX_REFUSALS
+                                  . " times; the Files recycle bin job now tries it once a day (the errors above say why)");
+                    }
+                }
             }
         } catch (PDOException $e) {
             // Before Database Verification there is no queue: nothing was waiting, and a
@@ -1013,21 +1041,31 @@ final class FilesRecycleService
     }
 
     /**
-     * Tries again to delete stored bytes whose first attempt found storage unreachable.
-     * A key that a file uses again (it can't, but be sure) is only forgotten.
+     * Tries again to delete stored bytes whose first attempt found storage unreachable,
+     * or was refused. A key that a file uses again (it can't, but be sure) is only forgotten.
+     * A key storage has refused PURGE_MAX_REFUSALS times is asked once a day, not every
+     * run - and counted in 'refused' until it goes, so the job and the Recycle bin
+     * settings tab keep saying so.
      *
-     * @return array ['deleted' => n, 'still_pending' => n]
+     * @return array ['deleted' => n, 'still_pending' => n tried now and still there (keys
+     *               past the limit aside), 'refused' => n keys past the limit still waiting]
      */
     public static function retryPendingBytes(PDO $conn, int $deadlineUnix, int $limit = 500): array
     {
-        $r = ['deleted' => 0, 'still_pending' => 0];
+        $r = ['deleted' => 0, 'still_pending' => 0, 'refused' => 0];
         try {
-            $rows = $conn->query("SELECT storage_path FROM files_purge_pending ORDER BY updated_datetime LIMIT " . (int)$limit)->fetchAll(PDO::FETCH_COLUMN);
+            $st = $conn->prepare("SELECT storage_path, attempts FROM files_purge_pending
+                                   WHERE attempts < ? OR updated_datetime IS NULL OR updated_datetime < UTC_TIMESTAMP() - INTERVAL ? MINUTE
+                                   ORDER BY updated_datetime LIMIT " . (int)$limit);
+            // Ten minutes short of the day: the hourly job starts a few seconds early or
+            // late, and "24 hours" exactly would slip a run - every 25 hours, not 24.
+            $st->execute([self::PURGE_MAX_REFUSALS, self::PURGE_REFUSED_RETRY_HOURS * 60 - 10]);
+            $rows = $st->fetchAll(PDO::FETCH_KEY_PAIR);
         } catch (PDOException $e) {
             if (self::missingTable($e)) return $r;   // no queue yet means nothing is queued
             throw $e;
         }
-        foreach ($rows as $key) {
+        foreach ($rows as $key => $attempts) {
             if (time() >= $deadlineUnix) break;
             $res = self::purgeBytes($conn, (string)$key);
             if ($res === 'in_use') continue;   // a file uses it again: only forgotten
@@ -1035,10 +1073,14 @@ final class FilesRecycleService
                 $r['deleted']++;
                 continue;
             }
-            $r['still_pending']++;
+            // Refused once too often: counted in 'refused' below, not as an hourly failure.
+            if ($res !== 'failed' || (int)$attempts + 1 < self::PURGE_MAX_REFUSALS) $r['still_pending']++;
             if ($res === 'unavailable') break;   // storage is still down: the next run tries again
             // Any other failure is this key's alone (attempts and last_error are kept): try the rest.
         }
+        $st = $conn->prepare("SELECT COUNT(*) FROM files_purge_pending WHERE attempts >= ?");
+        $st->execute([self::PURGE_MAX_REFUSALS]);
+        $r['refused'] = (int)$st->fetchColumn();
         return $r;
     }
 }

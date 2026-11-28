@@ -246,6 +246,66 @@ try {
     FilesRecycleService::retryPendingBytes($conn, time() + 30);
     ok('...which removes it', !is_file("$store/{$late['key']}") && $queued([$late['key']]) === 0);
 
+    // ── Storage that answers but refuses: every run for a while, then once a day ──
+    // A read-only folder makes the local store refuse (it answers, and says no), like
+    // a bucket key without delete rights. An outage is not a refusal and never counts.
+    $max = FilesRecycleService::PURGE_MAX_REFUSALS;
+    $attempts = function (string $key) use ($conn): ?int {
+        $q = $conn->prepare("SELECT attempts FROM files_purge_pending WHERE storage_path = ?");
+        $q->execute([$key]);
+        $a = $q->fetchColumn();
+        return $a === false ? null : (int)$a;
+    };
+    $no = item($conn, $store, $proj, 'zz-refused.txt');
+    $noDir = dirname("$store/{$no['key']}");
+    softDelete($conn, 'item', $no['id'], $U1);
+    // A read-only folder only refuses a delete where the OS says so: chmod does nothing
+    // on Windows. Prove it refuses before relying on it; otherwise say so and skip,
+    // rather than report eight failures that are the test's, not the code's.
+    $probe = $noDir . '/zz-probe.tmp';
+    file_put_contents($probe, 'x');
+    chmod($noDir, 0555);
+    $refuses = !@unlink($probe);
+    if (!$refuses) {
+        @chmod($noDir, 0775);
+        echo "  SKIP refusal checks: this system lets a read-only folder be deleted from (Windows). Run on Linux or in Docker;\n"
+           . "       tests/storage-s3-refused.php covers the S3 refusal without a filesystem.\n";
+    }
+    $logFile = tempnam(sys_get_temp_dir(), 'zzlog');
+    $prevLog = ini_set('error_log', $logFile);
+    if ($refuses) try {
+        $p = FilesRecycleService::purge($conn, $U1, 'item', $no['id']);
+        ok('refused: the purge succeeds for the person, the stored file waits, one refusal counted',
+           !rowExists($conn, 'files_items', $no['id']) && is_file("$store/{$no['key']}") && $p['pending'] === 1 && $attempts($no['key']) === 1, json_encode([$p, $attempts($no['key'])]));
+        setSetting($conn, 'files_storage_previous', encryptValue(json_encode([
+            'driver' => 's3', 'endpoint' => 'http://127.0.0.1:9', 'region' => 'us-east-1', 'bucket' => 'zz',
+            'access_key_id' => 'zz', 'secret' => 'zz', 'prefix' => '', 'path_style' => true])));
+        FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        setSetting($conn, 'files_storage_previous', null);
+        ok('...an outage on the next try does not count as a refusal', $attempts($no['key']) === 1, (string)$attempts($no['key']));
+        $conn->prepare("UPDATE files_purge_pending SET attempts = ? WHERE storage_path = ?")->execute([$max - 2, $no['key']]);
+        $b = FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        ok('...below the limit it is still tried every run, as waiting', $attempts($no['key']) === $max - 1 && $b['still_pending'] >= 1, json_encode($b));
+        $b = FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        ok("...the {$max}th refusal moves it to once a day: counted as refused, not as waiting",
+           $attempts($no['key']) === $max && $b['refused'] >= 1 && $b['still_pending'] === 0, json_encode($b));
+        ok('...and the log says so, once', substr_count((string)file_get_contents($logFile), 'now tries it once a day') === 1);
+        $b = FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        ok('...so the next run leaves it alone, but still counts it', $attempts($no['key']) === $max && $b['refused'] >= 1, json_encode($b));
+        $d = FilesRecycleService::describe($conn);
+        ok('the Recycle bin settings tab shows it as refused, not as waiting for storage', $d['refused_bytes'] >= 1 && $d['refused_bytes'] === $b['refused'], json_encode($d));
+        chmod($noDir, 0775);   // someone fixed the storage
+        $conn->prepare("UPDATE files_purge_pending SET updated_datetime = UTC_TIMESTAMP() - INTERVAL 25 HOUR WHERE storage_path = ?")->execute([$no['key']]);
+        $b = FilesRecycleService::retryPendingBytes($conn, time() + 30);
+        ok('a day later it is tried again, and goes once storage lets it', !is_file("$store/{$no['key']}") && $attempts($no['key']) === null && $b['deleted'] === 1, json_encode($b));
+    } finally {
+        @chmod($noDir, 0775);
+        @unlink($probe);
+        ini_set('error_log', $prevLog === false ? '' : $prevLog);
+        @unlink($logFile);
+    }
+    if (!$refuses) { ini_set('error_log', $prevLog === false ? '' : $prevLog); @unlink($logFile); }
+
     // ── Retention ──────────────────────────────────────────────────────
     $oldFile = item($conn, $store, $proj, 'zz-40-days.txt');
     $newFile = item($conn, $store, $proj, 'zz-10-days.txt');
@@ -311,8 +371,22 @@ try {
        && !rowExists($conn, 'files_items', $fresh['id']), json_encode($r));
 
     // ── Empty, and the Storage tab's figures ───────────────────────────
+    $binnedCopy = item($conn, $store, $proj, 'zz-binned copy.pdf', $plan['key']);   // shares a live file's stored file
+    softDelete($conn, 'item', $binnedCopy['id'], $U1);
     $u = FilesRecycleService::binUsage($conn);
     ok('binUsage counts what only deleted files use', $u['files'] >= 2, json_encode($u));   // zz-10-days + the hidden folder's file
+    // The same figures worked out the long way, in PHP, from every version row: a stored
+    // file counts when no version of a live file (its folder and every folder above live) uses it.
+    $tree = FilesAcl::tree($conn);
+    $live = []; $size = [];
+    foreach ($conn->query("SELECT v.storage_path, v.size_bytes, i.folder_id, i.deleted_datetime
+                             FROM files_versions v JOIN files_items i ON i.id = v.item_id")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $live[$row['storage_path']] = ($live[$row['storage_path']] ?? false) || ($row['deleted_datetime'] === null && isset($tree[(int)$row['folder_id']]));
+        $size[$row['storage_path']] = max($size[$row['storage_path']] ?? 0, (int)$row['size_bytes']);
+    }
+    $want = ['files' => 0, 'bytes' => 0];
+    foreach ($live as $k => $l) if (!$l) { $want['files']++; $want['bytes'] += $size[$k]; }
+    ok('...and agrees with walking every version (a live file inside a deleted folder counts, a shared copy does not)', $u === $want, json_encode([$u, $want]));
     $r = FilesRecycleService::emptyBin($conn, $U2, time() + 30);
     ok('emptying as View-only purges nothing', $r['entries'] === 0 && rowExists($conn, 'files_items', $newFile['id']), json_encode($r));
     $r = FilesRecycleService::emptyBin($conn, $U1, time() + 30);
@@ -364,6 +438,10 @@ try {
     $js = (string)file_get_contents("$root/assets/js/files-desktop.js");
     ok('del_note speaks of the recycle bin, and the desktop uses it', !str_contains($lang, 'There is no recycle bin to restore from yet')
        && str_contains($js, "L('ex.del_note',") && !str_contains($js, 'del_note_bin'));
+    // The Delete key in the bin used to skip, silently, what the person may not purge.
+    $en = require "$root/lang/en/files.php";
+    ok('the Delete key says what it leaves in the bin, in English and in the desktop',
+       isset($en['rb']['purge_left'], $en['rb']['purge_none']) && str_contains($js, "L('rb.purge_left',") && str_contains($js, "L('rb.purge_none',"));
 
     // ── Real S3-compatible storage ─────────────────────────────────────
     $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';

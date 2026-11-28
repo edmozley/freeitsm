@@ -331,6 +331,12 @@ final class S3Driver implements StorageDriver
         if ($status === 404 && $code !== 'NoSuchBucket' && $code !== 'NoSuchUpload') {
             throw new StorageNotFound('Stored file not found.');
         }
+        // A refusal of THIS request, as opposed to the store being down or our keys
+        // being wrong - see StorageRefused in driver.php (PR #431).
+        $credentials = ['InvalidAccessKeyId', 'SignatureDoesNotMatch', 'ExpiredToken', 'InvalidToken', 'RequestTimeTooSkewed', 'AuthorizationHeaderMalformed'];
+        if ($status >= 400 && $status < 500 && !in_array($status, [404, 408, 429], true) && !in_array($code, $credentials, true)) {
+            throw new StorageRefused($this->errorText($status, $buffer, $code), 0);
+        }
         throw new StorageUnavailable($this->errorText($status, $buffer, $code), $status >= 500 ? 1 : 0);
     }
 

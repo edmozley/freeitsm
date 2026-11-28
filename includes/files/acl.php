@@ -135,10 +135,22 @@ final class FilesAcl
     {
         if (isset(self::$levels[$analystId])) return self::$levels[$analystId];
 
-        $tree  = self::tree($conn);
-        $teams = self::teamIds($conn, $analystId);
+        $own = self::directGrants($conn, $analystId);
 
-        // Direct grants to me or my teams, best per folder.
+        // Nothing granted anywhere: the common case for most people, and free.
+        if (!$own) return self::$levels[$analystId] = [];
+
+        return self::$levels[$analystId] = self::resolve(self::tree($conn), $own);
+    }
+
+    /**
+     * The grants made directly to this analyst or their teams, best per folder:
+     * [folderId => level]. Deleted folders' grants are included; levels() resolves
+     * them over live folders only, levelsIncludingDeleted() over every folder.
+     */
+    private static function directGrants(PDO $conn, int $analystId): array
+    {
+        $teams = self::teamIds($conn, $analystId);
         $sql = "SELECT folder_id, MAX(level) FROM files_permissions
                  WHERE (principal_type = 'analyst' AND principal_id = ?)";
         $args = [$analystId];
@@ -146,16 +158,11 @@ final class FilesAcl
             $sql .= " OR (principal_type = 'team' AND principal_id IN (" . implode(',', array_fill(0, count($teams), '?')) . "))";
             $args = array_merge($args, $teams);
         }
-        $sql .= " GROUP BY folder_id";
-        $st = $conn->prepare($sql);
+        $st = $conn->prepare($sql . " GROUP BY folder_id");
         $st->execute($args);
         $own = [];
         foreach ($st->fetchAll(PDO::FETCH_NUM) as [$fid, $lvl]) $own[(int)$fid] = (int)$lvl;
-
-        // Nothing granted anywhere: the common case for most people, and free.
-        if (!$own) return self::$levels[$analystId] = [];
-
-        return self::$levels[$analystId] = self::resolve($tree, $own);
+        return $own;
     }
 
     /**
@@ -196,17 +203,7 @@ final class FilesAcl
     public static function levelsIncludingDeleted(PDO $conn, int $analystId): array
     {
         if (isset(self::$levelsAll[$analystId])) return self::$levelsAll[$analystId];
-        $teams = self::teamIds($conn, $analystId);
-        $sql = "SELECT folder_id, MAX(level) FROM files_permissions WHERE (principal_type = 'analyst' AND principal_id = ?)";
-        $args = [$analystId];
-        if ($teams) {
-            $sql .= " OR (principal_type = 'team' AND principal_id IN (" . implode(',', array_fill(0, count($teams), '?')) . "))";
-            $args = array_merge($args, $teams);
-        }
-        $st = $conn->prepare($sql . " GROUP BY folder_id");
-        $st->execute($args);
-        $own = [];
-        foreach ($st->fetchAll(PDO::FETCH_NUM) as [$fid, $lvl]) $own[(int)$fid] = (int)$lvl;
+        $own = self::directGrants($conn, $analystId);
         if (!$own) return self::$levelsAll[$analystId] = [];
         return self::$levelsAll[$analystId] = self::resolve(self::allFolders($conn), $own);
     }

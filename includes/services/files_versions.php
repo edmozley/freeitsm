@@ -214,7 +214,9 @@ function filesPurgeBytesIfUnused(PDO $conn, string $key): string
         try { $store->delete($key); }
         catch (Throwable $e) {
             error_log("files: could not delete unused bytes $key from " . $store->label() . ': ' . $e->getMessage());
-            if ($result !== 'unavailable') $result = $e instanceof StorageUnavailable ? 'unavailable' : 'failed';
+            // StorageRefused is a StorageUnavailable too, but it is the store saying no -
+            // 'failed', which the purge queue counts (PR #431).
+            if ($result !== 'unavailable') $result = ($e instanceof StorageUnavailable && !($e instanceof StorageRefused)) ? 'unavailable' : 'failed';
         }
     }
     return $result;

@@ -2084,14 +2084,20 @@
             });
             return chain.then(function () { if (touched) changed([]); else reload(); });
         };
-        /** Asks, then deletes the rows for good. */
-        var purge = function (todo) {
+        /**
+         * Asks, then deletes the rows for good.
+         *
+         * @param {number} [left] selected items left out because this person may not
+         *                        delete them permanently - the dialog says so
+         */
+        var purge = function (todo, left) {
             if (!todo.length) return;
             var msg = todo.length === 1
                 ? (todo[0].type === 'folder'
                     ? L('rb.purge_folder_q', 'Permanently delete the folder "{name}" and everything in it?', { name: todo[0].name })
                     : L('rb.purge_file_q', 'Permanently delete "{name}"?', { name: todo[0].name }))
                 : L('rb.purge_many_q', 'Permanently delete these {n} items?', { n: todo.length });
+            if (left) msg += '\n\n' + L('rb.purge_left', 'Items you cannot delete permanently stay in the recycle bin (Items: {n}).', { n: left });
             WM.dialog({ title: L('rb.purge', 'Delete permanently'), message: msg + '\n\n' + L('rb.purge_note', 'This cannot be undone. The stored files are removed too.'),
                 buttons: [{ label: L('rb.purge', 'Delete permanently'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
                 .then(function (ok) {
@@ -2182,9 +2188,15 @@
                 { label: L('rb.purge', 'Delete permanently'), icon: IC.del, action: function () { purge(s); }, disabled: !purgeable }
             ]);
         });
+        // The Delete key deletes for good what it may, and says what it leaves (the
+        // button and the menu are simply off while anything selected cannot go).
         b.querySelector('.fx-pane').addEventListener('keydown', function (ev) {
-            var s = selected().filter(function (r) { return r.can_purge; });
-            if (ev.key === 'Delete' && s.length) { ev.preventDefault(); purge(s); }
+            var all = selected();
+            if (ev.key !== 'Delete' || !all.length) return;
+            ev.preventDefault();
+            var s = all.filter(function (r) { return r.can_purge; });
+            if (!s.length) { WM.notify(L('rb.purge_none', 'You cannot delete the selected items permanently (Items: {n}).', { n: all.length }), 'error'); return; }
+            purge(s, all.length - s.length);
         });
         reload();
     }
