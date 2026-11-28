@@ -121,6 +121,11 @@ try {
     // analystCanAccessModule(), not the raw grants: Projects may be switched off (GH #217).
     $taskCanProjects = analystCanAccessModule(connectToDatabase(), (int) ($_SESSION['analyst_id'] ?? 0), 'projects');
 } catch (Throwable $e) { /* leave it off */ }
+// May this analyst read Knowledge? Then the description's Link dialog can browse articles.
+$taskCanKnowledge = false;
+try {
+    $taskCanKnowledge = analystCanAccessModule(connectToDatabase(), (int) ($_SESSION['analyst_id'] ?? 0), 'knowledge');
+} catch (Throwable $e) { /* leave it off */ }
 
 // Opened from a Watchtower count (discussion #388): ?status_id=N for one status (by id -
 // names change, ids do not),
@@ -174,7 +179,15 @@ $translationNamespaces = ['common', 'tasks'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../assets/css/tasks.css?v=62">
-    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+<?php
+// The article browser needs Knowledge's picker strings, not the rest of Knowledge's.
+$jsTranslations = I18n::exportForJs($translationNamespaces);
+if ($taskCanKnowledge) {
+    $jsTranslations['knowledge']['editor'] = array_intersect_key(I18n::exportForJs(['knowledge'])['knowledge']['editor'] ?? [],
+        array_flip(['link_picker_title', 'link_picker_search', 'link_picker_loading', 'link_picker_count', 'link_picker_empty', 'link_picker_error']));
+}
+?>
+    <script>window.translations = <?php echo json_encode($jsTranslations, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=4"></script>
@@ -457,13 +470,15 @@ $translationNamespaces = ['common', 'tasks'];
     window.TASK_FILTER = <?php echo json_encode($taskFilter); ?>;
     window.TASK_FILTER_SAVED = <?php echo json_encode($taskFilterSaved); ?>;
     window.TASK_STATUS_LINK = <?php echo json_encode($taskStatusLink, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
-    window.TASK_CAN_PROJECTS = <?php echo json_encode($taskCanProjects); ?>;</script>
+    window.TASK_CAN_PROJECTS = <?php echo json_encode($taskCanProjects); ?>;
+    window.TASK_CAN_KNOWLEDGE = <?php echo json_encode($taskCanKnowledge); ?>;</script>
     <script src="../assets/js/tasks-priority.js?v=1"></script>
     <script src="../assets/js/tasks-ctx-menu.js?v=7"></script>
     <!-- The one cleaner for HTML from elsewhere: Knowledge procedure bodies and task instructions in the Work view (GH #190). -->
     <script src="../assets/js/safe-html.js?v=4"></script>
     <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=3"></script><?php endif; ?>
-    <script src="../assets/js/tasks.js?v=82"></script>
+    <script src="../assets/js/kb-article-link-picker.js?v=1"></script>
+    <script src="../assets/js/tasks.js?v=83"></script>
     <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=86"></script><?php endif; ?>
 
 </body>

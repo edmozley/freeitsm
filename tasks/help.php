@@ -343,6 +343,7 @@ $translationNamespaces = ['common', 'tasks'];
                         <div><?php echo t('tasks.help.panel_field_dates'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_tags'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_desc'); ?></div>
+                        <div><?php echo t('tasks.help.panel_field_desc_kb'); /* PR #450 */ ?></div>
                         <div><?php echo t('tasks.help.panel_field_links'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_subtasks'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_comments'); ?></div>

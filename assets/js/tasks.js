@@ -2203,6 +2203,19 @@ function renderDetailPanel(task) {
         content_css: tinyDark ? 'dark' : 'default',
         plugins: 'lists link',
         toolbar: 'bold italic underline | bullist numlist | link',
+        // Links on this server are kept from the site root. The description is also shown
+        // from tasks/table/, tasks/calendar/ and tasks/timeline/, where a link made
+        // relative to tasks/ would point to the wrong place.
+        relative_urls: false,
+        // The folder icon beside the Link dialog's URL browses Knowledge articles, as in
+        // Knowledge's own editor (assets/js/kb-article-link-picker.js).
+        ...(window.TASK_CAN_KNOWLEDGE ? {
+            file_picker_types: 'file',
+            file_picker_callback: (callback, value, meta) => kbOpenArticleLinkPicker(tinyEditor, callback, meta, {
+                api: (window.APP_BASE || '/') + 'api/knowledge/',
+                href: article => (window.APP_BASE || '/') + 'knowledge/?article=' + article.id
+            })
+        } : {}),
         content_style: 'body { font-family: Segoe UI, sans-serif; font-size: 13px; color: ' + (tinyDark ? '#e6e8eb' : '#333') + '; } @media (pointer: coarse) { body { font-size: 16px; } }',
         setup: editor => {
             tinyEditor = editor;

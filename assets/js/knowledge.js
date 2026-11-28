@@ -258,7 +258,14 @@ function initTinyMCE() {
         // Only links get a picker; image and media dialogs keep their own flow.
         file_picker_types: 'file',
         file_picker_callback: function(callback, value, meta) {
-            if (meta.filetype === 'file') kbOpenArticleLinkPicker(callback, meta);
+            if (meta.filetype !== 'file') return;
+            // assets/js/kb-article-link-picker.js, shared with the task description.
+            kbOpenArticleLinkPicker(articleEditor, callback, meta, {
+                api: API_BASE,
+                href: article => '?article=' + article.id,
+                place: article => article.folder_id == null ? window.t('knowledge.list.unfiled')
+                    : folderPath(article.folder_id).map(folder => folder.name).join(' › ')
+            });
         },
         // GH #391: the image dialog's Upload tab - choose a picture from your computer.
         // It is embedded in the article exactly as a pasted or dragged-in picture always
@@ -348,83 +355,6 @@ function kbEmbedImage(blob) {
         img.onerror = () => bad(t('image_unreadable', 'That picture could not be read.'));
         img.src = url;
     })).then(fits);
-}
-
-let kbArticleLinkPicker = null;
-
-/** Keep the picker inside TinyMCE so its Link dialog does not trap keyboard focus. */
-function kbArticleLinkDialogSpec(picker, items, status) {
-    return {
-        title: window.t('knowledge.editor.link_picker_title'),
-        size: 'large',
-        body: { type: 'panel', items: [
-            { type: 'input', name: 'search', label: window.t('knowledge.editor.link_picker_search') },
-            { type: 'htmlpanel', html: '<p role="status">' + escapeHtml(status) + '</p>' },
-            { type: 'tree', items: items, onLeafAction: id => kbChooseArticleLink(picker, id) }
-        ] },
-        initialData: { search: picker.query },
-        buttons: [{ type: 'cancel', text: window.t('common.cancel') }],
-        onChange: function(dialog, details) {
-            if (details.name === 'search') kbScheduleArticleLinkSearch(picker, dialog.getData().search);
-        },
-        onClose: function() {
-            clearTimeout(picker.timer);
-            picker.request++;
-            if (kbArticleLinkPicker === picker) kbArticleLinkPicker = null;
-        }
-    };
-}
-
-function kbOpenArticleLinkPicker(callback, meta) {
-    const picker = { callback: callback, meta: meta, query: '', articles: [], request: 0, timer: null, dialog: null };
-    kbArticleLinkPicker = picker;
-    picker.dialog = articleEditor.windowManager.open(
-        kbArticleLinkDialogSpec(picker, [], window.t('knowledge.editor.link_picker_loading')));
-    picker.dialog.focus('search');
-    kbSearchArticleLinks(picker);
-}
-
-function kbScheduleArticleLinkSearch(picker, query) {
-    clearTimeout(picker.timer);
-    picker.request++;
-    picker.query = query.trim();
-    picker.timer = setTimeout(() => kbSearchArticleLinks(picker), 250);
-}
-
-/** Search the same permission-filtered list used by the Knowledge browser. */
-async function kbSearchArticleLinks(picker) {
-    const request = ++picker.request;
-    try {
-        const response = await fetch(API_BASE + 'knowledge_articles.php?limit=40&search=' + encodeURIComponent(picker.query));
-        if (!response.ok) throw new Error('Article search failed');
-        const data = await response.json();
-        if (!data.success || !Array.isArray(data.articles)) throw new Error('Article search failed');
-        if (request !== picker.request || kbArticleLinkPicker !== picker) return;
-        picker.articles = data.articles.filter(article => Number.isSafeInteger(Number(article.id)) && Number(article.id) > 0);
-        const items = picker.articles.map(article => {
-            const path = article.folder_id == null ? window.t('knowledge.list.unfiled')
-                : folderPath(article.folder_id).map(folder => folder.name).join(' › ');
-            return { type: 'leaf', id: String(article.id), title: path ? article.title + ' — ' + path : article.title };
-        });
-        picker.dialog.redial(kbArticleLinkDialogSpec(picker, items, window.t(items.length
-            ? 'knowledge.editor.link_picker_count' : 'knowledge.editor.link_picker_empty', { count: items.length })));
-        picker.dialog.focus('search');
-    } catch (error) {
-        if (request !== picker.request || kbArticleLinkPicker !== picker) return;
-        picker.articles = [];
-        picker.dialog.redial(kbArticleLinkDialogSpec(picker, [], window.t('knowledge.editor.link_picker_error')));
-        picker.dialog.focus('search');
-    }
-}
-
-/** Return a relative link and preserve display text already entered in TinyMCE. */
-function kbChooseArticleLink(picker, id) {
-    const article = picker.articles.find(item => String(item.id) === String(id));
-    if (!article || kbArticleLinkPicker !== picker) return;
-    const text = typeof picker.meta?.text === 'string' && picker.meta.text.trim()
-        ? picker.meta.text : article.title;
-    picker.dialog.close();
-    picker.callback('?article=' + article.id, { text: text });
 }
 
 /** Just the editor, filling the screen - TinyMCE's own fullscreen plugin. */

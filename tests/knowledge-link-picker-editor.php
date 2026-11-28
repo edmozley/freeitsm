@@ -13,6 +13,7 @@ $pickerCode = substr($source, $from, $to - $from);
 $html = <<<'HTML'
 <!doctype html><html data-theme="light" data-theme-mode="light"><head>
 <script src="../assets/js/tinymce/tinymce.min.js"></script>
+<script src="../assets/js/kb-article-link-picker.js"></script>
 </head><body>
 <textarea id="articleBody">Selected text</textarea>
 <pre id="result">RUNNING</pre>
@@ -116,6 +117,7 @@ $pages = [
     'index.html' => '<!doctype html><html><body><pre id="result">RUNNING</pre><iframe src="knowledge/index.html"></iframe>'
         .'<script>addEventListener("message",event=>{if(event.origin===location.origin&&String(event.data).startsWith("["))document.getElementById("result").textContent=event.data;});</script></body></html>',
 ];
+$pages['assets/js/kb-article-link-picker.js'] = file_get_contents(dirname(__DIR__).'/assets/js/kb-article-link-picker.js');
 $vendor = dirname(__DIR__).'/assets/js/tinymce';
 foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($vendor, FilesystemIterator::SKIP_DOTS)) as $file) {
     if ($file->isFile()) {
