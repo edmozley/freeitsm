@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3193 | Assets            | Improvement | When the vCenter part of Sync hypervisors fails, the Servers page now points to Settings -> vCenter -> Test (GH #445). |
 | 3192 | Assets            | Improvement | Changing the vCenter server or user on Settings -> vCenter now needs the password typed again, so a saved password is only ever sent to the server and user it was saved for (GH #445). |
 | 3191 | Assets            | Fix         | A vCenter server saved with https:// or a path (pasted from the browser) no longer breaks the sync - the address is cut back to the server's name, as the new Test does (GH #445). |
 | 3190 | Assets            | Feature     | Settings -> vCenter -> Test checks every step to vCenter (address, name lookup, connection, certificate, API, sign-in, version, inventory, sign-out), says what to fix at the first failure, shows each request and response with secrets hidden, and totals the VMs, vCPUs, memory and storage (GH #445). |

@@ -1169,6 +1169,8 @@ $translationNamespaces = ['common', 'asset-management'];
                 } else if (!vcNotConfigured) {
                     anyFailed = true;
                     lines.push('vCenter: ' + (vc.error || window.t('asset-management.servers.sync_no_connect')));
+                    // GH #445: the sync only knows the step that failed; the Test explains it.
+                    lines.push(window.t('asset-management.servers.sync_vcenter_test_hint'));
                 }
 
                 // Then every active Proxmox and Director server, in one call on

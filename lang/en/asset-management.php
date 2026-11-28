@@ -983,6 +983,7 @@ return [
         'no_match'          => 'No servers match your filters',
         'sync_failed'       => 'Sync failed: {error}',
         'sync_no_connect'   => 'Sync failed: Could not connect to server',
+        'sync_vcenter_test_hint' => 'Settings → vCenter → Test shows which step fails and what to do about it.',
         // Detail modal
         'overview'                 => 'Overview',
         'vm_id'                    => 'VM ID',
