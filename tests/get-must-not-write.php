@@ -57,6 +57,7 @@ function check(string $label, bool $ok, string $detail = ''): void {
  */
 const GET_WRITE_ALLOWED = [
     'api/documents/download.php'                 => 'records the download in document_access_log - a log of a read',
+    'api/knowledge/document.php'                 => 'records an article document download in document_access_log - a log of a read (GH #416)',
     'api/knowledge/knowledge_article.php'        => 'adds one to the article view counter',
     'api/self-service/get_knowledge_article.php' => 'adds one to the article view counter',
     'api/tickets/get_email_detail.php'           => 'marks the email read for the analyst opening it',

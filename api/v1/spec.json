@@ -5318,6 +5318,425 @@
                     ],
                     "section": "Knowledge base",
                     "slug": "delete-knowledge-articles-id-images-image-id"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/articles\/{id}\/documents",
+                    "perm": "knowledge_documents.read",
+                    "s": "List an article's documents",
+                    "d": "GH #416. Every document in the article's Documents panel, whether or not the article's HTML links to it, newest first - metadata only (never the contents): id, article_id, kind (file, link, or files for a file kept in Files), title, description, filename, mime_type, size_bytes, sha256, external_url, show_in_help_centre (this article's setting), client_reference (the key's analyst's own reference for this article, else null), uploaded_by, uploaded_at, url and content_url. url is the address to put in the article's HTML for a file: it re-checks the signed-in analyst or portal user against THIS article on every request (portal users also need show_in_help_centre), and nobody signed in gets 404; null for a link (use external_url) and for a file in Files. API clients download with content_url. Add ?client_reference= to ask whether an upload arrived without sending it again.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "client_reference",
+                            "in": "query",
+                            "desc": "Only the document the key's analyst added to this article with this reference",
+                            "req": false
+                        },
+                        {
+                            "name": "page \/ per_page",
+                            "in": "query",
+                            "desc": "Pagination (default 1 \/ 25, max per_page 100)",
+                            "req": false
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-articles-id-documents",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such article, or the key cannot read it (its company scope, the article's audience or access list); or the document is not on this article - even one the key could reach through another record."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/knowledge\/articles\/{id}\/documents",
+                    "perm": "knowledge_documents.create",
+                    "s": "Add a file or a link to an article",
+                    "d": "GH #416. Send multipart\/form-data with a file part named file (and optional title, description, client_reference, show_in_help_centre, expected_revision), or JSON with external_url (and the same optional fields) for a link. The same checks and storage as the Documents panel: the article must exist and be writable by the key before any file is stored; the install's allowed file types and size limit (System > Attachments); links must be http or https. PHP's upload_max_filesize and post_max_size and any proxy body limit (nginx defaults to 1 MB) also apply to the request. Returns 201 with the document and the article's new article_revision. show_in_help_centre is false unless sent as true, and is written with the link - a restricted draft can be staged without its documents ever reaching the Help Centre; customers see a shown document only once the article is published, customer-facing and theirs. Side effects: the title is searchable at once and the text of a PDF or Office file is extracted in the background (search shows it only to people who can see the article); no AI provider sees it and the article's embedding does not change; no workflow or notification runs; the article's history records it and its revision changes. Archived articles take no new documents (409 archived). For uploads use a multipart client rather than the JSON request editor.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "file",
+                            "in": "body",
+                            "desc": "Multipart file part (a file document)",
+                            "req": false
+                        },
+                        {
+                            "name": "external_url",
+                            "in": "body",
+                            "desc": "http(s) URL (a link document)",
+                            "req": false
+                        },
+                        {
+                            "name": "title",
+                            "in": "body",
+                            "desc": "Up to 255 characters. Default: the file name or the URL",
+                            "req": false
+                        },
+                        {
+                            "name": "description",
+                            "in": "body",
+                            "desc": "Free text, searchable",
+                            "req": false
+                        },
+                        {
+                            "name": "show_in_help_centre",
+                            "in": "body",
+                            "desc": "true to offer it to customers in the Help Centre on this article. Default false. In a multipart form: true, false, 1 or 0",
+                            "req": false
+                        },
+                        {
+                            "name": "client_reference",
+                            "in": "body",
+                            "desc": "Optional stable source reference, at most 191 bytes, without surrounding whitespace or control characters; use a source namespace prefix. Scope: the key's analyst and this article. The same request again (the same bytes and filename, or the same URL, and the same title, description and show_in_help_centre) returns the existing document with HTTP 200 and replayed=true, as it is NOW: nothing is written, so a title or Help Centre setting changed since is not put back and the revision does not move. A different request under the same reference is 409 reference_conflict. A document since removed from the article returns 404 and is not attached again. Find a reference's document with GET ?client_reference=.",
+                            "req": false
+                        },
+                        {
+                            "name": "expected_revision",
+                            "in": "body",
+                            "desc": "Optional. The article's revision as last read (GET \/knowledge\/articles\/{id}); a stale one is 409 revision_conflict and nothing is written. Leave it out to skip the check.",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "external_url": "https:\/\/sharepoint.example.com\/sites\/it\/network-runbook.pdf",
+                        "title": "Network runbook",
+                        "show_in_help_centre": false,
+                        "client_reference": "old-kb:doc:881"
+                    },
+                    "section": "Knowledge base",
+                    "slug": "post-knowledge-articles-id-documents",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "reference_conflict",
+                                "when": "client_reference was used on this article for a different request."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "reference_busy",
+                                "when": "Another request with the same client_reference is being written. Retry the same request."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "archived",
+                                "when": "The article is in the recycle bin. Restore it first."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "revision_conflict",
+                                "when": "expected_revision was given and the article has changed since (in the app or through the API). Nothing was written; read the article again."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "missing_file",
+                                "when": "Neither a file part named file nor external_url was sent."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_file",
+                                "when": "The file type is not allowed, or it is over the size limit."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A file and a link together, a link that is not http(s), a title over 255 characters, or a value of the wrong type."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_reference",
+                                "when": "client_reference is empty, over 191 bytes, has surrounding whitespace or control characters."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "unknown_field",
+                                "when": "A field this operation does not take."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may only read Knowledge."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such article, or the key cannot read it (its company scope, the article's audience or access list); or the document is not on this article - even one the key could reach through another record."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/knowledge\/articles\/{id}\/documents\/{document_id}\/link",
+                    "perm": "knowledge_documents.create",
+                    "s": "Attach an existing document to an article",
+                    "d": "GH #416. Attach a document that is already in FreeITSM - on another article, a project, a contract - to this article too. The key's analyst must already be able to see it. Returns 201 with the document and article_revision. show_in_help_centre is false unless sent as true; it is this article's own setting and never changes the document on another article. A document already on the article is left exactly as it is - including its Help Centre setting, and without checking expected_revision - and returns 200, so a retry is harmless. Attaching widens who can read the document to everyone who can read this article.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "document_id",
+                            "in": "path",
+                            "desc": "Document ID",
+                            "req": true
+                        },
+                        {
+                            "name": "show_in_help_centre",
+                            "in": "body",
+                            "desc": "true to offer it in the Help Centre on this article. Default false",
+                            "req": false
+                        },
+                        {
+                            "name": "expected_revision",
+                            "in": "body",
+                            "desc": "Optional. The article's revision as last read (GET \/knowledge\/articles\/{id}); a stale one is 409 revision_conflict and nothing is written. Leave it out to skip the check.",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "show_in_help_centre": false
+                    },
+                    "section": "Knowledge base",
+                    "slug": "post-knowledge-articles-id-documents-document-id-link",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such article or document, or the key cannot read the article, or its analyst cannot see the document."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "archived",
+                                "when": "The article is in the recycle bin. Restore it first."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "revision_conflict",
+                                "when": "expected_revision was given and the article has changed since (in the app or through the API). Nothing was written; read the article again."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may only read Knowledge."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/knowledge\/articles\/{id}\/documents\/{document_id}",
+                    "perm": "knowledge_documents.create",
+                    "s": "Change a document on an article",
+                    "d": "GH #416. Send any of title, description (null or empty clears it) and show_in_help_centre. show_in_help_centre is this article's link only: showing a document here never publishes it on another article. Title and description belong to the document itself, which every record it is attached to shows - so for a document attached anywhere else they are refused (409 document_shared, nothing written); upload a separate copy to name it differently here. Returns the document with article_revision and changed (the fields that changed; [] when the request matched what was there, in which case nothing is written and the revision does not move). Only this article's revision changes.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "document_id",
+                            "in": "path",
+                            "desc": "Document ID, on this article.",
+                            "req": true
+                        },
+                        {
+                            "name": "title",
+                            "in": "body",
+                            "desc": "Up to 255 characters, not empty",
+                            "req": false
+                        },
+                        {
+                            "name": "description",
+                            "in": "body",
+                            "desc": "Free text; null or empty clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "show_in_help_centre",
+                            "in": "body",
+                            "desc": "Offer it in the Help Centre on this article",
+                            "req": false
+                        },
+                        {
+                            "name": "expected_revision",
+                            "in": "body",
+                            "desc": "Optional. The article's revision as last read (GET \/knowledge\/articles\/{id}); a stale one is 409 revision_conflict and nothing is written. Leave it out to skip the check.",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "show_in_help_centre": true
+                    },
+                    "section": "Knowledge base",
+                    "slug": "patch-knowledge-articles-id-documents-document-id",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "document_shared",
+                                "when": "title or description for a document that is also attached elsewhere."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "revision_conflict",
+                                "when": "expected_revision was given and the article has changed since (in the app or through the API). Nothing was written; read the article again."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "missing_field",
+                                "when": "None of title, description or show_in_help_centre was sent."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "An empty title, a title over 255 characters, or a value of the wrong type."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "unknown_field",
+                                "when": "A field this operation does not take."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such article, or the key cannot read it (its company scope, the article's audience or access list); or the document is not on this article - even one the key could reach through another record."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/articles\/{id}\/documents\/{document_id}\/content",
+                    "perm": "knowledge_documents.read",
+                    "s": "Download a document on an article",
+                    "d": "GH #416. The file itself, as an attachment - or, for a link, {kind: \"link\", external_url} (never a redirect). Needs documents.download as well as knowledge_documents.read: no key has it unless an administrator ticks it. Only a document on THIS article, which the key can read now: revoking access to the article stops the download at once, whatever else the document is attached to. Every download is logged with the key, the address and the bytes, and counted against the key's download limits (System - API - Threat protection): past the alert level administrators are told; at the limit the download is refused (429), or the key is switched off.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "document_id",
+                            "in": "path",
+                            "desc": "Document ID, on this article.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-articles-id-documents-document-id-content",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key lacks documents.download."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such article, or the key cannot read it (its company scope, the article's audience or access list); or the document is not on this article - even one the key could reach through another record."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "in_files",
+                                "when": "The document is a link to a file in Files; it is opened through Files, not the API."
+                            },
+                            {
+                                "code": 429,
+                                "slug": "download_limit",
+                                "when": "The key has reached its download limit for the hour."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "key_disabled",
+                                "when": "The download guard switched the key off."
+                            },
+                            {
+                                "code": 410,
+                                "slug": "gone",
+                                "when": "The file is recorded but missing from storage."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/knowledge\/articles\/{id}\/documents\/{document_id}",
+                    "perm": "knowledge_documents.delete",
+                    "s": "Take a document off an article",
+                    "d": "GH #416. Removes the link between the document and this article, not the document: one still attached to another article or record stays there, as it is. Only when that was its last link is it deleted, as in the app (document_deleted: true). Returns the article's new article_revision. A client_reference that added it is kept, so replaying that upload returns 404 instead of attaching it again.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "document_id",
+                            "in": "path",
+                            "desc": "Document ID, on this article.",
+                            "req": true
+                        },
+                        {
+                            "name": "expected_revision",
+                            "in": "query",
+                            "desc": "Optional. The article's revision as last read; a stale one is 409 revision_conflict and nothing is removed",
+                            "req": false
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "delete-knowledge-articles-id-documents-document-id",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "revision_conflict",
+                                "when": "expected_revision was given and the article has changed since (in the app or through the API). Nothing was written; read the article again."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may only read Knowledge."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such article, or the key cannot read it (its company scope, the article's audience or access list); or the document is not on this article - even one the key could reach through another record."
+                            }
+                        ]
+                    }
                 }
             ]
         },

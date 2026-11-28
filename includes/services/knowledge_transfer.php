@@ -195,6 +195,14 @@ class KnowledgeTransferService
             $st = $conn->prepare('SELECT id, sha256 FROM knowledge_images WHERE article_id = ? ORDER BY id');
             $st->execute([$id]);
             $row['images'] = $st->fetchAll(PDO::FETCH_ASSOC);
+            // GH #416: the article's documents too - attached, detached, renamed or shown
+            // in the Help Centre, from the REST API or the Documents panel - so an import
+            // stops on a person's change instead of writing over it.
+            // TRAP: only when it has any. An article without documents keeps exactly the
+            // revision it had before this was added, so no integration holding one sees a
+            // conflict that is not there.
+            $documents = self::articleDocuments($conn, $id);
+            if ($documents) $row['documents'] = $documents;
         }
         // Keyed, not a plain sha256: the row includes the access list, which only a
         // Knowledge administrator may read, and a plain hash would let any key that
@@ -202,6 +210,25 @@ class KnowledgeTransferService
         // messaging's media links. Found reviewing PR #378, fixed before merge.
         $key = hash_hmac('sha256', 'freeitsm/knowledge-revision/v1', getEncryptionKey(), true);
         return hash_hmac('sha256', json_encode($row, JSON_THROW_ON_ERROR), $key);
+    }
+
+    /**
+     * What of an article's documents its revision covers (GH #416): which are on it, what
+     * the article shows of each, and whether the Help Centre offers it.
+     *
+     * @param int $articleId  knowledge_articles.id
+     */
+    private static function articleDocuments(PDO $conn, int $articleId): array
+    {
+        require_once __DIR__ . '/../documents.php';
+        $hc = documentHelpCentreReady($conn) ? 'dl.show_in_help_centre' : '0 AS show_in_help_centre';
+        $st = $conn->prepare("SELECT d.id, d.kind, d.title, d.description, d.content_hash, d.external_url, $hc
+                                FROM document_links dl
+                                JOIN documents d ON d.id = dl.document_id AND d.deleted_datetime IS NULL
+                               WHERE dl.parent_type = 'knowledge_article' AND dl.parent_id = ?
+                            ORDER BY d.id");
+        $st->execute([$articleId]);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function checkRevision(PDO $conn, string $type, int $id, $expected): void

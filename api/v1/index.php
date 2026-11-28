@@ -24,6 +24,7 @@ require_once __DIR__ . '/resources/problems.php';
 require_once __DIR__ . '/resources/changes.php';
 require_once __DIR__ . '/resources/knowledge.php';
 require_once __DIR__ . '/resources/knowledge_transfer.php';
+require_once __DIR__ . '/resources/knowledge_documents.php';   // GH #416
 require_once __DIR__ . '/resources/tasks.php';
 require_once __DIR__ . '/resources/checklists.php';   // GH #273 - needs tickets.php and tasks.php
 require_once __DIR__ . '/resources/cmdb.php';

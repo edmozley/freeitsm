@@ -852,21 +852,32 @@ function documentLinkHelpCentreDefault(string $parentType): int {
  * exists. The one place a link is written, so the default above cannot be
  * forgotten by a new caller.
  *
+ * GH #416: a caller that has its own answer passes it as $showInHelpCentre, and it
+ * goes into the SAME insert - the REST API stages restricted drafts with documents
+ * hidden by default, and a link written as shown and then hidden would be visible
+ * to customers for the moment in between. Only a knowledge article's link can be
+ * shown; for anything else the flag stays 0 whatever is asked.
+ *
  * @param int $documentId  documents.id
  * @param string $parentType  the record type, a key of documentEntityRegistry()
  * @param int $parentId  that record's id
  * @param ?int $linkedById  the analyst making the link; null for the system
  * @param bool $ignoreDuplicate  true = INSERT IGNORE (attaching twice is a no-op)
+ * @param ?bool $showInHelpCentre  null = documentLinkHelpCentreDefault(); true / false = this link's own setting
+ * @return bool true when a row was written; false when $ignoreDuplicate found the link already there
  */
-function documentInsertLink(PDO $conn, int $documentId, string $parentType, int $parentId, ?int $linkedById, bool $ignoreDuplicate = false): void {
+function documentInsertLink(PDO $conn, int $documentId, string $parentType, int $parentId, ?int $linkedById, bool $ignoreDuplicate = false, ?bool $showInHelpCentre = null): bool {
     $verb = $ignoreDuplicate ? 'INSERT IGNORE' : 'INSERT';
     if (documentHelpCentreReady($conn)) {
-        $conn->prepare("$verb INTO document_links (document_id, parent_type, parent_id, linked_by_id, show_in_help_centre)
-                        VALUES (?,?,?,?,?)")
-             ->execute([$documentId, $parentType, $parentId, $linkedById, documentLinkHelpCentreDefault($parentType)]);
+        $show = $showInHelpCentre === null ? documentLinkHelpCentreDefault($parentType)
+            : (($showInHelpCentre && $parentType === 'knowledge_article') ? 1 : 0);
+        $st = $conn->prepare("$verb INTO document_links (document_id, parent_type, parent_id, linked_by_id, show_in_help_centre)
+                              VALUES (?,?,?,?,?)");
+        $st->execute([$documentId, $parentType, $parentId, $linkedById, $show]);
     } else {
-        $conn->prepare("$verb INTO document_links (document_id, parent_type, parent_id, linked_by_id)
-                        VALUES (?,?,?,?)")
-             ->execute([$documentId, $parentType, $parentId, $linkedById]);
+        $st = $conn->prepare("$verb INTO document_links (document_id, parent_type, parent_id, linked_by_id)
+                              VALUES (?,?,?,?)");
+        $st->execute([$documentId, $parentType, $parentId, $linkedById]);
     }
+    return $st->rowCount() > 0;
 }
