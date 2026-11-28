@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3195 | Tasks             | Feature     | A task's description can link a Knowledge article from the Link dialog's folder icon, listing only articles the analyst may read; the picker is now shared with Knowledge (PR #450 by @Dr4inder). |
 | 3194 | Knowledge         | Fix         | A folder's lock now means it has its own permissions, as on articles: it no longer shows on a folder that follows the folder above, and now shows on one with its own open rules (PR #448 by @Dr4inder). |
 | 3193 | Assets            | Improvement | When the vCenter part of Sync hypervisors fails, the Servers page now points to Settings -> vCenter -> Test (GH #445). |
 | 3192 | Assets            | Improvement | Changing the vCenter server or user on Settings -> vCenter now needs the password typed again, so a saved password is only ever sent to the server and user it was saved for (GH #445). |
