@@ -14,6 +14,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3198 | Files             | Fix         | On S3 storage a refused delete (a 4xx such as a bucket policy, not bad credentials) is now told apart from an outage, so the recycle bin's back-off works there too (PR #431 merge, StorageRefused). |
+| 3197 | Files             | Improvement | The recycle bin's share of storage is worked out in one SQL query instead of loading every stored version into PHP (PR #431 by @cloudcogsio, GH #421). |
+| 3196 | Files             | Fix         | Recycle bin: bytes storage refuses to delete are tried every run for 24 refusals, then once a day, shown on the settings tab; the Delete key says which items stay instead of skipping them silently (PR #431 by @cloudcogsio, GH #421). |
 | 3195 | Tasks             | Feature     | A task's description can link a Knowledge article from the Link dialog's folder icon, listing only articles the analyst may read; the picker is now shared with Knowledge (PR #450 by @Dr4inder). |
 | 3194 | Knowledge         | Fix         | A folder's lock now means it has its own permissions, as on articles: it no longer shows on a folder that follows the folder above, and now shows on one with its own open rules (PR #448 by @Dr4inder). |
 | 3193 | Assets            | Improvement | When the vCenter part of Sync hypervisors fails, the Servers page now points to Settings -> vCenter -> Test (GH #445). |
