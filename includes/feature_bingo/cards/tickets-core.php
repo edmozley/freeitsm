@@ -1090,5 +1090,17 @@ return [
         'link'     => 'tickets/',
         'check'    => ['sql', "SELECT COUNT(*) FROM form_submissions WHERE for_ticket_id IS NOT NULL"],
     ],
+    [
+        'id'       => 'tickets.participants',
+        'module'   => 'tickets',
+        'tier'     => 'recommended',
+        'category' => 'communication',
+        'title'    => 'Participants on a ticket',
+        'what'     => 'Other people - a manager, a colleague, a supplier - kept in Cc on a ticket\'s replies, without re-adding them every time. Add them from the Participants row in the ticket header.',
+        'why'      => 'Without it, the analyst types the same addresses into Cc on every reply and forgets one. Automatic emails (assigned, closed, a shared note) can copy them too, if you tick those under Tickets → Settings → General; nothing is ticked until you do.',
+        'done'     => 'At least one person has been added to a ticket as a participant.',
+        'link'     => 'tickets/',
+        'check'    => ['rows', 'ticket_participants'],
+    ],
 
 ];
