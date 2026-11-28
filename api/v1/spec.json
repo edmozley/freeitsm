@@ -320,7 +320,7 @@
                     "p": "\/tickets\/{id}",
                     "perm": "tickets.read",
                     "s": "Get one ticket",
-                    "d": "Full ticket detail including the original request body (description_html), custom fields, and related: counts of what is on the ticket (notes, messages, attachments, forms, checklists, watchers, time_entries) so you know which sub-endpoints are worth calling, and links to what it is linked with (tasks, problems, changes, projects, assets, CMDB objects, other tickets with the relation, and external tracker issues with their address). A count appears only if the key has read on that sub-endpoint's permission, and a link only if the key may read that kind of record in that company. The same related block is on the ticket's Full record webhook.",
+                    "d": "Full ticket detail including the original request body (description_html), custom fields, and related: counts of what is on the ticket (notes, messages, attachments, forms, checklists, watchers, participants, time_entries) so you know which sub-endpoints are worth calling, and links to what it is linked with (tasks, problems, changes, projects, assets, CMDB objects, other tickets with the relation, and external tracker issues with their address). A count appears only if the key has read on that sub-endpoint's permission, and a link only if the key may read that kind of record in that company. The same related block is on the ticket's Full record webhook.",
                     "params": [
                         {
                             "name": "id",
@@ -794,6 +794,162 @@
                                 "path": {
                                     "id": 42,
                                     "analyst_id": 7
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/tickets\/{id}\/participants",
+                    "perm": "ticket_participants.read",
+                    "s": "List a ticket's participants",
+                    "d": "The end users copied on the ticket's emails, oldest first: the person (with whether they are still active - someone who has left stays listed but is no longer copied), their company, who added them, how (analyst or api) and when. Reply pre-fills them in Cc, and Tickets -> Settings -> General chooses which automatic emails copy them. A confidential ticket has none. GH #432.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "get-tickets-id-participants",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Who is copied",
+                                "note": "A manager and a colleague hit by the same outage.",
+                                "path": {
+                                    "id": 42
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/tickets\/{id}\/participants",
+                    "perm": "ticket_participants.create",
+                    "s": "Add a participant",
+                    "d": "Copies a person on the ticket's emails, by user_id or by email. An address finds the person by their main or a linked address, or creates them as a new requester is created. Refused for the requester, someone who has left, one of the install's own mailbox addresses, an active analyst's address, and on a trashed or confidential ticket. 201 when added, 200 when they already were. GH #432.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        },
+                        {
+                            "name": "user_id",
+                            "in": "body",
+                            "desc": "The person; or give email",
+                            "req": false
+                        },
+                        {
+                            "name": "email",
+                            "in": "body",
+                            "desc": "An address; or give user_id",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "email": "sam@example.com"
+                    },
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "post-tickets-id-participants",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Copy someone by address",
+                                "note": "An integration adds the affected user's manager.",
+                                "path": {
+                                    "id": 42
+                                },
+                                "body": {
+                                    "email": "sam@example.com"
+                                }
+                            },
+                            {
+                                "title": "Copy a known person",
+                                "note": "",
+                                "path": {
+                                    "id": 42
+                                },
+                                "body": {
+                                    "user_id": 12
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "confidential",
+                                "when": "The ticket is confidential: it has no participants."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "is_requester",
+                                "when": "The person is the ticket's requester."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "inactive",
+                                "when": "The person has left."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "mailbox_address",
+                                "when": "The address is one of the install's own mailbox addresses."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "analyst_address",
+                                "when": "The address is an active analyst's (analysts follow a ticket with Watch)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "trashed",
+                                "when": "The ticket is in the trash."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_email",
+                                "when": "The address is not valid."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/tickets\/{id}\/participants\/{user_id}",
+                    "perm": "ticket_participants.delete",
+                    "s": "Remove a participant",
+                    "d": "Stops copying a person on the ticket's emails. 404 when they were not a participant. GH #432.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        },
+                        {
+                            "name": "user_id",
+                            "in": "path",
+                            "desc": "The participant's person id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "delete-tickets-id-participants-user-id",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Stop copying someone",
+                                "note": "",
+                                "path": {
+                                    "id": 42,
+                                    "user_id": 12
                                 }
                             }
                         ]

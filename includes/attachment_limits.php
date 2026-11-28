@@ -256,9 +256,11 @@ function phpUploadLimits(): array
  * an automated sender (no-reply, mailer-daemon, postmaster, bounce...), never to
  * the mailbox itself, and at most once an hour to the same sender from the same
  * mailbox - checked against the inbound log, which already records every reply.
+ * Nor to automated mail ($autoReply, GH #432: an out-of-office, a system
+ * notification): a machine answering an auto-reply is exactly that loop.
  */
 function oversizeNotify(PDO $conn, array $mailbox, array $rules, string $fromAddress, string $fromName, string $subject,
-                        array $atts, array $plan, string $outcome, ?int $ticketId = null): array
+                        array $atts, array $plan, string $outcome, ?int $ticketId = null, bool $autoReply = false): array
 {
     require_once __DIR__ . '/mailbox_send.php';
     $steps = [];
@@ -302,7 +304,7 @@ function oversizeNotify(PDO $conn, array $mailbox, array $rules, string $fromAdd
     }
 
     if ($rules['autoreply']) {
-        $skip = oversizeReplySkipReason($conn, (int)$mailbox['id'], $fromAddress, (string)($mailbox['target_mailbox'] ?? ''));
+        $skip = oversizeReplySkipReason($conn, (int)$mailbox['id'], $fromAddress, (string)($mailbox['target_mailbox'] ?? ''), $autoReply);
         if ($skip !== null) {
             $steps[] = ['step' => 'oversize_reply', 'to' => $fromAddress, 'result' => 'skipped', 'reason' => $skip];
         } else {
@@ -322,10 +324,11 @@ function oversizeNotify(PDO $conn, array $mailbox, array $rules, string $fromAdd
  * @param string $from  the sender's address, from the email (untrusted)
  * @param string $mailboxAddress  the mailbox's own address, so it never replies to itself
  */
-function oversizeReplySkipReason(PDO $conn, int $mailboxId, string $from, string $mailboxAddress): ?string
+function oversizeReplySkipReason(PDO $conn, int $mailboxId, string $from, string $mailboxAddress, bool $autoReply = false): ?string
 {
     $from = strtolower(trim($from));
     if (!filter_var($from, FILTER_VALIDATE_EMAIL)) return 'no valid sender address';
+    if ($autoReply) return 'an automatic reply';
     if ($from === strtolower(trim($mailboxAddress))) return 'the sender is this mailbox';
     $local = explode('@', $from)[0];
     if (preg_match('/^(no-?reply|do-?not-?reply|donotreply|mailer-daemon|postmaster|bounces?|notifications?|auto-?reply)([+._-]|$)/i', $local)) {

@@ -3639,6 +3639,15 @@ function displayEmail(email, recordings) {
                     <div class="email-meta-value">${linkAddresses(email.cc_recipients)}</div>
                 </div>
                 ` : ''}
+                ${/* GH #432: participants - filled by ticket-participants.js, hidden until it says to show.
+                     TRAP: after To / Cc / Date, never between them. On a desktop the header rows flow as one
+                     wrapping line (reading-pane.css: display: contents), and this row is one block (display:
+                     flex), so in the middle it pushed "To:" to the end of the line and its address onto the
+                     next. Last, it simply drops onto its own line when there is no room. */''}
+                <div class="email-meta-row" id="ticketParticipantsRow" style="display:none">
+                    <div class="email-meta-label">${escapeHtml(t('tickets.participants.label'))}</div>
+                    <div class="email-meta-value"></div>
+                </div>
             </div>
         </div>
 `;
@@ -3732,6 +3741,7 @@ function displayEmail(email, recordings) {
     loadAiSummary(email.ticket_id);
     if (typeof loadTicketChecklists === "function") loadTicketChecklists(email.ticket_id);
     if (typeof loadTicketWatchers === "function") loadTicketWatchers(email.ticket_id);   // GH #277: the Watch button
+    if (typeof loadTicketParticipants === "function") loadTicketParticipants(email.ticket_id);   // GH #432: the Participants row
     if (typeof loadTicketForms === "function") loadTicketForms(email.ticket_id);         // GH #272: the Forms button
     liveWatchOpenTicket(email.ticket_id);                                                // GH #267: live updates
     // Load full correspondence thread, notes, attachments and linked CMDB objects after rendering
@@ -4983,7 +4993,8 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                         e.same_kind === 'identical'
                             ? t('tickets.reading.same_as_identical').replace('{time}', formatFullDateTime(e.same_as_time))
                             : t('tickets.reading.same_as_near').replace('{time}', formatFullDateTime(e.same_as_time)))}</div>` : ''}
-                    ${emailBodyHost(e.body_content, 'thread-message-body' + (e.same_kind && MC.flag_duplicates ? ' mc-force' : ''), e.body_type)}
+                    ${+e.is_auto_reply ? `<div class="dup-note">${escapeHtml(t('tickets.reading.auto_reply'))}</div>` : ''}
+                    ${emailBodyHost(e.body_content, 'thread-message-body' + ((e.same_kind && MC.flag_duplicates) || +e.is_auto_reply ? ' mc-force' : ''), e.body_type)}
                 `;
             }).join('');
             // Isolate each thread body in a shadow root (see emailBodyHost).
@@ -5356,6 +5367,8 @@ async function assignDepartment() {
                     sensSel.value = data.sensitivity;
                     sensSel.classList.toggle('is-confidential', data.sensitivity === 'confidential');
                 }
+                // GH #432: becoming confidential removed the participants server-side.
+                if (typeof loadTicketParticipants === 'function') loadTicketParticipants(currentEmail.ticket_id);
             }
             updatePropertiesSummary();
             loadFolderCounts();
@@ -5914,6 +5927,16 @@ async function assignSensitivity() {
     /** Returns the translated label for a sensitivity value, for the audit line. */
     const label  = v => t(v === 'confidential' ? 'tickets.reading_pane.sensitivity_confidential' : 'tickets.reading_pane.sensitivity_normal');
     const old    = currentEmail.sensitivity === 'confidential' ? 'confidential' : 'normal';
+    // GH #432: a confidential ticket has no participants - say so before they are removed.
+    const copied = (window.currentTicketParticipants || []).length;
+    if (value === 'confidential' && old !== 'confidential' && copied > 0) {
+        const ok = await showConfirm({
+            title: t('tickets.participants.confirm_confidential_title'),
+            message: t('tickets.participants.confirm_confidential', { n: copied }),
+            okLabel: t('tickets.reading_pane.sensitivity_confidential'),
+        });
+        if (!ok) { select.value = old; return; }
+    }
     try {
         const response = await fetch(API_BASE + 'assign_ticket.php', {
             method: 'POST',
@@ -5926,6 +5949,7 @@ async function assignSensitivity() {
             currentEmail.sensitivity = value;
             select.classList.toggle('is-confidential', value === 'confidential');
             updatePropertiesSummary();
+            if (typeof loadTicketParticipants === 'function') loadTicketParticipants(currentEmail.ticket_id);   // GH #432
             loadEmails();
         } else {
             select.value = old;
@@ -8113,7 +8137,10 @@ function openReplyModal(fromEmail) {
     const fromInbound = fromEmail && fromEmail.direction !== 'Outbound' && fromEmail.from_address;
     const replyTo = fromInbound ? fromEmail.from_address : replyAddress(currentEmail, window.TICKET_REPLY_TO);
     document.getElementById('emailTo').value = replyTo;
-    document.getElementById('emailCc').value = '';
+    // GH #432: the ticket's participants start in Cc (and the requester, when this reply
+    // goes to someone else). Nobody when the ticket has none - as it always was.
+    document.getElementById('emailCc').value = typeof participantReplyCc === 'function'
+        ? participantReplyCc(replyTo, currentEmail && currentEmail.requester_email) : '';
     if (!replyTo) {
         // Say why, rather than letting them write a reply that cannot be sent.
         // A note is how you reach someone with no mailbox — they read it in the

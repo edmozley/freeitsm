@@ -305,6 +305,7 @@ const USER_DELETE_CASCADE = [
     'messaging_identity_links'   => 'user_id',
     'directory_group_members'    => 'user_id',
     'project_members'            => 'user_id',
+    'ticket_participants'        => 'user_id',   // GH #432: copied on tickets' emails - goes with them
     // No foreign key in the schema, but theirs all the same.
     'user_password_reset_tokens' => 'user_id',
     'manager_grants'             => 'manager_user_id',

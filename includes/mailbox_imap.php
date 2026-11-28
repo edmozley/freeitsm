@@ -99,8 +99,11 @@ function imapGetEmails(array $mailbox): array {
  * @param array $mailbox  the target_mailboxes row (its id makes the fallback de-duplication key)
  */
 function imapNormaliseMessage(ImapClient $client, int $uid, array $mailbox): ?array {
-    // The two reply headers too (GH #120) - PEEK, so nothing is marked read.
-    $item = $client->uidFetch($uid, '(UID ENVELOPE BODYSTRUCTURE INTERNALDATE BODY.PEEK[HEADER.FIELDS (REFERENCES IN-REPLY-TO)])');
+    // The two reply headers too (GH #120), and the ones that mark an automatic
+    // reply (GH #432) - PEEK, so nothing is marked read.
+    require_once __DIR__ . '/email_auto_reply.php';
+    $item = $client->uidFetch($uid, '(UID ENVELOPE BODYSTRUCTURE INTERNALDATE BODY.PEEK[HEADER.FIELDS (REFERENCES IN-REPLY-TO '
+        . implode(' ', EMAIL_AUTO_REPLY_HEADERS) . ')])');
     if (empty($item['ENVELOPE'])) {
         return null;
     }
@@ -153,6 +156,9 @@ function imapNormaliseMessage(ImapClient $client, int $uid, array $mailbox): ?ar
         'id' => (string) $uid,
         'thread_key' => $threadKey,
         'in_reply_to' => preg_match('/<[^<>\s]+>/', $inReplyTo, $irt) ? $irt[0] : null,
+        // GH #432: an out-of-office or other auto-responder - stored, never treated as a reply.
+        'auto_reply' => emailIsAutoReply(emailImapHeaderMap($item)),
+        'automated' => emailIsAutomated(emailImapHeaderMap($item)),
         // Distinct, globally-unique key used for de-duplication / exchange_message_id.
         'internet_message_id' => $dedupId,
         'subject' => $subject,

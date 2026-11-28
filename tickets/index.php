@@ -64,13 +64,13 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=99">
     <link rel="stylesheet" href="../assets/css/address-suggest.css?v=1">   <!-- GH #307 -->
     <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=3">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
-    <link rel="stylesheet" href="../assets/css/reading-pane.css?v=10">
+    <link rel="stylesheet" href="../assets/css/reading-pane.css?v=11">
     <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=4">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=7">
@@ -1221,9 +1221,10 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
         } catch (Throwable $e) { $__linkStatus = null; }
     } ?>
     <script>window.TICKET_LINK_STATUS = <?php echo json_encode($__linkStatus, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
-    <script src="../assets/js/inbox.js?v=222"></script>
+    <script src="../assets/js/inbox.js?v=224"></script>
     <script src="../assets/js/ticket-folders-pane.js?v=2"></script>   <!-- discussion #292 -->
     <script src="../assets/js/ticket-watchers.js?v=2"></script>
+    <script src="../assets/js/ticket-participants.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=5"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>
     <script src="../assets/js/mobile.js?v=87"></script>

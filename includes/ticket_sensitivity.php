@@ -94,6 +94,10 @@ function ticketSensitivityRaise(PDO $conn, int $ticketId, string $reason): bool
         "INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
          VALUES (?, NULL, 'Sensitivity', 'Normal', ?, UTC_TIMESTAMP())"
     )->execute([$ticketId, 'Confidential - ' . $reason]);
+    // A confidential ticket has no participants (GH #432): nobody outside it is
+    // copied on its emails any more. Each removal goes in the history too.
+    require_once __DIR__ . '/services/ticket_participants.php';
+    TicketParticipants::clearForConfidential($conn, [$ticketId], null);
     // A scheduled ticket may already sit in its owner's synced calendar under
     // its real subject. Re-sync it now rather than at the next edit. A cheap
     // no-op for an unscheduled ticket - which is nearly every one raised here.

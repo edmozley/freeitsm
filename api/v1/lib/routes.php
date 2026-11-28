@@ -21,6 +21,10 @@ return [
     ['GET',    '#^/tickets/(\d+)/watchers$#',              ['ticket_watchers', 'read'],       'apiTicketWatchersList'],
     ['POST',   '#^/tickets/(\d+)/watchers$#',              ['ticket_watchers', 'create'],     'apiTicketWatchersAdd'],
     ['DELETE', '#^/tickets/(\d+)/watchers/(\d+)$#',        ['ticket_watchers', 'delete'],     'apiTicketWatchersRemove'],
+    // GH #432: participants - end users copied on the ticket's emails.
+    ['GET',    '#^/tickets/(\d+)/participants$#',          ['ticket_participants', 'read'],   'apiTicketParticipantsList'],
+    ['POST',   '#^/tickets/(\d+)/participants$#',          ['ticket_participants', 'create'], 'apiTicketParticipantsAdd'],
+    ['DELETE', '#^/tickets/(\d+)/participants/(\d+)$#',   ['ticket_participants', 'delete'], 'apiTicketParticipantsRemove'],
     // GH #272: forms on a ticket.
     ['GET',    '#^/tickets/(\d+)/forms$#',                 ['ticket_forms', 'read'],          'apiTicketFormsList'],
     ['POST',   '#^/tickets/(\d+)/forms/(\d+)/submissions$#', ['ticket_forms', 'create'],      'apiTicketFormSubmit'],

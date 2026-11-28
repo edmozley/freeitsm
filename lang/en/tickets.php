@@ -109,6 +109,8 @@ return [
         'hide_older' => 'Hide older messages',
         'same_as_identical' => 'Identical to the message from {time}',
         'same_as_near' => 'Nearly identical to the message from {time}',
+        // GH #432: an out-of-office or other auto-responder.
+        'auto_reply' => 'Automatic reply - it did not reopen or wake the ticket',
     ],
     'title' => 'Tickets',
 
@@ -327,6 +329,35 @@ return [
         'many_already' => '{n} already watched.',
         'many_skipped' => '{n} skipped.',
         'failed' => 'Could not update the watchers.',
+    ],
+    // GH #432: participants - end users copied on a ticket's emails (assets/js/ticket-participants.js).
+    'participants' => [
+        'label' => 'Participants',
+        'add' => 'Add',
+        'add_title' => 'Add a participant',
+        'search' => 'Search people, or type an email address',
+        'add_hint' => 'Participants are copied on Reply, and on the automatic emails Tickets → Settings → General ticks. An address nobody has yet adds a new person.',
+        'nobody_found' => 'Nobody found.',
+        'new_person' => 'Nobody has {email} yet - a new person will be created.',
+        'existing_person' => 'That address belongs to {name}.',
+        'other_company' => 'This person is in another company ({company}). They will receive this ticket\'s emails.',
+        'none' => 'Nobody',
+        'left' => '(left)',
+        'remove_title' => 'Stop copying {name}',
+        'failed' => 'Could not update the participants.',
+        'confirm_confidential_title' => 'Make this ticket confidential?',
+        'confirm_confidential' => 'A confidential ticket has no participants. Participants: {n} - they will be removed and no longer copied on its emails.',
+        'err_is_requester' => 'This person is the requester - they already get every email.',
+        'err_confidential' => 'A confidential ticket has no participants.',
+        'err_inactive' => 'This person has left.',
+        'err_mailbox_address' => 'That is one of this service desk\'s own mailbox addresses.',
+        'err_analyst_address' => 'That is an analyst\'s address. Analysts follow a ticket with Watch instead.',
+        'err_trashed' => 'This ticket is in the trash.',
+        'err_invalid_email' => 'That is not a valid email address.',
+        'err_read_only' => 'You need write access to Tickets to change the participants.',
+        'err_not_found' => 'Not found.',
+        'err_not_ready' => 'Run System → Database Verification to switch on ticket participants.',
+        'err_invalid_field' => 'Pick a person or type an email address.',
     ],
     // GH #272: forms on a ticket (assets/js/ticket-forms.js).
     'forms' => [
@@ -2474,6 +2505,13 @@ return [
             'watch_event_ticket_assigned' => 'The ticket is reassigned',
             'watch_event_sla_warning' => 'It approaches its SLA target',
             'watch_event_sla_breached' => 'It breaches its SLA target',
+            // GH #432. Which automatic emails copy a ticket's participants.
+            'participant_heading' => 'Ticket participants',
+            'participant_events_label' => 'Participants are copied on',
+            'participant_event_ticket_assigned' => 'The email saying the ticket has been assigned',
+            'participant_event_ticket_closed' => 'The email saying the ticket is closed',
+            'participant_event_note_shared' => 'A note shared with the requester',
+            'participant_events_help' => 'Participants are people added on a ticket to be kept up to date. Reply always puts them in Cc; these automatic emails copy them only when ticked here. The satisfaction survey and the acknowledgement of a new ticket never do, and a confidential ticket has no participants.',
             'ai_heading' => 'AI reading aids',
             'ai_desc' => 'Optional, and off until you turn them on: unlike everything else on this page these use your own AI provider and cost money per use. The provider, model and API key are configured once on the Reply cleanup tab. Nothing an AI writes ever replaces the ticket — the conversation stays exactly where it is, in full.',
             'ai_summary_label' => 'Keep a short AI summary at the top of each ticket',
@@ -3538,6 +3576,18 @@ return [
             'what' => '<strong>Tickets &rarr; Settings &rarr; General &rarr; Watching tickets</strong> chooses what watchers hear about - replies, notes, status, priority, reassignment, SLA warnings and breaches - all of them unless an administrator unticks some. A reassignment reaches a watcher as "reassigned", never "assigned to you", and it has its own switch in each person\'s preferences.',
             'leaver' => 'A deactivated analyst is never told about a ticket they watch. <strong>Tickets &rarr; Settings &rarr; General &rarr; When a watcher is deactivated</strong> decides what happens to their watches: <strong>Stop</strong> (the default) keeps them out of sight and puts them back if the analyst is made active again; <strong>Remove</strong> takes the analyst off every ticket they watch when they are deactivated.',
             'note' => 'Only people who can see a ticket can watch it, and if they stop being able to see it they stop hearing about it. Nobody is told about their own change. Merging moves watchers to the surviving ticket.',
+        ],
+        // GH #432: participants - end users copied on a ticket's emails.
+        'participants' => [
+            'heading' => 'Participants: keeping other people copied',
+            'body' => 'A ticket has one requester, but colleagues hit by the same problem, a manager or someone supplying information often need every email too. Add them as <strong>participants</strong> and you no longer type them into Cc on every reply.',
+            'how' => 'The <strong>Participants</strong> row sits under the requester in the ticket header. <strong>Add</strong> searches People, or takes an email address - one nobody has yet creates the person. The &times; next to a name takes them off. Changing participants needs write access to Tickets, and every add and removal is in the ticket\'s history.',
+            'reply' => '<strong>Reply</strong> starts with the participants in Cc, once each, never repeating anyone already in To. When the reply goes to someone other than the requester - answering a participant\'s own message - the requester is put in Cc too. You can take anyone out for that one message. <strong>Forward</strong> never pre-fills them.',
+            'auto' => '<strong>Tickets &rarr; Settings &rarr; General &rarr; Participants are copied on</strong> chooses which automatic emails to the requester copy them: the ticket assigned, the ticket closed, a note shared. None are ticked until an administrator chooses. The satisfaction survey and the acknowledgement of a new ticket never copy them, and a requester whose automatic emails are muted (Starters &amp; leavers) means participants are not emailed either.',
+            'who' => 'The requester cannot also be a participant - if a participant becomes the requester, they come off the list. Nor can someone who has left, or one of the service desk\'s own mailbox addresses. Someone in another company is allowed, and the Add dialog says so first. A participant who leaves later stays on the list, greyed, and is no longer copied.',
+            'confidential' => 'A confidential ticket has no participants. Whenever a ticket becomes confidential - by hand, through its department or mailbox, or by a merge - its participants are removed and each removal goes in the history. Making a ticket confidential by hand asks first.',
+            'note' => 'Merging moves participants to the surviving ticket, once each, and Undo merge puts them back. Splitting leaves them on the original. The self-service portal is unchanged: a participant\'s reply that copied the requester shows there, as any copied email does.',
+            'auto_reply' => '<strong>Automatic replies</strong> - out-of-office messages and other auto-responders, recognised by their email headers - are kept on the ticket, shown collapsed as "Automatic reply", and never reopen a closed ticket, wake a snoozed one or notify anyone. One that matches no ticket still becomes a ticket, but is not sent the new-ticket acknowledgement.',
         ],
         // GH #272: forms on a ticket.
         'forms_on_ticket' => [

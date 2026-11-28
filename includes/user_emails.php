@@ -210,6 +210,8 @@ function userHasLogin(PDO $conn, int $userId): bool
 function userReferences(PDO $conn, int $userId): array
 {
     $skip = ['users.id', 'tickets.user_id', 'user_email_addresses.user_id', 'user_email_claims.user_id', 'user_audit.user_id',
+             // GH #432: a merge moves them (TicketParticipants::moveForUserMerge()); a delete removes them.
+             'ticket_participants.user_id',
              // A VARCHAR holding Entra's object id, not users.id: compared with a number it can match by accident.
              'intune_devices.user_id'];
     // The columns, found once per request: the directory maintenance tools ask this for
@@ -308,6 +310,10 @@ function userMergeInto(PDO $conn, int $analystId, int $fromId, int $toId): array
             $aud = $conn->prepare("INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime) VALUES (?, ?, 'Requester', ?, ?, UTC_TIMESTAMP())");
             foreach ($ticketIds as $tid) $aud->execute([(int)$tid, $analystId ?: null, mb_substr((string)$p['from']['name'], 0, 500), mb_substr((string)$p['to']['name'], 0, 500)]);
         }
+        // GH #432: the duplicate's participations go to the person kept - after the
+        // requester moves, so nobody ends up requester and participant on one ticket.
+        require_once __DIR__ . '/services/ticket_participants.php';
+        TicketParticipants::moveForUserMerge($conn, $fromId, $toId);
         // The duplicate's own linked addresses come along too.
         if (userEmailsReady($conn)) {
             $conn->prepare("UPDATE user_email_addresses SET user_id = ? WHERE user_id = ?")->execute([$toId, $fromId]);

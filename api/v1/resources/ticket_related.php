@@ -64,6 +64,12 @@ function apiTicketRelated(PDO $conn, int $ticketId, ?array $apiKey): array
             $counts['watchers'] = count(TicketWatchers::list($conn, $ticketId));
         } catch (Throwable $e) { $counts['watchers'] = 0; }
     }
+    if ($can('ticket_participants')) {   // GH #432
+        try {
+            require_once dirname(__DIR__, 3) . '/includes/services/ticket_participants.php';
+            $counts['participants'] = TicketParticipants::ready($conn) ? $scalar("SELECT COUNT(*) FROM ticket_participants WHERE ticket_id = ?") : 0;
+        } catch (Throwable $e) { $counts['participants'] = 0; }
+    }
     if ($can('ticket_time_entries')) $counts['time_entries'] = $scalar("SELECT COUNT(*) FROM ticket_time_entries WHERE ticket_id = ? AND is_active = 1");
 
     // ── links: what the ticket is linked to, each under its record's permission ──

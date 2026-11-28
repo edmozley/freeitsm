@@ -1551,6 +1551,8 @@ return [
         // GH #120: the conversation an inbound message belongs to (Graph conversationId,
         // Gmail threadId, IMAP References root) - see includes/email_threading.php.
         'thread_key'              => 'VARCHAR(255) NULL',
+        // GH #432: an automatic reply (out-of-office) - see includes/email_auto_reply.php.
+        'is_auto_reply'           => 'TINYINT(1) NOT NULL DEFAULT 0',
         // Which channel this message arrived/left on. 'email' (default) leaves every
         // existing row and the email pipeline untouched; 'whatsapp' reuses this table.
         'channel'                 => 'VARCHAR(20) NOT NULL DEFAULT \'email\'',
@@ -2072,6 +2074,15 @@ return [
         'analyst_id'       => 'INT NOT NULL',
         'added_by_id'      => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL',
+    ],
+    // GH #432: end users copied on a ticket's emails (unique per ticket + person - db_verify_indexes.php).
+    'ticket_participants' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'ticket_id'        => 'INT NOT NULL',
+        'user_id'          => 'INT NOT NULL',
+        'added_by_id'      => 'INT NULL',
+        'source'           => "VARCHAR(20) NOT NULL DEFAULT 'analyst'",
+        'added_datetime'   => 'DATETIME NOT NULL',
     ],
 
     'csat_queue' => [

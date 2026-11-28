@@ -18,6 +18,8 @@
     .reading-pane .email-meta-label { width: auto; margin-right: 6px; }
     .reading-pane .email-meta-value { margin-right: 22px; }
     .reading-pane .email-meta-date { font-size: var(--font-size-md, 13px); padding-left: 0; }
+    /* GH #432: Participants is one block (label + people), last on the line - the same gap as the others. */
+    .reading-pane #ticketParticipantsRow { margin-left: 22px; }
 
     /* Links and the AI summary side by side: both are usually one short line. */
     .reading-pane .pane-strips { display: flex; align-items: stretch; border-bottom: 1px solid var(--border, #e0e0e0); }
