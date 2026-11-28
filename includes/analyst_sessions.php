@@ -176,3 +176,37 @@ function analystSessionRevoke(PDO $conn, int $analystId, ?int $rowId): int
     }
     return $u->rowCount();
 }
+
+/**
+ * An administrator signs out one of another analyst's devices ($rowId) or all of them
+ * (null), with their Keep me signed in tokens. Only api/system/analyst_sessions.php,
+ * behind requireAdminJson(), calls this. The caller's OWN current session is never
+ * included, even when the administrator is looking at themselves.
+ *
+ * @param int $targetId  the analyst whose devices are signed out
+ * @param ?int $rowId    one of the target's rows, or null for every one
+ * @return int how many were signed out
+ */
+function analystSessionRevokeAny(PDO $conn, int $targetId, ?int $rowId): int
+{
+    if (!analystSessionsReady($conn)) return 0;
+    $mine = (int)($_SESSION['session_row_id'] ?? 0);
+    $where = "analyst_id = ? AND id <> ? AND revoked_datetime IS NULL" . ($rowId !== null ? " AND id = ?" : "");
+    $args  = $rowId !== null ? [$targetId, $mine, $rowId] : [$targetId, $mine];
+    $t = $conn->prepare("SELECT kept_token_id FROM analyst_sessions WHERE $where AND kept_token_id IS NOT NULL");
+    $t->execute($args);
+    $tokens = array_map('intval', $t->fetchAll(PDO::FETCH_COLUMN));
+    $u = $conn->prepare("UPDATE analyst_sessions SET revoked_datetime = UTC_TIMESTAMP() WHERE $where");
+    $u->execute($args);
+    if (function_exists('keepSignedInReady') && keepSignedInReady($conn)) {
+        if ($rowId === null) {
+            // Everywhere: every token too, except the administrator's own browser's.
+            $keepMine = $targetId === (int)($_SESSION['analyst_id'] ?? 0) ? (int)($_SESSION['kept_token_id'] ?? 0) : 0;
+            $conn->prepare("DELETE FROM analyst_login_tokens WHERE analyst_id = ? AND id <> ?")->execute([$targetId, $keepMine]);
+        } elseif ($tokens) {
+            $in = implode(',', array_fill(0, count($tokens), '?'));
+            $conn->prepare("DELETE FROM analyst_login_tokens WHERE analyst_id = ? AND id IN ($in)")->execute(array_merge([$targetId], $tokens));
+        }
+    }
+    return $u->rowCount();
+}

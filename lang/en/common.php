@@ -818,6 +818,13 @@ return [
         'devices_others_msg'   => 'Every other browser will be asked to sign in again at its next click, and none of them stays kept signed in. This one stays signed in.',
         'devices_done'    => 'Signed out.',
         'devices_none'    => 'No other devices.',
+        // System -> Analysts -> edit: an administrator's view of another analyst's devices
+        'admin_devices_heading' => 'Signed-in devices',
+        'admin_devices_help'    => 'Every browser this analyst is signed in on. Signing one out asks it to sign in again at its next click, and ends its Keep me signed in.',
+        'admin_devices_sign_out_all' => 'Sign out everywhere',
+        'admin_devices_none'    => 'Not signed in anywhere.',
+        'admin_devices_all_title' => 'Sign this analyst out everywhere?',
+        'admin_devices_all_msg'   => 'Every browser they are signed in on will be asked to sign in again at its next click, and none of them stays kept signed in.',
         'kept_this'       => 'This device',
         'kept_browser_on' => '{browser} on {os}',
         'kept_unknown'    => 'Unknown browser',

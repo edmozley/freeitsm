@@ -414,6 +414,14 @@ $translationNamespaces = ['common', 'tickets'];
                     </label>
                     <small style="display:block;color:var(--text-muted,#666);margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.all_modules_help')); ?></small>
                 </div>
+
+                <?php /* GH #443: this analyst's signed-in devices - administrators only (the page is). Filled by loadAnalystDevices(). */ ?>
+                <div class="form-group" id="analystDevices" hidden>
+                    <label><?php echo htmlspecialchars(t('common.account.admin_devices_heading')); ?></label>
+                    <small style="display:block;color:var(--text-muted);margin-bottom:6px;"><?php echo htmlspecialchars(t('common.account.admin_devices_help')); ?></small>
+                    <div id="analystDevicesList"></div>
+                    <button type="button" class="btn btn-secondary" id="analystDevicesAll" style="margin-top:8px" onclick="analystDevicesSignOut(null)"><?php echo htmlspecialchars(t('common.account.admin_devices_sign_out_all')); ?></button>
+                </div>
                 </div>
 
                 <div class="modal-actions sys-modal-foot">
@@ -1089,6 +1097,7 @@ $translationNamespaces = ['common', 'tickets'];
         function openAnalystModal(analyst = null) {
             document.getElementById('analystModalTitle').textContent = analyst ? t('tickets.settings.modals.analyst.edit_title') : t('tickets.settings.modals.analyst.add_title');
             document.getElementById('analystId').value = analyst ? analyst.id : '';
+            if (!analyst) document.getElementById('analystDevices').hidden = true;   // a new analyst has no devices
             document.getElementById('analystUsername').value = analyst ? analyst.username : '';
             document.getElementById('analystFullName').value = analyst ? analyst.full_name : '';
             document.getElementById('analystEmail').value = analyst ? (analyst.email || '') : '';
@@ -1155,10 +1164,52 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('analystModal').classList.remove('active');
         }
 
+        // ── Signed-in devices (GH #443) ─────────────────────────────────────
+        // An administrator signs out another analyst's browsers here; everyone manages
+        // their own from the avatar menu. api/system/analyst_sessions.php is admin-only.
+        const devEsc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        const devWhenA = utc => utc ? (window.fmtDateTime ? window.fmtDateTime(String(utc).replace(' ', 'T') + 'Z') : utc) : '';
+        async function loadAnalystDevices(analystId) {
+            const box = document.getElementById('analystDevices');
+            const list = document.getElementById('analystDevicesList');
+            box.hidden = !analystId;
+            if (!analystId) return;
+            list.textContent = t('common.loading');
+            try {
+                const d = await fetch('../../api/system/analyst_sessions.php?analyst_id=' + encodeURIComponent(analystId), { credentials: 'same-origin' }).then(r => r.json());
+                if (!d.success) throw new Error(d.error || '');
+                document.getElementById('analystDevicesAll').hidden = !d.devices.length;
+                list.innerHTML = d.devices.length ? d.devices.map(x => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+                        <div><strong style="font-size:var(--font-size-md, 13px)" title="${devEsc(x.user_agent)}">${devEsc(typeof keptBrowser === 'function' ? keptBrowser(x.user_agent) : x.user_agent)}</strong>
+                        ${x.kept_until ? ' <span class="status-badge">' + devEsc(t('common.account.devices_kept', { until: devWhenA(x.kept_until) })) + '</span>' : ''}
+                        <div style="color:var(--text-muted);font-size:var(--font-size-sm, 12px)">${devEsc(t('common.account.devices_meta', { ip: x.ip_address || '-', signed_in: devWhenA(x.signed_in), last_seen: devWhenA(x.last_seen) }))}</div></div>
+                        ${x.this_device ? '<span class="status-badge">' + devEsc(t('common.account.kept_this')) + '</span>'
+                            : `<button type="button" class="btn btn-secondary btn-sm" onclick="analystDevicesSignOut(${+x.id})">${devEsc(t('common.account.devices_sign_out'))}</button>`}</div>`).join('')
+                    : '<small style="color:var(--text-muted)">' + devEsc(t('common.account.admin_devices_none')) + '</small>';
+            } catch (e) {
+                list.textContent = t('common.account.kept_failed');
+            }
+        }
+        async function analystDevicesSignOut(rowId) {
+            const analystId = +document.getElementById('analystId').value;
+            if (!analystId) return;
+            if (rowId === null) {
+                const ok = await window.showConfirm({ title: t('common.account.admin_devices_all_title'), message: t('common.account.admin_devices_all_msg'), okLabel: t('common.account.devices_sign_out'), okClass: 'danger' });
+                if (!ok) return;
+            }
+            const d = await fetch('../../api/system/analyst_sessions.php', {
+                method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rowId === null ? { analyst_id: analystId, action: 'sign_out_all' } : { analyst_id: analystId, action: 'sign_out', id: rowId })
+            }).then(r => r.json()).catch(() => ({ success: false }));
+            showToast(d.success ? t('common.account.devices_done') : t('common.account.kept_failed'), d.success ? 'success' : 'error');
+            loadAnalystDevices(analystId);
+        }
+
         function editAnalyst(id) {
             const analyst = analysts.find(a => a.id == id);
             if (analyst) {
                 openAnalystModal(analyst);
+                loadAnalystDevices(analyst.id);
             } else {
                 showToast('Analyst not found.', 'error');
             }

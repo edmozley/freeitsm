@@ -61,6 +61,7 @@ $was = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key
 $tag = 'zzksi' . bin2hex(random_bytes(3));
 $password = 'Zz-' . bin2hex(random_bytes(8)) . '!9a';
 $analystId = 0;
+$made2 = 0;
 
 /** Signs in with the tick; returns the cookies the browser would then hold. */
 $signIn = function (bool $tick) use ($base, $tag, $password): array {
@@ -203,6 +204,60 @@ try {
         check('...and A keeps its own Keep me signed in token', (int)$n->fetchColumn() === 1);
         [$c, $j] = $api('POST', $jarA, ['action' => 'sign_out', 'id' => $thisOne[0]['id']]);
         check('this device cannot sign itself out here (that is Sign out)', ($j['signed_out'] ?? 1) === 0);
+
+        echo "\nGuards: nobody signs out anyone else's devices, unless an administrator\n";
+        // A second analyst, NOT an administrator, signed in on browser D.
+        $tag2 = $tag . 'b';
+        $conn->prepare('INSERT INTO analysts (username, password_hash, full_name, email, is_active, is_admin, can_access_all_tenants, can_access_all_modules) VALUES (?, ?, ?, ?, 1, 0, 1, 1)')
+             ->execute([$tag2, password_hash($password, PASSWORD_DEFAULT), 'ZZ Keep Signed In 2', "$tag2@example.test"]);
+        $analyst2 = $made2 = (int)$conn->lastInsertId();
+        $conn->prepare("UPDATE analysts SET password_changed_datetime = UTC_TIMESTAMP() - INTERVAL 1 DAY WHERE id = ?")->execute([$analyst2]);
+        [, , , $c0] = req('GET', "$base/auth/login.php");
+        [, , , $c1] = req('POST', "$base/auth/login.php", $c0, ['username' => $tag2, 'password' => $password]);
+        $jarD = array_merge($c0, $c1);
+        [, , $pageD] = req('GET', "$base/tickets/", $jarD);
+        preg_match('/name="csrf-token" content="([^"]+)"/', $pageD, $m2);
+        $csrfD = $m2[1] ?? '';
+        $rowA = (int)$conn->query("SELECT id FROM analyst_sessions WHERE analyst_id = $analystId AND revoked_datetime IS NULL ORDER BY id DESC LIMIT 1")->fetchColumn();
+        $raw = function (string $url, array $jar, ?string $csrfTok, ?array $body) {
+            $ch = curl_init($url);
+            $h = ['Content-Type: application/json'];
+            if ($jar) $h[] = 'Cookie: ' . implode('; ', array_map(fn($k, $v) => "$k=$v", array_keys($jar), $jar));
+            if ($csrfTok !== null) $h[] = 'X-CSRF-Token: ' . $csrfTok;
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $body === null ? 'GET' : 'POST', CURLOPT_HTTPHEADER => $h] + ($body !== null ? [CURLOPT_POSTFIELDS => json_encode($body)] : []));
+            $r = (string)curl_exec($ch);
+            return [(int)curl_getinfo($ch, CURLINFO_HTTP_CODE), json_decode($r, true) ?: []];
+        };
+        [$c] = $raw("$base/api/myaccount/sessions.php", [], null, ['action' => 'sign_out_others']);
+        check("not signed in: refused ($c)", $c === 401);
+        [$c, $j] = $raw("$base/api/myaccount/sessions.php", $jarD, null, ['action' => 'sign_out_others']);
+        check("signed in but without the page's CSRF token (as a link or form on another site would be): refused ($c)", $c >= 400 && empty($j['success']));
+        [$c, $j] = $raw("$base/api/myaccount/sessions.php", $jarD, $csrfD, ['action' => 'sign_out', 'id' => $rowA]);
+        check("analyst D sending analyst A's device id signs out nothing", ($j['signed_out'] ?? 1) === 0, json_encode($j));
+        [$okA] = $opens($jarA);
+        check('...and A is still signed in', $okA);
+        [$c, $j] = $raw("$base/api/system/analyst_sessions.php?analyst_id=$analystId", $jarD, $csrfD, null);
+        check("a non-administrator cannot list another analyst's devices ($c)", $c === 403, json_encode($j));
+        [$c, $j] = $raw("$base/api/system/analyst_sessions.php", $jarD, $csrfD, ['analyst_id' => $analystId, 'action' => 'sign_out_all']);
+        check("...nor sign them out ($c)", $c === 403);
+        [$okA] = $opens($jarA);
+        check('...so A is still signed in', $okA);
+
+        // A is an administrator: A signs D out everywhere from System -> Analysts.
+        [$c, $j] = $raw("$base/api/system/analyst_sessions.php?analyst_id=$analyst2", $jarA, $csrf, null);
+        check('an administrator lists another analyst\'s devices', $c === 200 && count($j['devices'] ?? []) >= 1, json_encode($j));
+        [$c, $j] = $raw("$base/api/system/analyst_sessions.php", $jarA, $csrf, ['analyst_id' => $analyst2, 'action' => 'sign_out_all']);
+        check('...and signs them out everywhere', $c === 200 && ($j['signed_out'] ?? 0) >= 1, json_encode($j));
+        [$okD, , $d] = $opens($jarD);
+        check('...D is refused at its next click', !$okD, $d);
+        [$okA] = $opens($jarA);
+        check('...and the administrator is still signed in', $okA);
+        $conn->prepare("DELETE FROM analyst_sessions WHERE analyst_id = ?")->execute([$analyst2]);
+        $conn->prepare("DELETE FROM analyst_login_tokens WHERE analyst_id = ?")->execute([$analyst2]);
+        foreach (['login_attempts', 'audit_log'] as $tb) { try { $conn->prepare("DELETE FROM $tb WHERE analyst_id = ?")->execute([$analyst2]); } catch (Throwable $e) {} }
+        $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$analyst2]);
+        $made2 = 0;
+
         $conn->prepare("DELETE FROM analyst_sessions WHERE analyst_id = ?")->execute([$analystId]);
     } else {
         echo "  SKIP: no analyst_sessions table - run Database Verification\n";
@@ -214,6 +269,10 @@ try {
 } catch (Throwable $e) {
     check('no exception', false, $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {
+    if (!empty($made2)) {   // the second analyst, if a failure left it behind
+        foreach (['analyst_sessions', 'analyst_login_tokens', 'login_attempts', 'audit_log'] as $tb) { try { $conn->prepare("DELETE FROM $tb WHERE analyst_id = ?")->execute([$made2]); } catch (Throwable $e) {} }
+        $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$made2]);
+    }
     if ($analystId) {
         $conn->prepare("DELETE FROM analyst_login_tokens WHERE analyst_id = ?")->execute([$analystId]);
         try { $conn->prepare("DELETE FROM analyst_sessions WHERE analyst_id = ?")->execute([$analystId]); } catch (Throwable $e) {}
