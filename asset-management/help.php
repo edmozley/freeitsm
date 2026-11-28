@@ -555,6 +555,7 @@ $translationNamespaces = ['common', 'asset-management'];
                             <div class="help-step-num">1</div>
                             <div>
                                 <strong>Configure credentials</strong> &mdash; go to Settings &gt; vCenter tab and enter the server hostname, username, and password.
+                                Press <strong>Test</strong> to check them before you save: it walks through every step to vCenter &mdash; the address, the name lookup, the connection, the certificate, which API vCenter offers, signing in, the version and what the user can see &mdash; says what to do about the first one that fails, and shows each request and vCenter's answer under <em>Response</em>. <strong>Copy</strong> puts the whole result on the clipboard, passwords and session ids hidden, ready to paste into a support request.
                             </div>
                         </div>
                         <div class="help-step">

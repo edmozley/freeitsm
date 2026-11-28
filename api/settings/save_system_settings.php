@@ -18,6 +18,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/settings_keys.php';
+require_once '../../includes/vcenter_diagnose.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -98,6 +99,34 @@ try {
             if (is_numeric($v) && (int)$v > 0) $clean[$k->value] = (int)$v;
         }
         $settings['intune_type_map'] = $clean ? json_encode($clean) : '';
+    }
+
+    // TRAP: a kept secret belongs to the server it was typed for. A blank password
+    // field means "keep the saved one" (below) - so without this, changing the
+    // vCenter server and pressing Save left the old password in place, and the next
+    // sync sent it to the new address. Changing the server or the user now needs the
+    // password typed again. GH #445. Same rule in api/assets/test_vcenter.php.
+    $secretTargets = ['vcenter_password' => ['vcenter_server', 'vcenter_user']];
+    foreach ($secretTargets as $secretKey => $targetKeys) {
+        if (array_key_exists($secretKey, $settings) && !isMaskedNoChangeValue($settings[$secretKey])) continue;
+        $stored = $conn->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN (?, ?, ?)");
+        $stored->execute(array_merge([$secretKey], $targetKeys));
+        $was = [];
+        foreach ($stored->fetchAll(PDO::FETCH_ASSOC) as $r) $was[$r['setting_key']] = (string) decryptValue($r['setting_value']);
+        if (($was[$secretKey] ?? '') === '') continue;
+        foreach ($targetKeys as $tk) {
+            if (!array_key_exists($tk, $settings)) continue;
+            $new = trim((string) $settings[$tk]);
+            $old = trim($was[$tk] ?? '');
+            $same = $tk === 'vcenter_server'
+                ? vcenterBaseUrl($new) === vcenterBaseUrl($old)
+                : strcasecmp($new, $old) === 0;
+            if (!$same) {
+                require_once '../../includes/i18n.php';
+                echo json_encode(['success' => false, 'error' => t('asset-management.vcenter_test.password_again')]);
+                exit;
+            }
+        }
     }
 
     foreach ($settings as $key => $value) {

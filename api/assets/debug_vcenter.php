@@ -9,6 +9,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/encryption.php';
+require_once '../../includes/vcenter_diagnose.php';
 
 header('Content-Type: application/json');
 
@@ -52,7 +53,8 @@ try {
         exit;
     }
 
-    $baseUrl = "https://{$vcServer}";
+    // vcenterBaseUrl() drops a pasted https:// or /ui path (GH #445).
+    $baseUrl = vcenterBaseUrl($vcServer);
     $output = [
         'success' => true,
         'vcenter_server' => $vcServer,

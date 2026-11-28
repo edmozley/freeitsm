@@ -128,6 +128,30 @@ $translationNamespaces = ['common', 'asset-management'];
         /* Active/Inactive badges use the shared .status-badge / .status-active
            / .status-inactive classes from inbox.css (canonical shape + colour). */
 
+        /* vCenter connection test (GH #445) - same look as the Slack health check */
+        .vc-test-desc { font-size: var(--font-size-md, 13px); color: var(--text-muted); margin: 0 0 12px; }
+        .diag-summary { padding: 10px 12px; border-radius: 8px; font-size: var(--font-size-lg, 14px); font-weight: 600; margin-bottom: 8px; }
+        .diag-summary.ok   { background: var(--success-bg); color: var(--success-text); }
+        .diag-summary.warn { background: var(--warning-bg); color: var(--warning-text); }
+        .diag-summary.fail { background: var(--danger-bg);  color: var(--danger-text); }
+        .diag-totals { font-size: var(--font-size-md, 13px); color: var(--text-muted); margin: 0 0 8px; }
+        .diag-row { display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .diag-row:last-child { border-bottom: none; }
+        .diag-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--font-size-md, 13px); }
+        .diag-icon.ok   { background: var(--success-bg); color: var(--success-text); }
+        .diag-icon.warn { background: var(--warning-bg); color: var(--warning-text); }
+        .diag-icon.fail { background: var(--danger-bg);  color: var(--danger-text); }
+        .diag-icon.skip { background: var(--surface-2);  color: var(--text-faint); }
+        .diag-label  { font-size: var(--font-size-lg, 14px); font-weight: 600; color: var(--text); }
+        .diag-detail { font-size: var(--font-size-md, 13px); color: var(--text-muted); line-height: 1.55; margin-top: 2px; word-break: break-word; }
+        .diag-fix { font-size: var(--font-size-md, 13px); color: var(--text); background: var(--surface-2); border-left: 3px solid var(--warning-text); padding: 6px 10px; margin-top: 6px; border-radius: 0 6px 6px 0; line-height: 1.5; }
+        .diag-running { font-size: var(--font-size-lg, 14px); color: var(--text-muted); padding: 20px 0; }
+        .diag-exchanges { margin-top: 6px; }
+        .diag-exchanges summary { cursor: pointer; font-size: var(--font-size-sm, 12px); color: var(--accent, var(--text-muted)); }
+        .diag-exchange { margin-top: 6px; }
+        .diag-exchange-line { font-family: var(--font-mono); font-size: var(--font-size-sm, 12px); color: var(--text); }
+        .diag-exchange pre { font-family: var(--font-mono); font-size: var(--font-size-xs, 11px); background: var(--surface-2); color: var(--text); padding: 8px; border-radius: 6px; max-height: 220px; overflow: auto; white-space: pre-wrap; word-break: break-all; margin: 4px 0 0; }
+
         /* vCenter section styles */
         .settings-section {
             background: var(--surface, #fff);
@@ -1168,12 +1192,31 @@ $translationNamespaces = ['common', 'asset-management'];
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="saveBtn"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
+                            <button type="button" class="btn btn-secondary" id="vcTestBtn" onclick="testVcenter()"><?php echo htmlspecialchars(t('asset-management.vcenter_test.test')); ?></button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'vcenter')): ?>
+        <!-- vCenter connection test (GH #445) - filled by testVcenter() -->
+        <div class="modal" id="vcTestModal">
+            <div class="modal-content" style="max-width:760px">
+                <div class="modal-header"><?php echo htmlspecialchars(t('asset-management.vcenter_test.title')); ?></div>
+                <div class="modal-body">
+                    <p class="vc-test-desc"><?php echo htmlspecialchars(t('asset-management.vcenter_test.desc')); ?></p>
+                    <div id="vcTestBody"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="vcTestCopy" onclick="copyVcenterTest()"><?php echo htmlspecialchars(t('asset-management.vcenter_test.copy')); ?></button>
+                    <button type="button" class="btn btn-secondary" id="vcTestAgain" onclick="testVcenter()"><?php echo htmlspecialchars(t('asset-management.vcenter_test.rerun')); ?></button>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('vcTestModal').classList.remove('active')"><?php echo htmlspecialchars(t('common.close')); ?></button>
+                </div>
+            </div>
+        </div>
         <?php endif; ?>
 
         <?php if (settingsTabVisible($visibleTabs, 'asset-tags')): ?>
@@ -3227,6 +3270,88 @@ $translationNamespaces = ['common', 'asset-management'];
             } finally {
                 if (btn) btn.disabled = false;
             }
+        }
+
+        // ─── vCenter connection test (GH #445) ─────────────────────────────
+        // Tests what is in the form, saved or not. An empty password means the
+        // saved one - api/assets/test_vcenter.php only lends it to the saved
+        // server and user. Each check can show the HTTP requests it made.
+        let vcLastTest = null;
+        async function testVcenter() {
+            const T = k => window.t('asset-management.vcenter_test.' + k);
+            const body = document.getElementById('vcTestBody');
+            const again = document.getElementById('vcTestAgain');
+            const btn = document.getElementById('vcTestBtn');
+            document.getElementById('vcTestModal').classList.add('active');
+            body.innerHTML = '<div class="diag-running">' + escapeHtml(T('running')) + '</div>';
+            again.disabled = true; btn.disabled = true;
+            vcLastTest = null;
+            try {
+                const res = await fetch(API_BASE + 'test_vcenter.php', {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        server: document.getElementById('vcenterServer').value.trim(),
+                        user: document.getElementById('vcenterUser').value.trim(),
+                        password: document.getElementById('vcenterPassword').value
+                    })
+                });
+                const d = await res.json();
+                if (!d.success) {
+                    body.innerHTML = '<div class="diag-summary fail">' + escapeHtml(d.error || T('failed')) + '</div>';
+                    return;
+                }
+                vcLastTest = d;
+                const mark = { ok: '✓', warn: '!', fail: '✕', skip: '–' };
+                const sum = { ok: T('all_ok'), warn: T('some_warn'), fail: T('some_fail') }[d.overall];
+                let html = '<div class="diag-summary ' + escapeHtml(d.overall) + '">' + escapeHtml(sum) + '</div>';
+                if (d.summary && d.summary.vms !== null) {
+                    html += '<p class="diag-totals">' + escapeHtml(window.t('asset-management.vcenter_test.totals', {
+                        vms: d.summary.vms, on: d.summary.vms_on, vcpus: d.summary.vcpus, memory: d.summary.memory_gb,
+                        hosts: d.summary.hosts ?? 0, datastores: d.summary.datastores ?? 0,
+                        storage: d.summary.storage_tb, free: d.summary.storage_free_tb
+                    })) + '</p>';
+                }
+                html += d.checks.map(k => {
+                    const ex = (k.exchanges || []).map(x =>
+                        '<div class="diag-exchange">'
+                        + '<div class="diag-exchange-line">' + escapeHtml(x.method + ' ' + x.url + ' → ' + (x.status || x.error) + ' · ' + x.time_ms + ' ms') + '</div>'
+                        // Nothing to show when the request never got as far as HTTP (a refused certificate).
+                        + ((x.request_headers || x.response_headers || x.body)
+                            ? '<pre>' + escapeHtml(T('request') + '\n' + (x.request_headers || '') + '\n\n' + T('response') + '\n' + (x.response_headers || '') + '\n\n' + (x.body || T('no_body'))) + '</pre>'
+                            : '')
+                        + '</div>').join('');
+                    return '<div class="diag-row">'
+                        + '<div class="diag-icon ' + escapeHtml(k.status) + '">' + (mark[k.status] || '') + '</div>'
+                        + '<div>'
+                        +   '<div class="diag-label">' + escapeHtml(k.label) + '</div>'
+                        +   '<div class="diag-detail">' + escapeHtml(k.detail) + '</div>'
+                        +   (k.fix ? '<div class="diag-fix">' + escapeHtml(k.fix) + '</div>' : '')
+                        +   (ex ? '<details class="diag-exchanges"><summary>' + escapeHtml(T('show_response')) + '</summary>' + ex + '</details>' : '')
+                        + '</div></div>';
+                }).join('');
+                body.innerHTML = html;
+            } catch (e) {
+                body.innerHTML = '<div class="diag-summary fail">' + escapeHtml(T('failed')) + '</div>';
+            } finally {
+                again.disabled = false; btn.disabled = false;
+            }
+        }
+
+        // Copies the whole result as text, ready to paste into an issue. The
+        // server has already hidden the password and session ids.
+        async function copyVcenterTest() {
+            if (!vcLastTest) return;
+            const lines = [];
+            vcLastTest.checks.forEach(k => {
+                lines.push('[' + k.status.toUpperCase() + '] ' + k.label + ': ' + k.detail + (k.fix ? '\n    ' + k.fix : ''));
+                (k.exchanges || []).forEach(x => lines.push('    ' + x.method + ' ' + x.url + ' -> ' + (x.status || x.error) + '\n' + (x.body || '').split('\n').map(l => '      ' + l).join('\n')));
+            });
+            // copyToClipboard() (assets/js/clipboard.js) also works over plain http.
+            if (!(await window.copyToClipboard(lines.join('\n')))) return;
+            const b = document.getElementById('vcTestCopy');
+            const was = b.textContent; b.textContent = window.t('asset-management.vcenter_test.copied');
+            setTimeout(() => { b.textContent = was; }, 1500);
         }
 
         function togglePassword() {

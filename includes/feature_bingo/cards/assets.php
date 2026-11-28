@@ -184,7 +184,7 @@ return [
         'category' => 'integrations',
         'title'    => 'VMware vCenter connection',
         'what'     => 'The server name and credentials FreeITSM uses to read your virtual machines from vCenter\'s REST API.',
-        'why'      => 'Virtual machines never run the inventory script from a desk. Connecting vCenter puts every VM, its host, cluster, CPU, memory and storage in the same place as the physical estate.',
+        'why'      => 'Virtual machines never run the inventory script from a desk. Connecting vCenter puts every VM, its host, cluster, CPU, memory and storage in the same place as the physical estate. Test on the same tab checks every step to vCenter and says what to fix when one fails.',
         'done'     => 'A vCenter server address has been saved.',
         'link'     => 'asset-management/settings/?tab=vcenter',
         'check'    => ['setting', 'vcenter_server', 'nonempty'],

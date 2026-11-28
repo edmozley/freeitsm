@@ -7,6 +7,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';
+require_once '../../includes/vcenter_diagnose.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -50,7 +51,8 @@ try {
         exit;
     }
 
-    $baseUrl = "https://{$vcServer}";
+    // vcenterBaseUrl() drops a pasted https:// or /ui path (GH #445).
+    $baseUrl = vcenterBaseUrl($vcServer);
 
     // 1. Authenticate
     $sessionToken = vcenterAuth($baseUrl, $vcUser, $vcPass);
