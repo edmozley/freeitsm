@@ -14,6 +14,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3201 | REST API          | Fix         | A company-scoped API key can no longer attach a document it reaches only through its analyst; a picture re-uploaded under the same client_reference is a replay, not a conflict; upload calls re-check the module and the analyst; a busy piece is 409, not 500 (fixes made merging PR #446/#447). |
+| 3200 | REST API          | Feature     | Send a picture or document in pieces: POST /uploads, PUT /uploads/{id}?offset=N, GET/DELETE /uploads/{id}, GET /uploads/limits, then hand it over with upload_id - past PHP's and a proxy's size limits, resumable (PR #447 by @Dr4inder, GH #416). |
+| 3199 | REST API          | Feature     | Documents on Knowledge articles: list, add (file, upload or link), attach an existing one, change, download and detach, with knowledge_documents.* permissions, safe retries and expected_revision (PR #446 by @Dr4inder, GH #416). |
 | 3198 | Files             | Fix         | On S3 storage a refused delete (a 4xx such as a bucket policy, not bad credentials) is now told apart from an outage, so the recycle bin's back-off works there too (PR #431 merge, StorageRefused). |
 | 3197 | Files             | Improvement | The recycle bin's share of storage is worked out in one SQL query instead of loading every stored version into PHP (PR #431 by @cloudcogsio, GH #421). |
 | 3196 | Files             | Fix         | Recycle bin: bytes storage refuses to delete are tried every run for 24 refusals, then once a day, shown on the settings tab; the Delete key says which items stay instead of skipping them silently (PR #431 by @cloudcogsio, GH #421). |
