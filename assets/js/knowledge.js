@@ -663,7 +663,7 @@ function renderDetailsLayout() {
              data-folder="${f.id}"
              oncontextmenu="kbContextMenu(event, 'folder', ${f.id}, ${jsAttr(f.name)})">
             <span></span>
-            <span class="kb-details-name">📁 ${escapeHtml(f.name)}${f.is_restricted ? ' 🔒' : ''}</span>
+            <span class="kb-details-name">📁 ${escapeHtml(f.name)}${Number(f.inherits) === 0 ? ' 🔒' : ''}</span>
             <span class="kb-details-author">—</span>
             <span class="kb-details-date">—</span>
             <span class="kb-details-tags">${f.article_count}</span>
@@ -740,7 +740,7 @@ function renderTreeLayout() {
                      data-folder="${f.id}" onclick="selectFolder('${f.id}')"
                      oncontextmenu="kbContextMenu(event, 'folder', ${f.id}, ${jsAttr(f.name)})">
                     <span class="kb-tree-icon">📁</span>
-                    <span class="kb-tree-label">${escapeHtml(f.name)}${f.is_restricted ? ' 🔒' : ''}</span>
+                    <span class="kb-tree-label">${escapeHtml(f.name)}${Number(f.inherits) === 0 ? ' 🔒' : ''}</span>
                     <span class="kb-folder-count">${f.article_count}</span>
                 </div>`;
             // ⚠️ SUBFOLDERS BEFORE DOCUMENTS. This was the other way round, so a
@@ -938,19 +938,20 @@ function renderFolderTree(rootCount) {
             // 🔒 marks a folder with its own rules. The badge is the whole point
             // of §9's "visible and rare": an exception you cannot see from the
             // tree is one nobody can audit.
-            const restricted = f.is_restricted ? ' 🔒' : '';
+            // TRAP: inheritance leaves is_restricted stored but inactive, just as it does for articles.
+            const ownPermissions = Number(f.inherits) === 0;
             const manage = kbCanManagePerms
                 ? `<button type="button" class="kb-folder-perm" title="${escapeHtml(window.t('knowledge.perm.manage'))}"
                            onclick="openPermModal('folder', ${f.id}, ${jsAttr(f.name)})">🔑</button>`
                 : '';
             html += `<div class="kb-folder${activeFolder === String(f.id) ? ' active' : ''}" data-folder="${f.id}" style="padding-left:${8 + depth * 14}px"
-                          title="${f.is_restricted ? escapeHtml(window.t('knowledge.folders.restricted')) : ''}"
+                          title="${ownPermissions ? escapeHtml(window.t('knowledge.exceptions.own_rules')) : ''}"
                           draggable="true"
                           ondragstart="kbDragStart(event, 'folder', ${f.id})"
                           ondragend="kbDragEnd()"
                           ondragover="kbDragOver(event)" ondragleave="kbDragLeave(event)" ondrop="kbDrop(event, ${f.id})"
                           oncontextmenu="kbContextMenu(event, 'folder', ${f.id}, ${jsAttr(f.name)})">
-                        <span class="kb-folder-name" onclick="selectFolder('${f.id}')">${escapeHtml(f.name)}${restricted}</span>
+                        <span class="kb-folder-name" onclick="selectFolder('${f.id}')">${escapeHtml(f.name)}${ownPermissions ? ' 🔒' : ''}</span>
                         ${manage}
                         <span class="kb-folder-count">${f.article_count}</span>
                      </div>`;
@@ -1385,7 +1386,7 @@ function renderFolderRows() {
              ondragover="kbDragOver(event)" ondragleave="kbDragLeave(event)" ondrop="kbDrop(event, ${f.id})"
              data-folder="${f.id}"
              oncontextmenu="kbContextMenu(event, 'folder', ${f.id}, ${jsAttr(f.name)})">
-            <div class="article-card-title">📁 ${escapeHtml(f.name)}${f.is_restricted ? ' 🔒' : ''}</div>
+            <div class="article-card-title">📁 ${escapeHtml(f.name)}${Number(f.inherits) === 0 ? ' 🔒' : ''}</div>
             <div class="article-card-meta">
                 <div class="article-card-info">
                     <span>${f.article_count} ${escapeHtml(window.t(
