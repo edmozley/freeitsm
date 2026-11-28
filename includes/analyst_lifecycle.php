@@ -123,6 +123,7 @@ function analystReferenceRegistry(): array {
         // ── secret: sign-in material ─────────────────────────────────────────
         ['analyst_sso_identities', 'analyst_id', 'secret'],
         ['trusted_devices', 'analyst_id', 'secret'],
+        ['analyst_login_tokens', 'analyst_id', 'secret'],   // GH #443 "Keep me signed in"
         ['password_reset_tokens', 'analyst_id', 'secret'],
         ['api_keys', 'analyst_id', 'secret'],
         ['apikeys', 'analyst_id', 'secret'],

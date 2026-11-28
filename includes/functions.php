@@ -56,6 +56,10 @@ require_once __DIR__ . '/password_gate.php';
 // leaving every endpoint that only checks "signed in" open to them. See the file.
 require_once __DIR__ . '/analyst_active_gate.php';
 
+// "Keep me signed in" (GH #443). Its auto-restore runs at the END of this file, once
+// every function it calls (getAnalystAllowedModules() is below) is defined.
+require_once __DIR__ . '/keep_signed_in.php';
+
 // ⚠️ Stop announcing the exact PHP build on every single response.
 //
 // Withholding the version from setup/ (S9) is worth very little while every other
@@ -722,4 +726,8 @@ function oauthTokenErrorMessage($response, int $httpCode): string
     return 'The mail provider refused the login (HTTP ' . $httpCode . ') and gave no reason. '
          . 'Check the client secret and the app registration have not expired.';
 }
+
+// GH #443: no analyst session, but a "Keep me signed in" cookie - sign back in now,
+// before the page or endpoint checks $_SESSION['analyst_id']. See keep_signed_in.php.
+keepSignedInAutoRestore();
 ?>

@@ -1,0 +1,170 @@
+<?php
+/**
+ * "Keep me signed in" (GH #443) - over real HTTP against a disposable install.
+ *
+ *   FREEITSM_TEST_DATABASE=<throwaway db> FREEITSM_TEST_URL=http://localhost/<that install> php tests/keep-signed-in.php
+ *
+ * Signs a ZZ analyst in through auth/login.php with the tick, throws the PHP session
+ * away (as an idle timeout, a closed browser or a container restart would) and checks
+ * a page then opens signed in from the cookie alone - and every case in which it must
+ * NOT: setting Off, a shorter period, a changed password, a deactivated analyst,
+ * signing out, and a copied cookie used after the owner's (which removes every token).
+ *
+ * The controls: the same requests without the cookie are sent to the sign-in page;
+ * the tick is absent while the setting is Off. Everything made here is removed in
+ * `finally`; the setting is put back as it was.
+ */
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
+$root = dirname(__DIR__);
+chdir($root);
+require_once 'config.php';
+require_once 'includes/functions.php';
+$conn = connectToDatabase();
+$db = (string)$conn->query('SELECT DATABASE()')->fetchColumn();
+if ($db === '' || $db !== getenv('FREEITSM_TEST_DATABASE')) {
+    echo "SKIPPED: set FREEITSM_TEST_DATABASE to the database this may write to (this one is $db).\n";
+    exit(0);
+}
+$base = rtrim((string)getenv('FREEITSM_TEST_URL'), '/');
+if ($base === '' || !in_array(parse_url($base, PHP_URL_HOST), ['localhost', '127.0.0.1'], true)) {
+    echo "SKIPPED: set FREEITSM_TEST_URL to the local install that uses $db.\n";
+    exit(0);
+}
+if (!keepSignedInReady($conn)) { echo "SKIPPED: run Database Verification first (no analyst_login_tokens).\n"; exit(0); }
+
+$pass = 0; $fail = 0;
+function check(string $what, bool $ok, string $detail = '') { global $pass, $fail; if ($ok) { $pass++; echo "  [PASS] $what\n"; } else { $fail++; echo "  [FAIL] $what" . ($detail !== '' ? "  <- $detail" : '') . "\n"; } }
+
+/** One request; returns [status, location, body, cookies set (name => value)]. */
+function req(string $method, string $url, array $cookies = [], ?array $post = null): array {
+    $ch = curl_init($url);
+    $hdr = [];
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => false, CURLOPT_TIMEOUT => 30, CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_HEADERFUNCTION => function ($c, $l) use (&$hdr) { $hdr[] = $l; return strlen($l); }]);
+    if ($cookies) curl_setopt($ch, CURLOPT_HTTPHEADER, ['Cookie: ' . implode('; ', array_map(fn($k, $v) => "$k=$v", array_keys($cookies), $cookies))]);
+    if ($post !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+    $body = (string)curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $set = []; $loc = '';
+    foreach ($hdr as $l) {
+        if (preg_match('/^Set-Cookie:\s*([^=]+)=([^;]*)/i', $l, $m)) $set[trim($m[1])] = urldecode($m[2]);
+        if (preg_match('/^Location:\s*(.+)$/i', $l, $m)) $loc = trim($m[1]);
+    }
+    return [$status, $loc, $body, $set];
+}
+$setting = function (?string $v) use ($conn) {
+    if ($v === null) { $conn->prepare("DELETE FROM system_settings WHERE setting_key = 'keep_signed_in_days'")->execute(); return; }
+    $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('keep_signed_in_days', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$v]);
+};
+$was = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'keep_signed_in_days'")->fetchColumn();
+$tag = 'zzksi' . bin2hex(random_bytes(3));
+$password = 'Zz-' . bin2hex(random_bytes(8)) . '!9a';
+$analystId = 0;
+
+/** Signs in with the tick; returns the cookies the browser would then hold. */
+$signIn = function (bool $tick) use ($base, $tag, $password): array {
+    [, , , $c0] = req('GET', "$base/auth/login.php");
+    $jar = $c0;
+    [$s, $loc, , $c1] = req('POST', "$base/auth/login.php", $jar, ['username' => $tag, 'password' => $password] + ($tick ? ['keep_signed_in' => '1'] : []));
+    return [$s, $loc, array_merge($jar, $c1)];
+};
+/** Is a page open signed in with just these cookies? (200 on the inbox, not a bounce to login) */
+$opens = function (array $cookies) use ($base): array {
+    [$s, $loc, , $set] = req('GET', "$base/tickets/", $cookies);
+    return [$s === 200, $set, "$s $loc"];
+};
+
+try {
+    $conn->prepare('INSERT INTO analysts (username, password_hash, full_name, email, is_active, is_admin, can_access_all_tenants, can_access_all_modules) VALUES (?, ?, ?, ?, 1, 1, 1, 1)')
+         ->execute([$tag, password_hash($password, PASSWORD_DEFAULT), 'ZZ Keep Signed In', "$tag@example.test"]);
+    $analystId = (int)$conn->lastInsertId();
+    $conn->prepare("UPDATE analysts SET password_changed_datetime = UTC_TIMESTAMP() - INTERVAL 1 DAY WHERE id = ?")->execute([$analystId]);
+
+    echo "\nThe tick\n";
+    $setting('0');
+    [, , $page] = req('GET', "$base/auth/login.php");
+    check('CONTROL: with the setting Off the sign-in page has no tick', !str_contains($page, 'name="keep_signed_in"'));
+    $setting('7');
+    [, , $page] = req('GET', "$base/auth/login.php");
+    check('with 7 days it offers "Keep me signed in for 7 days"', str_contains($page, 'name="keep_signed_in"') && str_contains($page, '7 days'));
+
+    echo "\nSigning in with it, then losing the session\n";
+    [$s, $loc, $jar] = $signIn(true);
+    check("signed in ($s to $loc)", $s === 302 && !str_contains($loc, 'login.php'));
+    $keep = $jar['fitsm_keep'] ?? '';
+    check('a fitsm_keep cookie was set: selector:validator', (bool)preg_match('/^[0-9a-f]{24}:[0-9a-f]{64}$/', $keep));
+    $row = $conn->prepare("SELECT selector, validator_hash FROM analyst_login_tokens WHERE analyst_id = ?");
+    $row->execute([$analystId]);
+    $tok = $row->fetch(PDO::FETCH_ASSOC);
+    check('one token row; only a hash of the validator is stored', $tok && $tok['selector'] === substr($keep, 0, 24) && $tok['validator_hash'] === hash('sha256', hex2bin(substr($keep, 25))) && !str_contains(json_encode($tok), substr($keep, 25)));
+    [$ok, , $d] = $opens([]);
+    check('CONTROL: with no cookies at all the inbox sends you to sign in', !$ok, $d);
+    [$ok, $set, $d] = $opens(['fitsm_keep' => $keep]);
+    check('with only the cookie - the session gone - the inbox opens signed in', $ok, $d);
+    $rotated = $set['fitsm_keep'] ?? '';
+    check('...and the validator was rotated (same selector, new validator)', $rotated !== '' && $rotated !== $keep && substr($rotated, 0, 24) === substr($keep, 0, 24));
+    [$ok, , $d] = $opens(['fitsm_keep' => $keep]);
+    check('a request racing the rotation (old validator, within two minutes) still opens', $ok, $d);
+
+    echo "\nA copied cookie\n";
+    $conn->prepare("UPDATE analyst_login_tokens SET rotated_datetime = UTC_TIMESTAMP() - INTERVAL 10 MINUTE WHERE analyst_id = ?")->execute([$analystId]);
+    [$ok, , $d] = $opens(['fitsm_keep' => $keep]);
+    check('the old validator long after the rotation is refused', !$ok, $d);
+    $n = $conn->prepare("SELECT COUNT(*) FROM analyst_login_tokens WHERE analyst_id = ?"); $n->execute([$analystId]);
+    check('...and every token of that analyst is removed', (int)$n->fetchColumn() === 0);
+    [$ok, , $d] = $opens(['fitsm_keep' => $rotated]);
+    check('...so the owner\'s own (newer) cookie stops working too', !$ok, $d);
+
+    $fresh = function () use ($signIn): string { [, , $j] = $signIn(true); return $j['fitsm_keep'] ?? ''; };
+
+    echo "\nWhen it must stop\n";
+    $k = $fresh();
+    $setting('0');
+    [$ok, , $d] = $opens(['fitsm_keep' => $k]);
+    check('the setting turned Off refuses it', !$ok, $d);
+    $setting('7');
+
+    $k = $fresh();
+    $conn->prepare("UPDATE analyst_login_tokens SET created_datetime = UTC_TIMESTAMP() - INTERVAL 10 DAY, expires_datetime = UTC_TIMESTAMP() + INTERVAL 20 DAY WHERE analyst_id = ?")->execute([$analystId]);
+    [$ok, , $d] = $opens(['fitsm_keep' => $k]);
+    check('a token made 10 days ago under a longer setting is refused at 7 days', !$ok, $d);
+
+    $k = $fresh();
+    $conn->prepare("UPDATE analysts SET password_changed_datetime = UTC_TIMESTAMP() + INTERVAL 1 MINUTE WHERE id = ?")->execute([$analystId]);
+    [$ok, , $d] = $opens(['fitsm_keep' => $k]);
+    check('a password changed after the token was made refuses it', !$ok, $d);
+    $conn->prepare("UPDATE analysts SET password_changed_datetime = UTC_TIMESTAMP() - INTERVAL 1 DAY WHERE id = ?")->execute([$analystId]);
+
+    $k = $fresh();
+    $conn->prepare("UPDATE analysts SET is_active = 0 WHERE id = ?")->execute([$analystId]);
+    [$ok, , $d] = $opens(['fitsm_keep' => $k]);
+    check('a deactivated analyst is refused', !$ok, $d);
+    $conn->prepare("UPDATE analysts SET is_active = 1 WHERE id = ?")->execute([$analystId]);
+
+    echo "\nSigning out\n";
+    [, , $jar] = $signIn(true);
+    $k = $jar['fitsm_keep'] ?? '';
+    [, , , $out] = req('GET', "$base/auth/analyst_logout.php", $jar);
+    $n = $conn->prepare("SELECT COUNT(*) FROM analyst_login_tokens WHERE selector = ?"); $n->execute([substr($k, 0, 24)]);
+    check('Sign out removes this browser\'s token', (int)$n->fetchColumn() === 0);
+    check('...and clears the cookie', array_key_exists('fitsm_keep', $out) && $out['fitsm_keep'] === '' || ($out['fitsm_keep'] ?? 'x') === 'deleted');
+    [$ok, , $d] = $opens(['fitsm_keep' => $k]);
+    check('...so the cookie no longer signs in', !$ok, $d);
+
+    echo "\nWithout the tick\n";
+    [, , $jar] = $signIn(false);
+    check('signing in without the tick sets no cookie', !isset($jar['fitsm_keep']));
+} catch (Throwable $e) {
+    check('no exception', false, $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
+} finally {
+    if ($analystId) {
+        $conn->prepare("DELETE FROM analyst_login_tokens WHERE analyst_id = ?")->execute([$analystId]);
+        foreach (['login_attempts', 'audit_log'] as $t) { try { $conn->prepare("DELETE FROM $t WHERE analyst_id = ?")->execute([$analystId]); } catch (Throwable $e) {} }
+        $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$analystId]);
+    }
+    $setting($was === false ? null : (string)$was);
+}
+
+echo "\n$pass passed, $fail failed\n";
+exit($fail ? 1 : 0);

@@ -8230,6 +8230,27 @@ CREATE TABLE IF NOT EXISTS `trusted_devices` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- "Keep me signed in" (GH #443, includes/keep_signed_in.php): one row per browser.
+-- selector is looked up; only a SHA-256 of the validator is kept. previous_hash is the
+-- validator before the last rotation, accepted for two minutes so requests that race
+-- the rotation are not taken for a stolen cookie.
+CREATE TABLE IF NOT EXISTS `analyst_login_tokens` (
+    `id`                 INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`         INT NOT NULL,
+    `selector`           CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    `validator_hash`     CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    `previous_hash`      CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    `rotated_datetime`   DATETIME NULL,
+    `user_agent`         VARCHAR(500) NULL,
+    `ip_address`         VARCHAR(45) NULL,
+    `created_datetime`   DATETIME NOT NULL,
+    `last_used_datetime` DATETIME NULL,
+    `expires_datetime`   DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_analyst_login_tokens_selector` (`selector`),
+    KEY `idx_analyst_login_tokens_analyst` (`analyst_id`, `expires_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `analyst_id`        INT NOT NULL,

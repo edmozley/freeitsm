@@ -14,6 +14,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3210 | System            | Improvement | System -> Security help and the Trusted Device card now say plainly that a trusted device only skips the one-time code - the password is still asked - and point to Keep me signed in (GH #443). |
+| 3209 | System            | Feature     | Keep me signed in: System -> Security -> Keep analysts signed in (Off, 1, 7, 14 or 30 days) puts a tick on the analyst sign-in page; the browser stays signed in through idle time, a closed browser and a server restart, ending on sign out, a password change, deactivation or lock, or the setting changing; avatar menu -> Kept signed in lists and removes browsers (GH #443). |
 | 3208 | Tickets           | Improvement | Tickets help explains when to make someone a participant (they follow the whole ticket) and when to type them into the reply's Cc (this one email is all they need); the reply box's Cc note links to it. |
 | 3207 | Tickets           | Feature     | Replying to an email that had Cc'd people who are not participants says so in the reply box, each with + Participant (which also puts them in that reply's Cc); a Cc is never added by itself. |
 | 3206 | Tickets           | Feature     | Each message in a ticket's thread shows who it went to (To and Cc, one line that opens out), with + Participant beside each Cc'd address. |

@@ -491,6 +491,8 @@ return [
     ['webhook_deliveries', 'idx_wd_due', 'key', '(`status`,`next_attempt_at`)'],
     ['webhook_deliveries', 'idx_wd_workflow', 'key', '(`workflow_id`)'],
     ['webhook_deliveries', 'idx_wd_created', 'key', '(`created_datetime`)'],
+    ['analyst_login_tokens', 'uq_analyst_login_tokens_selector', 'unique', '(`selector`)'],
+    ['analyst_login_tokens', 'idx_analyst_login_tokens_analyst', 'key', '(`analyst_id`,`expires_datetime`)'],
     ['password_reset_tokens', 'idx_prt_token', 'key', '(`token_hash`)'],
     ['password_reset_tokens', 'idx_prt_analyst', 'key', '(`analyst_id`)'],
     ['ip_login_bans', 'uq_ip_bans_ip', 'unique', '(`ip_address`)'],

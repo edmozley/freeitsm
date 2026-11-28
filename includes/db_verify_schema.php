@@ -3882,6 +3882,21 @@ return [
         'expires_datetime'   => 'DATETIME NOT NULL',
     ],
 
+    // "Keep me signed in" (GH #443) - includes/keep_signed_in.php
+    'analyst_login_tokens' => [
+        'id'                 => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'         => 'INT NOT NULL',
+        'selector'           => 'CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NOT NULL',
+        'validator_hash'     => 'CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL',
+        'previous_hash'      => 'CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL',
+        'rotated_datetime'   => 'DATETIME NULL',
+        'user_agent'         => 'VARCHAR(500) NULL',
+        'ip_address'         => 'VARCHAR(45) NULL',
+        'created_datetime'   => 'DATETIME NOT NULL',
+        'last_used_datetime' => 'DATETIME NULL',
+        'expires_datetime'   => 'DATETIME NOT NULL',
+    ],
+
     'password_reset_tokens' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'analyst_id'        => 'INT NOT NULL',

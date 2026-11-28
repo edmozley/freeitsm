@@ -178,12 +178,13 @@ function getHelpTopics() {
             'sections' => [
                 ['id' => 'overview', 'label' => 'Overview'],
                 ['id' => 'trusted',  'label' => 'Trusted device'],
+                ['id' => 'keep',     'label' => 'Keep me signed in'],
                 ['id' => 'password', 'label' => 'Password expiry'],
                 ['id' => 'lockout',  'label' => 'Account lockout'],
                 ['id' => 'ipban',    'label' => 'IP ban'],
                 ['id' => 'attachments', 'label' => 'Attachments'],
             ],
-            'terms' => 'brute force locked out failed attempts hardening rotation ban blocked attachment size limit upload mb php',
+            'terms' => 'brute force locked out failed attempts hardening rotation ban blocked attachment size limit upload mb php remember me stay signed in logged out session timeout',
         ],
         // A step-by-step guide, not a System area: no landing card, reached from
         // the provider dialog's Groups and teams tab and from the Authentication help.

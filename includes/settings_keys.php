@@ -111,6 +111,7 @@ function settingKeyOwners(): array
         'back_link_url'            => ['module' => 'system', 'cap' => null, 'tab' => 'branding'],
         'back_link_where'          => ['module' => 'system', 'cap' => null, 'tab' => 'branding'],
         'trusted_device_days'      => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
+        'keep_signed_in_days'      => ['module' => 'system', 'cap' => null, 'tab' => 'security'],   // GH #443
         'password_expiry_days'     => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
         'max_failed_logins'        => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
         'max_ip_attempts'          => ['module' => 'system', 'cap' => null, 'tab' => 'security'],

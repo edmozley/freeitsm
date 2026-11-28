@@ -11,6 +11,10 @@ require_once __DIR__ . '/../includes/functions.php';
 $ssoProviderId = $_SESSION['sso_provider_id'] ?? null;
 $ssoIdToken    = $_SESSION['sso_id_token'] ?? null;
 
+// GH #443: this browser stops being kept signed in - FIRST, or the next page would
+// sign straight back in from the cookie.
+try { keepSignedInForget(connectToDatabase()); } catch (Throwable $e) { keepSignedInSetCookie(''); }
+
 // Unset all session variables
 $_SESSION = array();
 

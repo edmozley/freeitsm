@@ -805,6 +805,19 @@ return [
         'change_password' => 'Change Password',
         'mfa'             => 'Multi-Factor Auth',
         'trusted_device'  => 'Trusted Device',
+        // GH #443: Kept signed in (avatar menu)
+        'kept_signed_in'  => 'Kept signed in',
+        'kept_title'      => 'Browsers kept signed in',
+        'kept_intro'      => 'Where you ticked "Keep me signed in". Remove one and the next sign-in there asks for your password again.',
+        'kept_this'       => 'This browser',
+        'kept_meta'       => 'Last used {used} from {ip} - until {until}',
+        'kept_browser_on' => '{browser} on {os}',
+        'kept_unknown'    => 'Unknown browser',
+        'kept_none'       => 'You are not kept signed in anywhere.',
+        'kept_failed'     => 'Could not load the list. Try again.',
+        'kept_remove_all' => 'Remove all',
+        'kept_remove_all_title' => 'Stop keeping you signed in everywhere?',
+        'kept_remove_all_msg'   => 'Every browser, this one included, will ask for your password at its next sign-in. Sessions already open carry on until they time out.',
         // Only rendered when the analyst also has a portal account they could sign
         // in to. See includes/waffle-menu.php (#81).
         'portal'          => 'Self-Service Portal',

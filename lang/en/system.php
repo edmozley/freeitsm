@@ -2017,9 +2017,18 @@ return [
         // customer list was the configuration working as intended.
         'selfreg_hint'    => 'Off = nobody can create their own account. People you add can still sign in — they set their first password using “Forgot your password?” on the portal sign-in page.',
         'trusted_heading' => 'Trusted Device',
-        'trusted_desc'    => 'Allow users to skip OTP verification on trusted browsers. Users opt in individually via their avatar menu. Set to 0 to disable this feature entirely.',
+        'trusted_desc'    => 'Allow users to skip OTP verification on trusted browsers. Users opt in individually via their avatar menu. Set to 0 to disable this feature entirely. It only skips the code at the next sign-in - it does not keep anyone signed in (see Keep me signed in below).',
         'trust_duration'  => 'Trust duration',
         'trust_duration_hint' => 'How long a device stays trusted after OTP verification',
+
+        // GH #443: "Keep me signed in"
+        'keep_heading'  => 'Keep me signed in',
+        'keep_desc'     => 'Offers "Keep me signed in" on the analyst sign-in page. Ticked, the analyst stays signed in on that browser through idle time, closing the browser and a server restart, until the period ends or they sign out. Changing their password, being deactivated or locked, or turning this off ends it. Analysts can see and remove the browsers they are kept signed in on from their avatar menu. Not for single sign-on or the self-service portal.',
+        'keep_label'    => 'Keep analysts signed in',
+        'keep_hint'     => 'How long one sign-in lasts when "Keep me signed in" is ticked. Shortening it applies to browsers already kept signed in.',
+        'keep_off'      => 'Off',
+        'keep_one_day'  => '1 day',
+        'keep_days'     => '{days} days',
 
         'password_heading' => 'Password Policy',
         'password_desc'    => 'Require users to change their password periodically. When a password expires, the user is redirected to a mandatory password change screen on next login. Set to 0 to disable.',

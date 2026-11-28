@@ -208,6 +208,24 @@ $translationNamespaces = ['common', 'system'];
                 </div>
             </div>
 
+            <!-- Keep me signed in (GH #443) -->
+            <div class="settings-card">
+                <h3 id="keep-signed-in"><?php echo htmlspecialchars(t('system.security.keep_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.security.keep_desc')); ?></p>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <strong><?php echo htmlspecialchars(t('system.security.keep_label')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.keep_hint')); ?>
+                    </div>
+                    <select class="setting-input att-wide" id="keepSignedInDays">
+                        <option value="0"><?php echo htmlspecialchars(t('system.security.keep_off')); ?></option>
+                        <?php foreach ([1, 7, 14, 30] as $kd): ?>
+                        <option value="<?php echo $kd; ?>"><?php echo htmlspecialchars(t($kd === 1 ? 'system.security.keep_one_day' : 'system.security.keep_days', ['days' => $kd])); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
             <!-- Password Policy -->
             <div class="settings-card">
                 <h3 id="passwords"><?php echo htmlspecialchars(t('system.security.password_heading')); ?></h3>
@@ -378,6 +396,9 @@ $translationNamespaces = ['common', 'system'];
                 // which is what the login code will actually do.
                 const shown = (v, ifMissing) => (v === undefined || v === null || v === '') ? ifMissing : v;
                 document.getElementById('trustedDeviceDays').value  = shown(s.trusted_device_days, '0');
+                // GH #443: anything not on the list reads as Off, as keepSignedInDays() does.
+                const keep = String(shown(s.keep_signed_in_days, '0'));
+                document.getElementById('keepSignedInDays').value = ['0', '1', '7', '14', '30'].includes(keep) ? keep : '0';
                 document.getElementById('passwordExpiryDays').value = shown(s.password_expiry_days, '0');
                 document.getElementById('maxFailedLogins').value    = shown(s.max_failed_logins, '0');
                 document.getElementById('maxIpAttempts').value      = shown(s.max_ip_attempts, '0');
@@ -407,6 +428,7 @@ $translationNamespaces = ['common', 'system'];
         const settings = {
             self_service_registration_enabled: document.getElementById('selfServiceRegistration').checked ? '1' : '0',
             trusted_device_days: document.getElementById('trustedDeviceDays').value,
+            keep_signed_in_days: document.getElementById('keepSignedInDays').value,
             password_expiry_days: document.getElementById('passwordExpiryDays').value,
             max_failed_logins: document.getElementById('maxFailedLogins').value,
             lockout_duration_minutes: document.getElementById('lockoutDuration').value,

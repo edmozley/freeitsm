@@ -15,11 +15,15 @@ require __DIR__ . '/_top.php';
             <p>System &rarr; Security is where you tune the defences around the local username-and-password login. Each card is a separate guard rail; set the ones you want, leave the rest at their defaults, and press <strong>Save</strong>.</p>
         </div>
     </div>
-    <p>There are four guard rails, each covered below:</p>
+    <p>These are the guard rails, each covered below:</p>
     <div class="help-cards">
         <div class="help-card">
             <h4>Trusted device</h4>
-            <p>How long a remembered device can skip a re-prompt after a successful sign-in.</p>
+            <p>How long a remembered device can skip the one-time code after a successful sign-in.</p>
+        </div>
+        <div class="help-card">
+            <h4>Keep me signed in</h4>
+            <p>Let analysts stay signed in on a browser for a set number of days.</p>
         </div>
         <div class="help-card">
             <h4>Password expiry</h4>
@@ -43,7 +47,7 @@ require __DIR__ . '/_top.php';
     <div class="help-section-header"><?php echo helpSectionNum('trusted'); ?>
         <div>
             <h3>Trusted device</h3>
-            <p>After a successful sign-in, a device can be remembered so the person isn't challenged again for a while. This setting controls how long that trust lasts.</p>
+            <p>After a successful sign-in with a one-time code, a device can be remembered so the person isn't asked for the <strong>code</strong> again for a while. This setting controls how long that trust lasts. They still type their password whenever they sign in - to stay signed in, see <a href="#keep">Keep me signed in</a>.</p>
         </div>
     </div>
     <div class="help-table"><table>
@@ -52,6 +56,27 @@ require __DIR__ . '/_top.php';
     </table></div>
     <p>Set it to <code>0</code> to never trust a device — every sign-in is treated fresh. A higher number is more convenient but means a lost or shared machine stays trusted for longer.</p>
     <div class="help-note"><strong>Choosing a value:</strong> 30 days suits most internal staff. For higher-sensitivity desks, keep it short (7 days or less), or <code>0</code> to disable trusted devices entirely.</div>
+</div>
+
+<!-- Keep me signed in (GH #443) -->
+<div class="help-section" id="keep">
+    <div class="help-section-header"><?php echo helpSectionNum('keep'); ?>
+        <div>
+            <h3>Keep me signed in</h3>
+            <p>Without it, a sign-in lasts only as long as the browser session: about 24 minutes of no activity, closing the browser, or restarting the server (or the Docker container) means signing in again. With it, analysts can tick <strong>Keep me signed in</strong> on the sign-in page and stay signed in on that browser for the period you choose.</p>
+        </div>
+    </div>
+    <div class="help-table"><table>
+        <tr><th>Setting</th><th>What it does</th></tr>
+        <tr><td><strong>Keep analysts signed in</strong></td><td><em>Off</em> (the default: no tick on the sign-in page), or 1, 7, 14 or 30 days. Shortening it applies to browsers already kept signed in.</td></tr>
+    </table></div>
+    <ul>
+        <li><strong>It ends</strong> when the period is up, when they sign out, when their password changes (by them or an administrator), when they are deactivated or locked, and when you turn this off.</li>
+        <li><strong>Two-factor:</strong> they type the code once, when they tick the box. After that, the browser counts as having passed it.</li>
+        <li><strong>Their avatar menu &rarr; Kept signed in</strong> lists the browsers they are kept signed in on, with <strong>Remove</strong> and <strong>Remove all</strong>.</li>
+        <li>A copied cookie that is used after the owner's is spotted, and every browser of that analyst is signed out.</li>
+    </ul>
+    <div class="help-note"><strong>Choosing a value:</strong> 14 days suits most desks where each analyst has their own computer. On shared or public computers, analysts should simply not tick it. Not for single sign-on (the identity provider decides how long that lasts) or the self-service portal.</div>
 </div>
 
 <!-- 3. Password expiry -->

@@ -55,6 +55,15 @@ try {
     $i18nReady = false;   // English it is
 }
 
+// GH #443: how many days "Keep me signed in" lasts here; 0 = the tick is not offered.
+$keepDays = 0;
+try {
+    $keepConn = connectToDatabase();
+    if (keepSignedInReady($keepConn)) $keepDays = keepSignedInDays($keepConn);
+} catch (Throwable $e) {
+    $keepDays = 0;
+}
+
 /**
  * Translate, with the English as the last line of defence.
  *
@@ -196,6 +205,7 @@ if (isset($_GET['cancel_mfa'])) {
     unset($_SESSION['mfa_pending_name']);
     unset($_SESSION['mfa_pending_email']);
     unset($_SESSION['mfa_pending_allowed_modules']);
+    unset($_SESSION['mfa_pending_keep']);
     // Starting the sign-in again keeps the page it was for.
     $cancelReturn = loginReturnPeek();
     header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'auth/login.php'
@@ -268,6 +278,8 @@ function recordIpAttempt($conn, $ip) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
+    // GH #443: "Keep me signed in" - only honoured while the setting is on.
+    $keepRequested = !empty($_POST['keep_signed_in']) && $keepDays > 0;
 
     if (empty($username) || empty($password)) {
         $error = tr('err_missing', 'Please enter both username and password');
@@ -483,6 +495,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         $_SESSION['allowed_modules'] = getAnalystAllowedModules($conn, $analyst['id']);
                         logLoginAttempt($conn, $analyst['id'], $username, true);
+                        if ($keepRequested) keepSignedInIssue($conn, (int)$analyst['id']);   // GH #443
 
                         // Must this password change before anything else?
                         if (loginRequiresPasswordChange($conn, $analyst, $skipPasswordExpiry)) {
@@ -500,6 +513,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['mfa_pending_name'] = $analyst['full_name'];
                     $_SESSION['mfa_pending_email'] = $analyst['email'];
                     $_SESSION['mfa_pending_allowed_modules'] = getAnalystAllowedModules($conn, $analyst['id']);
+                    // GH #443: the token is made only once the code is right too (verify_login_otp.php).
+                    $_SESSION['mfa_pending_keep'] = $keepRequested;
 
                     // Log successful password step
                     logLoginAttempt($conn, $analyst['id'], $username, true);
@@ -527,6 +542,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     // Log successful login
                     logLoginAttempt($conn, $analyst['id'], $username, true);
+                    if ($keepRequested) keepSignedInIssue($conn, (int)$analyst['id']);   // GH #443
 
                     // Must this password change before anything else?
                     if (loginRequiresPasswordChange($conn, $analyst, $skipPasswordExpiry)) {
@@ -740,6 +756,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: var(--font-size-lg, 14px);
             border-left: 4px solid #c33;
         }
+
+        /* GH #443 */
+        .keep-signed-in { display: flex; align-items: center; gap: 8px; margin: -4px 0 16px; font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); cursor: pointer; }
 
         .login-button {
             width: 100%;
@@ -1087,6 +1106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="password"><?php echo htmlspecialchars(tr('password', 'Password')); ?></label>
                                 <input type="password" id="password" name="password" required autocomplete="off">
                             </div>
+                            <?php if ($keepDays > 0): /* GH #443 */ ?>
+                            <label class="keep-signed-in"><input type="checkbox" name="keep_signed_in" value="1"> <?php echo htmlspecialchars(($keepDays === 1 ? tr('keep_signed_in_one', 'Keep me signed in for 1 day') : tr('keep_signed_in', 'Keep me signed in for {days} days', ['days' => $keepDays]))); ?></label>
+                            <?php endif; ?>
                             <button type="submit" class="login-button"><?php echo htmlspecialchars(tr('sign_in', 'Sign In')); ?></button>
                         </form>
                         <a href="<?php echo defined('BASE_URL') ? BASE_URL : '/'; ?>auth/forgot-password.php" class="forgot-link"><?php echo htmlspecialchars(tr('forgot', 'Forgot password?')); ?></a>
@@ -1163,6 +1185,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="password"><?php echo htmlspecialchars(tr('password', 'Password')); ?></label>
                         <input type="password" id="password" name="password" required autocomplete="off">
                     </div>
+                    <?php if ($keepDays > 0): /* GH #443 */ ?>
+                    <label class="keep-signed-in"><input type="checkbox" name="keep_signed_in" value="1"> <?php echo htmlspecialchars(($keepDays === 1 ? tr('keep_signed_in_one', 'Keep me signed in for 1 day') : tr('keep_signed_in', 'Keep me signed in for {days} days', ['days' => $keepDays]))); ?></label>
+                    <?php endif; ?>
                     <button type="submit" class="login-button"><?php echo htmlspecialchars(tr('sign_in', 'Sign In')); ?></button>
                 </form>
                 <a href="<?php echo defined('BASE_URL') ? BASE_URL : '/'; ?>auth/forgot-password.php" class="forgot-link"><?php echo htmlspecialchars(tr('forgot', 'Forgot password?')); ?></a>

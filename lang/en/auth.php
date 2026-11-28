@@ -22,6 +22,8 @@ return [
     'username_or_email' => 'Username or email',
     'password'      => 'Password',
     'sign_in'       => 'Sign In',
+    'keep_signed_in' => 'Keep me signed in for {days} days',   // GH #443
+    'keep_signed_in_one' => 'Keep me signed in for 1 day',
     'forgot'        => 'Forgot password?',
 
     // Email-first form, shown when single sign-on is configured

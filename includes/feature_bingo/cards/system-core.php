@@ -287,6 +287,18 @@ return [
         'check'    => ['sql', "SELECT COUNT(*) FROM system_settings WHERE setting_key = 'trusted_device_days' AND CAST(setting_value AS UNSIGNED) > 0"],
     ],
     [
+        'id'       => 'system.keep_signed_in',
+        'module'   => 'system',
+        'tier'     => 'recommended',
+        'category' => 'productivity',
+        'title'    => 'Keep me signed in',
+        'what'     => 'A "Keep me signed in" tick on the analyst sign-in page, for 1 to 30 days per browser.',
+        'why'      => 'Without it a sign-in ends after about 24 idle minutes, when the browser closes or when the server restarts - and analysts sign in many times a day. It still ends on sign out, a password change or deactivation.',
+        'done'     => 'Keep analysts signed in is set to more than Off.',
+        'link'     => 'system/security/#keep-signed-in',
+        'check'    => ['sql', "SELECT COUNT(*) FROM system_settings WHERE setting_key = 'keep_signed_in_days' AND CAST(setting_value AS UNSIGNED) > 0"],
+    ],
+    [
         'id'       => 'system.password_expiry',
         'module'   => 'system',
         'tier'     => 'extra',

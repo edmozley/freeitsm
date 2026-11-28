@@ -170,6 +170,9 @@ try {
     unset($_SESSION['mfa_pending_name']);
     unset($_SESSION['mfa_pending_email']);
     unset($_SESSION['mfa_pending_allowed_modules']);
+    // GH #443: "Keep me signed in" was ticked on the password step - now the code is right too.
+    if (!empty($_SESSION['mfa_pending_keep'])) keepSignedInIssue($conn, (int)$analystId);
+    unset($_SESSION['mfa_pending_keep']);
 
     // Update last login time
     $updateSql = "UPDATE analysts SET last_login_datetime = UTC_TIMESTAMP() WHERE id = ?";
