@@ -260,6 +260,8 @@ return [
         'meta_to'             => 'To:',
         'meta_cc'             => 'Cc:',
         'meta_date'           => 'Date:',
+        'meta_opened'         => 'Opened',          // the header: when the ticket was opened (Ed, 28 Nov 2026)
+        'requester_none'      => 'Nobody yet',
 
         // Message-thread direction badges
         'badge_sent'          => 'Sent',
@@ -333,6 +335,12 @@ return [
     // GH #432: participants - end users copied on a ticket's emails (assets/js/ticket-participants.js).
     'participants' => [
         'label' => 'Participants',
+        'add_from_cc' => '+ Participant',
+        'add_from_cc_title' => 'Make {email} a participant - copied on this ticket\'s replies from now on',
+        'added_from_cc' => '{email} is now a participant.',
+        'reply_cc_note_one' => '{names} was Cc\'d on this email and will not get your reply.',
+        'reply_cc_note_many' => 'These people were Cc\'d on this email and will not get your reply: {names}.',
+        'reply_cc_note_list' => 'Cc\'d on this email - will not get your reply:',
         'add' => 'Add',
         'add_title' => 'Add a participant',
         'search' => 'Search people, or type an email address',
@@ -680,6 +688,9 @@ return [
     // newest-first, so later-in-time messages appear ABOVE the chosen one.
     // Reply / Forward from one message in the thread (GH #306).
     'thread' => [
+        'to' => 'To',
+        'cc' => 'Cc',
+        'recipients_title' => 'Who this message went to - click to see it all',
         'reply'              => 'Reply',
         'reply_this_title'   => 'Reply to this message - starts from its subject',
         'forward'            => 'Forward',
@@ -3580,6 +3591,7 @@ return [
         // GH #432: participants - end users copied on a ticket's emails.
         'participants' => [
             'heading' => 'Participants: keeping other people copied',
+            'cc' => '<strong>Someone Cc\'d on an email</strong> is shown on that message in the thread (each message says who it went to), but is never added to the ticket by itself. Being Cc\'d is only information - anyone can be: a supplier, a mailing list, a system that answers automatically. To keep them in the loop, press <strong>+ Participant</strong> beside their address. When you reply to an email that had Cc\'d people who are not participants, the reply box says who will not get it, with the same button.',
             'body' => 'A ticket has one requester, but colleagues hit by the same problem, a manager or someone supplying information often need every email too. Add them as <strong>participants</strong> and you no longer type them into Cc on every reply.',
             'how' => 'The <strong>Participants</strong> row sits under the requester in the ticket header. <strong>Add</strong> searches People, or takes an email address - one nobody has yet creates the person. The &times; next to a name takes them off. Changing participants needs write access to Tickets, and every add and removal is in the ticket\'s history.',
             'reply' => '<strong>Reply</strong> starts with the participants in Cc, once each, never repeating anyone already in To. When the reply goes to someone other than the requester - answering a participant\'s own message - the requester is put in Cc too. You can take anyone out for that one message. <strong>Forward</strong> never pre-fills them.',
@@ -3725,7 +3737,7 @@ return [
             'cleanup_streams' => '<strong>Streams live</strong> &mdash; the rewrite appears in the editor as the AI generates it (no waiting in front of a spinner).',
             'cleanup_undo'    => '<strong>Undo link for 30s</strong> &mdash; in case the AI butchers the rewrite, a small <em>Undo</em> link appears below the editor for 30 seconds after the rewrite completes, restoring the original draft.',
             'cleanup_tone'    => '<strong>Per-tone</strong> &mdash; three tone presets configurable under <strong>Settings &rarr; Reply Cleanup</strong>: <em>Friendly</em> (default), <em>Formal</em>, <em>Brief</em>. Pick whichever matches your team\'s house style.',
-            'cleanup_key'     => '<strong>Own API key</strong> &mdash; separate Anthropic key from the RFP / Knowledge / Workflow AI features so its usage shows as its own line on the Anthropic billing dashboard. Configured under <strong>Settings &rarr; Reply Cleanup</strong>.',
+            'cleanup_key'     => '<strong>Own API key</strong> &mdash; separate Anthropic key from the RFP / Knowledge / Workflow AI features so its usage shows as its own line on the Anthropic billing dashboard. Configured under <strong>Settings &rarr; Reply Cleanup</strong>.',
             'cleanup_prompt'  => '<strong>Your own prompt</strong> &mdash; <em>Tickets &rarr; Settings &rarr; Reply Cleanup</em> shows the system prompt, and you can change it. Every saved version is kept under <em>History</em>: <em>Restore</em> puts an earlier one back, and <em>Reset</em> returns to the built-in prompt.',   // GH #396
             'cleanup_tip'     => 'Cleanup is best used for the routine "I tried this, please try X" style replies. For long, nuanced messages you\'ll want to write them yourself &mdash; the AI is great at structure but doesn\'t know your specific environment.',
             'ask_heading'     => '<strong>Ask AI &mdash; 🤖 button in the ticket toolbar</strong>',

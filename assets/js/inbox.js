@@ -3617,37 +3617,30 @@ function displayEmail(email, recordings) {
                     <svg class="popout-icon-contract" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
                 </button>
             </div>
+            ${/* The header says who the TICKET is for - requester, participants, when it was
+                  opened. Never one message's From / To / Cc / Date: it used to show whichever
+                  message was open (usually our own acknowledgement), so "From" was the service
+                  desk, Change requester sat beside someone who was not the requester, and the
+                  first email's Cc was nowhere to be seen. Each message in the thread now says
+                  who it went to (threadRecipientsHtml). Ed, 28 Nov 2026. */''}
             <div class="email-meta">
                 <div class="email-meta-row">
-                    <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_from'))}</div>
-                    <div class="email-meta-value">${linkPerson(senderLabel(email.from_name, email.from_address, true), email.from_address, sameAddress(email.from_address, email.requester_email) ? email.user_id : null)}${requesterDialHtml(email)}
+                    <div class="email-meta-label">${escapeHtml(t('tickets.change_requester.requester'))}</div>
+                    <div class="email-meta-value">${email.requester_email || email.requester_name
+                        ? linkPerson(senderLabel(email.requester_name, email.requester_email, true), email.requester_email, email.user_id) + requesterDialHtml(email)
+                        : '<span class="participant-none">' + escapeHtml(t('tickets.reading_pane.requester_none')) + '</span>'}
                         <a href="#" class="req-change-link" onclick="event.preventDefault();openChangeRequester();">${escapeHtml(t('tickets.change_requester.link'))}</a></div>
                 </div>
-                ${email.requester_email && String(email.requester_email).toLowerCase() !== String(email.from_address || '').toLowerCase() ? `
-                <div class="email-meta-row">
-                    <div class="email-meta-label">${escapeHtml(t('tickets.change_requester.requester'))}</div>
-                    <div class="email-meta-value">${linkPerson(senderLabel(email.requester_name, email.requester_email, true), email.requester_email, email.user_id)}</div>
-                </div>` : ''}
-                <div class="email-meta-row">
-                    <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_to'))}</div>
-                    <div class="email-meta-value">${linkAddresses(email.to_recipients)}</div>
-                    <div class="email-meta-date"><span class="email-meta-date-label">${escapeHtml(t('tickets.reading_pane.meta_date'))}</span> ${formatFullDateTime(email.received_datetime)}</div>
-                </div>
-                ${email.cc_recipients ? `
-                <div class="email-meta-row">
-                    <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_cc'))}</div>
-                    <div class="email-meta-value">${linkAddresses(email.cc_recipients)}</div>
-                </div>
-                ` : ''}
-                ${/* GH #432: participants - filled by ticket-participants.js, hidden until it says to show.
-                     TRAP: after To / Cc / Date, never between them. On a desktop the header rows flow as one
-                     wrapping line (reading-pane.css: display: contents), and this row is one block (display:
-                     flex), so in the middle it pushed "To:" to the end of the line and its address onto the
-                     next. Last, it simply drops onto its own line when there is no room. */''}
+                ${/* GH #432: participants - filled by ticket-participants.js, hidden until it says to show. */''}
                 <div class="email-meta-row" id="ticketParticipantsRow" style="display:none">
                     <div class="email-meta-label">${escapeHtml(t('tickets.participants.label'))}</div>
                     <div class="email-meta-value"></div>
                 </div>
+                ${email.ticket_created ? `
+                <div class="email-meta-row">
+                    <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_opened'))}</div>
+                    <div class="email-meta-value">${formatFullDateTime(email.ticket_created)}</div>
+                </div>` : ''}
             </div>
         </div>
 `;
@@ -4953,7 +4946,8 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
         if (data.success && data.emails && data.emails.length > 0) {
             // Reverse so most recent email is at the top
             const emails = [...data.emails].reverse();
-            window.__threadEmails = emails.map(x => ({ id: x.id, subject: x.subject || '', direction: x.direction, from_address: x.from_address || '' }));
+            window.__threadEmails = emails.map(x => ({ id: x.id, subject: x.subject || '', direction: x.direction, from_address: x.from_address || '',
+                                                        to_recipients: x.to_recipients || '', cc_recipients: x.cc_recipients || '' }));
             container.innerHTML = emails.map((e, index) => {
                 const isOutbound = e.direction === 'Outbound';
                 return `
@@ -4988,6 +4982,7 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                             <span>${escapeHtml(t('tickets.split.from_here'))}</span>
                         </button>
                     </div>
+                    ${(e.channel || 'email') === 'email' ? threadRecipientsHtml(e) : ''}
                     ${e.subject && (e.channel || 'email') === 'email' ? `<div class="thread-subject">${escapeHtml(e.subject)}</div>` : ''}
                     ${e.same_kind && MC.flag_duplicates ? `<div class="dup-note">${escapeHtml(
                         e.same_kind === 'identical'
@@ -4997,6 +4992,7 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                     ${emailBodyHost(e.body_content, 'thread-message-body' + ((e.same_kind && MC.flag_duplicates) || +e.is_auto_reply ? ' mc-force' : ''), e.body_type)}
                 `;
             }).join('');
+            if (typeof window.syncParticipantCcButtons === 'function') window.syncParticipantCcButtons();
             // Isolate each thread body in a shadow root (see emailBodyHost).
             hydrateEmailBodies(container);
             tgGroupOlder(container);
@@ -6437,6 +6433,41 @@ function linkPerson(labelHtml, address, userId) {
     if (!userId && !a) return labelHtml;
     const href = 'users.php?' + (userId ? 'user_id=' + encodeURIComponent(userId) : 'email=' + encodeURIComponent(a));
     return `<a class="email-person-link" href="${href}" target="_blank" rel="noopener" title="${escapeHtml(t('tickets.reading_pane.open_person'))}">${labelHtml}</a>`;
+}
+
+/**
+ * One message's To and Cc, as a single small line under its sender - folded to one
+ * line, a click opens it out. Each Cc'd address carries a "+ Participant" button
+ * (GH #432), shown by ticket-participants.js (syncParticipantCcButtons) only when that
+ * person could be added. Being in Cc NEVER adds anyone by itself - the agreed #432 rule.
+ *
+ * @param {object} e  a thread message: to_recipients, cc_recipients
+ */
+function threadRecipientsHtml(e) {
+    const to = String(e.to_recipients || '').trim();
+    const cc = String(e.cc_recipients || '').trim();
+    if (!to && !cc) return '';
+    const label = (k) => `<span class="thread-recipients-label">${escapeHtml(t('tickets.thread.' + k))}</span>`;
+    // The Cc list as linkAddresses() draws it, with the + button after each address.
+    const ccHtml = (() => {
+        const out = [], re = /[A-Z0-9._%+'-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+        let last = 0, m;
+        while ((m = re.exec(cc)) !== null) {
+            const addr = m[0].toLowerCase();
+            out.push(escapeHtml(cc.slice(last, m.index)), linkPerson(escapeHtml(m[0]), m[0], null));
+            // "Sam <sam@x.com>": the button goes after the closing bracket, not inside it.
+            if (cc[re.lastIndex] === '>') { out.push('&gt;'); re.lastIndex++; }
+            out.push(
+                `<button type="button" class="thread-cc-add" data-cc-add="${escapeHtml(addr)}" hidden title="${escapeHtml(t('tickets.participants.add_from_cc_title', { email: addr }))}">${escapeHtml(t('tickets.participants.add_from_cc'))}</button>`);
+            last = re.lastIndex;   // past the '>' too, when there was one
+        }
+        out.push(escapeHtml(cc.slice(last)));
+        return out.join('');
+    })();
+    return `<div class="thread-recipients" onclick="if (!event.target.closest('a, button')) this.classList.toggle('open')" title="${escapeHtml(t('tickets.thread.recipients_title'))}">`
+        + (to ? `${label('to')} ${linkAddresses(to)}` : '')
+        + (cc ? `${to ? ' <span class="thread-recipients-sep">·</span> ' : ''}${label('cc')} ${ccHtml}` : '')
+        + '</div>';
 }
 
 /** Every address in a To / CC list as a link (linkPerson), the rest of the text escaped. */
@@ -8141,6 +8172,13 @@ function openReplyModal(fromEmail) {
     // goes to someone else). Nobody when the ticket has none - as it always was.
     document.getElementById('emailCc').value = typeof participantReplyCc === 'function'
         ? participantReplyCc(replyTo, currentEmail && currentEmail.requester_email) : '';
+    // Who was Cc'd on the email being answered and will not get this reply: the message
+    // replied from, else the newest one that came in (the thread is newest first).
+    // Only said, with a + Participant button - never added by itself (GH #432).
+    if (typeof replyCcNote === 'function') {
+        const answered = fromInbound ? fromEmail : (window.__threadEmails || []).find(x => x.direction !== 'Outbound');
+        replyCcNote(answered ? answered.cc_recipients : '');
+    }
     if (!replyTo) {
         // Say why, rather than letting them write a reply that cannot be sent.
         // A note is how you reach someone with no mailbox — they read it in the
@@ -8207,6 +8245,7 @@ function replyFromThread(emailId, mode) {
 
 function openForwardModal(fromEmail) {
     composeMode = 'forward';
+    if (typeof replyCcNote === 'function') replyCcNote('');
     document.getElementById('emailTo').value = '';
     document.getElementById('emailCc').value = '';
     document.getElementById('emailSubject').value = composeSubject('FW', (fromEmail && fromEmail.subject) || currentEmail.subject, currentEmail.ticket_number);
@@ -8227,6 +8266,7 @@ function openForwardModal(fromEmail) {
 // Close email modal
 function closeEmailModal() {
     document.getElementById('emailModal').classList.remove('active');
+    if (typeof replyCcNote === 'function') replyCcNote('');
     setPresenceComposing(false);   // we've stopped writing (#934)
     composeMode = 'new';
     // Clear the TinyMCE content

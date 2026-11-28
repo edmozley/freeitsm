@@ -4557,6 +4557,24 @@ body .tox-tinymce-aux {
 /* Each message's own subject, under its sender line - a provider's number (#TCK89633) shows here. */
 .thread-subject { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: -2px 0 8px; overflow-wrap: anywhere; }
 
+/* Who a thread message went to (inbox.js threadRecipientsHtml): one quiet line, folded;
+   a click opens it out. The ticket header no longer shows one message's To / Cc. */
+.thread-recipients { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: -2px 0 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.thread-recipients.open { white-space: normal; overflow-wrap: anywhere; cursor: default; }
+.thread-recipients-label { font-weight: 600; margin-right: 2px; }
+.thread-recipients-sep { margin: 0 4px; }
+/* "+ Participant" beside a Cc'd address - shown by ticket-participants.js only when that person can be added. */
+.thread-cc-add { border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--accent);
+    border-radius: 10px; padding: 0 7px; margin: 0 6px 0 4px; font-size: var(--font-size-xs, 11px); line-height: 16px; cursor: pointer; vertical-align: 1px; }
+.thread-cc-add:hover { background: var(--accent-soft); }
+.thread-cc-add[hidden] { display: none; }
+/* The Reply box's note: someone Cc'd on the email being answered will not get this reply. */
+.reply-cc-note { margin: -4px 0 10px; padding: 6px 10px; border-radius: 6px; font-size: var(--font-size-sm, 12px);
+    background: var(--warning-bg); color: var(--warning-text); }
+.reply-cc-note[hidden] { display: none; }
+.reply-cc-note-item { white-space: nowrap; margin-left: 6px; }
+
 /* The dialog's list of what will move. */
 .split-preview {
     border: 1px solid var(--border, #ddd); border-radius: 6px;

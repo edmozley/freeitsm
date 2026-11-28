@@ -2,7 +2,9 @@
  * Ticket participants (GitHub #432) - end users copied on a ticket's emails.
  *
  * The Participants row in the ticket header (under the requester): each person, a
- * remove button, and Add. Reply pre-fills them in Cc (participantReplyCc(), used by
+ * remove button, and Add. Also the "+ Participant" button beside each Cc'd address
+ * in the thread (inbox.js threadRecipientsHtml): shown only for someone who could be
+ * added, and only ever on a click - a Cc never adds anyone by itself. Reply pre-fills them in Cc (participantReplyCc(), used by
  * inbox.js's openReplyModal); Forward does not. Which automatic emails copy them is
  * Tickets -> Settings -> General. The rules live server-side
  * (includes/services/ticket_participants.php): never the requester, nobody who has
@@ -52,11 +54,11 @@
     }
 
     function render() {
+        syncParticipantCcButtons();
         const row = document.getElementById('ticketParticipantsRow');
         if (!row) return;
         const show = state.ready && !state.confidential && (state.list.length > 0 || state.canEdit);
-        // 'flex', not [hidden] or '': the compact header lays its rows out as display:contents,
-        // which would let the label wrap away from the names.
+        // 'flex', like every header row (reading-pane.css), so the label never wraps away from the names.
         row.style.display = show ? 'flex' : 'none';
         if (!show) return;
         const chips = state.list.map(p => {
@@ -71,7 +73,83 @@
         row.querySelector('.email-meta-value').innerHTML = (chips || '<span class="participant-none">' + esc(T('none')) + '</span>') + add;
     }
 
+    /**
+     * Shows the "+ Participant" button beside a Cc'd address in the thread only when an
+     * Add could work: the analyst may edit, the ticket is not confidential, and the
+     * address is neither the requester's nor a participant's (main or linked). Anything
+     * else the server still refuses with its own reason - a mailbox, an analyst, someone
+     * who has left. Called after the thread is drawn and after every participants load.
+     */
+    function syncParticipantCcButtons() {
+        const ticket = cur();
+        const may = state.ready && state.canEdit && !state.confidential && !(ticket && ticket.sensitivity === 'confidential');
+        const taken = new Set([].concat(
+            (ticket && ticket.requester_email) ? [ticket.requester_email] : [],
+            window.currentTicketRequesterAddresses || [],
+            ...state.list.map(p => [p.email].concat(p.addresses || []))
+        ).filter(Boolean).map(norm));
+        document.querySelectorAll('[data-cc-add]').forEach(b => { b.hidden = !may || taken.has(norm(b.dataset.ccAdd)); });
+    }
+
+    /**
+     * The note in the Reply box: who was Cc'd on the email being answered and will not
+     * get this reply - everyone in that Cc who is not in this reply's To or Cc, not the
+     * requester and not a participant. Each with + Participant (when the analyst may add
+     * one); adding them also puts them in this reply's Cc. '' or a confidential ticket:
+     * no note. Called by inbox.js's openReplyModal, and with '' by Forward and on close.
+     *
+     * @param {string} ccText  the answered email's cc_recipients
+     */
+    let replyCcText = '';
+    function replyCcNote(ccText) {
+        replyCcText = ccText || '';
+        const box = document.getElementById('replyCcNote');
+        if (!box) return;
+        const ticket = cur();
+        const inReply = (id) => String((document.getElementById(id) || {}).value || '').split(/[;,]/)
+            .map(s => { const m = s.match(/<([^>]+)>/); return norm(m ? m[1] : s); }).filter(Boolean);
+        const taken = new Set([].concat(inReply('emailTo'), inReply('emailCc'),
+            (ticket && ticket.requester_email) ? [ticket.requester_email] : [],
+            window.currentTicketRequesterAddresses || [],
+            ...state.list.map(p => [p.email].concat(p.addresses || []))).filter(Boolean).map(norm));
+        const left = (String(ccText || '').match(/[A-Z0-9._%+'-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [])
+            .map(norm).filter((a, i, all) => all.indexOf(a) === i && !taken.has(a));
+        if (!left.length || state.confidential || (ticket && ticket.sensitivity === 'confidential')) {
+            box.hidden = true; box.innerHTML = ''; return;
+        }
+        const may = state.ready && state.canEdit;
+        // With buttons, each address is said once, beside its button; without, in the sentence.
+        box.innerHTML = may
+            ? '<span class="reply-cc-note-text">' + esc(T('reply_cc_note_list')) + '</span>'
+              + left.map(a => ' <span class="reply-cc-note-item">' + esc(a)
+                + ' <button type="button" class="thread-cc-add" data-cc-add="' + esc(a) + '" data-in-reply="1" title="' + esc(T('add_from_cc_title', { email: a })) + '">'
+                + esc(T('add_from_cc')) + '</button></span>').join('')
+            : '<span class="reply-cc-note-text">' + esc(T(left.length === 1 ? 'reply_cc_note_one' : 'reply_cc_note_many', { names: left.join(', ') })) + '</span>';
+        box.hidden = false;
+    }
+
     document.addEventListener('click', async (e) => {
+        const plus = e.target.closest('[data-cc-add]');
+        if (plus) {
+            e.preventDefault();
+            if (!state.ticketId) return;
+            plus.disabled = true;
+            try {
+                await call('POST', { action: 'add', ticket_id: state.ticketId, email: plus.dataset.ccAdd });
+                await loadTicketParticipants(state.ticketId);
+                if (plus.dataset.inReply) {
+                    // From the Reply box: they get this reply too, and come off the note.
+                    const cc = document.getElementById('emailCc');
+                    if (cc) cc.value = (cc.value.trim() ? cc.value.trim().replace(/[;,]\s*$/, '') + '; ' : '') + plus.dataset.ccAdd;
+                    replyCcNote(replyCcText);   // drawn again: they are in Cc now, so off the note
+                }
+                if (typeof showToast === 'function') showToast(T('added_from_cc', { email: plus.dataset.ccAdd }), 'success');
+            } catch (err) {
+                plus.disabled = false;
+                if (typeof showToast === 'function') showToast(err.message, 'error');
+            }
+            return;
+        }
         const rm = e.target.closest('#ticketParticipantsRow [data-remove]');
         if (rm) {
             e.preventDefault();
@@ -208,4 +286,6 @@
 
     window.loadTicketParticipants = loadTicketParticipants;
     window.participantReplyCc = participantReplyCc;
+    window.syncParticipantCcButtons = syncParticipantCcButtons;
+    window.replyCcNote = replyCcNote;
 })();

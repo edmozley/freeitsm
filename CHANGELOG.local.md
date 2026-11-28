@@ -14,6 +14,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3207 | Tickets           | Feature     | Replying to an email that had Cc'd people who are not participants says so in the reply box, each with + Participant (which also puts them in that reply's Cc); a Cc is never added by itself. |
+| 3206 | Tickets           | Feature     | Each message in a ticket's thread shows who it went to (To and Cc, one line that opens out), with + Participant beside each Cc'd address. |
+| 3205 | Tickets           | Improvement | The ticket header shows the ticket's own facts - Requester (with Change requester), Participants, Opened - instead of one message's From / To / Cc / Date, which hid the first email's Cc and put Change requester beside the service desk's own address. |
 | 3204 | Tickets           | Fix         | Participants made safer while merging PR #440: a company-scoped API key only reaches people in its companies, a person is never created in a company the analyst cannot reach, linked analyst addresses are refused, and the header row no longer splits To from its address. |
 | 3203 | Tickets           | Feature     | Automatic replies (out-of-office and the like) are recognised on IMAP, Gmail and Microsoft 365 mail: kept and folded, but they never reopen, wake or bump a ticket or fire reply received, and automated mail gets no acknowledgement (PR #440 by @cloudcogsio). |
 | 3202 | Tickets           | Feature     | Ticket participants: people kept in Cc on a ticket's replies without re-adding them, added from the ticket header or the REST API; automatic emails copy them only for the events ticked in Tickets -> Settings -> General; never on confidential tickets (PR #440 by @cloudcogsio, GH #432). |

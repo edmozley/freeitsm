@@ -432,6 +432,7 @@ try {
                     <ul>
                         <li><?php echo t('tickets.help.participants.how'); ?></li>
                         <li><?php echo t('tickets.help.participants.reply'); ?></li>
+                        <li><?php echo t('tickets.help.participants.cc'); /* Ed, 28 Nov 2026: one rule for a Cc */ ?></li>
                         <li><?php echo t('tickets.help.participants.auto'); ?></li>
                         <li><?php echo t('tickets.help.participants.who'); ?></li>
                         <li><?php echo t('tickets.help.participants.confidential'); ?></li>
