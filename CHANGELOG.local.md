@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3194 | Knowledge         | Fix         | A folder's lock now means it has its own permissions, as on articles: it no longer shows on a folder that follows the folder above, and now shows on one with its own open rules (PR #448 by @Dr4inder). |
 | 3193 | Assets            | Improvement | When the vCenter part of Sync hypervisors fails, the Servers page now points to Settings -> vCenter -> Test (GH #445). |
 | 3192 | Assets            | Improvement | Changing the vCenter server or user on Settings -> vCenter now needs the password typed again, so a saved password is only ever sent to the server and user it was saved for (GH #445). |
 | 3191 | Assets            | Fix         | A vCenter server saved with https:// or a path (pasted from the browser) no longer breaks the sync - the address is cut back to the server's name, as the new Test does (GH #445). |
