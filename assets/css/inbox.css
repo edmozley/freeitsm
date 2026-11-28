@@ -4574,6 +4574,7 @@ body .tox-tinymce-aux {
     background: var(--warning-bg); color: var(--warning-text); }
 .reply-cc-note[hidden] { display: none; }
 .reply-cc-note-item { white-space: nowrap; margin-left: 6px; }
+.reply-cc-note-help { margin-left: 8px; color: inherit; text-decoration: underline; white-space: nowrap; }
 
 /* The dialog's list of what will move. */
 .split-preview {

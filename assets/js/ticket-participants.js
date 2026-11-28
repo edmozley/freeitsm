@@ -125,6 +125,8 @@
                 + ' <button type="button" class="thread-cc-add" data-cc-add="' + esc(a) + '" data-in-reply="1" title="' + esc(T('add_from_cc_title', { email: a })) + '">'
                 + esc(T('add_from_cc')) + '</button></span>').join('')
             : '<span class="reply-cc-note-text">' + esc(T(left.length === 1 ? 'reply_cc_note_one' : 'reply_cc_note_many', { names: left.join(', ') })) + '</span>';
+        // When to make someone a participant and when to type them into Cc: Tickets help.
+        box.innerHTML += ' <a class="reply-cc-note-help" href="help.php#participants" target="_blank" rel="noopener">' + esc(T('reply_cc_note_help')) + '</a>';
         box.hidden = false;
     }
 

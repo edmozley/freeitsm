@@ -340,6 +340,7 @@ return [
         'added_from_cc' => '{email} is now a participant.',
         'reply_cc_note_one' => '{names} was Cc\'d on this email and will not get your reply.',
         'reply_cc_note_many' => 'These people were Cc\'d on this email and will not get your reply: {names}.',
+        'reply_cc_note_help' => 'Participant or Cc?',
         'reply_cc_note_list' => 'Cc\'d on this email - will not get your reply:',
         'add' => 'Add',
         'add_title' => 'Add a participant',
@@ -3591,6 +3592,7 @@ return [
         // GH #432: participants - end users copied on a ticket's emails.
         'participants' => [
             'heading' => 'Participants: keeping other people copied',
+            'cc_or_participant' => '<strong>Participant, or Cc in the reply box?</strong> Make someone a <strong>participant</strong> when they should follow the whole ticket - a manager who wants every update, a colleague with the same problem, a supplier working on the fix. From then on they are copied on every reply, and on the automatic emails ticked in Settings. Type them into <strong>Cc</strong> in the reply box when this one email is all they need - one question for them, one thing to let them know, or someone who was only copied in as a courtesy. They get that email and nothing after it. If you are unsure, ask: would they want the next reply too? And never make someone a participant if they should not read everything on the ticket - every reply goes to them.',
             'cc' => '<strong>Someone Cc\'d on an email</strong> is shown on that message in the thread (each message says who it went to), but is never added to the ticket by itself. Being Cc\'d is only information - anyone can be: a supplier, a mailing list, a system that answers automatically. To keep them in the loop, press <strong>+ Participant</strong> beside their address. When you reply to an email that had Cc\'d people who are not participants, the reply box says who will not get it, with the same button.',
             'body' => 'A ticket has one requester, but colleagues hit by the same problem, a manager or someone supplying information often need every email too. Add them as <strong>participants</strong> and you no longer type them into Cc on every reply.',
             'how' => 'The <strong>Participants</strong> row sits under the requester in the ticket header. <strong>Add</strong> searches People, or takes an email address - one nobody has yet creates the person. The &times; next to a name takes them off. Changing participants needs write access to Tickets, and every add and removal is in the ticket\'s history.',
